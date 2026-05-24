@@ -28,4 +28,4 @@ npm start
 
 ---
 
-Sinta-se à vontade para explorar, modificar e testar diferentes abordagens!!!
+Sinta-se à vontade para explorar, modificar e testar diferentes abordagens!
