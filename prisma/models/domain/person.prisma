@@ -1,0 +1,99 @@
+// Modelos de domínio com relacionamento direto a pessoas
+model Person {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @db.Uuid
+  name       String
+  socialname String?
+  birthDate  DateTime?
+  gender     String?
+
+  userId    String?   @unique @db.Uuid
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id])
+
+  contacts         Contact[]
+  reports          Report[]
+  documents        PersonDocument[]
+  addresses        PersonAddress[]
+  boardMemberships TenantBoardMember[]
+
+  @@map("people")
+}
+
+model PersonAddress {
+  id        String      @id @default(uuid()) @db.Uuid
+  personId  String      @db.Uuid
+  addressId String      @db.Uuid
+  type      AddressType @default(HOME)
+  isPrimary Boolean     @default(false)
+  startedAt DateTime?
+  endedAt   DateTime?
+
+  person  Person  @relation(fields: [personId], references: [id])
+  address Address @relation(fields: [addressId], references: [id])
+
+  @@map("person_addresses")
+}
+
+model Address {
+  id         String  @id @default(uuid()) @db.Uuid
+  street     String
+  number     String?
+  district   String?
+  city       String
+  state      String
+  zipCode    String
+  country    String
+  complement String?
+  reference  String?
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  residents PersonAddress[]
+
+  @@map("addresses")
+}
+
+model Contact {
+  id       String      @id @default(uuid()) @db.Uuid
+  personId String      @db.Uuid
+  title    String
+  type     ContactType
+  value    String
+  main     Boolean     @default(false)
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  person Person @relation(fields: [personId], references: [id])
+
+  @@map("contacts")
+}
+
+model PersonDocument {
+  id       String @id @default(uuid()) @db.Uuid
+  personId String @db.Uuid
+
+  type    DocumentType
+  value   String
+  storage String
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  person Person @relation(fields: [personId], references: [id])
+
+  @@map("person_documents")
+}

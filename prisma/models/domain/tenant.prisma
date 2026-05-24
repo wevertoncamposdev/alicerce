@@ -1,0 +1,413 @@
+/// Defines the legal/institutional nature of the tenant.
+/// Use this to classify what kind of organization is being registered.
+enum TenantCategory {
+  /// Nonprofit membership-based entity formed by associates.
+  ASSOCIATION
+
+  /// Entity created through an endowment or patrimony for a specific purpose.
+  FOUNDATION
+
+  /// Religious institution with social or community activities.
+  RELIGIOUS_ORGANIZATION
+
+  /// Cooperative with a social inclusion or collective development purpose.
+  SOCIAL_COOPERATIVE
+
+  /// Fallback option when the category does not fit the predefined values.
+  OTHER
+}
+
+/// Defines the tenant's main area of activity.
+/// Used to classify the social impact or service domain of the organization.
+enum TenantServiceArea {
+  SOCIAL_ASSISTANCE
+  EDUCATION
+  HEALTH
+  RIGHTS_ADVOCACY
+  CULTURE
+  ENVIRONMENT
+  ADVISORY_SUPPORT
+  ECONOMIC_DEVELOPMENT
+  PROFESSIONAL_TRAINING
+  OTHER
+}
+
+/// Defines the type of partnership the tenant has with public institutions.
+/// Based on common OSC/MROSC partnership models.
+enum PartnershipType {
+  /// No formal public partnership.
+  NONE
+
+  /// Public collaboration term.
+  COLLABORATION_TERM
+
+  /// Public foment/support term.
+  FOMENT_TERM
+
+  /// Public cooperation agreement.
+  COOPERATION_AGREEMENT
+}
+
+/// Defines the geographic scope of the tenant's activity.
+enum CoverageArea {
+  NEIGHBORHOOD
+  MUNICIPAL
+  INTERCITY
+  STATE
+  REGIONAL
+  NATIONAL
+  INTERNATIONAL
+}
+
+/// Defines the approximate organizational size.
+/// Can be used for analytics, filtering, segmentation, or reporting.
+enum OrganizationSize {
+  MICRO
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+/// Defines the role a person occupies in the tenant's board structure.
+/// Used only for board composition and governance history.
+enum BoardRoleType {
+  PRESIDENT
+  VICE_PRESIDENT
+  SECRETARY
+  VICE_SECRETARY
+  TREASURER
+  VICE_TREASURER
+  BOARD_MEMBER
+  FISCAL_COUNCIL_MEMBER
+  LEGAL_REPRESENTATIVE
+  OTHER
+}
+
+/// Defines the institutional or regulatory document type of a tenant.
+/// All documents belong to the tenant, even when related to a board term.
+enum TenantDocumentType {
+  BYLAWS
+  MEETING_MINUTES
+  ELECTION_MINUTES
+  APPOINTMENT_TERM
+  REGISTRATION_CERTIFICATE
+  TAX_DOCUMENT
+  FINANCIAL_STATEMENT
+  ACCOUNTABILITY_REPORT
+  ANNUAL_REPORT
+  INTERNAL_REGULATION
+  OTHER
+}
+
+/// Main organizational entity of the system.
+/// Represents an institution/organization registered in the platform.
+///
+/// A tenant contains:
+/// - institutional identity
+/// - service classification
+/// - contact and address data
+/// - governance information
+/// - regulatory documents
+/// - all people, users, and records linked to that organization
+model Tenant {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Official legal name of the organization.
+  legalName String @unique @db.VarChar(255)
+
+  /// Public/commercial/socially used name of the organization.
+  tradeName String? @db.VarChar(255)
+
+  /// Registration number such as CNPJ.
+  /// Optional to allow early registration before full compliance.
+  registrationNumber String @unique @db.VarChar(20)
+
+  /// Unique public identifier used in routes, URLs, or subdomains.
+  slug String @unique @db.VarChar(120)
+
+  /// General institutional presentation.
+  description String? @db.Text
+
+  /// Mission statement of the organization.
+  mission String? @db.Text
+
+  /// Long-term institutional vision.
+  vision String? @db.Text
+
+  /// Institutional values and guiding principles.
+  values String? @db.Text
+
+  /// Legal/institutional category of the tenant.
+  category TenantCategory
+
+  /// Main service area of the tenant.
+  primaryServiceArea TenantServiceArea
+
+  /// Public partnership type if one exists.
+  partnershipType PartnershipType @default(NONE)
+
+  /// Geographic reach of the tenant's operation.
+  coverageArea CoverageArea?
+
+  /// Approximate organizational size.
+  organizationSize OrganizationSize?
+
+  /// Official or informal date when the organization started.
+  foundedAt DateTime?
+
+  /// Date of closure or inactivity, if applicable.
+  closedAt DateTime?
+
+  /// Main institutional address of the tenant.
+  /// Stored directly in the tenant because it represents the primary organization location.
+  street     String? @db.VarChar(255)
+  number     String? @db.VarChar(50)
+  district   String? @db.VarChar(150)
+  city       String? @db.VarChar(150)
+  state      String? @db.VarChar(100)
+  zipCode    String? @db.VarChar(20)
+  country    String? @db.VarChar(100)
+  complement String? @db.VarChar(255)
+  reference  String? @db.VarChar(255)
+
+  /// Institutional contact channels.
+  phone       String? @db.VarChar(20)
+  mobilePhone String? @db.VarChar(20)
+  email       String? @db.VarChar(255)
+  website     String? @db.VarChar(255)
+  instagram   String? @db.VarChar(255)
+  facebook    String? @db.VarChar(255)
+  linkedin    String? @db.VarChar(255)
+
+  /// Operational characteristics of the tenant.
+  usesVolunteers           Boolean @default(false)
+  acceptsDonations         Boolean @default(false)
+  hasGovernmentPartnership Boolean @default(false)
+  isNonProfit              Boolean @default(true)
+
+  /// Free-form notes for internal use.
+  notes String? @db.Text
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  /// Secondary or additional service areas beyond the primary one.
+  serviceAreas TenantArea[]
+
+  /// Users who can access the platform under this tenant.
+  users User[]
+
+  /// Authorization and permission-related structures linked to the tenant.
+  roles       Role[]
+  userRoles   UserRole[]
+  permissions RolePermission[]
+
+  /// Audit trail records belonging to the tenant.
+  audits Audit[]
+
+  /// Governance structure:
+  /// board terms group the composition of the board by period.
+  boardTerms TenantBoardTerm[]
+
+  /// Flat access to all board members ever linked to this tenant.
+  boardMembers TenantBoardMember[]
+
+  /// Institutional and regulatory documents published or stored by the tenant.
+  documents TenantDocument[]
+
+  /// All persons registered under this tenant.
+  people Person[]
+
+  /// Reports generated or associated with this tenant.
+  reports Report[]
+
+  @@index([slug])
+  @@index([registrationNumber])
+  @@index([category])
+  @@index([primaryServiceArea])
+  @@index([status])
+  @@map("tenants")
+}
+
+/// Stores additional service areas for a tenant.
+/// This allows the tenant to have one primary service area and many secondary areas.
+///
+/// Example:
+/// - primaryServiceArea = EDUCATION
+/// - additional serviceAreas = HEALTH, SOCIAL_ASSISTANCE
+model TenantArea {
+  id       String            @id @default(uuid()) @db.Uuid
+  tenantId String            @db.Uuid
+  area     TenantServiceArea
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  /// Prevents duplicate area assignments for the same tenant.
+  @@unique([tenantId, area])
+  @@index([area])
+  @@map("tenant_areas")
+}
+
+/// Represents a board/governance member of the tenant during a given board term.
+///
+/// This model answers:
+/// - who occupied the role
+/// - which role they occupied
+/// - in what period
+///
+/// It does not define the person itself.
+/// The person identity remains centralized in the Person model.
+model TenantBoardMember {
+  id          String @id @default(uuid()) @db.Uuid
+  tenantId    String @db.Uuid
+  boardTermId String @db.Uuid
+  personId    String @db.Uuid
+
+  /// Formal role occupied in the board.
+  role BoardRoleType
+
+  /// Optional custom title when the enum is not enough.
+  /// Useful for institution-specific naming.
+  title String? @db.VarChar(150)
+
+  /// Actual start of the role occupancy.
+  /// Can differ from the board term start if replacement happened later.
+  startDate DateTime?
+
+  /// End of the role occupancy.
+  /// Null means the role may still be active.
+  endDate DateTime?
+
+  /// Internal notes about appointment, replacement, context, etc.
+  notes String? @db.Text
+
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  /// Board term to which this membership belongs.
+  boardTerm TenantBoardTerm @relation(fields: [boardTermId], references: [id])
+
+  /// Person who occupied the role.
+  person Person @relation(fields: [personId], references: [id])
+
+  @@index([tenantId, role])
+  @@index([boardTermId])
+  @@index([personId])
+  @@map("tenant_board_members")
+}
+
+/// Represents a governance/board composition period for a tenant.
+///
+/// This model groups board members by management period.
+///
+/// Example:
+/// - Board Term 2025-2027
+/// - Board Term 2028-2030
+///
+/// Documents such as meeting minutes or appointment terms may optionally point to a board term.
+model TenantBoardTerm {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+
+  /// Optional human-readable label for the board period.
+  /// Example: "Board 2025-2027"
+  name String? @db.VarChar(150)
+
+  /// Official or operational start date of this board composition.
+  startDate DateTime
+
+  /// End date of the board composition.
+  /// Null may indicate current/ongoing board term.
+  endDate DateTime?
+
+  /// Internal notes about the board composition.
+  notes String? @db.Text
+
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  /// People who occupied positions during this board term.
+  members TenantBoardMember[]
+
+  /// Tenant documents that regulate, validate, or describe this board term.
+  /// Example: meeting minutes, appointment term, election minutes.
+  documents TenantDocument[]
+
+  @@index([tenantId, startDate, endDate])
+  @@map("tenant_board_terms")
+}
+
+/// Central repository of institutional/regulatory documents of a tenant.
+///
+/// Important design rule:
+/// Documents belong to the tenant, not to the board.
+/// A document may optionally reference a board term when it is related to a specific management period.
+///
+/// This model can store:
+/// - bylaws
+/// - meeting minutes
+/// - election minutes
+/// - appointment terms
+/// - financial statements
+/// - accountability reports
+/// - public regulatory documents
+model TenantDocument {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+
+  /// Optional relation to the board term when the document is specifically tied to a board composition.
+  boardTermId String? @db.Uuid
+
+  /// Classification of the document.
+  type TenantDocumentType
+
+  /// Public or internal document title.
+  title String @db.VarChar(255)
+
+  /// Optional explanation of the document content or relevance.
+  description String? @db.Text
+
+  /// Storage location of the file.
+  fileUrl String @db.VarChar(500)
+
+  /// Original file name or display name.
+  fileName String? @db.VarChar(255)
+
+  /// MIME type for file processing or validation.
+  mimeType String? @db.VarChar(100)
+
+  /// Date written on the document itself.
+  documentDate DateTime?
+
+  /// Date when the document became publicly available or was officially published.
+  publishedAt DateTime?
+
+  /// Expiration date, when applicable.
+  expiresAt DateTime?
+
+  /// Indicates whether the document can be publicly displayed.
+  isPublic Boolean @default(false)
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  /// Optional link to a specific board term.
+  boardTerm TenantBoardTerm? @relation(fields: [boardTermId], references: [id])
+
+  @@index([tenantId, type])
+  @@index([boardTermId])
+  @@index([isPublic])
+  @@map("tenant_documents")
+}
