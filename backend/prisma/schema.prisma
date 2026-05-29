@@ -1,0 +1,179 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/core/prisma/generated"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum RoleType {
+  ADMIN
+  USER
+  GUEST
+}
+
+enum PermissionType {
+  READ
+  WRITE
+  DELETE
+}
+
+enum ContactType {
+  EMAIL
+  PHONE
+  SOCIAL
+}
+
+enum AuditType {
+  LOGIN
+  LOGOUT
+  DATA_CHANGE
+  PERMISSION_CHANGE
+}
+
+enum ReportType {
+  BUG
+  FEATURE_REQUEST
+  OTHER
+  REPORT
+  ANALYTICS
+  QUALITY
+  QUANTITY
+}
+
+enum DocumentType {
+  CPF
+  RG
+  CNH
+  NIS
+  PIS
+  PASEP
+  TITULO_ELEITOR
+  CERTIDAO_NASCIMENTO
+  CERTIDAO_CASAMENTO
+  PASSAPORTE
+  CARTEIRA_TRABALHO
+  RESERVISTA
+  RNE
+  CPF_RESPONSAVEL
+}
+
+enum AddressType {
+  HOME
+  WORK
+}
+
+/// Defines the legal/institutional nature of the tenant.
+/// Use this to classify what kind of organization is being registered.
+enum TenantCategory {
+  /// Nonprofit membership-based entity formed by associates.
+  ASSOCIATION
+
+  /// Entity created through an endowment or patrimony for a specific purpose.
+  FOUNDATION
+
+  /// Religious institution with social or community activities.
+  RELIGIOUS_ORGANIZATION
+
+  /// Cooperative with a social inclusion or collective development purpose.
+  SOCIAL_COOPERATIVE
+
+  /// Fallback option when the category does not fit the predefined values.
+  OTHER
+}
+
+/// Defines the tenant's main area of activity.
+/// Used to classify the social impact or service domain of the organization.
+enum TenantServiceArea {
+  SOCIAL_ASSISTANCE
+  EDUCATION
+  HEALTH
+  RIGHTS_ADVOCACY
+  CULTURE
+  ENVIRONMENT
+  ADVISORY_SUPPORT
+  ECONOMIC_DEVELOPMENT
+  PROFESSIONAL_TRAINING
+  OTHER
+}
+
+/// Defines the type of partnership the tenant has with public institutions.
+/// Based on common OSC/MROSC partnership models.
+enum PartnershipType {
+  /// No formal public partnership.
+  NONE
+
+  /// Public collaboration term.
+  COLLABORATION_TERM
+
+  /// Public foment/support term.
+  FOMENT_TERM
+
+  /// Public cooperation agreement.
+  COOPERATION_AGREEMENT
+}
+
+/// Defines the geographic scope of the tenant's activity.
+enum CoverageArea {
+  NEIGHBORHOOD
+  MUNICIPAL
+  INTERCITY
+  STATE
+  REGIONAL
+  NATIONAL
+  INTERNATIONAL
+}
+
+/// Defines the approximate organizational size.
+/// Can be used for analytics, filtering, segmentation, or reporting.
+enum OrganizationSize {
+  MICRO
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+/// Defines the role a person occupies in the tenant's board structure.
+/// Used only for board composition and governance history.
+enum BoardRoleType {
+  PRESIDENT
+  VICE_PRESIDENT
+  SECRETARY
+  VICE_SECRETARY
+  TREASURER
+  VICE_TREASURER
+  BOARD_MEMBER
+  FISCAL_COUNCIL_MEMBER
+  LEGAL_REPRESENTATIVE
+  OTHER
+}
+
+/// Defines the institutional or regulatory document type of a tenant.
+/// All documents belong to the tenant, even when related to a board term.
+enum TenantDocumentType {
+  BYLAWS
+  MEETING_MINUTES
+  ELECTION_MINUTES
+  APPOINTMENT_TERM
+  REGISTRATION_CERTIFICATE
+  TAX_DOCUMENT
+  FINANCIAL_STATEMENT
+  ACCOUNTABILITY_REPORT
+  ANNUAL_REPORT
+  INTERNAL_REGULATION
+  OTHER
+}

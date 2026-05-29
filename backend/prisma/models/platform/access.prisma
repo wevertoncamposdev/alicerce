@@ -1,0 +1,93 @@
+// Modelos de controle de acesso
+
+model User {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+
+  email    String @unique @db.VarChar(255)
+  password String @db.VarChar(100)
+
+  mfaEnabled Boolean @default(false)
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant Tenant     @relation(fields: [tenantId], references: [id])
+  roles  UserRole[]
+  audits Audit[]
+  person Person?
+
+  @@unique([tenantId, email])
+  @@map("users")
+}
+
+model Role {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+
+  name        String
+  type        RoleType
+  description String?
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant      Tenant           @relation(fields: [tenantId], references: [id])
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  userId   String @db.Uuid
+  roleId   String @db.Uuid
+
+  assignedBy String?  @db.Uuid // id do usuário que fez a atribuição
+  assignedAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid()) @db.Uuid
+  tenantId    String           @db.Uuid
+  name        String
+  description String?
+  type        PermissionType
+  resource    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
+  tenant      Tenant           @relation(fields: [tenantId], references: [id])
+  roles       RolePermission[]
+
+  @@unique([tenantId, name, resource])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String  @id @default(uuid()) @db.Uuid
+  tenantId     String  @db.Uuid
+  roleId       String  @db.Uuid
+  permissionId String  @db.Uuid
+  resource     String? /// ex: "users", "reports"
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id])
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId, resource])
+  @@map("role_permissions")
+}
