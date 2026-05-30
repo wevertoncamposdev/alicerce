@@ -1,11 +1,17 @@
-import Sidebar from "@/components/Sidebar";
+"use client"
+import MainSidebar from "@/components/MainSidebar";
 import "../globals.css";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex min-h-screen bg-white">
-      <Sidebar />
-      <main className="flex-1 p-8">{children}</main>
-    </div>
-  );
+   return (
+    <SidebarProvider>
+      <AppSidebar />
+      <main className="flex-1 p-4">
+        <SidebarTrigger />
+        {children}
+      </main>
+    </SidebarProvider>
+  )
 }
