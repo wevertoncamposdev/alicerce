@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { IntlProvider } from 'react-intl';
+import locale from '../locales/pt.json';
 
 export const metadata: Metadata = {
   title: "SaaS Multi-Tenant Base",
@@ -12,11 +14,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className="--font-inter h-full antialiased"
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html className="--font-inter h-full antialiased">
+      <IntlProvider locale="pt-BR" messages={locale}>
+        <body className="min-h-full flex flex-col">{children}</body>
+      </IntlProvider>
     </html>
   );
 }

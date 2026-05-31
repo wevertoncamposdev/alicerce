@@ -1,5 +1,5 @@
 "use client"
-import MainSidebar from "@/components/MainSidebar";
+
 import "../globals.css";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
