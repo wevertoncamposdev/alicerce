@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Sidebar,
@@ -9,26 +11,90 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuBadge,
-  SidebarMenuAction,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
   SidebarSeparator,
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import {
+  type LucideIcon,
   User2,
   Home,
   Users,
   Building2,
-  ChevronDown,
   KeyRound,
   Shield,
   FileText,
+  CheckSquare2,
   LogOut,
 } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
+import { listRouteRules, RouteAccessMeta } from "@/lib/authz";
+
+const MODULE_ICONS: Record<RouteAccessMeta["module"], LucideIcon> = {
+  users: Users,
+  tenants: Building2,
+  roles: KeyRound,
+  permissions: Shield,
+  audit: FileText,
+  tasks: CheckSquare2,
+};
+
+const GENERAL_MODULES: RouteAccessMeta["module"][] = ["users", "tenants"];
+
+function renderNavLabel(title: string) {
+  if (title === "Papeis") {
+    return "Papéis";
+  }
+
+  if (title === "Permissoes") {
+    return "Permissões";
+  }
+
+  return title;
+}
+
+function NavItem({
+  href,
+  label,
+  icon: Icon,
+  disabled,
+}: {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  disabled: boolean;
+}) {
+  if (!disabled) {
+    return (
+      <Link href={href} passHref>
+        <SidebarMenuButton asChild>
+          <span className="flex items-center">
+            <Icon className="mr-2 h-4 w-4" />
+            {label}
+          </span>
+        </SidebarMenuButton>
+      </Link>
+    );
+  }
+
+  return (
+    <SidebarMenuButton disabled>
+      <span className="flex items-center opacity-50">
+        <Icon className="mr-2 h-4 w-4" />
+        {label}
+      </span>
+    </SidebarMenuButton>
+  );
+}
 
 export function AppSidebar() {
+  const { signOut, hasPermission } = useAuth();
+  const router = useRouter();
+
+  const routeRules = listRouteRules();
+  const generalRoutes = routeRules.filter((rule) => GENERAL_MODULES.includes(rule.module));
+  const permissionRoutes = routeRules.filter((rule) => !GENERAL_MODULES.includes(rule.module));
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -51,46 +117,16 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <Link href="/main/users" passHref>
-                  <SidebarMenuButton asChild>
-                    <span className="flex items-center">
-                      <Users className="mr-2 h-4 w-4" />
-                      Usuários
-                    </span>
-                  </SidebarMenuButton>
-                </Link>
-                <SidebarMenuBadge>5</SidebarMenuBadge>
-                <SidebarMenuAction>
-                  <ChevronDown className="w-4 h-4" />
-                </SidebarMenuAction>
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <Link href="/main/users/admins" passHref>
-                      <SidebarMenuButton asChild size="sm">
-                        <span>Admins</span>
-                      </SidebarMenuButton>
-                    </Link>
-                  </SidebarMenuSubItem>
-                  <SidebarMenuSubItem>
-                    <Link href="/main/users/guests" passHref>
-                      <SidebarMenuButton asChild size="sm">
-                        <span>Guests</span>
-                      </SidebarMenuButton>
-                    </Link>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <Link href="/main/tenants" passHref>
-                  <SidebarMenuButton asChild>
-                    <span className="flex items-center">
-                      <Building2 className="mr-2 h-4 w-4" />
-                      Tenants
-                    </span>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
+              {generalRoutes.map((route) => (
+                <SidebarMenuItem key={route.prefix}>
+                  <NavItem
+                    href={route.prefix}
+                    label={renderNavLabel(route.title)}
+                    icon={MODULE_ICONS[route.module]}
+                    disabled={!hasPermission(route.permission)}
+                  />
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -99,36 +135,16 @@ export function AppSidebar() {
           <SidebarGroupLabel>Permissões</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <Link href="/main/roles" passHref>
-                  <SidebarMenuButton asChild>
-                    <span className="flex items-center">
-                      <KeyRound className="mr-2 h-4 w-4" />
-                      Papéis
-                    </span>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <Link href="/main/permissions" passHref>
-                  <SidebarMenuButton asChild>
-                    <span className="flex items-center">
-                      <Shield className="mr-2 h-4 w-4" />
-                      Permissões
-                    </span>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <Link href="/main/audit" passHref>
-                  <SidebarMenuButton asChild>
-                    <span className="flex items-center">
-                      <FileText className="mr-2 h-4 w-4" />
-                      Auditoria
-                    </span>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
+              {permissionRoutes.map((route) => (
+                <SidebarMenuItem key={route.prefix}>
+                  <NavItem
+                    href={route.prefix}
+                    label={renderNavLabel(route.title)}
+                    icon={MODULE_ICONS[route.module]}
+                    disabled={!hasPermission(route.permission)}
+                  />
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -136,7 +152,12 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton>
+            <SidebarMenuButton
+              onClick={() => {
+                signOut();
+                router.replace("/auth/login");
+              }}
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Sair
             </SidebarMenuButton>

@@ -14,20 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model TenantDocument
- * Central repository of institutional/regulatory documents of a tenant.
  * 
- * Important design rule:
- * Documents belong to the tenant, not to the board.
- * A document may optionally reference a board term when it is related to a specific management period.
- * 
- * This model can store:
- * - bylaws
- * - meeting minutes
- * - election minutes
- * - appointment terms
- * - financial statements
- * - accountability reports
- * - public regulatory documents
  */
 export type TenantDocumentModel = runtime.Types.Result.DefaultSelection<Prisma.$TenantDocumentPayload>
 
@@ -1093,57 +1080,21 @@ export type $TenantDocumentPayload<ExtArgs extends runtime.Types.Extensions.Inte
   name: "TenantDocument"
   objects: {
     tenant: Prisma.$TenantPayload<ExtArgs>
-    /**
-     * Optional link to a specific board term.
-     */
     boardTerm: Prisma.$TenantBoardTermPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     tenantId: string
-    /**
-     * Optional relation to the board term when the document is specifically tied to a board composition.
-     */
     boardTermId: string | null
-    /**
-     * Classification of the document.
-     */
     type: $Enums.TenantDocumentType
-    /**
-     * Public or internal document title.
-     */
     title: string
-    /**
-     * Optional explanation of the document content or relevance.
-     */
     description: string | null
-    /**
-     * Storage location of the file.
-     */
     fileUrl: string
-    /**
-     * Original file name or display name.
-     */
     fileName: string | null
-    /**
-     * MIME type for file processing or validation.
-     */
     mimeType: string | null
-    /**
-     * Date written on the document itself.
-     */
     documentDate: Date | null
-    /**
-     * Date when the document became publicly available or was officially published.
-     */
     publishedAt: Date | null
-    /**
-     * Expiration date, when applicable.
-     */
     expiresAt: Date | null
-    /**
-     * Indicates whether the document can be publicly displayed.
-     */
     isPublic: boolean
     status: $Enums.Status
     createdAt: Date

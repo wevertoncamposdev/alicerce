@@ -385,6 +385,48 @@ export type ReportMinOrderByAggregateInput = {
   assignedTo?: Prisma.SortOrder
 }
 
+export type ReportCreateNestedManyWithoutTenantInput = {
+  create?: Prisma.XOR<Prisma.ReportCreateWithoutTenantInput, Prisma.ReportUncheckedCreateWithoutTenantInput> | Prisma.ReportCreateWithoutTenantInput[] | Prisma.ReportUncheckedCreateWithoutTenantInput[]
+  connectOrCreate?: Prisma.ReportCreateOrConnectWithoutTenantInput | Prisma.ReportCreateOrConnectWithoutTenantInput[]
+  createMany?: Prisma.ReportCreateManyTenantInputEnvelope
+  connect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+}
+
+export type ReportUncheckedCreateNestedManyWithoutTenantInput = {
+  create?: Prisma.XOR<Prisma.ReportCreateWithoutTenantInput, Prisma.ReportUncheckedCreateWithoutTenantInput> | Prisma.ReportCreateWithoutTenantInput[] | Prisma.ReportUncheckedCreateWithoutTenantInput[]
+  connectOrCreate?: Prisma.ReportCreateOrConnectWithoutTenantInput | Prisma.ReportCreateOrConnectWithoutTenantInput[]
+  createMany?: Prisma.ReportCreateManyTenantInputEnvelope
+  connect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+}
+
+export type ReportUpdateManyWithoutTenantNestedInput = {
+  create?: Prisma.XOR<Prisma.ReportCreateWithoutTenantInput, Prisma.ReportUncheckedCreateWithoutTenantInput> | Prisma.ReportCreateWithoutTenantInput[] | Prisma.ReportUncheckedCreateWithoutTenantInput[]
+  connectOrCreate?: Prisma.ReportCreateOrConnectWithoutTenantInput | Prisma.ReportCreateOrConnectWithoutTenantInput[]
+  upsert?: Prisma.ReportUpsertWithWhereUniqueWithoutTenantInput | Prisma.ReportUpsertWithWhereUniqueWithoutTenantInput[]
+  createMany?: Prisma.ReportCreateManyTenantInputEnvelope
+  set?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  disconnect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  delete?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  connect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  update?: Prisma.ReportUpdateWithWhereUniqueWithoutTenantInput | Prisma.ReportUpdateWithWhereUniqueWithoutTenantInput[]
+  updateMany?: Prisma.ReportUpdateManyWithWhereWithoutTenantInput | Prisma.ReportUpdateManyWithWhereWithoutTenantInput[]
+  deleteMany?: Prisma.ReportScalarWhereInput | Prisma.ReportScalarWhereInput[]
+}
+
+export type ReportUncheckedUpdateManyWithoutTenantNestedInput = {
+  create?: Prisma.XOR<Prisma.ReportCreateWithoutTenantInput, Prisma.ReportUncheckedCreateWithoutTenantInput> | Prisma.ReportCreateWithoutTenantInput[] | Prisma.ReportUncheckedCreateWithoutTenantInput[]
+  connectOrCreate?: Prisma.ReportCreateOrConnectWithoutTenantInput | Prisma.ReportCreateOrConnectWithoutTenantInput[]
+  upsert?: Prisma.ReportUpsertWithWhereUniqueWithoutTenantInput | Prisma.ReportUpsertWithWhereUniqueWithoutTenantInput[]
+  createMany?: Prisma.ReportCreateManyTenantInputEnvelope
+  set?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  disconnect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  delete?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  connect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  update?: Prisma.ReportUpdateWithWhereUniqueWithoutTenantInput | Prisma.ReportUpdateWithWhereUniqueWithoutTenantInput[]
+  updateMany?: Prisma.ReportUpdateManyWithWhereWithoutTenantInput | Prisma.ReportUpdateManyWithWhereWithoutTenantInput[]
+  deleteMany?: Prisma.ReportScalarWhereInput | Prisma.ReportScalarWhereInput[]
+}
+
 export type ReportCreateNestedManyWithoutAssigneeInput = {
   create?: Prisma.XOR<Prisma.ReportCreateWithoutAssigneeInput, Prisma.ReportUncheckedCreateWithoutAssigneeInput> | Prisma.ReportCreateWithoutAssigneeInput[] | Prisma.ReportUncheckedCreateWithoutAssigneeInput[]
   connectOrCreate?: Prisma.ReportCreateOrConnectWithoutAssigneeInput | Prisma.ReportCreateOrConnectWithoutAssigneeInput[]
@@ -429,108 +471,6 @@ export type ReportUncheckedUpdateManyWithoutAssigneeNestedInput = {
 
 export type EnumReportTypeFieldUpdateOperationsInput = {
   set?: $Enums.ReportType
-}
-
-export type ReportCreateNestedManyWithoutTenantInput = {
-  create?: Prisma.XOR<Prisma.ReportCreateWithoutTenantInput, Prisma.ReportUncheckedCreateWithoutTenantInput> | Prisma.ReportCreateWithoutTenantInput[] | Prisma.ReportUncheckedCreateWithoutTenantInput[]
-  connectOrCreate?: Prisma.ReportCreateOrConnectWithoutTenantInput | Prisma.ReportCreateOrConnectWithoutTenantInput[]
-  createMany?: Prisma.ReportCreateManyTenantInputEnvelope
-  connect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
-}
-
-export type ReportUncheckedCreateNestedManyWithoutTenantInput = {
-  create?: Prisma.XOR<Prisma.ReportCreateWithoutTenantInput, Prisma.ReportUncheckedCreateWithoutTenantInput> | Prisma.ReportCreateWithoutTenantInput[] | Prisma.ReportUncheckedCreateWithoutTenantInput[]
-  connectOrCreate?: Prisma.ReportCreateOrConnectWithoutTenantInput | Prisma.ReportCreateOrConnectWithoutTenantInput[]
-  createMany?: Prisma.ReportCreateManyTenantInputEnvelope
-  connect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
-}
-
-export type ReportUpdateManyWithoutTenantNestedInput = {
-  create?: Prisma.XOR<Prisma.ReportCreateWithoutTenantInput, Prisma.ReportUncheckedCreateWithoutTenantInput> | Prisma.ReportCreateWithoutTenantInput[] | Prisma.ReportUncheckedCreateWithoutTenantInput[]
-  connectOrCreate?: Prisma.ReportCreateOrConnectWithoutTenantInput | Prisma.ReportCreateOrConnectWithoutTenantInput[]
-  upsert?: Prisma.ReportUpsertWithWhereUniqueWithoutTenantInput | Prisma.ReportUpsertWithWhereUniqueWithoutTenantInput[]
-  createMany?: Prisma.ReportCreateManyTenantInputEnvelope
-  set?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
-  disconnect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
-  delete?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
-  connect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
-  update?: Prisma.ReportUpdateWithWhereUniqueWithoutTenantInput | Prisma.ReportUpdateWithWhereUniqueWithoutTenantInput[]
-  updateMany?: Prisma.ReportUpdateManyWithWhereWithoutTenantInput | Prisma.ReportUpdateManyWithWhereWithoutTenantInput[]
-  deleteMany?: Prisma.ReportScalarWhereInput | Prisma.ReportScalarWhereInput[]
-}
-
-export type ReportUncheckedUpdateManyWithoutTenantNestedInput = {
-  create?: Prisma.XOR<Prisma.ReportCreateWithoutTenantInput, Prisma.ReportUncheckedCreateWithoutTenantInput> | Prisma.ReportCreateWithoutTenantInput[] | Prisma.ReportUncheckedCreateWithoutTenantInput[]
-  connectOrCreate?: Prisma.ReportCreateOrConnectWithoutTenantInput | Prisma.ReportCreateOrConnectWithoutTenantInput[]
-  upsert?: Prisma.ReportUpsertWithWhereUniqueWithoutTenantInput | Prisma.ReportUpsertWithWhereUniqueWithoutTenantInput[]
-  createMany?: Prisma.ReportCreateManyTenantInputEnvelope
-  set?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
-  disconnect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
-  delete?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
-  connect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
-  update?: Prisma.ReportUpdateWithWhereUniqueWithoutTenantInput | Prisma.ReportUpdateWithWhereUniqueWithoutTenantInput[]
-  updateMany?: Prisma.ReportUpdateManyWithWhereWithoutTenantInput | Prisma.ReportUpdateManyWithWhereWithoutTenantInput[]
-  deleteMany?: Prisma.ReportScalarWhereInput | Prisma.ReportScalarWhereInput[]
-}
-
-export type ReportCreateWithoutAssigneeInput = {
-  id?: string
-  title: string
-  content: string
-  reportType: $Enums.ReportType
-  createdAt?: Date | string
-  createdBy: string
-  tenant: Prisma.TenantCreateNestedOneWithoutReportsInput
-}
-
-export type ReportUncheckedCreateWithoutAssigneeInput = {
-  id?: string
-  tenantId: string
-  title: string
-  content: string
-  reportType: $Enums.ReportType
-  createdAt?: Date | string
-  createdBy: string
-}
-
-export type ReportCreateOrConnectWithoutAssigneeInput = {
-  where: Prisma.ReportWhereUniqueInput
-  create: Prisma.XOR<Prisma.ReportCreateWithoutAssigneeInput, Prisma.ReportUncheckedCreateWithoutAssigneeInput>
-}
-
-export type ReportCreateManyAssigneeInputEnvelope = {
-  data: Prisma.ReportCreateManyAssigneeInput | Prisma.ReportCreateManyAssigneeInput[]
-  skipDuplicates?: boolean
-}
-
-export type ReportUpsertWithWhereUniqueWithoutAssigneeInput = {
-  where: Prisma.ReportWhereUniqueInput
-  update: Prisma.XOR<Prisma.ReportUpdateWithoutAssigneeInput, Prisma.ReportUncheckedUpdateWithoutAssigneeInput>
-  create: Prisma.XOR<Prisma.ReportCreateWithoutAssigneeInput, Prisma.ReportUncheckedCreateWithoutAssigneeInput>
-}
-
-export type ReportUpdateWithWhereUniqueWithoutAssigneeInput = {
-  where: Prisma.ReportWhereUniqueInput
-  data: Prisma.XOR<Prisma.ReportUpdateWithoutAssigneeInput, Prisma.ReportUncheckedUpdateWithoutAssigneeInput>
-}
-
-export type ReportUpdateManyWithWhereWithoutAssigneeInput = {
-  where: Prisma.ReportScalarWhereInput
-  data: Prisma.XOR<Prisma.ReportUpdateManyMutationInput, Prisma.ReportUncheckedUpdateManyWithoutAssigneeInput>
-}
-
-export type ReportScalarWhereInput = {
-  AND?: Prisma.ReportScalarWhereInput | Prisma.ReportScalarWhereInput[]
-  OR?: Prisma.ReportScalarWhereInput[]
-  NOT?: Prisma.ReportScalarWhereInput | Prisma.ReportScalarWhereInput[]
-  id?: Prisma.UuidFilter<"Report"> | string
-  tenantId?: Prisma.UuidFilter<"Report"> | string
-  title?: Prisma.StringFilter<"Report"> | string
-  content?: Prisma.StringFilter<"Report"> | string
-  reportType?: Prisma.EnumReportTypeFilter<"Report"> | $Enums.ReportType
-  createdAt?: Prisma.DateTimeFilter<"Report"> | Date | string
-  createdBy?: Prisma.UuidFilter<"Report"> | string
-  assignedTo?: Prisma.UuidNullableFilter<"Report"> | string | null
 }
 
 export type ReportCreateWithoutTenantInput = {
@@ -579,7 +519,31 @@ export type ReportUpdateManyWithWhereWithoutTenantInput = {
   data: Prisma.XOR<Prisma.ReportUpdateManyMutationInput, Prisma.ReportUncheckedUpdateManyWithoutTenantInput>
 }
 
-export type ReportCreateManyAssigneeInput = {
+export type ReportScalarWhereInput = {
+  AND?: Prisma.ReportScalarWhereInput | Prisma.ReportScalarWhereInput[]
+  OR?: Prisma.ReportScalarWhereInput[]
+  NOT?: Prisma.ReportScalarWhereInput | Prisma.ReportScalarWhereInput[]
+  id?: Prisma.UuidFilter<"Report"> | string
+  tenantId?: Prisma.UuidFilter<"Report"> | string
+  title?: Prisma.StringFilter<"Report"> | string
+  content?: Prisma.StringFilter<"Report"> | string
+  reportType?: Prisma.EnumReportTypeFilter<"Report"> | $Enums.ReportType
+  createdAt?: Prisma.DateTimeFilter<"Report"> | Date | string
+  createdBy?: Prisma.UuidFilter<"Report"> | string
+  assignedTo?: Prisma.UuidNullableFilter<"Report"> | string | null
+}
+
+export type ReportCreateWithoutAssigneeInput = {
+  id?: string
+  title: string
+  content: string
+  reportType: $Enums.ReportType
+  createdAt?: Date | string
+  createdBy: string
+  tenant: Prisma.TenantCreateNestedOneWithoutReportsInput
+}
+
+export type ReportUncheckedCreateWithoutAssigneeInput = {
   id?: string
   tenantId: string
   title: string
@@ -589,34 +553,30 @@ export type ReportCreateManyAssigneeInput = {
   createdBy: string
 }
 
-export type ReportUpdateWithoutAssigneeInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  content?: Prisma.StringFieldUpdateOperationsInput | string
-  reportType?: Prisma.EnumReportTypeFieldUpdateOperationsInput | $Enums.ReportType
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdBy?: Prisma.StringFieldUpdateOperationsInput | string
-  tenant?: Prisma.TenantUpdateOneRequiredWithoutReportsNestedInput
+export type ReportCreateOrConnectWithoutAssigneeInput = {
+  where: Prisma.ReportWhereUniqueInput
+  create: Prisma.XOR<Prisma.ReportCreateWithoutAssigneeInput, Prisma.ReportUncheckedCreateWithoutAssigneeInput>
 }
 
-export type ReportUncheckedUpdateWithoutAssigneeInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  content?: Prisma.StringFieldUpdateOperationsInput | string
-  reportType?: Prisma.EnumReportTypeFieldUpdateOperationsInput | $Enums.ReportType
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdBy?: Prisma.StringFieldUpdateOperationsInput | string
+export type ReportCreateManyAssigneeInputEnvelope = {
+  data: Prisma.ReportCreateManyAssigneeInput | Prisma.ReportCreateManyAssigneeInput[]
+  skipDuplicates?: boolean
 }
 
-export type ReportUncheckedUpdateManyWithoutAssigneeInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  content?: Prisma.StringFieldUpdateOperationsInput | string
-  reportType?: Prisma.EnumReportTypeFieldUpdateOperationsInput | $Enums.ReportType
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdBy?: Prisma.StringFieldUpdateOperationsInput | string
+export type ReportUpsertWithWhereUniqueWithoutAssigneeInput = {
+  where: Prisma.ReportWhereUniqueInput
+  update: Prisma.XOR<Prisma.ReportUpdateWithoutAssigneeInput, Prisma.ReportUncheckedUpdateWithoutAssigneeInput>
+  create: Prisma.XOR<Prisma.ReportCreateWithoutAssigneeInput, Prisma.ReportUncheckedCreateWithoutAssigneeInput>
+}
+
+export type ReportUpdateWithWhereUniqueWithoutAssigneeInput = {
+  where: Prisma.ReportWhereUniqueInput
+  data: Prisma.XOR<Prisma.ReportUpdateWithoutAssigneeInput, Prisma.ReportUncheckedUpdateWithoutAssigneeInput>
+}
+
+export type ReportUpdateManyWithWhereWithoutAssigneeInput = {
+  where: Prisma.ReportScalarWhereInput
+  data: Prisma.XOR<Prisma.ReportUpdateManyMutationInput, Prisma.ReportUncheckedUpdateManyWithoutAssigneeInput>
 }
 
 export type ReportCreateManyTenantInput = {
@@ -657,6 +617,46 @@ export type ReportUncheckedUpdateManyWithoutTenantInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdBy?: Prisma.StringFieldUpdateOperationsInput | string
   assignedTo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type ReportCreateManyAssigneeInput = {
+  id?: string
+  tenantId: string
+  title: string
+  content: string
+  reportType: $Enums.ReportType
+  createdAt?: Date | string
+  createdBy: string
+}
+
+export type ReportUpdateWithoutAssigneeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  reportType?: Prisma.EnumReportTypeFieldUpdateOperationsInput | $Enums.ReportType
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdBy?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutReportsNestedInput
+}
+
+export type ReportUncheckedUpdateWithoutAssigneeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  reportType?: Prisma.EnumReportTypeFieldUpdateOperationsInput | $Enums.ReportType
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdBy?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
+export type ReportUncheckedUpdateManyWithoutAssigneeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  reportType?: Prisma.EnumReportTypeFieldUpdateOperationsInput | $Enums.ReportType
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdBy?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 

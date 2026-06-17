@@ -4,11 +4,17 @@ import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class TenantMiddleware implements NestMiddleware {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly jwtService: JwtService) { }
 
   use(req: Request, res: Response, next: NextFunction) {
+    // Preflight CORS requests should bypass tenant validation.
+    if (req.method === 'OPTIONS') {
+      next();
+      return;
+    }
+
     // 1. Extrai tenantId da rota
-    const tenantIdFromRoute = req.params['tenantId'];
+    const tenantIdFromRoute = (req as any).params?.tenantId as string | undefined;
     // 2. Extrai tenantId do header (opcional)
     const tenantIdFromHeader = req.headers['x-tenant-id'] as string | undefined;
     // 3. Extrai tenantId do JWT (se existir)

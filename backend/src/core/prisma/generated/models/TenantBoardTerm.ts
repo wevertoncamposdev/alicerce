@@ -14,15 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model TenantBoardTerm
- * Represents a governance/board composition period for a tenant.
  * 
- * This model groups board members by management period.
- * 
- * Example:
- * - Board Term 2025-2027
- * - Board Term 2028-2030
- * 
- * Documents such as meeting minutes or appointment terms may optionally point to a board term.
  */
 export type TenantBoardTermModel = runtime.Types.Result.DefaultSelection<Prisma.$TenantBoardTermPayload>
 
@@ -872,36 +864,15 @@ export type $TenantBoardTermPayload<ExtArgs extends runtime.Types.Extensions.Int
   name: "TenantBoardTerm"
   objects: {
     tenant: Prisma.$TenantPayload<ExtArgs>
-    /**
-     * People who occupied positions during this board term.
-     */
     members: Prisma.$TenantBoardMemberPayload<ExtArgs>[]
-    /**
-     * Tenant documents that regulate, validate, or describe this board term.
-     * Example: meeting minutes, appointment term, election minutes.
-     */
     documents: Prisma.$TenantDocumentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     tenantId: string
-    /**
-     * Optional human-readable label for the board period.
-     * Example: "Board 2025-2027"
-     */
     name: string | null
-    /**
-     * Official or operational start date of this board composition.
-     */
     startDate: Date
-    /**
-     * End date of the board composition.
-     * Null may indicate current/ongoing board term.
-     */
     endDate: Date | null
-    /**
-     * Internal notes about the board composition.
-     */
     notes: string | null
     status: $Enums.Status
     createdAt: Date

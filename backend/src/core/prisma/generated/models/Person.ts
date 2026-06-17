@@ -434,6 +434,26 @@ export type PersonUncheckedUpdateManyInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
+export type PersonListRelationFilter = {
+  every?: Prisma.PersonWhereInput
+  some?: Prisma.PersonWhereInput
+  none?: Prisma.PersonWhereInput
+}
+
+export type PersonOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
+export type PersonScalarRelationFilter = {
+  is?: Prisma.PersonWhereInput
+  isNot?: Prisma.PersonWhereInput
+}
+
+export type PersonNullableScalarRelationFilter = {
+  is?: Prisma.PersonWhereInput | null
+  isNot?: Prisma.PersonWhereInput | null
+}
+
 export type PersonCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
@@ -476,44 +496,92 @@ export type PersonMinOrderByAggregateInput = {
   deletedAt?: Prisma.SortOrder
 }
 
-export type PersonScalarRelationFilter = {
-  is?: Prisma.PersonWhereInput
-  isNot?: Prisma.PersonWhereInput
+export type PersonCreateNestedManyWithoutTenantInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutTenantInput, Prisma.PersonUncheckedCreateWithoutTenantInput> | Prisma.PersonCreateWithoutTenantInput[] | Prisma.PersonUncheckedCreateWithoutTenantInput[]
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutTenantInput | Prisma.PersonCreateOrConnectWithoutTenantInput[]
+  createMany?: Prisma.PersonCreateManyTenantInputEnvelope
+  connect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
 }
 
-export type PersonNullableScalarRelationFilter = {
-  is?: Prisma.PersonWhereInput | null
-  isNot?: Prisma.PersonWhereInput | null
+export type PersonUncheckedCreateNestedManyWithoutTenantInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutTenantInput, Prisma.PersonUncheckedCreateWithoutTenantInput> | Prisma.PersonCreateWithoutTenantInput[] | Prisma.PersonUncheckedCreateWithoutTenantInput[]
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutTenantInput | Prisma.PersonCreateOrConnectWithoutTenantInput[]
+  createMany?: Prisma.PersonCreateManyTenantInputEnvelope
+  connect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
 }
 
-export type PersonListRelationFilter = {
-  every?: Prisma.PersonWhereInput
-  some?: Prisma.PersonWhereInput
-  none?: Prisma.PersonWhereInput
+export type PersonUpdateManyWithoutTenantNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutTenantInput, Prisma.PersonUncheckedCreateWithoutTenantInput> | Prisma.PersonCreateWithoutTenantInput[] | Prisma.PersonUncheckedCreateWithoutTenantInput[]
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutTenantInput | Prisma.PersonCreateOrConnectWithoutTenantInput[]
+  upsert?: Prisma.PersonUpsertWithWhereUniqueWithoutTenantInput | Prisma.PersonUpsertWithWhereUniqueWithoutTenantInput[]
+  createMany?: Prisma.PersonCreateManyTenantInputEnvelope
+  set?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  disconnect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  delete?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  connect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  update?: Prisma.PersonUpdateWithWhereUniqueWithoutTenantInput | Prisma.PersonUpdateWithWhereUniqueWithoutTenantInput[]
+  updateMany?: Prisma.PersonUpdateManyWithWhereWithoutTenantInput | Prisma.PersonUpdateManyWithWhereWithoutTenantInput[]
+  deleteMany?: Prisma.PersonScalarWhereInput | Prisma.PersonScalarWhereInput[]
 }
 
-export type PersonOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
+export type PersonUncheckedUpdateManyWithoutTenantNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutTenantInput, Prisma.PersonUncheckedCreateWithoutTenantInput> | Prisma.PersonCreateWithoutTenantInput[] | Prisma.PersonUncheckedCreateWithoutTenantInput[]
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutTenantInput | Prisma.PersonCreateOrConnectWithoutTenantInput[]
+  upsert?: Prisma.PersonUpsertWithWhereUniqueWithoutTenantInput | Prisma.PersonUpsertWithWhereUniqueWithoutTenantInput[]
+  createMany?: Prisma.PersonCreateManyTenantInputEnvelope
+  set?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  disconnect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  delete?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  connect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  update?: Prisma.PersonUpdateWithWhereUniqueWithoutTenantInput | Prisma.PersonUpdateWithWhereUniqueWithoutTenantInput[]
+  updateMany?: Prisma.PersonUpdateManyWithWhereWithoutTenantInput | Prisma.PersonUpdateManyWithWhereWithoutTenantInput[]
+  deleteMany?: Prisma.PersonScalarWhereInput | Prisma.PersonScalarWhereInput[]
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
+export type PersonCreateNestedOneWithoutBoardMembershipsInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutBoardMembershipsInput, Prisma.PersonUncheckedCreateWithoutBoardMembershipsInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutBoardMembershipsInput
+  connect?: Prisma.PersonWhereUniqueInput
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
+export type PersonUpdateOneRequiredWithoutBoardMembershipsNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutBoardMembershipsInput, Prisma.PersonUncheckedCreateWithoutBoardMembershipsInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutBoardMembershipsInput
+  upsert?: Prisma.PersonUpsertWithoutBoardMembershipsInput
+  connect?: Prisma.PersonWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutBoardMembershipsInput, Prisma.PersonUpdateWithoutBoardMembershipsInput>, Prisma.PersonUncheckedUpdateWithoutBoardMembershipsInput>
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
+export type PersonCreateNestedOneWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutUserInput, Prisma.PersonUncheckedCreateWithoutUserInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutUserInput
+  connect?: Prisma.PersonWhereUniqueInput
 }
 
-export type EnumStatusFieldUpdateOperationsInput = {
-  set?: $Enums.Status
+export type PersonUncheckedCreateNestedOneWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutUserInput, Prisma.PersonUncheckedCreateWithoutUserInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutUserInput
+  connect?: Prisma.PersonWhereUniqueInput
 }
 
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
+export type PersonUpdateOneWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutUserInput, Prisma.PersonUncheckedCreateWithoutUserInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutUserInput
+  upsert?: Prisma.PersonUpsertWithoutUserInput
+  disconnect?: Prisma.PersonWhereInput | boolean
+  delete?: Prisma.PersonWhereInput | boolean
+  connect?: Prisma.PersonWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutUserInput, Prisma.PersonUpdateWithoutUserInput>, Prisma.PersonUncheckedUpdateWithoutUserInput>
+}
+
+export type PersonUncheckedUpdateOneWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutUserInput, Prisma.PersonUncheckedCreateWithoutUserInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutUserInput
+  upsert?: Prisma.PersonUpsertWithoutUserInput
+  disconnect?: Prisma.PersonWhereInput | boolean
+  delete?: Prisma.PersonWhereInput | boolean
+  connect?: Prisma.PersonWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutUserInput, Prisma.PersonUpdateWithoutUserInput>, Prisma.PersonUncheckedUpdateWithoutUserInput>
 }
 
 export type PersonCreateNestedOneWithoutAddressesInput = {
@@ -574,92 +642,259 @@ export type PersonUpdateOneWithoutReportsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutReportsInput, Prisma.PersonUpdateWithoutReportsInput>, Prisma.PersonUncheckedUpdateWithoutReportsInput>
 }
 
-export type PersonCreateNestedOneWithoutUserInput = {
-  create?: Prisma.XOR<Prisma.PersonCreateWithoutUserInput, Prisma.PersonUncheckedCreateWithoutUserInput>
-  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutUserInput
-  connect?: Prisma.PersonWhereUniqueInput
+export type PersonCreateWithoutTenantInput = {
+  id?: string
+  name: string
+  socialname?: string | null
+  birthDate?: Date | string | null
+  gender?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  user?: Prisma.UserCreateNestedOneWithoutPersonInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutPersonInput
+  reports?: Prisma.ReportCreateNestedManyWithoutAssigneeInput
+  documents?: Prisma.PersonDocumentCreateNestedManyWithoutPersonInput
+  addresses?: Prisma.PersonAddressCreateNestedManyWithoutPersonInput
+  boardMemberships?: Prisma.TenantBoardMemberCreateNestedManyWithoutPersonInput
 }
 
-export type PersonUncheckedCreateNestedOneWithoutUserInput = {
-  create?: Prisma.XOR<Prisma.PersonCreateWithoutUserInput, Prisma.PersonUncheckedCreateWithoutUserInput>
-  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutUserInput
-  connect?: Prisma.PersonWhereUniqueInput
+export type PersonUncheckedCreateWithoutTenantInput = {
+  id?: string
+  name: string
+  socialname?: string | null
+  birthDate?: Date | string | null
+  gender?: string | null
+  userId?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutPersonInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutAssigneeInput
+  documents?: Prisma.PersonDocumentUncheckedCreateNestedManyWithoutPersonInput
+  addresses?: Prisma.PersonAddressUncheckedCreateNestedManyWithoutPersonInput
+  boardMemberships?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutPersonInput
 }
 
-export type PersonUpdateOneWithoutUserNestedInput = {
-  create?: Prisma.XOR<Prisma.PersonCreateWithoutUserInput, Prisma.PersonUncheckedCreateWithoutUserInput>
-  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutUserInput
-  upsert?: Prisma.PersonUpsertWithoutUserInput
-  disconnect?: Prisma.PersonWhereInput | boolean
-  delete?: Prisma.PersonWhereInput | boolean
-  connect?: Prisma.PersonWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutUserInput, Prisma.PersonUpdateWithoutUserInput>, Prisma.PersonUncheckedUpdateWithoutUserInput>
+export type PersonCreateOrConnectWithoutTenantInput = {
+  where: Prisma.PersonWhereUniqueInput
+  create: Prisma.XOR<Prisma.PersonCreateWithoutTenantInput, Prisma.PersonUncheckedCreateWithoutTenantInput>
 }
 
-export type PersonUncheckedUpdateOneWithoutUserNestedInput = {
-  create?: Prisma.XOR<Prisma.PersonCreateWithoutUserInput, Prisma.PersonUncheckedCreateWithoutUserInput>
-  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutUserInput
-  upsert?: Prisma.PersonUpsertWithoutUserInput
-  disconnect?: Prisma.PersonWhereInput | boolean
-  delete?: Prisma.PersonWhereInput | boolean
-  connect?: Prisma.PersonWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutUserInput, Prisma.PersonUpdateWithoutUserInput>, Prisma.PersonUncheckedUpdateWithoutUserInput>
+export type PersonCreateManyTenantInputEnvelope = {
+  data: Prisma.PersonCreateManyTenantInput | Prisma.PersonCreateManyTenantInput[]
+  skipDuplicates?: boolean
 }
 
-export type PersonCreateNestedManyWithoutTenantInput = {
-  create?: Prisma.XOR<Prisma.PersonCreateWithoutTenantInput, Prisma.PersonUncheckedCreateWithoutTenantInput> | Prisma.PersonCreateWithoutTenantInput[] | Prisma.PersonUncheckedCreateWithoutTenantInput[]
-  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutTenantInput | Prisma.PersonCreateOrConnectWithoutTenantInput[]
-  createMany?: Prisma.PersonCreateManyTenantInputEnvelope
-  connect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+export type PersonUpsertWithWhereUniqueWithoutTenantInput = {
+  where: Prisma.PersonWhereUniqueInput
+  update: Prisma.XOR<Prisma.PersonUpdateWithoutTenantInput, Prisma.PersonUncheckedUpdateWithoutTenantInput>
+  create: Prisma.XOR<Prisma.PersonCreateWithoutTenantInput, Prisma.PersonUncheckedCreateWithoutTenantInput>
 }
 
-export type PersonUncheckedCreateNestedManyWithoutTenantInput = {
-  create?: Prisma.XOR<Prisma.PersonCreateWithoutTenantInput, Prisma.PersonUncheckedCreateWithoutTenantInput> | Prisma.PersonCreateWithoutTenantInput[] | Prisma.PersonUncheckedCreateWithoutTenantInput[]
-  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutTenantInput | Prisma.PersonCreateOrConnectWithoutTenantInput[]
-  createMany?: Prisma.PersonCreateManyTenantInputEnvelope
-  connect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+export type PersonUpdateWithWhereUniqueWithoutTenantInput = {
+  where: Prisma.PersonWhereUniqueInput
+  data: Prisma.XOR<Prisma.PersonUpdateWithoutTenantInput, Prisma.PersonUncheckedUpdateWithoutTenantInput>
 }
 
-export type PersonUpdateManyWithoutTenantNestedInput = {
-  create?: Prisma.XOR<Prisma.PersonCreateWithoutTenantInput, Prisma.PersonUncheckedCreateWithoutTenantInput> | Prisma.PersonCreateWithoutTenantInput[] | Prisma.PersonUncheckedCreateWithoutTenantInput[]
-  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutTenantInput | Prisma.PersonCreateOrConnectWithoutTenantInput[]
-  upsert?: Prisma.PersonUpsertWithWhereUniqueWithoutTenantInput | Prisma.PersonUpsertWithWhereUniqueWithoutTenantInput[]
-  createMany?: Prisma.PersonCreateManyTenantInputEnvelope
-  set?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
-  disconnect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
-  delete?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
-  connect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
-  update?: Prisma.PersonUpdateWithWhereUniqueWithoutTenantInput | Prisma.PersonUpdateWithWhereUniqueWithoutTenantInput[]
-  updateMany?: Prisma.PersonUpdateManyWithWhereWithoutTenantInput | Prisma.PersonUpdateManyWithWhereWithoutTenantInput[]
-  deleteMany?: Prisma.PersonScalarWhereInput | Prisma.PersonScalarWhereInput[]
+export type PersonUpdateManyWithWhereWithoutTenantInput = {
+  where: Prisma.PersonScalarWhereInput
+  data: Prisma.XOR<Prisma.PersonUpdateManyMutationInput, Prisma.PersonUncheckedUpdateManyWithoutTenantInput>
 }
 
-export type PersonUncheckedUpdateManyWithoutTenantNestedInput = {
-  create?: Prisma.XOR<Prisma.PersonCreateWithoutTenantInput, Prisma.PersonUncheckedCreateWithoutTenantInput> | Prisma.PersonCreateWithoutTenantInput[] | Prisma.PersonUncheckedCreateWithoutTenantInput[]
-  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutTenantInput | Prisma.PersonCreateOrConnectWithoutTenantInput[]
-  upsert?: Prisma.PersonUpsertWithWhereUniqueWithoutTenantInput | Prisma.PersonUpsertWithWhereUniqueWithoutTenantInput[]
-  createMany?: Prisma.PersonCreateManyTenantInputEnvelope
-  set?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
-  disconnect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
-  delete?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
-  connect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
-  update?: Prisma.PersonUpdateWithWhereUniqueWithoutTenantInput | Prisma.PersonUpdateWithWhereUniqueWithoutTenantInput[]
-  updateMany?: Prisma.PersonUpdateManyWithWhereWithoutTenantInput | Prisma.PersonUpdateManyWithWhereWithoutTenantInput[]
-  deleteMany?: Prisma.PersonScalarWhereInput | Prisma.PersonScalarWhereInput[]
+export type PersonScalarWhereInput = {
+  AND?: Prisma.PersonScalarWhereInput | Prisma.PersonScalarWhereInput[]
+  OR?: Prisma.PersonScalarWhereInput[]
+  NOT?: Prisma.PersonScalarWhereInput | Prisma.PersonScalarWhereInput[]
+  id?: Prisma.UuidFilter<"Person"> | string
+  tenantId?: Prisma.UuidFilter<"Person"> | string
+  name?: Prisma.StringFilter<"Person"> | string
+  socialname?: Prisma.StringNullableFilter<"Person"> | string | null
+  birthDate?: Prisma.DateTimeNullableFilter<"Person"> | Date | string | null
+  gender?: Prisma.StringNullableFilter<"Person"> | string | null
+  userId?: Prisma.UuidNullableFilter<"Person"> | string | null
+  status?: Prisma.EnumStatusFilter<"Person"> | $Enums.Status
+  createdAt?: Prisma.DateTimeFilter<"Person"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Person"> | Date | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"Person"> | Date | string | null
 }
 
-export type PersonCreateNestedOneWithoutBoardMembershipsInput = {
-  create?: Prisma.XOR<Prisma.PersonCreateWithoutBoardMembershipsInput, Prisma.PersonUncheckedCreateWithoutBoardMembershipsInput>
-  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutBoardMembershipsInput
-  connect?: Prisma.PersonWhereUniqueInput
+export type PersonCreateWithoutBoardMembershipsInput = {
+  id?: string
+  name: string
+  socialname?: string | null
+  birthDate?: Date | string | null
+  gender?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  tenant: Prisma.TenantCreateNestedOneWithoutPeopleInput
+  user?: Prisma.UserCreateNestedOneWithoutPersonInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutPersonInput
+  reports?: Prisma.ReportCreateNestedManyWithoutAssigneeInput
+  documents?: Prisma.PersonDocumentCreateNestedManyWithoutPersonInput
+  addresses?: Prisma.PersonAddressCreateNestedManyWithoutPersonInput
 }
 
-export type PersonUpdateOneRequiredWithoutBoardMembershipsNestedInput = {
-  create?: Prisma.XOR<Prisma.PersonCreateWithoutBoardMembershipsInput, Prisma.PersonUncheckedCreateWithoutBoardMembershipsInput>
-  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutBoardMembershipsInput
-  upsert?: Prisma.PersonUpsertWithoutBoardMembershipsInput
-  connect?: Prisma.PersonWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutBoardMembershipsInput, Prisma.PersonUpdateWithoutBoardMembershipsInput>, Prisma.PersonUncheckedUpdateWithoutBoardMembershipsInput>
+export type PersonUncheckedCreateWithoutBoardMembershipsInput = {
+  id?: string
+  tenantId: string
+  name: string
+  socialname?: string | null
+  birthDate?: Date | string | null
+  gender?: string | null
+  userId?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutPersonInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutAssigneeInput
+  documents?: Prisma.PersonDocumentUncheckedCreateNestedManyWithoutPersonInput
+  addresses?: Prisma.PersonAddressUncheckedCreateNestedManyWithoutPersonInput
+}
+
+export type PersonCreateOrConnectWithoutBoardMembershipsInput = {
+  where: Prisma.PersonWhereUniqueInput
+  create: Prisma.XOR<Prisma.PersonCreateWithoutBoardMembershipsInput, Prisma.PersonUncheckedCreateWithoutBoardMembershipsInput>
+}
+
+export type PersonUpsertWithoutBoardMembershipsInput = {
+  update: Prisma.XOR<Prisma.PersonUpdateWithoutBoardMembershipsInput, Prisma.PersonUncheckedUpdateWithoutBoardMembershipsInput>
+  create: Prisma.XOR<Prisma.PersonCreateWithoutBoardMembershipsInput, Prisma.PersonUncheckedCreateWithoutBoardMembershipsInput>
+  where?: Prisma.PersonWhereInput
+}
+
+export type PersonUpdateToOneWithWhereWithoutBoardMembershipsInput = {
+  where?: Prisma.PersonWhereInput
+  data: Prisma.XOR<Prisma.PersonUpdateWithoutBoardMembershipsInput, Prisma.PersonUncheckedUpdateWithoutBoardMembershipsInput>
+}
+
+export type PersonUpdateWithoutBoardMembershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  socialname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutPeopleNestedInput
+  user?: Prisma.UserUpdateOneWithoutPersonNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutPersonNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutAssigneeNestedInput
+  documents?: Prisma.PersonDocumentUpdateManyWithoutPersonNestedInput
+  addresses?: Prisma.PersonAddressUpdateManyWithoutPersonNestedInput
+}
+
+export type PersonUncheckedUpdateWithoutBoardMembershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  socialname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutPersonNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutAssigneeNestedInput
+  documents?: Prisma.PersonDocumentUncheckedUpdateManyWithoutPersonNestedInput
+  addresses?: Prisma.PersonAddressUncheckedUpdateManyWithoutPersonNestedInput
+}
+
+export type PersonCreateWithoutUserInput = {
+  id?: string
+  name: string
+  socialname?: string | null
+  birthDate?: Date | string | null
+  gender?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  tenant: Prisma.TenantCreateNestedOneWithoutPeopleInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutPersonInput
+  reports?: Prisma.ReportCreateNestedManyWithoutAssigneeInput
+  documents?: Prisma.PersonDocumentCreateNestedManyWithoutPersonInput
+  addresses?: Prisma.PersonAddressCreateNestedManyWithoutPersonInput
+  boardMemberships?: Prisma.TenantBoardMemberCreateNestedManyWithoutPersonInput
+}
+
+export type PersonUncheckedCreateWithoutUserInput = {
+  id?: string
+  tenantId: string
+  name: string
+  socialname?: string | null
+  birthDate?: Date | string | null
+  gender?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutPersonInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutAssigneeInput
+  documents?: Prisma.PersonDocumentUncheckedCreateNestedManyWithoutPersonInput
+  addresses?: Prisma.PersonAddressUncheckedCreateNestedManyWithoutPersonInput
+  boardMemberships?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutPersonInput
+}
+
+export type PersonCreateOrConnectWithoutUserInput = {
+  where: Prisma.PersonWhereUniqueInput
+  create: Prisma.XOR<Prisma.PersonCreateWithoutUserInput, Prisma.PersonUncheckedCreateWithoutUserInput>
+}
+
+export type PersonUpsertWithoutUserInput = {
+  update: Prisma.XOR<Prisma.PersonUpdateWithoutUserInput, Prisma.PersonUncheckedUpdateWithoutUserInput>
+  create: Prisma.XOR<Prisma.PersonCreateWithoutUserInput, Prisma.PersonUncheckedCreateWithoutUserInput>
+  where?: Prisma.PersonWhereInput
+}
+
+export type PersonUpdateToOneWithWhereWithoutUserInput = {
+  where?: Prisma.PersonWhereInput
+  data: Prisma.XOR<Prisma.PersonUpdateWithoutUserInput, Prisma.PersonUncheckedUpdateWithoutUserInput>
+}
+
+export type PersonUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  socialname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutPeopleNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutPersonNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutAssigneeNestedInput
+  documents?: Prisma.PersonDocumentUpdateManyWithoutPersonNestedInput
+  addresses?: Prisma.PersonAddressUpdateManyWithoutPersonNestedInput
+  boardMemberships?: Prisma.TenantBoardMemberUpdateManyWithoutPersonNestedInput
+}
+
+export type PersonUncheckedUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  socialname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutPersonNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutAssigneeNestedInput
+  documents?: Prisma.PersonDocumentUncheckedUpdateManyWithoutPersonNestedInput
+  addresses?: Prisma.PersonAddressUncheckedUpdateManyWithoutPersonNestedInput
+  boardMemberships?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutPersonNestedInput
 }
 
 export type PersonCreateWithoutAddressesInput = {
@@ -1012,261 +1247,6 @@ export type PersonUncheckedUpdateWithoutReportsInput = {
   documents?: Prisma.PersonDocumentUncheckedUpdateManyWithoutPersonNestedInput
   addresses?: Prisma.PersonAddressUncheckedUpdateManyWithoutPersonNestedInput
   boardMemberships?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutPersonNestedInput
-}
-
-export type PersonCreateWithoutUserInput = {
-  id?: string
-  name: string
-  socialname?: string | null
-  birthDate?: Date | string | null
-  gender?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  tenant: Prisma.TenantCreateNestedOneWithoutPeopleInput
-  contacts?: Prisma.ContactCreateNestedManyWithoutPersonInput
-  reports?: Prisma.ReportCreateNestedManyWithoutAssigneeInput
-  documents?: Prisma.PersonDocumentCreateNestedManyWithoutPersonInput
-  addresses?: Prisma.PersonAddressCreateNestedManyWithoutPersonInput
-  boardMemberships?: Prisma.TenantBoardMemberCreateNestedManyWithoutPersonInput
-}
-
-export type PersonUncheckedCreateWithoutUserInput = {
-  id?: string
-  tenantId: string
-  name: string
-  socialname?: string | null
-  birthDate?: Date | string | null
-  gender?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutPersonInput
-  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutAssigneeInput
-  documents?: Prisma.PersonDocumentUncheckedCreateNestedManyWithoutPersonInput
-  addresses?: Prisma.PersonAddressUncheckedCreateNestedManyWithoutPersonInput
-  boardMemberships?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutPersonInput
-}
-
-export type PersonCreateOrConnectWithoutUserInput = {
-  where: Prisma.PersonWhereUniqueInput
-  create: Prisma.XOR<Prisma.PersonCreateWithoutUserInput, Prisma.PersonUncheckedCreateWithoutUserInput>
-}
-
-export type PersonUpsertWithoutUserInput = {
-  update: Prisma.XOR<Prisma.PersonUpdateWithoutUserInput, Prisma.PersonUncheckedUpdateWithoutUserInput>
-  create: Prisma.XOR<Prisma.PersonCreateWithoutUserInput, Prisma.PersonUncheckedCreateWithoutUserInput>
-  where?: Prisma.PersonWhereInput
-}
-
-export type PersonUpdateToOneWithWhereWithoutUserInput = {
-  where?: Prisma.PersonWhereInput
-  data: Prisma.XOR<Prisma.PersonUpdateWithoutUserInput, Prisma.PersonUncheckedUpdateWithoutUserInput>
-}
-
-export type PersonUpdateWithoutUserInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  socialname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  tenant?: Prisma.TenantUpdateOneRequiredWithoutPeopleNestedInput
-  contacts?: Prisma.ContactUpdateManyWithoutPersonNestedInput
-  reports?: Prisma.ReportUpdateManyWithoutAssigneeNestedInput
-  documents?: Prisma.PersonDocumentUpdateManyWithoutPersonNestedInput
-  addresses?: Prisma.PersonAddressUpdateManyWithoutPersonNestedInput
-  boardMemberships?: Prisma.TenantBoardMemberUpdateManyWithoutPersonNestedInput
-}
-
-export type PersonUncheckedUpdateWithoutUserInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  socialname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  contacts?: Prisma.ContactUncheckedUpdateManyWithoutPersonNestedInput
-  reports?: Prisma.ReportUncheckedUpdateManyWithoutAssigneeNestedInput
-  documents?: Prisma.PersonDocumentUncheckedUpdateManyWithoutPersonNestedInput
-  addresses?: Prisma.PersonAddressUncheckedUpdateManyWithoutPersonNestedInput
-  boardMemberships?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutPersonNestedInput
-}
-
-export type PersonCreateWithoutTenantInput = {
-  id?: string
-  name: string
-  socialname?: string | null
-  birthDate?: Date | string | null
-  gender?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  user?: Prisma.UserCreateNestedOneWithoutPersonInput
-  contacts?: Prisma.ContactCreateNestedManyWithoutPersonInput
-  reports?: Prisma.ReportCreateNestedManyWithoutAssigneeInput
-  documents?: Prisma.PersonDocumentCreateNestedManyWithoutPersonInput
-  addresses?: Prisma.PersonAddressCreateNestedManyWithoutPersonInput
-  boardMemberships?: Prisma.TenantBoardMemberCreateNestedManyWithoutPersonInput
-}
-
-export type PersonUncheckedCreateWithoutTenantInput = {
-  id?: string
-  name: string
-  socialname?: string | null
-  birthDate?: Date | string | null
-  gender?: string | null
-  userId?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutPersonInput
-  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutAssigneeInput
-  documents?: Prisma.PersonDocumentUncheckedCreateNestedManyWithoutPersonInput
-  addresses?: Prisma.PersonAddressUncheckedCreateNestedManyWithoutPersonInput
-  boardMemberships?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutPersonInput
-}
-
-export type PersonCreateOrConnectWithoutTenantInput = {
-  where: Prisma.PersonWhereUniqueInput
-  create: Prisma.XOR<Prisma.PersonCreateWithoutTenantInput, Prisma.PersonUncheckedCreateWithoutTenantInput>
-}
-
-export type PersonCreateManyTenantInputEnvelope = {
-  data: Prisma.PersonCreateManyTenantInput | Prisma.PersonCreateManyTenantInput[]
-  skipDuplicates?: boolean
-}
-
-export type PersonUpsertWithWhereUniqueWithoutTenantInput = {
-  where: Prisma.PersonWhereUniqueInput
-  update: Prisma.XOR<Prisma.PersonUpdateWithoutTenantInput, Prisma.PersonUncheckedUpdateWithoutTenantInput>
-  create: Prisma.XOR<Prisma.PersonCreateWithoutTenantInput, Prisma.PersonUncheckedCreateWithoutTenantInput>
-}
-
-export type PersonUpdateWithWhereUniqueWithoutTenantInput = {
-  where: Prisma.PersonWhereUniqueInput
-  data: Prisma.XOR<Prisma.PersonUpdateWithoutTenantInput, Prisma.PersonUncheckedUpdateWithoutTenantInput>
-}
-
-export type PersonUpdateManyWithWhereWithoutTenantInput = {
-  where: Prisma.PersonScalarWhereInput
-  data: Prisma.XOR<Prisma.PersonUpdateManyMutationInput, Prisma.PersonUncheckedUpdateManyWithoutTenantInput>
-}
-
-export type PersonScalarWhereInput = {
-  AND?: Prisma.PersonScalarWhereInput | Prisma.PersonScalarWhereInput[]
-  OR?: Prisma.PersonScalarWhereInput[]
-  NOT?: Prisma.PersonScalarWhereInput | Prisma.PersonScalarWhereInput[]
-  id?: Prisma.UuidFilter<"Person"> | string
-  tenantId?: Prisma.UuidFilter<"Person"> | string
-  name?: Prisma.StringFilter<"Person"> | string
-  socialname?: Prisma.StringNullableFilter<"Person"> | string | null
-  birthDate?: Prisma.DateTimeNullableFilter<"Person"> | Date | string | null
-  gender?: Prisma.StringNullableFilter<"Person"> | string | null
-  userId?: Prisma.UuidNullableFilter<"Person"> | string | null
-  status?: Prisma.EnumStatusFilter<"Person"> | $Enums.Status
-  createdAt?: Prisma.DateTimeFilter<"Person"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"Person"> | Date | string
-  deletedAt?: Prisma.DateTimeNullableFilter<"Person"> | Date | string | null
-}
-
-export type PersonCreateWithoutBoardMembershipsInput = {
-  id?: string
-  name: string
-  socialname?: string | null
-  birthDate?: Date | string | null
-  gender?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  tenant: Prisma.TenantCreateNestedOneWithoutPeopleInput
-  user?: Prisma.UserCreateNestedOneWithoutPersonInput
-  contacts?: Prisma.ContactCreateNestedManyWithoutPersonInput
-  reports?: Prisma.ReportCreateNestedManyWithoutAssigneeInput
-  documents?: Prisma.PersonDocumentCreateNestedManyWithoutPersonInput
-  addresses?: Prisma.PersonAddressCreateNestedManyWithoutPersonInput
-}
-
-export type PersonUncheckedCreateWithoutBoardMembershipsInput = {
-  id?: string
-  tenantId: string
-  name: string
-  socialname?: string | null
-  birthDate?: Date | string | null
-  gender?: string | null
-  userId?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutPersonInput
-  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutAssigneeInput
-  documents?: Prisma.PersonDocumentUncheckedCreateNestedManyWithoutPersonInput
-  addresses?: Prisma.PersonAddressUncheckedCreateNestedManyWithoutPersonInput
-}
-
-export type PersonCreateOrConnectWithoutBoardMembershipsInput = {
-  where: Prisma.PersonWhereUniqueInput
-  create: Prisma.XOR<Prisma.PersonCreateWithoutBoardMembershipsInput, Prisma.PersonUncheckedCreateWithoutBoardMembershipsInput>
-}
-
-export type PersonUpsertWithoutBoardMembershipsInput = {
-  update: Prisma.XOR<Prisma.PersonUpdateWithoutBoardMembershipsInput, Prisma.PersonUncheckedUpdateWithoutBoardMembershipsInput>
-  create: Prisma.XOR<Prisma.PersonCreateWithoutBoardMembershipsInput, Prisma.PersonUncheckedCreateWithoutBoardMembershipsInput>
-  where?: Prisma.PersonWhereInput
-}
-
-export type PersonUpdateToOneWithWhereWithoutBoardMembershipsInput = {
-  where?: Prisma.PersonWhereInput
-  data: Prisma.XOR<Prisma.PersonUpdateWithoutBoardMembershipsInput, Prisma.PersonUncheckedUpdateWithoutBoardMembershipsInput>
-}
-
-export type PersonUpdateWithoutBoardMembershipsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  socialname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  tenant?: Prisma.TenantUpdateOneRequiredWithoutPeopleNestedInput
-  user?: Prisma.UserUpdateOneWithoutPersonNestedInput
-  contacts?: Prisma.ContactUpdateManyWithoutPersonNestedInput
-  reports?: Prisma.ReportUpdateManyWithoutAssigneeNestedInput
-  documents?: Prisma.PersonDocumentUpdateManyWithoutPersonNestedInput
-  addresses?: Prisma.PersonAddressUpdateManyWithoutPersonNestedInput
-}
-
-export type PersonUncheckedUpdateWithoutBoardMembershipsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  socialname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  contacts?: Prisma.ContactUncheckedUpdateManyWithoutPersonNestedInput
-  reports?: Prisma.ReportUncheckedUpdateManyWithoutAssigneeNestedInput
-  documents?: Prisma.PersonDocumentUncheckedUpdateManyWithoutPersonNestedInput
-  addresses?: Prisma.PersonAddressUncheckedUpdateManyWithoutPersonNestedInput
 }
 
 export type PersonCreateManyTenantInput = {

@@ -76,9 +76,9 @@ export class UsersService {
     }
   }
 
-  async findAll() {
+  async findAll(tenantId?: string) {
     try {
-      return await this.userRepository.findManyActive();
+      return await this.userRepository.findManyActive(tenantId);
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'findAll');
     }
@@ -112,9 +112,9 @@ export class UsersService {
     }
   }
 
-  async findAllWithValidation(): Promise<UserResponseDto[]> {
+  async findAllWithValidation(tenantId?: string): Promise<UserResponseDto[]> {
     try {
-      const users = await this.userRepository.findManyActive();
+      const users = await this.userRepository.findManyActive(tenantId);
       return this.userMapper.mapToResponseDtoArray(users);
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'findAll');

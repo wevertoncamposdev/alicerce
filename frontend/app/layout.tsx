@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { IntlProvider } from 'react-intl';
 import locale from '../locales/pt.json';
+import { AuthProvider } from "@/contexts/auth-context";
 
 export const metadata: Metadata = {
   title: "SaaS Multi-Tenant Base",
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html className="--font-inter h-full antialiased">
       <IntlProvider locale="pt-BR" messages={locale}>
-        <body className="min-h-full flex flex-col">{children}</body>
+        <body className="min-h-full flex flex-col">
+          <AuthProvider>{children}</AuthProvider>
+        </body>
       </IntlProvider>
     </html>
   );

@@ -7,12 +7,18 @@ import { UserValidator } from './validators/user.validator';
 import { UserBusinessRules } from './domain/rules/user-business-rules';
 import { UserRepository } from './persistence/repository/user.repository';
 import { UserErrorMapper } from './mappers/user-error.mapper';
+import { RolesController } from './roles.controller';
+import { RolesService } from './roles.service';
+import { PermissionsController } from './permissions.controller';
+import { PermissionsService } from './permissions.service';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [UsersController],
+  controllers: [UsersController, RolesController, PermissionsController],
   providers: [
     UsersService,
+    RolesService,
+    PermissionsService,
     UserMapper,
     UserValidator,
     UserBusinessRules,

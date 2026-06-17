@@ -10,10 +10,17 @@ import {
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { Public } from './auth.guard';
+import { SignUpPublicDto } from './dto/sign-up-public.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
+
+  @Public()
+  @Post('register')
+  signUp(@Body() signUpPublicDto: SignUpPublicDto) {
+    return this.authService.signUpPublic(signUpPublicDto);
+  }
 
   @Public()
   @HttpCode(HttpStatus.OK)
@@ -24,6 +31,6 @@ export class AuthController {
 
   @Get('profile')
   getProfile(@Request() req) {
-    return req.user;
+    return this.authService.getProfile(req.user.sub);
   }
 }

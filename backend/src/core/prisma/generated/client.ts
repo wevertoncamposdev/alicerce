@@ -29,8 +29,8 @@ export * from "./enums.js"
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more People
- * const people = await prisma.person.findMany()
+ * // Fetch zero or more Tenants
+ * const tenants = await prisma.tenant.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -40,35 +40,30 @@ export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts exten
 export { Prisma }
 
 /**
- * Model Person
- * 
+ * Model Tenant
+ * Main organizational entity of the system.
  */
-export type Person = Prisma.PersonModel
+export type Tenant = Prisma.TenantModel
 /**
- * Model PersonAddress
+ * Model TenantArea
  * 
  */
-export type PersonAddress = Prisma.PersonAddressModel
+export type TenantArea = Prisma.TenantAreaModel
 /**
- * Model Address
+ * Model TenantBoardMember
  * 
  */
-export type Address = Prisma.AddressModel
+export type TenantBoardMember = Prisma.TenantBoardMemberModel
 /**
- * Model Contact
+ * Model TenantBoardTerm
  * 
  */
-export type Contact = Prisma.ContactModel
+export type TenantBoardTerm = Prisma.TenantBoardTermModel
 /**
- * Model PersonDocument
+ * Model TenantDocument
  * 
  */
-export type PersonDocument = Prisma.PersonDocumentModel
-/**
- * Model Report
- * 
- */
-export type Report = Prisma.ReportModel
+export type TenantDocument = Prisma.TenantDocumentModel
 /**
  * Model User
  * 
@@ -100,70 +95,37 @@ export type RolePermission = Prisma.RolePermissionModel
  */
 export type Audit = Prisma.AuditModel
 /**
- * Model Tenant
- * Main organizational entity of the system.
- * Represents an institution/organization registered in the platform.
+ * Model Person
  * 
- * A tenant contains:
- * - institutional identity
- * - service classification
- * - contact and address data
- * - governance information
- * - regulatory documents
- * - all people, users, and records linked to that organization
  */
-export type Tenant = Prisma.TenantModel
+export type Person = Prisma.PersonModel
 /**
- * Model TenantArea
- * Stores additional service areas for a tenant.
- * This allows the tenant to have one primary service area and many secondary areas.
+ * Model PersonAddress
  * 
- * Example:
- * - primaryServiceArea = EDUCATION
- * - additional serviceAreas = HEALTH, SOCIAL_ASSISTANCE
  */
-export type TenantArea = Prisma.TenantAreaModel
+export type PersonAddress = Prisma.PersonAddressModel
 /**
- * Model TenantBoardMember
- * Represents a board/governance member of the tenant during a given board term.
+ * Model Address
  * 
- * This model answers:
- * - who occupied the role
- * - which role they occupied
- * - in what period
- * 
- * It does not define the person itself.
- * The person identity remains centralized in the Person model.
  */
-export type TenantBoardMember = Prisma.TenantBoardMemberModel
+export type Address = Prisma.AddressModel
 /**
- * Model TenantBoardTerm
- * Represents a governance/board composition period for a tenant.
+ * Model Contact
  * 
- * This model groups board members by management period.
- * 
- * Example:
- * - Board Term 2025-2027
- * - Board Term 2028-2030
- * 
- * Documents such as meeting minutes or appointment terms may optionally point to a board term.
  */
-export type TenantBoardTerm = Prisma.TenantBoardTermModel
+export type Contact = Prisma.ContactModel
 /**
- * Model TenantDocument
- * Central repository of institutional/regulatory documents of a tenant.
+ * Model PersonDocument
  * 
- * Important design rule:
- * Documents belong to the tenant, not to the board.
- * A document may optionally reference a board term when it is related to a specific management period.
- * 
- * This model can store:
- * - bylaws
- * - meeting minutes
- * - election minutes
- * - appointment terms
- * - financial statements
- * - accountability reports
- * - public regulatory documents
  */
-export type TenantDocument = Prisma.TenantDocumentModel
+export type PersonDocument = Prisma.PersonDocumentModel
+/**
+ * Model Report
+ * 
+ */
+export type Report = Prisma.ReportModel
+/**
+ * Model Task
+ * 
+ */
+export type Task = Prisma.TaskModel

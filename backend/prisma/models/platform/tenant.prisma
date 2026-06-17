@@ -130,6 +130,8 @@ model Tenant {
   @@index([status])
   @@map("tenants")
 }
+  /// Tasks managed by this tenant's users
+  tasks Task[]
 
 /// Stores additional service areas for a tenant.
 /// This allows the tenant to have one primary service area and many secondary areas.

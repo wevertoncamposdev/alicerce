@@ -28,11 +28,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 ? { statusCode: status, timestamp: new Date().toISOString(), path: request.url, ...responseData }
                 : { statusCode: status, timestamp: new Date().toISOString(), path: request.url, message: responseData };
 
-        // Fastify: use .send(), Express: use .json()
-        if (typeof response.json === 'function') {
-            response.status(status).json(payload); // Express
-        } else {
-            response.status(status).send(payload); // Fastify
+        // Express response object
+        if (typeof response.status === 'function' && typeof response.json === 'function') {
+            response.status(status).json(payload);
+            return;
         }
+
+        // Fastify reply object
+        if (typeof response.code === 'function' && typeof response.send === 'function') {
+            response.code(status).send(payload);
+            return;
+        }
+
+        // Fallback for raw Node response object
+        response.statusCode = status;
+        response.setHeader?.('content-type', 'application/json');
+        response.end?.(JSON.stringify(payload));
     }
 }

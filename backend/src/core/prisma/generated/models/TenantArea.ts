@@ -14,12 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model TenantArea
- * Stores additional service areas for a tenant.
- * This allows the tenant to have one primary service area and many secondary areas.
  * 
- * Example:
- * - primaryServiceArea = EDUCATION
- * - additional serviceAreas = HEALTH, SOCIAL_ASSISTANCE
  */
 export type TenantAreaModel = runtime.Types.Result.DefaultSelection<Prisma.$TenantAreaPayload>
 

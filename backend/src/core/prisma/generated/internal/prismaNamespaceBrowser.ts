@@ -51,23 +51,24 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  Person: 'Person',
-  PersonAddress: 'PersonAddress',
-  Address: 'Address',
-  Contact: 'Contact',
-  PersonDocument: 'PersonDocument',
-  Report: 'Report',
+  Tenant: 'Tenant',
+  TenantArea: 'TenantArea',
+  TenantBoardMember: 'TenantBoardMember',
+  TenantBoardTerm: 'TenantBoardTerm',
+  TenantDocument: 'TenantDocument',
   User: 'User',
   Role: 'Role',
   UserRole: 'UserRole',
   Permission: 'Permission',
   RolePermission: 'RolePermission',
   Audit: 'Audit',
-  Tenant: 'Tenant',
-  TenantArea: 'TenantArea',
-  TenantBoardMember: 'TenantBoardMember',
-  TenantBoardTerm: 'TenantBoardTerm',
-  TenantDocument: 'TenantDocument'
+  Person: 'Person',
+  PersonAddress: 'PersonAddress',
+  Address: 'Address',
+  Contact: 'Contact',
+  PersonDocument: 'PersonDocument',
+  Report: 'Report',
+  Task: 'Task'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -84,185 +85,6 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 } as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
-
-
-export const PersonScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  name: 'name',
-  socialname: 'socialname',
-  birthDate: 'birthDate',
-  gender: 'gender',
-  userId: 'userId',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type PersonScalarFieldEnum = (typeof PersonScalarFieldEnum)[keyof typeof PersonScalarFieldEnum]
-
-
-export const PersonAddressScalarFieldEnum = {
-  id: 'id',
-  personId: 'personId',
-  addressId: 'addressId',
-  type: 'type',
-  isPrimary: 'isPrimary',
-  startedAt: 'startedAt',
-  endedAt: 'endedAt'
-} as const
-
-export type PersonAddressScalarFieldEnum = (typeof PersonAddressScalarFieldEnum)[keyof typeof PersonAddressScalarFieldEnum]
-
-
-export const AddressScalarFieldEnum = {
-  id: 'id',
-  street: 'street',
-  number: 'number',
-  district: 'district',
-  city: 'city',
-  state: 'state',
-  zipCode: 'zipCode',
-  country: 'country',
-  complement: 'complement',
-  reference: 'reference',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type AddressScalarFieldEnum = (typeof AddressScalarFieldEnum)[keyof typeof AddressScalarFieldEnum]
-
-
-export const ContactScalarFieldEnum = {
-  id: 'id',
-  personId: 'personId',
-  title: 'title',
-  type: 'type',
-  value: 'value',
-  main: 'main',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type ContactScalarFieldEnum = (typeof ContactScalarFieldEnum)[keyof typeof ContactScalarFieldEnum]
-
-
-export const PersonDocumentScalarFieldEnum = {
-  id: 'id',
-  personId: 'personId',
-  type: 'type',
-  value: 'value',
-  storage: 'storage',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type PersonDocumentScalarFieldEnum = (typeof PersonDocumentScalarFieldEnum)[keyof typeof PersonDocumentScalarFieldEnum]
-
-
-export const ReportScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  title: 'title',
-  content: 'content',
-  reportType: 'reportType',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  assignedTo: 'assignedTo'
-} as const
-
-export type ReportScalarFieldEnum = (typeof ReportScalarFieldEnum)[keyof typeof ReportScalarFieldEnum]
-
-
-export const UserScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  email: 'email',
-  password: 'password',
-  mfaEnabled: 'mfaEnabled',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
-
-
-export const RoleScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  name: 'name',
-  type: 'type',
-  description: 'description',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
-
-
-export const UserRoleScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  userId: 'userId',
-  roleId: 'roleId',
-  assignedBy: 'assignedBy',
-  assignedAt: 'assignedAt'
-} as const
-
-export type UserRoleScalarFieldEnum = (typeof UserRoleScalarFieldEnum)[keyof typeof UserRoleScalarFieldEnum]
-
-
-export const PermissionScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  name: 'name',
-  description: 'description',
-  type: 'type',
-  resource: 'resource',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
-
-
-export const RolePermissionScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  roleId: 'roleId',
-  permissionId: 'permissionId',
-  resource: 'resource'
-} as const
-
-export type RolePermissionScalarFieldEnum = (typeof RolePermissionScalarFieldEnum)[keyof typeof RolePermissionScalarFieldEnum]
-
-
-export const AuditScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  userId: 'userId',
-  type: 'type',
-  action: 'action',
-  entity: 'entity',
-  entityId: 'entityId',
-  before: 'before',
-  after: 'after',
-  createdAt: 'createdAt'
-} as const
-
-export type AuditScalarFieldEnum = (typeof AuditScalarFieldEnum)[keyof typeof AuditScalarFieldEnum]
 
 
 export const TenantScalarFieldEnum = {
@@ -375,6 +197,204 @@ export const TenantDocumentScalarFieldEnum = {
 } as const
 
 export type TenantDocumentScalarFieldEnum = (typeof TenantDocumentScalarFieldEnum)[keyof typeof TenantDocumentScalarFieldEnum]
+
+
+export const UserScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  email: 'email',
+  password: 'password',
+  mfaEnabled: 'mfaEnabled',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const RoleScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  type: 'type',
+  description: 'description',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
+
+
+export const UserRoleScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  roleId: 'roleId',
+  assignedBy: 'assignedBy',
+  assignedAt: 'assignedAt'
+} as const
+
+export type UserRoleScalarFieldEnum = (typeof UserRoleScalarFieldEnum)[keyof typeof UserRoleScalarFieldEnum]
+
+
+export const PermissionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  description: 'description',
+  type: 'type',
+  resource: 'resource',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
+
+
+export const RolePermissionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  roleId: 'roleId',
+  permissionId: 'permissionId',
+  resource: 'resource'
+} as const
+
+export type RolePermissionScalarFieldEnum = (typeof RolePermissionScalarFieldEnum)[keyof typeof RolePermissionScalarFieldEnum]
+
+
+export const AuditScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  type: 'type',
+  action: 'action',
+  entity: 'entity',
+  entityId: 'entityId',
+  before: 'before',
+  after: 'after',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditScalarFieldEnum = (typeof AuditScalarFieldEnum)[keyof typeof AuditScalarFieldEnum]
+
+
+export const PersonScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  socialname: 'socialname',
+  birthDate: 'birthDate',
+  gender: 'gender',
+  userId: 'userId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type PersonScalarFieldEnum = (typeof PersonScalarFieldEnum)[keyof typeof PersonScalarFieldEnum]
+
+
+export const PersonAddressScalarFieldEnum = {
+  id: 'id',
+  personId: 'personId',
+  addressId: 'addressId',
+  type: 'type',
+  isPrimary: 'isPrimary',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt'
+} as const
+
+export type PersonAddressScalarFieldEnum = (typeof PersonAddressScalarFieldEnum)[keyof typeof PersonAddressScalarFieldEnum]
+
+
+export const AddressScalarFieldEnum = {
+  id: 'id',
+  street: 'street',
+  number: 'number',
+  district: 'district',
+  city: 'city',
+  state: 'state',
+  zipCode: 'zipCode',
+  country: 'country',
+  complement: 'complement',
+  reference: 'reference',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type AddressScalarFieldEnum = (typeof AddressScalarFieldEnum)[keyof typeof AddressScalarFieldEnum]
+
+
+export const ContactScalarFieldEnum = {
+  id: 'id',
+  personId: 'personId',
+  title: 'title',
+  type: 'type',
+  value: 'value',
+  main: 'main',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type ContactScalarFieldEnum = (typeof ContactScalarFieldEnum)[keyof typeof ContactScalarFieldEnum]
+
+
+export const PersonDocumentScalarFieldEnum = {
+  id: 'id',
+  personId: 'personId',
+  type: 'type',
+  value: 'value',
+  storage: 'storage',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type PersonDocumentScalarFieldEnum = (typeof PersonDocumentScalarFieldEnum)[keyof typeof PersonDocumentScalarFieldEnum]
+
+
+export const ReportScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  title: 'title',
+  content: 'content',
+  reportType: 'reportType',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  assignedTo: 'assignedTo'
+} as const
+
+export type ReportScalarFieldEnum = (typeof ReportScalarFieldEnum)[keyof typeof ReportScalarFieldEnum]
+
+
+export const TaskScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  assignedToUserId: 'assignedToUserId',
+  title: 'title',
+  description: 'description',
+  status: 'status',
+  priority: 'priority',
+  dueDate: 'dueDate',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type TaskScalarFieldEnum = (typeof TaskScalarFieldEnum)[keyof typeof TaskScalarFieldEnum]
 
 
 export const SortOrder = {

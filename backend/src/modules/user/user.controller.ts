@@ -34,8 +34,8 @@ export class UsersController {
   @Get()
   @Roles('ADMIN', 'USER')
   @Permissions('user.read')
-  findAll(): Promise<UserResponseDto[]> {
-    return this.usersService.findAllWithValidation();
+  findAll(@Query('tenantId') tenantId?: string): Promise<UserResponseDto[]> {
+    return this.usersService.findAllWithValidation(tenantId);
   }
 
   @Get(':id')

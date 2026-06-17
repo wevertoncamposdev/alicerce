@@ -10,9 +10,12 @@ export class UserRepository {
         return this.prisma.user.create({ data });
     }
 
-    findManyActive() {
+    findManyActive(tenantId?: string) {
         return this.prisma.user.findMany({
-            where: { deletedAt: null },
+            where: {
+                deletedAt: null,
+                ...(tenantId ? { tenantId } : {}),
+            },
         });
     }
 

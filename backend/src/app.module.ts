@@ -1,4 +1,9 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import {
+  Module,
+  NestModule,
+  MiddlewareConsumer,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from '@src/app.controller';
 import { AppService } from '@src/app.service';
@@ -9,6 +14,7 @@ import { AuditModule } from '@modules/audit/audit.module';
 
 import { UsersModule } from '@modules/user/user.module';
 import { TenantModule } from '@modules/tenant/tenant.module';
+import { TaskModule } from '@modules/task/task.module';
 
 @Module({
   imports: [
@@ -18,14 +24,16 @@ import { TenantModule } from '@modules/tenant/tenant.module';
     AuthModule,
     TenantModule,
     AuditModule,
+    TaskModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(TenantMiddleware)
-      .forRoutes('api/tenant/:tenantId/(.*)');
+    consumer.apply(TenantMiddleware).forRoutes(
+      { path: 'tenant/:tenantId', method: RequestMethod.ALL },
+      { path: 'tenant/:tenantId/*path', method: RequestMethod.ALL },
+    );
   }
 }

@@ -1,7 +1,5 @@
 // This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// learn more in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider     = "prisma-client"
@@ -77,27 +75,32 @@ enum AddressType {
   WORK
 }
 
+/// Status of a task lifecycle.
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+/// Priority level of a task.
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
 /// Defines the legal/institutional nature of the tenant.
-/// Use this to classify what kind of organization is being registered.
 enum TenantCategory {
-  /// Nonprofit membership-based entity formed by associates.
   ASSOCIATION
-
-  /// Entity created through an endowment or patrimony for a specific purpose.
   FOUNDATION
-
-  /// Religious institution with social or community activities.
   RELIGIOUS_ORGANIZATION
-
-  /// Cooperative with a social inclusion or collective development purpose.
   SOCIAL_COOPERATIVE
-
-  /// Fallback option when the category does not fit the predefined values.
   OTHER
 }
 
 /// Defines the tenant's main area of activity.
-/// Used to classify the social impact or service domain of the organization.
 enum TenantServiceArea {
   SOCIAL_ASSISTANCE
   EDUCATION
@@ -112,18 +115,10 @@ enum TenantServiceArea {
 }
 
 /// Defines the type of partnership the tenant has with public institutions.
-/// Based on common OSC/MROSC partnership models.
 enum PartnershipType {
-  /// No formal public partnership.
   NONE
-
-  /// Public collaboration term.
   COLLABORATION_TERM
-
-  /// Public foment/support term.
   FOMENT_TERM
-
-  /// Public cooperation agreement.
   COOPERATION_AGREEMENT
 }
 
@@ -139,7 +134,6 @@ enum CoverageArea {
 }
 
 /// Defines the approximate organizational size.
-/// Can be used for analytics, filtering, segmentation, or reporting.
 enum OrganizationSize {
   MICRO
   SMALL
@@ -148,7 +142,6 @@ enum OrganizationSize {
 }
 
 /// Defines the role a person occupies in the tenant's board structure.
-/// Used only for board composition and governance history.
 enum BoardRoleType {
   PRESIDENT
   VICE_PRESIDENT
@@ -163,7 +156,6 @@ enum BoardRoleType {
 }
 
 /// Defines the institutional or regulatory document type of a tenant.
-/// All documents belong to the tenant, even when related to a board term.
 enum TenantDocumentType {
   BYLAWS
   MEETING_MINUTES
@@ -176,4 +168,441 @@ enum TenantDocumentType {
   ANNUAL_REPORT
   INTERNAL_REGULATION
   OTHER
+}
+
+/// Main organizational entity of the system.
+model Tenant {
+  id String @id @default(uuid()) @db.Uuid
+
+  legalName          String @unique @db.VarChar(255)
+  tradeName          String? @db.VarChar(255)
+  registrationNumber String @unique @db.VarChar(20)
+  slug               String @unique @db.VarChar(120)
+
+  description String? @db.Text
+  mission     String? @db.Text
+  vision      String? @db.Text
+  values      String? @db.Text
+
+  category           TenantCategory
+  primaryServiceArea TenantServiceArea
+  partnershipType    PartnershipType @default(NONE)
+  coverageArea       CoverageArea?
+  organizationSize   OrganizationSize?
+
+  foundedAt DateTime?
+  closedAt  DateTime?
+
+  street     String? @db.VarChar(255)
+  number     String? @db.VarChar(50)
+  district   String? @db.VarChar(150)
+  city       String? @db.VarChar(150)
+  state      String? @db.VarChar(100)
+  zipCode    String? @db.VarChar(20)
+  country    String? @db.VarChar(100)
+  complement String? @db.VarChar(255)
+  reference  String? @db.VarChar(255)
+
+  phone       String? @db.VarChar(20)
+  mobilePhone String? @db.VarChar(20)
+  email       String? @db.VarChar(255)
+  website     String? @db.VarChar(255)
+  instagram   String? @db.VarChar(255)
+  facebook    String? @db.VarChar(255)
+  linkedin    String? @db.VarChar(255)
+
+  usesVolunteers           Boolean @default(false)
+  acceptsDonations         Boolean @default(false)
+  hasGovernmentPartnership Boolean @default(false)
+  isNonProfit              Boolean @default(true)
+
+  notes String? @db.Text
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  serviceAreas     TenantArea[]
+  users            User[]
+  roles            Role[]
+  userRoles        UserRole[]
+  rolePermissions  RolePermission[]
+  permissions      Permission[]
+  audits           Audit[]
+  boardTerms       TenantBoardTerm[]
+  boardMembers     TenantBoardMember[]
+  documents        TenantDocument[]
+  people           Person[]
+  reports          Report[]
+  tasks            Task[]
+
+  @@index([slug])
+  @@index([registrationNumber])
+  @@index([category])
+  @@index([primaryServiceArea])
+  @@index([status])
+  @@map("tenants")
+}
+
+model TenantArea {
+  id       String            @id @default(uuid()) @db.Uuid
+  tenantId String            @db.Uuid
+  area     TenantServiceArea
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, area])
+  @@index([area])
+  @@map("tenant_areas")
+}
+
+model TenantBoardMember {
+  id          String @id @default(uuid()) @db.Uuid
+  tenantId    String @db.Uuid
+  boardTermId String @db.Uuid
+  personId    String @db.Uuid
+
+  role      BoardRoleType
+  title     String? @db.VarChar(150)
+  startDate DateTime?
+  endDate   DateTime?
+  notes     String? @db.Text
+
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    Tenant          @relation(fields: [tenantId], references: [id])
+  boardTerm TenantBoardTerm @relation(fields: [boardTermId], references: [id])
+  person    Person          @relation(fields: [personId], references: [id])
+
+  @@index([tenantId, role])
+  @@index([boardTermId])
+  @@index([personId])
+  @@map("tenant_board_members")
+}
+
+model TenantBoardTerm {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+
+  name      String? @db.VarChar(150)
+  startDate DateTime
+  endDate   DateTime?
+  notes     String? @db.Text
+
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    Tenant              @relation(fields: [tenantId], references: [id])
+  members   TenantBoardMember[]
+  documents TenantDocument[]
+
+  @@index([tenantId, startDate, endDate])
+  @@map("tenant_board_terms")
+}
+
+model TenantDocument {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+
+  boardTermId String? @db.Uuid
+
+  type TenantDocumentType
+
+  title       String  @db.VarChar(255)
+  description String? @db.Text
+  fileUrl     String  @db.VarChar(500)
+  fileName    String? @db.VarChar(255)
+  mimeType    String? @db.VarChar(100)
+
+  documentDate DateTime?
+  publishedAt  DateTime?
+  expiresAt    DateTime?
+
+  isPublic Boolean @default(false)
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant    Tenant           @relation(fields: [tenantId], references: [id])
+  boardTerm TenantBoardTerm? @relation(fields: [boardTermId], references: [id])
+
+  @@index([tenantId, type])
+  @@index([boardTermId])
+  @@index([isPublic])
+  @@map("tenant_documents")
+}
+
+// Modelos de controle de acesso
+model User {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+
+  email    String @unique @db.VarChar(255)
+  password String @db.VarChar(100)
+
+  mfaEnabled Boolean @default(false)
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  roles           UserRole[]
+  audits          Audit[]
+  person          Person?
+  tasksCreated    Task[]    @relation("taskCreator")
+  tasksAssignedTo Task[]    @relation("taskAssignedTo")
+
+  @@unique([tenantId, email])
+  @@map("users")
+}
+
+model Role {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+
+  name        String
+  type        RoleType
+  description String?
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant      Tenant           @relation(fields: [tenantId], references: [id])
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  userId   String @db.Uuid
+  roleId   String @db.Uuid
+
+  assignedBy String?  @db.Uuid
+  assignedAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+model Permission {
+  id          String @id @default(uuid()) @db.Uuid
+  tenantId    String @db.Uuid
+  name        String
+  description String?
+  type        PermissionType
+  resource    String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant Tenant           @relation(fields: [tenantId], references: [id])
+  roles  RolePermission[]
+
+  @@unique([tenantId, name, resource])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String @id @default(uuid()) @db.Uuid
+  tenantId     String @db.Uuid
+  roleId       String @db.Uuid
+  permissionId String @db.Uuid
+  resource     String?
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id])
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId, resource])
+  @@map("role_permissions")
+}
+
+// Modelos de observabilidade como logs e auditorias.
+model Audit {
+  id       String    @id @default(uuid()) @db.Uuid
+  tenantId String    @db.Uuid
+  userId   String    @db.Uuid
+  type     AuditType
+
+  action   String
+  entity   String
+  entityId String?
+  before   String?
+  after    String?
+
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("audits")
+}
+
+// Modelos de domínio com relacionamento direto a pessoas
+model Person {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @db.Uuid
+  name       String
+  socialname String?
+  birthDate  DateTime?
+  gender     String?
+
+  userId String? @unique @db.Uuid
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id])
+
+  contacts         Contact[]
+  reports          Report[]
+  documents        PersonDocument[]
+  addresses        PersonAddress[]
+  boardMemberships TenantBoardMember[]
+
+  @@map("people")
+}
+
+model PersonAddress {
+  id        String      @id @default(uuid()) @db.Uuid
+  personId  String      @db.Uuid
+  addressId String      @db.Uuid
+  type      AddressType @default(HOME)
+  isPrimary Boolean     @default(false)
+  startedAt DateTime?
+  endedAt   DateTime?
+
+  person  Person  @relation(fields: [personId], references: [id])
+  address Address @relation(fields: [addressId], references: [id])
+
+  @@map("person_addresses")
+}
+
+model Address {
+  id         String  @id @default(uuid()) @db.Uuid
+  street     String
+  number     String?
+  district   String?
+  city       String
+  state      String
+  zipCode    String
+  country    String
+  complement String?
+  reference  String?
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  residents PersonAddress[]
+
+  @@map("addresses")
+}
+
+model Contact {
+  id       String      @id @default(uuid()) @db.Uuid
+  personId String      @db.Uuid
+  title    String
+  type     ContactType
+  value    String
+  main     Boolean     @default(false)
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  person Person @relation(fields: [personId], references: [id])
+
+  @@map("contacts")
+}
+
+model PersonDocument {
+  id       String @id @default(uuid()) @db.Uuid
+  personId String @db.Uuid
+
+  type    DocumentType
+  value   String
+  storage String
+
+  status    Status    @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  person Person @relation(fields: [personId], references: [id])
+
+  @@map("person_documents")
+}
+
+model Report {
+  id         String     @id @default(uuid()) @db.Uuid
+  tenantId   String     @db.Uuid
+  title      String     @db.VarChar(255)
+  content    String     @db.Text
+  reportType ReportType
+
+  createdAt  DateTime @default(now())
+  createdBy  String   @db.Uuid
+  assignedTo String?  @db.Uuid
+  assignee   Person?  @relation(fields: [assignedTo], references: [id])
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("reports")
+}
+
+// Modelos de domínio relacionado a tarefas de usuários
+model Task {
+  id String @id @default(uuid()) @db.Uuid
+
+  tenantId          String  @db.Uuid
+  userId            String  @db.Uuid
+  assignedToUserId  String? @db.Uuid
+
+  title       String  @db.VarChar(255)
+  description String? @db.Text
+
+  status   TaskStatus   @default(PENDING)
+  priority TaskPriority @default(MEDIUM)
+
+  dueDate     DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant     Tenant @relation(fields: [tenantId], references: [id])
+  creator    User   @relation("taskCreator", fields: [userId], references: [id])
+  assignedTo User?  @relation("taskAssignedTo", fields: [assignedToUserId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([assignedToUserId])
+  @@index([status])
+  @@index([priority])
+  @@map("tasks")
 }

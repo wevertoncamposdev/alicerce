@@ -218,6 +218,8 @@ export type UserWhereInput = {
   roles?: Prisma.UserRoleListRelationFilter
   audits?: Prisma.AuditListRelationFilter
   person?: Prisma.XOR<Prisma.PersonNullableScalarRelationFilter, Prisma.PersonWhereInput> | null
+  tasksCreated?: Prisma.TaskListRelationFilter
+  tasksAssignedTo?: Prisma.TaskListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -234,6 +236,8 @@ export type UserOrderByWithRelationInput = {
   roles?: Prisma.UserRoleOrderByRelationAggregateInput
   audits?: Prisma.AuditOrderByRelationAggregateInput
   person?: Prisma.PersonOrderByWithRelationInput
+  tasksCreated?: Prisma.TaskOrderByRelationAggregateInput
+  tasksAssignedTo?: Prisma.TaskOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -254,6 +258,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   roles?: Prisma.UserRoleListRelationFilter
   audits?: Prisma.AuditListRelationFilter
   person?: Prisma.XOR<Prisma.PersonNullableScalarRelationFilter, Prisma.PersonWhereInput> | null
+  tasksCreated?: Prisma.TaskListRelationFilter
+  tasksAssignedTo?: Prisma.TaskListRelationFilter
 }, "id" | "email" | "tenantId_email">
 
 export type UserOrderByWithAggregationInput = {
@@ -299,6 +305,8 @@ export type UserCreateInput = {
   roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditCreateNestedManyWithoutUserInput
   person?: Prisma.PersonCreateNestedOneWithoutUserInput
+  tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
+  tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -314,6 +322,8 @@ export type UserUncheckedCreateInput = {
   roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditUncheckedCreateNestedManyWithoutUserInput
   person?: Prisma.PersonUncheckedCreateNestedOneWithoutUserInput
+  tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
+  tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
 }
 
 export type UserUpdateInput = {
@@ -329,6 +339,8 @@ export type UserUpdateInput = {
   roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditUpdateManyWithoutUserNestedInput
   person?: Prisma.PersonUpdateOneWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
+  tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -344,6 +356,8 @@ export type UserUncheckedUpdateInput = {
   roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditUncheckedUpdateManyWithoutUserNestedInput
   person?: Prisma.PersonUncheckedUpdateOneWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
+  tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -381,9 +395,14 @@ export type UserUncheckedUpdateManyInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
-export type UserNullableScalarRelationFilter = {
-  is?: Prisma.UserWhereInput | null
-  isNot?: Prisma.UserWhereInput | null
+export type UserListRelationFilter = {
+  every?: Prisma.UserWhereInput
+  some?: Prisma.UserWhereInput
+  none?: Prisma.UserWhereInput
+}
+
+export type UserOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type UserTenantIdEmailCompoundUniqueInput = {
@@ -432,58 +451,9 @@ export type UserScalarRelationFilter = {
   isNot?: Prisma.UserWhereInput
 }
 
-export type UserListRelationFilter = {
-  every?: Prisma.UserWhereInput
-  some?: Prisma.UserWhereInput
-  none?: Prisma.UserWhereInput
-}
-
-export type UserOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
-}
-
-export type UserCreateNestedOneWithoutPersonInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutPersonInput, Prisma.UserUncheckedCreateWithoutPersonInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPersonInput
-  connect?: Prisma.UserWhereUniqueInput
-}
-
-export type UserUpdateOneWithoutPersonNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutPersonInput, Prisma.UserUncheckedCreateWithoutPersonInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPersonInput
-  upsert?: Prisma.UserUpsertWithoutPersonInput
-  disconnect?: Prisma.UserWhereInput | boolean
-  delete?: Prisma.UserWhereInput | boolean
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPersonInput, Prisma.UserUpdateWithoutPersonInput>, Prisma.UserUncheckedUpdateWithoutPersonInput>
-}
-
-export type UserCreateNestedOneWithoutRolesInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutRolesInput, Prisma.UserUncheckedCreateWithoutRolesInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRolesInput
-  connect?: Prisma.UserWhereUniqueInput
-}
-
-export type UserUpdateOneRequiredWithoutRolesNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutRolesInput, Prisma.UserUncheckedCreateWithoutRolesInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRolesInput
-  upsert?: Prisma.UserUpsertWithoutRolesInput
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRolesInput, Prisma.UserUpdateWithoutRolesInput>, Prisma.UserUncheckedUpdateWithoutRolesInput>
-}
-
-export type UserCreateNestedOneWithoutAuditsInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutAuditsInput, Prisma.UserUncheckedCreateWithoutAuditsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuditsInput
-  connect?: Prisma.UserWhereUniqueInput
-}
-
-export type UserUpdateOneRequiredWithoutAuditsNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutAuditsInput, Prisma.UserUncheckedCreateWithoutAuditsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuditsInput
-  upsert?: Prisma.UserUpsertWithoutAuditsInput
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuditsInput, Prisma.UserUpdateWithoutAuditsInput>, Prisma.UserUncheckedUpdateWithoutAuditsInput>
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
 }
 
 export type UserCreateNestedManyWithoutTenantInput = {
@@ -528,220 +498,78 @@ export type UserUncheckedUpdateManyWithoutTenantNestedInput = {
   deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
 }
 
-export type UserCreateWithoutPersonInput = {
-  id?: string
-  email: string
-  password: string
-  mfaEnabled?: boolean
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
-  roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
-  audits?: Prisma.AuditCreateNestedManyWithoutUserInput
+export type UserCreateNestedOneWithoutRolesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRolesInput, Prisma.UserUncheckedCreateWithoutRolesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRolesInput
+  connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUncheckedCreateWithoutPersonInput = {
-  id?: string
-  tenantId: string
-  email: string
-  password: string
-  mfaEnabled?: boolean
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
-  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutUserInput
+export type UserUpdateOneRequiredWithoutRolesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRolesInput, Prisma.UserUncheckedCreateWithoutRolesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRolesInput
+  upsert?: Prisma.UserUpsertWithoutRolesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRolesInput, Prisma.UserUpdateWithoutRolesInput>, Prisma.UserUncheckedUpdateWithoutRolesInput>
 }
 
-export type UserCreateOrConnectWithoutPersonInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutPersonInput, Prisma.UserUncheckedCreateWithoutPersonInput>
+export type UserCreateNestedOneWithoutAuditsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAuditsInput, Prisma.UserUncheckedCreateWithoutAuditsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuditsInput
+  connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUpsertWithoutPersonInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutPersonInput, Prisma.UserUncheckedUpdateWithoutPersonInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutPersonInput, Prisma.UserUncheckedCreateWithoutPersonInput>
-  where?: Prisma.UserWhereInput
+export type UserUpdateOneRequiredWithoutAuditsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAuditsInput, Prisma.UserUncheckedCreateWithoutAuditsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuditsInput
+  upsert?: Prisma.UserUpsertWithoutAuditsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuditsInput, Prisma.UserUpdateWithoutAuditsInput>, Prisma.UserUncheckedUpdateWithoutAuditsInput>
 }
 
-export type UserUpdateToOneWithWhereWithoutPersonInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutPersonInput, Prisma.UserUncheckedUpdateWithoutPersonInput>
+export type UserCreateNestedOneWithoutPersonInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPersonInput, Prisma.UserUncheckedCreateWithoutPersonInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPersonInput
+  connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUpdateWithoutPersonInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
-  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
-  roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
-  audits?: Prisma.AuditUpdateManyWithoutUserNestedInput
+export type UserUpdateOneWithoutPersonNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPersonInput, Prisma.UserUncheckedCreateWithoutPersonInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPersonInput
+  upsert?: Prisma.UserUpsertWithoutPersonInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPersonInput, Prisma.UserUpdateWithoutPersonInput>, Prisma.UserUncheckedUpdateWithoutPersonInput>
 }
 
-export type UserUncheckedUpdateWithoutPersonInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
-  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
-  audits?: Prisma.AuditUncheckedUpdateManyWithoutUserNestedInput
+export type UserCreateNestedOneWithoutTasksCreatedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTasksCreatedInput, Prisma.UserUncheckedCreateWithoutTasksCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTasksCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserCreateWithoutRolesInput = {
-  id?: string
-  email: string
-  password: string
-  mfaEnabled?: boolean
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
-  audits?: Prisma.AuditCreateNestedManyWithoutUserInput
-  person?: Prisma.PersonCreateNestedOneWithoutUserInput
+export type UserCreateNestedOneWithoutTasksAssignedToInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTasksAssignedToInput, Prisma.UserUncheckedCreateWithoutTasksAssignedToInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTasksAssignedToInput
+  connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUncheckedCreateWithoutRolesInput = {
-  id?: string
-  tenantId: string
-  email: string
-  password: string
-  mfaEnabled?: boolean
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutUserInput
-  person?: Prisma.PersonUncheckedCreateNestedOneWithoutUserInput
+export type UserUpdateOneRequiredWithoutTasksCreatedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTasksCreatedInput, Prisma.UserUncheckedCreateWithoutTasksCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTasksCreatedInput
+  upsert?: Prisma.UserUpsertWithoutTasksCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTasksCreatedInput, Prisma.UserUpdateWithoutTasksCreatedInput>, Prisma.UserUncheckedUpdateWithoutTasksCreatedInput>
 }
 
-export type UserCreateOrConnectWithoutRolesInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutRolesInput, Prisma.UserUncheckedCreateWithoutRolesInput>
-}
-
-export type UserUpsertWithoutRolesInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutRolesInput, Prisma.UserUncheckedUpdateWithoutRolesInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutRolesInput, Prisma.UserUncheckedCreateWithoutRolesInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutRolesInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutRolesInput, Prisma.UserUncheckedUpdateWithoutRolesInput>
-}
-
-export type UserUpdateWithoutRolesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
-  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
-  audits?: Prisma.AuditUpdateManyWithoutUserNestedInput
-  person?: Prisma.PersonUpdateOneWithoutUserNestedInput
-}
-
-export type UserUncheckedUpdateWithoutRolesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
-  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  audits?: Prisma.AuditUncheckedUpdateManyWithoutUserNestedInput
-  person?: Prisma.PersonUncheckedUpdateOneWithoutUserNestedInput
-}
-
-export type UserCreateWithoutAuditsInput = {
-  id?: string
-  email: string
-  password: string
-  mfaEnabled?: boolean
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
-  roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
-  person?: Prisma.PersonCreateNestedOneWithoutUserInput
-}
-
-export type UserUncheckedCreateWithoutAuditsInput = {
-  id?: string
-  tenantId: string
-  email: string
-  password: string
-  mfaEnabled?: boolean
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
-  person?: Prisma.PersonUncheckedCreateNestedOneWithoutUserInput
-}
-
-export type UserCreateOrConnectWithoutAuditsInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutAuditsInput, Prisma.UserUncheckedCreateWithoutAuditsInput>
-}
-
-export type UserUpsertWithoutAuditsInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutAuditsInput, Prisma.UserUncheckedUpdateWithoutAuditsInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutAuditsInput, Prisma.UserUncheckedCreateWithoutAuditsInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutAuditsInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutAuditsInput, Prisma.UserUncheckedUpdateWithoutAuditsInput>
-}
-
-export type UserUpdateWithoutAuditsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
-  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
-  roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
-  person?: Prisma.PersonUpdateOneWithoutUserNestedInput
-}
-
-export type UserUncheckedUpdateWithoutAuditsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
-  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
-  person?: Prisma.PersonUncheckedUpdateOneWithoutUserNestedInput
+export type UserUpdateOneWithoutTasksAssignedToNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTasksAssignedToInput, Prisma.UserUncheckedCreateWithoutTasksAssignedToInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTasksAssignedToInput
+  upsert?: Prisma.UserUpsertWithoutTasksAssignedToInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTasksAssignedToInput, Prisma.UserUpdateWithoutTasksAssignedToInput>, Prisma.UserUncheckedUpdateWithoutTasksAssignedToInput>
 }
 
 export type UserCreateWithoutTenantInput = {
@@ -756,6 +584,8 @@ export type UserCreateWithoutTenantInput = {
   roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditCreateNestedManyWithoutUserInput
   person?: Prisma.PersonCreateNestedOneWithoutUserInput
+  tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
+  tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
 }
 
 export type UserUncheckedCreateWithoutTenantInput = {
@@ -770,6 +600,8 @@ export type UserUncheckedCreateWithoutTenantInput = {
   roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditUncheckedCreateNestedManyWithoutUserInput
   person?: Prisma.PersonUncheckedCreateNestedOneWithoutUserInput
+  tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
+  tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
 }
 
 export type UserCreateOrConnectWithoutTenantInput = {
@@ -813,6 +645,406 @@ export type UserScalarWhereInput = {
   deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
 }
 
+export type UserCreateWithoutRolesInput = {
+  id?: string
+  email: string
+  password: string
+  mfaEnabled?: boolean
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
+  audits?: Prisma.AuditCreateNestedManyWithoutUserInput
+  person?: Prisma.PersonCreateNestedOneWithoutUserInput
+  tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
+  tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
+}
+
+export type UserUncheckedCreateWithoutRolesInput = {
+  id?: string
+  tenantId: string
+  email: string
+  password: string
+  mfaEnabled?: boolean
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutUserInput
+  person?: Prisma.PersonUncheckedCreateNestedOneWithoutUserInput
+  tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
+  tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
+}
+
+export type UserCreateOrConnectWithoutRolesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutRolesInput, Prisma.UserUncheckedCreateWithoutRolesInput>
+}
+
+export type UserUpsertWithoutRolesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutRolesInput, Prisma.UserUncheckedUpdateWithoutRolesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutRolesInput, Prisma.UserUncheckedCreateWithoutRolesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutRolesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutRolesInput, Prisma.UserUncheckedUpdateWithoutRolesInput>
+}
+
+export type UserUpdateWithoutRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutUserNestedInput
+  person?: Prisma.PersonUpdateOneWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
+  tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
+}
+
+export type UserUncheckedUpdateWithoutRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutUserNestedInput
+  person?: Prisma.PersonUncheckedUpdateOneWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
+  tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
+}
+
+export type UserCreateWithoutAuditsInput = {
+  id?: string
+  email: string
+  password: string
+  mfaEnabled?: boolean
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
+  roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
+  person?: Prisma.PersonCreateNestedOneWithoutUserInput
+  tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
+  tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
+}
+
+export type UserUncheckedCreateWithoutAuditsInput = {
+  id?: string
+  tenantId: string
+  email: string
+  password: string
+  mfaEnabled?: boolean
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
+  person?: Prisma.PersonUncheckedCreateNestedOneWithoutUserInput
+  tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
+  tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
+}
+
+export type UserCreateOrConnectWithoutAuditsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAuditsInput, Prisma.UserUncheckedCreateWithoutAuditsInput>
+}
+
+export type UserUpsertWithoutAuditsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAuditsInput, Prisma.UserUncheckedUpdateWithoutAuditsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAuditsInput, Prisma.UserUncheckedCreateWithoutAuditsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAuditsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAuditsInput, Prisma.UserUncheckedUpdateWithoutAuditsInput>
+}
+
+export type UserUpdateWithoutAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
+  roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
+  person?: Prisma.PersonUpdateOneWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
+  tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
+  person?: Prisma.PersonUncheckedUpdateOneWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
+  tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
+}
+
+export type UserCreateWithoutPersonInput = {
+  id?: string
+  email: string
+  password: string
+  mfaEnabled?: boolean
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
+  roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
+  audits?: Prisma.AuditCreateNestedManyWithoutUserInput
+  tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
+  tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
+}
+
+export type UserUncheckedCreateWithoutPersonInput = {
+  id?: string
+  tenantId: string
+  email: string
+  password: string
+  mfaEnabled?: boolean
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutUserInput
+  tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
+  tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
+}
+
+export type UserCreateOrConnectWithoutPersonInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPersonInput, Prisma.UserUncheckedCreateWithoutPersonInput>
+}
+
+export type UserUpsertWithoutPersonInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPersonInput, Prisma.UserUncheckedUpdateWithoutPersonInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPersonInput, Prisma.UserUncheckedCreateWithoutPersonInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPersonInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPersonInput, Prisma.UserUncheckedUpdateWithoutPersonInput>
+}
+
+export type UserUpdateWithoutPersonInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
+  roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
+  tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPersonInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
+  tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
+}
+
+export type UserCreateWithoutTasksCreatedInput = {
+  id?: string
+  email: string
+  password: string
+  mfaEnabled?: boolean
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
+  roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
+  audits?: Prisma.AuditCreateNestedManyWithoutUserInput
+  person?: Prisma.PersonCreateNestedOneWithoutUserInput
+  tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
+}
+
+export type UserUncheckedCreateWithoutTasksCreatedInput = {
+  id?: string
+  tenantId: string
+  email: string
+  password: string
+  mfaEnabled?: boolean
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutUserInput
+  person?: Prisma.PersonUncheckedCreateNestedOneWithoutUserInput
+  tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
+}
+
+export type UserCreateOrConnectWithoutTasksCreatedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTasksCreatedInput, Prisma.UserUncheckedCreateWithoutTasksCreatedInput>
+}
+
+export type UserCreateWithoutTasksAssignedToInput = {
+  id?: string
+  email: string
+  password: string
+  mfaEnabled?: boolean
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
+  roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
+  audits?: Prisma.AuditCreateNestedManyWithoutUserInput
+  person?: Prisma.PersonCreateNestedOneWithoutUserInput
+  tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
+}
+
+export type UserUncheckedCreateWithoutTasksAssignedToInput = {
+  id?: string
+  tenantId: string
+  email: string
+  password: string
+  mfaEnabled?: boolean
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutUserInput
+  person?: Prisma.PersonUncheckedCreateNestedOneWithoutUserInput
+  tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
+}
+
+export type UserCreateOrConnectWithoutTasksAssignedToInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTasksAssignedToInput, Prisma.UserUncheckedCreateWithoutTasksAssignedToInput>
+}
+
+export type UserUpsertWithoutTasksCreatedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTasksCreatedInput, Prisma.UserUncheckedUpdateWithoutTasksCreatedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTasksCreatedInput, Prisma.UserUncheckedCreateWithoutTasksCreatedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTasksCreatedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTasksCreatedInput, Prisma.UserUncheckedUpdateWithoutTasksCreatedInput>
+}
+
+export type UserUpdateWithoutTasksCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
+  roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutUserNestedInput
+  person?: Prisma.PersonUpdateOneWithoutUserNestedInput
+  tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTasksCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutUserNestedInput
+  person?: Prisma.PersonUncheckedUpdateOneWithoutUserNestedInput
+  tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
+}
+
+export type UserUpsertWithoutTasksAssignedToInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTasksAssignedToInput, Prisma.UserUncheckedUpdateWithoutTasksAssignedToInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTasksAssignedToInput, Prisma.UserUncheckedCreateWithoutTasksAssignedToInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTasksAssignedToInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTasksAssignedToInput, Prisma.UserUncheckedUpdateWithoutTasksAssignedToInput>
+}
+
+export type UserUpdateWithoutTasksAssignedToInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
+  roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutUserNestedInput
+  person?: Prisma.PersonUpdateOneWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTasksAssignedToInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutUserNestedInput
+  person?: Prisma.PersonUncheckedUpdateOneWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
+}
+
 export type UserCreateManyTenantInput = {
   id?: string
   email: string
@@ -836,6 +1068,8 @@ export type UserUpdateWithoutTenantInput = {
   roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditUpdateManyWithoutUserNestedInput
   person?: Prisma.PersonUpdateOneWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
+  tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTenantInput = {
@@ -850,6 +1084,8 @@ export type UserUncheckedUpdateWithoutTenantInput = {
   roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditUncheckedUpdateManyWithoutUserNestedInput
   person?: Prisma.PersonUncheckedUpdateOneWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
+  tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutTenantInput = {
@@ -871,11 +1107,15 @@ export type UserUncheckedUpdateManyWithoutTenantInput = {
 export type UserCountOutputType = {
   roles: number
   audits: number
+  tasksCreated: number
+  tasksAssignedTo: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   roles?: boolean | UserCountOutputTypeCountRolesArgs
   audits?: boolean | UserCountOutputTypeCountAuditsArgs
+  tasksCreated?: boolean | UserCountOutputTypeCountTasksCreatedArgs
+  tasksAssignedTo?: boolean | UserCountOutputTypeCountTasksAssignedToArgs
 }
 
 /**
@@ -902,6 +1142,20 @@ export type UserCountOutputTypeCountAuditsArgs<ExtArgs extends runtime.Types.Ext
   where?: Prisma.AuditWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTasksCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TaskWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTasksAssignedToArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TaskWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -917,6 +1171,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   audits?: boolean | Prisma.User$auditsArgs<ExtArgs>
   person?: boolean | Prisma.User$personArgs<ExtArgs>
+  tasksCreated?: boolean | Prisma.User$tasksCreatedArgs<ExtArgs>
+  tasksAssignedTo?: boolean | Prisma.User$tasksAssignedToArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -964,6 +1220,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   audits?: boolean | Prisma.User$auditsArgs<ExtArgs>
   person?: boolean | Prisma.User$personArgs<ExtArgs>
+  tasksCreated?: boolean | Prisma.User$tasksCreatedArgs<ExtArgs>
+  tasksAssignedTo?: boolean | Prisma.User$tasksAssignedToArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -980,6 +1238,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     roles: Prisma.$UserRolePayload<ExtArgs>[]
     audits: Prisma.$AuditPayload<ExtArgs>[]
     person: Prisma.$PersonPayload<ExtArgs> | null
+    tasksCreated: Prisma.$TaskPayload<ExtArgs>[]
+    tasksAssignedTo: Prisma.$TaskPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1389,6 +1649,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   roles<T extends Prisma.User$rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   audits<T extends Prisma.User$auditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   person<T extends Prisma.User$personArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$personArgs<ExtArgs>>): Prisma.Prisma__PersonClient<runtime.Types.Result.GetResult<Prisma.$PersonPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  tasksCreated<T extends Prisma.User$tasksCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$tasksCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  tasksAssignedTo<T extends Prisma.User$tasksAssignedToArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$tasksAssignedToArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1892,6 +2154,54 @@ export type User$personArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    */
   include?: Prisma.PersonInclude<ExtArgs> | null
   where?: Prisma.PersonWhereInput
+}
+
+/**
+ * User.tasksCreated
+ */
+export type User$tasksCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Task
+   */
+  select?: Prisma.TaskSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Task
+   */
+  omit?: Prisma.TaskOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TaskInclude<ExtArgs> | null
+  where?: Prisma.TaskWhereInput
+  orderBy?: Prisma.TaskOrderByWithRelationInput | Prisma.TaskOrderByWithRelationInput[]
+  cursor?: Prisma.TaskWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TaskScalarFieldEnum | Prisma.TaskScalarFieldEnum[]
+}
+
+/**
+ * User.tasksAssignedTo
+ */
+export type User$tasksAssignedToArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Task
+   */
+  select?: Prisma.TaskSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Task
+   */
+  omit?: Prisma.TaskOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TaskInclude<ExtArgs> | null
+  where?: Prisma.TaskWhereInput
+  orderBy?: Prisma.TaskOrderByWithRelationInput | Prisma.TaskOrderByWithRelationInput[]
+  cursor?: Prisma.TaskWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TaskScalarFieldEnum | Prisma.TaskScalarFieldEnum[]
 }
 
 /**

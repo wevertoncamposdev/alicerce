@@ -19,9 +19,18 @@ import {
 interface SimpleTableProps<TData> {
   columns: ColumnDef<TData, any>[]
   data: TData[]
+  isLoading?: boolean
+  loadingMessage?: string
+  emptyMessage?: string
 }
 
-export function DataTable<TData>({ columns, data }: SimpleTableProps<TData>) {
+export function DataTable<TData>({
+  columns,
+  data,
+  isLoading = false,
+  loadingMessage = "Carregando...",
+  emptyMessage = "Nenhum resultado.",
+}: SimpleTableProps<TData>) {
   const table = useReactTable({
     data,
     columns,
@@ -29,7 +38,7 @@ export function DataTable<TData>({ columns, data }: SimpleTableProps<TData>) {
   })
 
   return (
-    <div className="overflow-hidden rounded-md border">
+    <div className="overflow-x-auto rounded-md border">
       <ShadcnTable>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -39,32 +48,39 @@ export function DataTable<TData>({ columns, data }: SimpleTableProps<TData>) {
                   {header.isPlaceholder
                     ? null
                     : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
                 </TableHead>
               ))}
             </TableRow>
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows.length ? (
+          {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center text-zinc-500">
+                {loadingMessage}
+              </TableCell>
+            </TableRow>
+          ) : null}
+          {!isLoading && table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell key={cell.id} className="max-w-[24rem] align-top break-words">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
               </TableRow>
             ))
-          ) : (
+          ) : !isLoading ? (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                Nenhum resultado.
+                {emptyMessage}
               </TableCell>
             </TableRow>
-          )}
+          ) : null}
         </TableBody>
       </ShadcnTable>
     </div>
