@@ -175,6 +175,10 @@ export class AuthService {
       'audit.read',
       'tenant.read',
       'tenant.update',
+      'task.create',
+      'task.read',
+      'task.update',
+      'task.delete',
     ];
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
