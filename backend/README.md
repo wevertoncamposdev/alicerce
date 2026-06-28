@@ -3,18 +3,27 @@
 Este repositório é dedicado ao estudo e prática de arquitetura de software utilizando o framework [NestJS](https://docs.nestjs.com/). O objetivo é experimentar padrões, organização de código, integração com banco de dados via Prisma e boas práticas de desenvolvimento backend.
 
 ## Comandos úteis
+### Instalar dependências
+
+```bash
+npm install
+```
 
 ### Migrations e geração de client Prisma
 
 ```bash
+npx prisma migrate reset
 npx prisma migrate dev
 npx prisma generate
+npx prisma studio
 ```
 
 ### Inicializar o servidor NestJS
 
 ```bash
-npm start
+copy .env_exemple .env
+npm run build
+npm run start
 ```
 
 ## Requisitos
