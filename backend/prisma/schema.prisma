@@ -174,10 +174,10 @@ enum TenantDocumentType {
 model Tenant {
   id String @id @default(uuid()) @db.Uuid
 
-  legalName          String @unique @db.VarChar(255)
+  legalName          String  @unique @db.VarChar(255)
   tradeName          String? @db.VarChar(255)
-  registrationNumber String @unique @db.VarChar(20)
-  slug               String @unique @db.VarChar(120)
+  registrationNumber String  @unique @db.VarChar(20)
+  slug               String  @unique @db.VarChar(120)
 
   description String? @db.Text
   mission     String? @db.Text
@@ -186,7 +186,7 @@ model Tenant {
 
   category           TenantCategory
   primaryServiceArea TenantServiceArea
-  partnershipType    PartnershipType @default(NONE)
+  partnershipType    PartnershipType   @default(NONE)
   coverageArea       CoverageArea?
   organizationSize   OrganizationSize?
 
@@ -223,19 +223,19 @@ model Tenant {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  serviceAreas     TenantArea[]
-  users            User[]
-  roles            Role[]
-  userRoles        UserRole[]
-  rolePermissions  RolePermission[]
-  permissions      Permission[]
-  audits           Audit[]
-  boardTerms       TenantBoardTerm[]
-  boardMembers     TenantBoardMember[]
-  documents        TenantDocument[]
-  people           Person[]
-  reports          Report[]
-  tasks            Task[]
+  serviceAreas    TenantArea[]
+  users           User[]
+  roles           Role[]
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+  permissions     Permission[]
+  audits          Audit[]
+  boardTerms      TenantBoardTerm[]
+  boardMembers    TenantBoardMember[]
+  documents       TenantDocument[]
+  people          Person[]
+  reports         Report[]
+  tasks           Task[]
 
   @@index([slug])
   @@index([registrationNumber])
@@ -264,10 +264,10 @@ model TenantBoardMember {
   personId    String @db.Uuid
 
   role      BoardRoleType
-  title     String? @db.VarChar(150)
+  title     String?       @db.VarChar(150)
   startDate DateTime?
   endDate   DateTime?
-  notes     String? @db.Text
+  notes     String?       @db.Text
 
   status    Status   @default(ACTIVE)
   createdAt DateTime @default(now())
@@ -287,10 +287,10 @@ model TenantBoardTerm {
   id       String @id @default(uuid()) @db.Uuid
   tenantId String @db.Uuid
 
-  name      String? @db.VarChar(150)
+  name      String?   @db.VarChar(150)
   startDate DateTime
   endDate   DateTime?
-  notes     String? @db.Text
+  notes     String?   @db.Text
 
   status    Status   @default(ACTIVE)
   createdAt DateTime @default(now())
@@ -353,12 +353,12 @@ model User {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenant          Tenant     @relation(fields: [tenantId], references: [id])
   roles           UserRole[]
   audits          Audit[]
   person          Person?
-  tasksCreated    Task[]    @relation("taskCreator")
-  tasksAssignedTo Task[]    @relation("taskAssignedTo")
+  tasksCreated    Task[]     @relation("taskCreator")
+  tasksAssignedTo Task[]     @relation("taskAssignedTo")
 
   @@unique([tenantId, email])
   @@map("users")
@@ -402,8 +402,8 @@ model UserRole {
 }
 
 model Permission {
-  id          String @id @default(uuid()) @db.Uuid
-  tenantId    String @db.Uuid
+  id          String         @id @default(uuid()) @db.Uuid
+  tenantId    String         @db.Uuid
   name        String
   description String?
   type        PermissionType
@@ -421,10 +421,10 @@ model Permission {
 }
 
 model RolePermission {
-  id           String @id @default(uuid()) @db.Uuid
-  tenantId     String @db.Uuid
-  roleId       String @db.Uuid
-  permissionId String @db.Uuid
+  id           String  @id @default(uuid()) @db.Uuid
+  tenantId     String  @db.Uuid
+  roleId       String  @db.Uuid
+  permissionId String  @db.Uuid
   resource     String?
 
   tenant     Tenant     @relation(fields: [tenantId], references: [id])
@@ -578,9 +578,9 @@ model Report {
 model Task {
   id String @id @default(uuid()) @db.Uuid
 
-  tenantId          String  @db.Uuid
-  userId            String  @db.Uuid
-  assignedToUserId  String? @db.Uuid
+  tenantId         String  @db.Uuid
+  userId           String  @db.Uuid
+  assignedToUserId String? @db.Uuid
 
   title       String  @db.VarChar(255)
   description String? @db.Text
