@@ -68,7 +68,8 @@ export const ModelName = {
   Contact: 'Contact',
   PersonDocument: 'PersonDocument',
   Report: 'Report',
-  Task: 'Task'
+  Task: 'Task',
+  Favorite: 'Favorite'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -395,6 +396,17 @@ export const TaskScalarFieldEnum = {
 } as const
 
 export type TaskScalarFieldEnum = (typeof TaskScalarFieldEnum)[keyof typeof TaskScalarFieldEnum]
+
+
+export const FavoriteScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  url: 'url',
+  createdAt: 'createdAt',
+  userId: 'userId'
+} as const
+
+export type FavoriteScalarFieldEnum = (typeof FavoriteScalarFieldEnum)[keyof typeof FavoriteScalarFieldEnum]
 
 
 export const SortOrder = {

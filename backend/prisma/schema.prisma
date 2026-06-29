@@ -359,6 +359,7 @@ model User {
   person          Person?
   tasksCreated    Task[]     @relation("taskCreator")
   tasksAssignedTo Task[]     @relation("taskAssignedTo")
+  favorites       Favorite[]
 
   @@unique([tenantId, email])
   @@map("users")
@@ -605,4 +606,16 @@ model Task {
   @@index([status])
   @@index([priority])
   @@map("tasks")
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  title     String
+  url       String
+  createdAt DateTime @default(now())
+
+  userId String @unique @db.Uuid
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("favorites")
 }

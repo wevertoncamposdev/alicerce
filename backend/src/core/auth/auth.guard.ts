@@ -29,6 +29,7 @@ export class AuthGuard implements CanActivate {
   // Método obrigatório da interface CanActivate
   // Retorna Promise<boolean> porque há operação assíncrona (verifyAsync)
   async canActivate(context: ExecutionContext): Promise<boolean> {
+
     // Lê metadata isPublic no método e na classe.
     // Precedência: primeiro handler (método), depois classe (controller).
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -43,6 +44,8 @@ export class AuthGuard implements CanActivate {
 
     // Converte contexto genérico para HTTP e obtém o request
     const request = context.switchToHttp().getRequest<Request>();
+    console.log('AUTH GUARD:', request.headers.authorization);
+
 
     // Extrai token do header Authorization no formato "Bearer <token>"
     const token = this.extractTokenFromHeader(request);

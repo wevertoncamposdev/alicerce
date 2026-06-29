@@ -15,6 +15,7 @@ import { AuditModule } from '@modules/audit/audit.module';
 import { UsersModule } from '@modules/user/user.module';
 import { TenantModule } from '@modules/tenant/tenant.module';
 import { TaskModule } from '@modules/task/task.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { TaskModule } from '@modules/task/task.module';
     TenantModule,
     AuditModule,
     TaskModule,
+    FavoritesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
