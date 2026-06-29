@@ -38,7 +38,6 @@ export default function FavoritesPage() {
         }
     }
 
-    // CRIAR
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
