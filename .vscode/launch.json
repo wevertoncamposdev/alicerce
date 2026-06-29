@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "🐛 Backend (NestJS)",
+            "type": "node",
+            "request": "attach",
+            "port": 9229,
+            "restart": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        },
+        {
+            "name": "🌐 Frontend (Next.js Chrome)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/frontend"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "🚀 Fullstack Debug",
+            "configurations": [
+                "🐛 Backend (NestJS)",
+                "🌐 Frontend (Next.js Chrome)"
+            ]
+        }
+    ]
+}

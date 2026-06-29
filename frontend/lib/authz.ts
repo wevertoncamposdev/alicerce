@@ -1,12 +1,13 @@
 export type RouteAccessMeta = {
     prefix: string;
     permission: string;
-    module: 'users' | 'roles' | 'permissions' | 'audit' | 'tenants' | 'tasks';
+    module: 'users' | 'roles' | 'permissions' | 'audit' | 'tenants' | 'tasks' | 'favorites';
     title: string;
 };
 
 const ROUTE_RULES: ReadonlyArray<RouteAccessMeta> = [
     { prefix: '/main/users', permission: 'user.read', module: 'users', title: 'Usuarios' },
+    { prefix: '/main/favorites', permission: 'user.read', module: 'favorites', title: 'Favoritos' },
     { prefix: '/main/roles', permission: 'role.read', module: 'roles', title: 'Papeis' },
     { prefix: '/main/permissions', permission: 'permission.read', module: 'permissions', title: 'Permissoes' },
     { prefix: '/main/audit', permission: 'audit.read', module: 'audit', title: 'Auditoria' },

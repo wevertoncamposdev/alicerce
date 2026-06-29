@@ -8,7 +8,6 @@ import { UserEntity } from "@/features/users/user.types";
 import { useAuth } from "@/contexts/auth-context";
 import { DetailShell, PainelSearchShell, SideShell } from "@/components/shells";
 
-
 export default function UsersPage() {
   const { users, loading, saving, error, createUser, updateUser, removeUser, reload } = useUsers();
   const { hasPermission, currentTenantId } = useAuth();
