@@ -7,7 +7,6 @@ export class RolesPermissionsGuard implements CanActivate {
   constructor(private reflector: Reflector) { }
 
   canActivate(context: ExecutionContext): boolean {
-    console.log('ROLES PERMISSIONS GUARD HIT');
 
     const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
       context.getHandler(),

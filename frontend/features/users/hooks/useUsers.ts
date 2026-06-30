@@ -49,8 +49,20 @@ export function useUsers(): UseUsersResult {
   }, [token, currentTenantId]);
 
   useEffect(() => {
-    void loadUsers();
-  }, [loadUsers]);
+    const run = async () => {
+      if (!token || !currentTenantId) return;
+
+      const data = await fetchUsers({ token, tenantId: currentTenantId });
+      setUsers(data);
+    };
+
+    void run();
+  }, [token, currentTenantId]);
+
+  console.log({
+    token,
+    currentTenantId,
+  });
 
   const handleCreateUser = useCallback(async (payload: Omit<UserPayload, 'tenantId'>) => {
     if (!token || !currentTenantId) {

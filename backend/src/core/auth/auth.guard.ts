@@ -18,6 +18,7 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 // Provider injetável pelo container do Nest
 @Injectable()
 export class AuthGuard implements CanActivate {
+
   // Injeção de dependências:
   // - jwtService: valida token
   // - reflector: lê metadata da rota/classe
@@ -44,8 +45,6 @@ export class AuthGuard implements CanActivate {
 
     // Converte contexto genérico para HTTP e obtém o request
     const request = context.switchToHttp().getRequest<Request>();
-    console.log('AUTH GUARD:', request.headers.authorization);
-
 
     // Extrai token do header Authorization no formato "Bearer <token>"
     const token = this.extractTokenFromHeader(request);

@@ -24,6 +24,9 @@ export interface RemoveUserParams {
 
 export async function fetchUsers(params: FetchUsersParams): Promise<UserEntity[]> {
   return apiRequest<UserEntity[]>(`/user?tenantId=${params.tenantId}`, {
+    headers: {
+      'X-Source': 'users/list',
+    },
     method: 'GET',
     token: params.token,
   });

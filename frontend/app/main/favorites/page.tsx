@@ -27,6 +27,9 @@ export default function FavoritesPage() {
     async function loadFavorites() {
         try {
             const data = await apiRequest<Favorite[]>('/favorites', {
+                headers: {
+                    'X-Source': 'favorites/list',
+                },
                 method: 'GET',
             });
 
