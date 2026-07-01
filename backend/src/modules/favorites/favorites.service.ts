@@ -33,11 +33,13 @@ export class FavoritesService {
   }
 
   async findAll() {
-    return this.prisma.favorite.findMany({
+    const favorites = await this.prisma.favorite.findMany({
       orderBy: {
         createdAt: 'desc',
       },
     });
+
+    return favorites;
   }
 
 }

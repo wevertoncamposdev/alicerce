@@ -1,4 +1,4 @@
-import { apiRequest } from "@/lib/api-client";
+import { apiClient } from "@/lib/api-client";
 
 export interface RegisterInput {
     email: string;
@@ -6,15 +6,8 @@ export interface RegisterInput {
     tenantId: string;
 }
 
-export async function registerUser(params: {
-    token: string;
-    data: RegisterInput;
-}) {
-    const { token, data } = params;
-
-    return apiRequest("/user", {
-        method: "POST",
-        token,
-        body: data,
-    });
+// Nota: autenticação agora é via cookie httpOnly (lida pelo proxy em
+// /api/proxy), então não é mais necessário receber/repassar `token`.
+export async function registerUser(data: RegisterInput) {
+    return apiClient.post("user", data);
 }

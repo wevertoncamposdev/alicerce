@@ -26,14 +26,14 @@ export interface UseRolesResult {
 }
 
 export function useRoles(): UseRolesResult {
-    const { token, currentTenantId } = useAuth();
+    const { currentTenantId } = useAuth();
     const [roles, setRoles] = useState<RoleEntity[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const load = useCallback(async () => {
-        if (!token || !currentTenantId) {
+        if (!currentTenantId) {
             setRoles([]);
             setLoading(false);
             return;
@@ -43,32 +43,29 @@ export function useRoles(): UseRolesResult {
         setError(null);
 
         try {
-            const data = await fetchRoles({ token, tenantId: currentTenantId });
+            const data = await fetchRoles({ tenantId: currentTenantId });
             setRoles(data);
         } catch (err) {
             setError(toErrorMessage(err, 'Falha ao carregar papeis.'));
         } finally {
             setLoading(false);
         }
-    }, [token, currentTenantId]);
+    }, [currentTenantId]);
 
     useEffect(() => {
         void load();
     }, [load]);
 
     const create = useCallback(async (payload: Omit<RolePayload, 'tenantId'>) => {
-        if (!token || !currentTenantId) {
-            throw new Error('Sessao ou tenant nao definido.');
+        if (!currentTenantId) {
+            throw new Error('Tenant nao definido.');
         }
 
         setSaving(true);
         setError(null);
 
         try {
-            const created = await createRole({
-                token,
-                payload: { ...payload, tenantId: currentTenantId },
-            });
+            const created = await createRole({ ...payload, tenantId: currentTenantId });
             setRoles((prev) => [created, ...prev]);
         } catch (err) {
             const message = toErrorMessage(err, 'Falha ao criar papel.');
@@ -77,18 +74,14 @@ export function useRoles(): UseRolesResult {
         } finally {
             setSaving(false);
         }
-    }, [token, currentTenantId]);
+    }, [currentTenantId]);
 
     const update = useCallback(async (roleId: string, payload: Partial<RolePayload>) => {
-        if (!token) {
-            throw new Error('Sessao nao definida.');
-        }
-
         setSaving(true);
         setError(null);
 
         try {
-            const updated = await updateRole({ token, roleId, payload });
+            const updated = await updateRole({ roleId, payload });
             setRoles((prev) => prev.map((role) => (role.id === roleId ? updated : role)));
         } catch (err) {
             const message = toErrorMessage(err, 'Falha ao atualizar papel.');
@@ -97,18 +90,14 @@ export function useRoles(): UseRolesResult {
         } finally {
             setSaving(false);
         }
-    }, [token]);
+    }, []);
 
     const remove = useCallback(async (roleId: string) => {
-        if (!token) {
-            throw new Error('Sessao nao definida.');
-        }
-
         setSaving(true);
         setError(null);
 
         try {
-            await removeRole({ token, roleId });
+            await removeRole({ roleId });
             setRoles((prev) => prev.filter((role) => role.id !== roleId));
         } catch (err) {
             const message = toErrorMessage(err, 'Falha ao remover papel.');
@@ -117,18 +106,18 @@ export function useRoles(): UseRolesResult {
         } finally {
             setSaving(false);
         }
-    }, [token]);
+    }, []);
 
     const assignUser = useCallback(async (roleId: string, userId: string) => {
-        if (!token || !currentTenantId) {
-            throw new Error('Sessao ou tenant nao definido.');
+        if (!currentTenantId) {
+            throw new Error('Tenant nao definido.');
         }
 
         setSaving(true);
         setError(null);
 
         try {
-            await attachRoleUser({ token, roleId, tenantId: currentTenantId, userId });
+            await attachRoleUser({ roleId, tenantId: currentTenantId, userId });
             await load();
         } catch (err) {
             const message = toErrorMessage(err, 'Falha ao vincular usuario ao papel.');
@@ -137,11 +126,11 @@ export function useRoles(): UseRolesResult {
         } finally {
             setSaving(false);
         }
-    }, [token, currentTenantId]);
+    }, [currentTenantId, load]);
 
     const assignPermission = useCallback(async (roleId: string, permissionId: string) => {
-        if (!token || !currentTenantId) {
-            throw new Error('Sessao ou tenant nao definido.');
+        if (!currentTenantId) {
+            throw new Error('Tenant nao definido.');
         }
 
         setSaving(true);
@@ -149,7 +138,6 @@ export function useRoles(): UseRolesResult {
 
         try {
             await attachRolePermission({
-                token,
                 roleId,
                 tenantId: currentTenantId,
                 permissionId,
@@ -162,7 +150,7 @@ export function useRoles(): UseRolesResult {
         } finally {
             setSaving(false);
         }
-    }, [token, currentTenantId]);
+    }, [currentTenantId, load]);
 
     return {
         roles,

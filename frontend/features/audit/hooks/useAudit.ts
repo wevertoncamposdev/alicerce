@@ -6,7 +6,6 @@ import { AsyncError } from "@/types/async-state";
 
 interface UseAuditParams {
     tenantId: string | null;
-    token: string | null;
 }
 
 export interface UseAuditResult {
@@ -17,14 +16,14 @@ export interface UseAuditResult {
     reload: () => Promise<void>;
 }
 
-export function useAudit({ tenantId, token }: UseAuditParams): UseAuditResult {
+export function useAudit({ tenantId }: UseAuditParams): UseAuditResult {
     const [entries, setEntries] = useState<AuditEntry[]>([]);
     const [loading, setLoading] = useState(false);
     const [saving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const load = useCallback(async () => {
-        if (!tenantId || !token) {
+        if (!tenantId) {
             setEntries([]);
             return;
         }
@@ -33,14 +32,14 @@ export function useAudit({ tenantId, token }: UseAuditParams): UseAuditResult {
         setError(null);
 
         try {
-            const data = await fetchAuditEntries({ tenantId, token });
+            const data = await fetchAuditEntries({ tenantId });
             setEntries(data);
         } catch (err) {
             setError(toErrorMessage(err, "Falha ao carregar auditoria."));
         } finally {
             setLoading(false);
         }
-    }, [tenantId, token]);
+    }, [tenantId]);
 
     useEffect(() => {
         void load();

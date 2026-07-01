@@ -4,25 +4,21 @@ import { apiClient } from "@/lib/api-client";
 
 export type User = {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
-  role?: string;
   createdAt?: string;
   updatedAt?: string;
 };
 
 export type CreateUserInput = {
-  name: string;
+  tenantId: string;
   email: string;
   password: string;
-  role?: string;
 };
 
 export type UpdateUserInput = {
-  name?: string;
   email?: string;
   password?: string;
-  role?: string;
 };
 
 export type GetUsersResponse = {
@@ -31,23 +27,24 @@ export type GetUsersResponse = {
 };
 
 export const userService = {
-  list: async () => {
-    return apiClient.get<GetUsersResponse>("main/users");
+  list: async (tenantId?: string) => {
+    const path = tenantId ? `user?tenantId=${tenantId}` : "user";
+    return apiClient.get<User[]>(path);
   },
 
   getById: async (id: string) => {
-    return apiClient.get<{ user: User }>(`main/users/${id}`);
+    return apiClient.get<User>(`user/${id}`);
   },
 
   create: async (payload: CreateUserInput) => {
-    return apiClient.post<{ user: User }>("main/users", payload);
+    return apiClient.post<User>("user", payload);
   },
 
   update: async (id: string, payload: UpdateUserInput) => {
-    return apiClient.patch<{ user: User }>(`main/users/${id}`, payload);
+    return apiClient.patch<User>(`user/${id}`, payload);
   },
 
   remove: async (id: string) => {
-    return apiClient.delete<{ success: boolean }>(`main/users/${id}`);
+    return apiClient.delete<{ success: boolean }>(`user/${id}`);
   },
 };

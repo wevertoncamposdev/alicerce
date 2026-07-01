@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { apiRequest } from '@/lib/api-client';
+import { apiClient } from '@/lib/api-client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -26,12 +26,7 @@ export default function FavoritesPage() {
     // LISTAR
     async function loadFavorites() {
         try {
-            const data = await apiRequest<Favorite[]>('/favorites', {
-                headers: {
-                    'X-Source': 'favorites/list',
-                },
-                method: 'GET',
-            });
+            const data = await apiClient.get<Favorite[]>('favorites');
 
             setFavorites(Array.isArray(data) ? data : []);
         } catch (err) {
@@ -49,13 +44,7 @@ export default function FavoritesPage() {
         try {
             setSaving(true);
 
-            await apiRequest('/favorites', {
-                method: 'POST',
-                body: {
-                    title,
-                    url,
-                },
-            });
+            await apiClient.post('favorites', { title, url });
 
             setTitle('');
             setUrl('');

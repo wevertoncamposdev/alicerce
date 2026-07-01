@@ -1,47 +1,31 @@
-
-"use client";
-
-import { useAuth } from "@/contexts/auth-context";
-import { useAudit } from "@/features/audit/hooks/useAudit";
-import { DetailShell, PainelSearchShell } from "@/components/shells";
-import { TypeView } from "@/components/TypeView";
-import { ColumnDef } from "@tanstack/react-table";
+import { getCurrentUser } from "@/lib/auth-server";
+import { apiServer, ApiServerError } from "@/lib/api-server";
 import { AuditEntry } from "@/features/audit/audit.types";
-import { Button } from "@/components/ui";
+import AuditTable from "@/features/audit/components/AuditTable";
+import AuditRefreshButton from "@/features/audit/components/AuditRefreshButton";
+import { DetailShell, PainelSearchShell } from "@/components/shells";
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleString("pt-BR");
-}
+// Server Component: os dados são buscados aqui, no servidor, direto via
+// `apiServer` (que lê o cookie httpOnly com `lib/session.ts`). Não há mais
+// `useEffect`/`useState` de loading para a carga inicial — quando a página
+// chega no navegador, os dados já estão no HTML.
+export default async function AuditPage() {
+  const currentUser = await getCurrentUser();
+  const tenantId = currentUser?.tenantId;
 
-export default function AuditPage() {
-  const { token, currentTenantId } = useAuth();
-  const { entries, loading, error, reload } = useAudit({
-    tenantId: currentTenantId,
-    token,
-  });
+  let entries: AuditEntry[] = [];
+  let error: string | null = null;
 
-  const auditColumns: ColumnDef<AuditEntry>[] = [
-    {
-      accessorKey: "createdAt",
-      header: "Data",
-      cell: ({ row }) => <span>{formatDate(row.original.createdAt)}</span>,
-    },
-    {
-      accessorKey: "action",
-      header: "Acao",
-      cell: ({ row }) => <span>{row.original.action}</span>,
-    },
-    {
-      accessorKey: "entity",
-      header: "Entidade",
-      cell: ({ row }) => <span>{row.original.entity}</span>,
-    },
-    {
-      accessorKey: "userId",
-      header: "Usuario",
-      cell: ({ row }) => <span>{row.original.userId}</span>,
-    },
-  ];
+  if (tenantId) {
+    try {
+      entries = await apiServer.get<AuditEntry[]>(`tenant/${tenantId}/audit`);
+    } catch (err) {
+      error =
+        err instanceof ApiServerError
+          ? err.message
+          : "Falha ao carregar registros de auditoria.";
+    }
+  }
 
   return (
     <DetailShell
@@ -49,32 +33,14 @@ export default function AuditPage() {
       description="Consulta de logs com composicao arquitetural da Fase 2."
       error={error}
     >
-      {!currentTenantId ? (
+      {!tenantId ? (
         <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800">
           Selecione um tenant no modulo de tenants para consultar a auditoria.
         </div>
       ) : null}
 
-      <PainelSearchShell
-        title="Registros"
-        actions={
-          <Button
-            type="button"
-            onClick={() => void reload()}
-            disabled={loading || !currentTenantId}
-          >
-            {loading ? "Carregando..." : "Atualizar"}
-          </Button>
-        }
-      >
-        <TypeView
-          mode="table"
-          data={entries}
-          columns={auditColumns}
-          isLoading={loading}
-          loadingMessage="Carregando registros..."
-          emptyMessage="Nenhum registro encontrado."
-        />
+      <PainelSearchShell title="Registros" actions={<AuditRefreshButton />}>
+        <AuditTable entries={entries} />
       </PainelSearchShell>
     </DetailShell>
   );

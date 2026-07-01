@@ -9,9 +9,10 @@ import { useAuth } from "@/contexts/auth-context";
 import { DetailShell, PainelSearchShell, SideShell } from "@/components/shells";
 
 export default function UsersPage() {
-  const { users, loading, saving, error, createUser, updateUser, removeUser, reload } = useUsers();
   const { hasPermission, currentTenantId } = useAuth();
+  const { users, loading, error, createUser, updateUser, deleteUser, reload } = useUsers(currentTenantId);
   const [editingUser, setEditingUser] = useState<UserEntity | null>(null);
+  const [saving, setSaving] = useState(false);
   const hasTenantContext = Boolean(currentTenantId);
 
   const canCreate = hasPermission("user.create");
@@ -44,29 +45,34 @@ export default function UsersPage() {
               saving={saving}
               onCancel={() => setEditingUser(null)}
               onSubmit={async (payload) => {
-                if (editingUser) {
-                  if (!canUpdate) {
-                    throw new Error("Sem permissao para atualizar usuario.");
+                setSaving(true);
+                try {
+                  if (editingUser) {
+                    if (!canUpdate) {
+                      throw new Error("Sem permissao para atualizar usuario.");
+                    }
+
+                    await updateUser(editingUser.id, payload);
+                    setEditingUser(null);
+                    return;
                   }
 
-                  await updateUser(editingUser.id, payload);
-                  setEditingUser(null);
-                  return;
-                }
+                  if (!canCreate) {
+                    throw new Error("Sem permissao para criar usuario.");
+                  }
 
-                if (!canCreate) {
-                  throw new Error("Sem permissao para criar usuario.");
-                }
+                  if (!hasTenantContext) {
+                    throw new Error("Selecione um tenant antes de criar usuario.");
+                  }
 
-                if (!hasTenantContext) {
-                  throw new Error("Selecione um tenant antes de criar usuario.");
-                }
+                  if (!payload.password) {
+                    throw new Error("Senha obrigatoria para criacao.");
+                  }
 
-                if (!payload.password) {
-                  throw new Error("Senha obrigatoria para criacao.");
+                  await createUser({ email: payload.email, password: payload.password });
+                } finally {
+                  setSaving(false);
                 }
-
-                await createUser({ email: payload.email, password: payload.password });
               }}
             />
           </SideShell>
@@ -97,9 +103,14 @@ export default function UsersPage() {
                   throw new Error("Sem permissao para remover usuario.");
                 }
 
-                await removeUser(user.id);
-                if (editingUser?.id === user.id) {
-                  setEditingUser(null);
+                setSaving(true);
+                try {
+                  await deleteUser(user.id);
+                  if (editingUser?.id === user.id) {
+                    setEditingUser(null);
+                  }
+                } finally {
+                  setSaving(false);
                 }
               }}
             />
