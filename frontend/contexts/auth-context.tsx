@@ -8,20 +8,16 @@ import {
     useMemo,
     useState,
 } from "react";
-import {
-    AuthUserProfile,
-    fetchProfile,
-    loginWithPassword,
-    registerPublic,
-    RegisterInput,
-} from "@/features/auth/auth.service";
+import { AuthUserProfile, RegisterInput } from "@/features/auth/auth.service";
 import { toErrorMessage } from "@/types/api";
 
-const TOKEN_STORAGE_KEY = "session.access_token";
-const TENANT_STORAGE_KEY = "session.tenant_id";
+// Precisa bater com TENANT_COOKIE em lib/session.ts. Repetido aqui (em vez
+// de importado) porque lib/session.ts tem `import "server-only"` no topo --
+// importar de lá dentro de um Client Component quebraria o build de
+// propósito. É o próprio Next.js nos protegendo de misturar as duas coisas.
+const TENANT_COOKIE = "session_tenant";
 
 type AuthState = {
-    token: string | null;
     user: AuthUserProfile | null;
     loading: boolean;
     isAuthenticated: boolean;
@@ -31,96 +27,104 @@ type AuthState = {
     setCurrentTenantId: (tenantId: string | null) => void;
     signIn: (email: string, password: string) => Promise<void>;
     signUp: (payload: RegisterInput) => Promise<void>;
-    signOut: () => void;
+    signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
+// Repare: NÃO existe mais `token` no estado. O componente client não tem
+// mais como ler o token (ele mora só no cookie httpOnly). Tudo que hoje
+// precisar de autenticação passa a falar com /api/... (mesma origem), que
+// lê o cookie sozinho.
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [token, setToken] = useState<string | null>(null);
     const [user, setUser] = useState<AuthUserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [currentTenantId, setCurrentTenantIdState] = useState<string | null>(null);
 
-    const clearSession = useCallback(() => {
-        setToken(null);
-        setUser(null);
-        setCurrentTenantIdState(null);
-        localStorage.removeItem(TOKEN_STORAGE_KEY);
-        localStorage.removeItem(TENANT_STORAGE_KEY);
-    }, []);
-
-    const applySession = useCallback((session: {
-        access_token: string;
-        user: AuthUserProfile;
-        tenant: { id: string };
-    }) => {
-        setToken(session.access_token);
-        setUser(session.user);
-        setCurrentTenantIdState(session.tenant.id);
-        localStorage.setItem(TOKEN_STORAGE_KEY, session.access_token);
-        localStorage.setItem(TENANT_STORAGE_KEY, session.tenant.id);
-    }, []);
-
-    useEffect(() => {
-        const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
-        const storedTenantId = localStorage.getItem(TENANT_STORAGE_KEY);
-
-        if (storedTenantId) {
-            setCurrentTenantIdState(storedTenantId);
-        }
-
-        if (!storedToken) {
-            setLoading(false);
-            return;
-        }
-
-        void fetchProfile(storedToken)
-            .then((profile) => {
-                setToken(storedToken);
-                setUser(profile);
-                setCurrentTenantIdState(storedTenantId ?? profile.tenantId);
-            })
-            .catch(() => {
-                clearSession();
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-    }, [clearSession]);
-
+    // O cookie de tenant NÃO é httpOnly (só o de sessão é), então dá pra
+    // escrever direto de `document.cookie` aqui no cliente -- sem precisar
+    // de uma ida ao servidor só pra trocar de tenant.
     const setCurrentTenantId = useCallback((tenantId: string | null) => {
         setCurrentTenantIdState(tenantId);
 
         if (!tenantId) {
-            localStorage.removeItem(TENANT_STORAGE_KEY);
+            document.cookie = `${TENANT_COOKIE}=; path=/; max-age=0`;
             return;
         }
 
-        localStorage.setItem(TENANT_STORAGE_KEY, tenantId);
+        document.cookie = `${TENANT_COOKIE}=${tenantId}; path=/; max-age=${60 * 60 * 8}`;
     }, []);
 
-    const signIn = useCallback(async (email: string, password: string) => {
+    const restoreSession = useCallback(async () => {
+        setLoading(true);
+
         try {
-            const response = await loginWithPassword({ email, password });
-            applySession(response);
-        } catch (error) {
-            throw new Error(toErrorMessage(error, "Falha ao autenticar."));
+            // credentials "same-origin" já é o padrão do fetch para chamadas de
+            // mesma origem, então o cookie viaja sozinho aqui.
+            const response = await fetch("/api/auth/me");
+
+            if (!response.ok) {
+                setUser(null);
+                setCurrentTenantId(null);
+                return;
+            }
+
+            const data = await response.json();
+            setUser(data.user);
+            setCurrentTenantId(data.tenantId ?? data.user?.tenantId ?? null);
+        } catch {
+            setUser(null);
+            setCurrentTenantId(null);
+        } finally {
+            setLoading(false);
         }
-    }, [applySession]);
+    }, []);
+
+    useEffect(() => {
+        void restoreSession();
+    }, [restoreSession]);
+
+    const signIn = useCallback(async (email: string, password: string) => {
+        const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(new Error(data?.message), "Falha ao autenticar."));
+        }
+
+        setUser(data.user);
+        setCurrentTenantId(data.tenant.id);
+    }, []);
 
     const signUp = useCallback(async (payload: RegisterInput) => {
-        try {
-            const response = await registerPublic(payload);
-            applySession(response);
-        } catch (error) {
-            throw new Error(toErrorMessage(error, "Falha no auto-onboarding."));
-        }
-    }, [applySession]);
+        const response = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
 
-    const signOut = useCallback(() => {
-        clearSession();
-    }, [clearSession]);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(new Error(data?.message), "Falha no auto-onboarding."));
+        }
+
+        setUser(data.user);
+        setCurrentTenantId(data.tenant.id);
+    }, []);
+
+    const signOut = useCallback(async () => {
+        // Precisa ser uma chamada ao servidor: JS não consegue apagar cookie httpOnly.
+        await fetch("/api/auth/logout", { method: "POST" });
+        setUser(null);
+        setCurrentTenantId(null);
+    }, []);
 
     const hasRole = useCallback(
         (role: string) => (user?.roles ?? []).includes(role),
@@ -134,10 +138,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const value = useMemo<AuthState>(
         () => ({
-            token,
             user,
             loading,
-            isAuthenticated: Boolean(token),
+            isAuthenticated: Boolean(user),
             currentTenantId,
             hasRole,
             hasPermission,
@@ -147,7 +150,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             signOut,
         }),
         [
-            token,
             user,
             loading,
             currentTenantId,
