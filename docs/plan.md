@@ -1,4 +1,4 @@
-# 1) Estratégia de gestão no GitHub (visão geral)
+# 1 Estratégia de gestão no GitHub (visão geral)
 
 **Fluxo fim a fim:** `Idea → Issue → Branch → PR → Review → Merge → Release`
 
@@ -13,7 +13,7 @@
 **Papéis:**
 
 | Papel | Responsabilidade |
-|---|---|
+| --- | --- |
 | Tech Lead | Define arquitetura, aprova PRs críticos (auth/tenant/rbac), gerencia milestones/releases |
 | Dev | Implementa issues, abre PRs pequenos, escreve testes |
 | Reviewer | Garante qualidade, segurança e aderência ao padrão; pode ser peer dev |
@@ -22,7 +22,7 @@
 
 ---
 
-# 2) Estrutura inicial do repositório
+## 2 Estrutura inicial do repositório
 
 **Branches:**
 
@@ -45,7 +45,7 @@
 
 **Nomenclatura de branch:** `tipo/escopo-curto-descricao` (kebab-case, minúsculas)
 
-```
+```bash
 feature/auth-refresh-token-rotation
 fix/tenant-context-leak-on-logout
 chore/ci-cache-pnpm
@@ -54,7 +54,7 @@ security/rls-policy-users-table
 
 **Conventional Commits:**
 
-```
+```bash
 feat(auth): implementar rotação de refresh token
 fix(tenancy): corrigir vazamento de tenant_id em query de tasks
 chore(ci): adicionar cache de dependências no pipeline
@@ -69,7 +69,7 @@ revert: reverter "feat(auth): rotação de refresh token"
 
 ---
 
-# 3) GitHub Projects (modelo pronto)
+## 3 GitHub Projects (modelo pronto)
 
 **Tipo recomendado:** GitHub Projects (v2, org-level), pois permite campos customizados, múltiplas views (board/table/roadmap) e automação nativa via workflows — superior a um Project clássico.
 
@@ -96,12 +96,12 @@ revert: reverter "feat(auth): rotação de refresh token"
 
 ---
 
-# 4) Milestones e roadmap
+## 4 Milestones e roadmap
 
 Alinhado às fases da arquitetura (ver architecture.md):
 
 | Milestone | Objetivo | Entrada | Saída |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | M0 – Foundation | Esqueleto técnico funcionando | Repo criado | `docker compose up` ok, CI verde, health-check ok |
 | M1 – Auth + Tenant | Login e contexto multitenant fim a fim | M0 fechado | Login persiste sessão, isolamento básico testado |
 | M2 – RBAC | Autorização granular com cache | M1 fechado | 403 correto, cache Redis com invalidação |
@@ -113,12 +113,12 @@ Alinhado às fases da arquitetura (ver architecture.md):
 
 ---
 
-# 5) Estratégia de Issues (granularidade ideal)
+## 5 Estratégia de Issues (granularidade ideal)
 
 **Tipos e template (campos obrigatórios):**
 
 | Tipo | Uso | Campos obrigatórios |
-|---|---|---|
+| --- | --- | --- |
 | Epic | Agrupador de um domínio inteiro (ex.: "RBAC") | Objetivo, escopo, lista de features filhas, milestone |
 | Feature | Entrega de valor visível | Contexto, critérios de aceite, dependências |
 | Story | Fatia vertical de feature | Persona/cenário, critérios de aceite (Gherkin opcional) |
@@ -137,7 +137,7 @@ Alinhado às fases da arquitetura (ver architecture.md):
 
 ---
 
-# 6) Estratégia de Pull Requests
+## 6 Estratégia de Pull Requests
 
 **Tamanho ideal:** até ~300–400 linhas de diff (excluindo lockfiles/gerados). Se maior, quebrar em PRs incrementais (ex.: schema → service → controller → testes).
 
@@ -159,10 +159,10 @@ Alinhado às fases da arquitetura (ver architecture.md):
 
 ---
 
-# 7) Labels e taxonomia
+## 7 Labels e taxonomia
 
 | Categoria | Labels | Cor sugerida |
-|---|---|---|
+| --- | --- | --- |
 | Tipo | `epic`, `feature`, `story`, `task`, `bug`, `chore`, `security` | tons de azul/roxo |
 | Prioridade | `P0-critical`, `P1-high`, `P2-medium`, `P3-low` | vermelho→verde |
 | Status | `blocked`, `needs-review`, `needs-info`, `wontfix` | amarelo/cinza |
@@ -175,9 +175,9 @@ Nomenclatura: `categoria:valor` em minúsculas com hífen. Usar labels para gera
 
 ---
 
-# 8) CODEOWNERS e governança
+## 8 CODEOWNERS e governança
 
-```
+```bash
 # .github/CODEOWNERS
 /backend/src/core/auth/            @org/auth-owners
 /backend/src/core/common/tenancy/  @org/tenancy-owners
@@ -193,7 +193,7 @@ Nomenclatura: `categoria:valor` em minúsculas com hífen. Usar labels para gera
 
 ---
 
-# 9) CI/CD com GitHub Actions (plano completo)
+## 9 CI/CD com GitHub Actions (plano completo)
 
 **Workflows mínimos:**
 
@@ -211,7 +211,7 @@ Nomenclatura: `categoria:valor` em minúsculas com hífen. Usar labels para gera
 
 ---
 
-# 10) Plano de execução por fases (MVP → v1)
+## 10 Plano de execução por fases (MVP → v1)
 
 ### Fase 0 — Foundation
 
@@ -258,7 +258,7 @@ Nomenclatura: `categoria:valor` em minúsculas com hífen. Usar labels para gera
 
 ---
 
-# 11) Operação diária do time (ritual de execução)
+## 11 Operação diária do time (ritual de execução)
 
 **Cadência semanal:**
 
@@ -273,7 +273,7 @@ Nomenclatura: `categoria:valor` em minúsculas com hífen. Usar labels para gera
 
 ---
 
-# 12) Segurança e compliance no processo
+## 12 Segurança e compliance no processo
 
 - **Branch protection:** required checks (CI + security scan), aprovações mínimas (2 em áreas críticas), commits assinados obrigatórios em `main`, sem force-push.
 - **Assinatura de commits:** exigir GPG/SSH signing verificado em `main`/`release/*`.
@@ -283,12 +283,12 @@ Nomenclatura: `categoria:valor` em minúsculas com hífen. Usar labels para gera
 
 ---
 
-# 13) Entrega final acionável
+## 13 Entrega final acionável
 
 ## 1. Tabela de milestones completas
 
 | Milestone | Objetivo | Issues macro | Prazo sugerido | Critério de saída |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | M0 – Foundation | Esqueleto técnico | Setup repo, CI, Docker, OTel base | Semana 1 | CI verde, ambiente sobe local |
 | M1 – Auth + Tenant | Login e contexto multitenant | Auth endpoints, BFF, RLS | Semana 2–3 | Isolamento básico testado |
 | M2 – RBAC | Autorização granular | Role/Permission, guard, cache | Semana 4 | 403 correto, cache invalidando |
@@ -299,7 +299,7 @@ Nomenclatura: `categoria:valor` em minúsculas com hífen. Usar labels para gera
 ## 2. Backlog inicial (40 issues)
 
 | # | Título | Tipo | Prioridade | Milestone | Label | Estimativa |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | 1 | Setup monorepo com lint/commitlint/husky | Task | P1 | M0 | area:infra | S |
 | 2 | Configurar Docker Compose (db, redis, api, front) | Task | P0 | M0 | area:infra | M |
 | 3 | Configurar pipeline CI base (lint/test/build) | Task | P0 | M0 | area:infra | M |
@@ -343,7 +343,7 @@ Nomenclatura: `categoria:valor` em minúsculas com hífen. Usar labels para gera
 
 ## 3. Exemplos de nomes de branches
 
-```
+```bash
 feature/auth-login-refresh-cookie
 feature/tenancy-context-middleware
 feature/rbac-permission-guard
@@ -358,7 +358,7 @@ chore/scaffold-new-module-script
 
 ## 4. Exemplos de commits convencionais
 
-```
+```bash
 feat(auth): implementar login com emissão de access e refresh token
 feat(tenancy): adicionar middleware de contexto de tenant via AsyncLocalStorage
 fix(rbac): corrigir invalidação de cache Redis ao remover role

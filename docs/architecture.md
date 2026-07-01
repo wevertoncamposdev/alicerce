@@ -48,7 +48,7 @@
 ### Decisões arquiteturais principais
 
 | Decisão | Escolha | Justificativa |
-|         |         |               |
+| --- | --- | --- |
 | Padrão de renderização | Server Components por padrão | Reduz bundle no client, permite fetch direto no servidor com cache nativo do Next, evita expor token/lógica sensível ao browser |
 | Comunicação Front↔API | Next.js como BFF (Route Handlers/Server Actions) | Cookie httpOnly nunca é lido pelo client; tradução cookie→Bearer acontece só no servidor; evita CORS com credentials |
 | Autenticação | JWT (access curto) + refresh token, sessão via cookie httpOnly | Stateless na API, sessão gerenciável no Next; refresh rotativo mitiga replay |
@@ -68,7 +68,7 @@
 ### Riscos e mitigação
 
 | Risco | Mitigação |
-|       |           |
+| --- | --- |
 | Vazamento de dado entre tenants por query sem filtro | RLS no Postgres como última linha de defesa + testes automatizados de isolamento (Fase 2/10) |
 | Token JWT roubado via XSS | httpOnly cookie + CSP restritiva + nunca expor token a JS |
 | Escalonamento de privilégio (usuário de tenant A assume role em tenant B) | Validar `tenant_id` do claim/context em toda operação de autorização, não confiar em `tenant_id` vindo do client |
@@ -82,7 +82,7 @@
 ### Opções
 
 | Estratégia | Prós | Contras |
-|            |      |         |
+| --- | --- | --- |
 | **Shared schema** (uma tabela, coluna `tenant_id`) | Simples, barato, migração única, fácil de operar | Isolamento depende 100% de filtro correto em toda query; "vizinho barulhento" pode afetar performance de outros tenants |
 | **Schema por tenant** | Isolamento lógico mais forte, backup/restore por tenant possível | Migrações precisam rodar N vezes; connection pool mais complexo; catálogo de schemas para gerenciar |
 | **Banco por tenant** | Isolamento físico total, ótimo para compliance/enterprise | Custo operacional alto, provisionamento dinâmico complexo, não escala bem para milhares de tenants pequenos |
@@ -288,7 +288,7 @@ Onde ficam as peças pedidas:
 ### Matriz exemplo de roles x permissions
 
 | Permission | Owner | Admin | Member | Viewer |
-|            |       |       |        |        |
+| --- | --- | --- | --- | --- |
 | `users:create` | ✅ | ✅ | ❌ | ❌ |
 | `users:read` | ✅ | ✅ | ✅ | ✅ |
 | `roles:manage` | ✅ | ✅ | ❌ | ❌ |
@@ -476,7 +476,7 @@ Onde ficam as peças pedidas:
 ### 1. Tabela consolidada por fase
 
 | Fase | Objetivo | Entregáveis | DoD | Riscos | Estimativa |
-|      |          |             |     |        |            |
+|--- | --- | --- | --- | --- | --- |
 | 0 – Foundation | Esqueleto técnico | Monorepo, CI, Docker Compose, OTel básico | `docker compose up` funcional, CI verde | Escolha de ferramenta errada cedo | M |
 | 1 – Auth + Tenant | Login/sessão/tenant fim a fim | BFF auth, middleware, RLS | Login persiste, isolamento básico ok | RLS mal configurado | M |
 | 2 – RBAC | Autorização granular | Role/Permission, guard, cache Redis | 403 correto, invalidação de cache ok | Sobre-engenharia | M |
