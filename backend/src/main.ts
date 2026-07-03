@@ -26,7 +26,7 @@ async function bootstrap() {
   await app.register(cors, {
     origin: allowedOrigins,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id', 'Accept', 'Origin'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id', 'X-Source', 'Accept', 'Origin'],
     exposedHeaders: ['Authorization'],
     credentials: false,
     preflightContinue: false,

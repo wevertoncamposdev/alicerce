@@ -1,53 +1,50 @@
-import { apiRequest } from '@/lib/api-client';
-import { UserEntity, UserPayload, UserUpdatePayload } from '../user.types';
+// features/users/services/userService.ts
 
-export interface FetchUsersParams {
-  token: string;
+import { apiClient } from "@/lib/api-client";
+
+export type User = {
+  id: string;
+  name: string | null;
+  email: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type CreateUserInput = {
   tenantId: string;
-}
+  email: string;
+  password: string;
+};
 
-export interface CreateUserParams {
-  token: string;
-  payload: UserPayload;
-}
+export type UpdateUserInput = {
+  email?: string;
+  password?: string;
+};
 
-export interface UpdateUserParams {
-  token: string;
-  userId: string;
-  payload: UserUpdatePayload;
-}
+export type GetUsersResponse = {
+  users: User[];
+  total?: number;
+};
 
-export interface RemoveUserParams {
-  token: string;
-  userId: string;
-}
+export const userService = {
+  list: async (tenantId?: string) => {
+    const path = tenantId ? `user?tenantId=${tenantId}` : "user";
+    return apiClient.get<User[]>(path);
+  },
 
-export async function fetchUsers(params: FetchUsersParams): Promise<UserEntity[]> {
-  return apiRequest<UserEntity[]>(`/user?tenantId=${params.tenantId}`, {
-    method: 'GET',
-    token: params.token,
-  });
-}
+  getById: async (id: string) => {
+    return apiClient.get<User>(`user/${id}`);
+  },
 
-export async function createUser(params: CreateUserParams): Promise<UserEntity> {
-  return apiRequest<UserEntity>('/user', {
-    method: 'POST',
-    token: params.token,
-    body: params.payload,
-  });
-}
+  create: async (payload: CreateUserInput) => {
+    return apiClient.post<User>("user", payload);
+  },
 
-export async function updateUser(params: UpdateUserParams): Promise<UserEntity> {
-  return apiRequest<UserEntity>(`/user/${params.userId}`, {
-    method: 'PATCH',
-    token: params.token,
-    body: params.payload,
-  });
-}
+  update: async (id: string, payload: UpdateUserInput) => {
+    return apiClient.patch<User>(`user/${id}`, payload);
+  },
 
-export async function removeUser(params: RemoveUserParams): Promise<null> {
-  return apiRequest<null>(`/user/${params.userId}`, {
-    method: 'DELETE',
-    token: params.token,
-  });
-}
+  remove: async (id: string) => {
+    return apiClient.delete<{ success: boolean }>(`user/${id}`);
+  },
+};

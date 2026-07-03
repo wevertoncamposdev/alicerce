@@ -1,4 +1,9 @@
-import { apiRequest } from "@/lib/api-client";
+
+// Este arquivo hoje só guarda os TIPOS compartilhados de auth. As funções
+// que faziam fetch direto pro Nest (loginWithPassword, registerPublic,
+// fetchProfile) foram removidas: esse fetch agora acontece só dentro dos
+// Route Handlers em app/api/auth/*, que rodam no servidor e têm acesso ao
+// cookie httpOnly. Ver contexts/auth-context.tsx.
 
 export interface LoginInput {
     email: string;
@@ -28,25 +33,4 @@ export interface AuthSessionResponse {
         legalName: string;
         slug: string;
     };
-}
-
-export async function loginWithPassword(input: LoginInput): Promise<AuthSessionResponse> {
-    return apiRequest<AuthSessionResponse>("/auth/login", {
-        method: "POST",
-        body: input,
-    });
-}
-
-export async function registerPublic(input: RegisterInput): Promise<AuthSessionResponse> {
-    return apiRequest<AuthSessionResponse>("/auth/register", {
-        method: "POST",
-        body: input,
-    });
-}
-
-export async function fetchProfile(token: string): Promise<AuthUserProfile> {
-    return apiRequest<AuthUserProfile>("/auth/profile", {
-        method: "GET",
-        token,
-    });
 }

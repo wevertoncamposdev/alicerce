@@ -25,6 +25,7 @@ import {
   FileText,
   CheckSquare2,
   LogOut,
+  Star
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
@@ -32,6 +33,7 @@ import { listRouteRules, RouteAccessMeta } from "@/lib/authz";
 
 const MODULE_ICONS: Record<RouteAccessMeta["module"], LucideIcon> = {
   users: Users,
+  favorites: Star,
   tenants: Building2,
   roles: KeyRound,
   permissions: Shield,

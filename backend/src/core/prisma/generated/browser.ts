@@ -107,3 +107,8 @@ export type Report = Prisma.ReportModel
  * 
  */
 export type Task = Prisma.TaskModel
+/**
+ * Model Favorite
+ * 
+ */
+export type Favorite = Prisma.FavoriteModel

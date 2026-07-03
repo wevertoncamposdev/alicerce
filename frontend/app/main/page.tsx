@@ -28,8 +28,8 @@ function StatCard({
 }
 
 export default function MainPage() {
-  const { token, currentTenantId } = useAuth();
-  const { users, loading: usersLoading, error: usersError } = useUsers();
+  const { currentTenantId } = useAuth();
+  const { users, loading: usersLoading, error: usersError } = useUsers(currentTenantId);
   const { roles, loading: rolesLoading, error: rolesError } = useRoles();
   const {
     permissions,
@@ -42,7 +42,6 @@ export default function MainPage() {
     error: auditsError,
   } = useAudit({
     tenantId: currentTenantId,
-    token,
   });
 
   const errorMessage = usersError || rolesError || permissionsError || auditsError;
