@@ -4,6 +4,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import cors from '@fastify/cors';
+import cookie from '@fastify/cookie';
 import { ValidationPipe } from '@nestjs/common/pipes/validation.pipe';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -23,12 +24,15 @@ async function bootstrap() {
     .map((origin) => origin.trim())
     .filter(Boolean);
 
+  // Cookies httpOnly para refresh token (auth) e tenant context
+  await app.register(cookie);
+
   await app.register(cors, {
     origin: allowedOrigins,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id', 'X-Source', 'Accept', 'Origin'],
     exposedHeaders: ['Authorization'],
-    credentials: false,
+    credentials: true, // necessário para cookie de refresh ser enviado pelo BFF
     preflightContinue: false,
   });
 

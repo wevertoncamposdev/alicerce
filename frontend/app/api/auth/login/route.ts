@@ -30,10 +30,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(payload, { status: upstreamResponse.status });
     }
 
-    // O access_token NUNCA sai daqui para o navegador como JSON.
-    // Ele vai só dentro do cookie httpOnly, via Set-Cookie.
+    // O access_token e o refresh_token NUNCA saem como JSON.
+    // Ambos vão para cookies httpOnly via Set-Cookie.
     await setSessionCookies({
         accessToken: payload.access_token,
+        refreshToken: payload.refresh_token,
         tenantId: payload.tenant.id,
     });
 

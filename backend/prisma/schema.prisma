@@ -353,13 +353,14 @@ model User {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  tenant          Tenant     @relation(fields: [tenantId], references: [id])
+  tenant          Tenant         @relation(fields: [tenantId], references: [id])
   roles           UserRole[]
   audits          Audit[]
   person          Person?
-  tasksCreated    Task[]     @relation("taskCreator")
-  tasksAssignedTo Task[]     @relation("taskAssignedTo")
+  tasksCreated    Task[]         @relation("taskCreator")
+  tasksAssignedTo Task[]         @relation("taskAssignedTo")
   favorites       Favorite[]
+  refreshTokens   RefreshToken[]
 
   @@unique([tenantId, email])
   @@map("users")

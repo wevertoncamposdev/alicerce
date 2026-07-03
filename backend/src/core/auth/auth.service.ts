@@ -4,8 +4,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { SignInDto } from './dto/sign-in.dto';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { SignUpPublicDto } from './dto/sign-up-public.dto';
 import {
@@ -25,6 +27,7 @@ export interface AuthUserContext {
 
 export interface AuthSessionResponse {
   access_token: string;
+  refresh_token: string;
   user: AuthUserContext;
   tenant: {
     id: string;
@@ -33,11 +36,15 @@ export interface AuthSessionResponse {
   };
 }
 
+// Duração do refresh token: 7 dias em ms
+const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) { }
 
   private mapPermissionType(permissionName: string): PermissionType {
@@ -138,6 +145,137 @@ export class AuthService {
       tenantId: user.tenantId,
       roles: user.roles,
       permissions: user.permissions,
+    });
+  }
+
+  /**
+   * Gera um token opaco aleatório (não JWT), persiste o HASH no banco e
+   * devolve o token em claro — que vai para o cookie httpOnly via BFF.
+   *
+   * familyId: identifica a "linhagem" de uma sessão. Ao fazer refresh,
+   * todos os novos tokens herdam o mesmo familyId. Se detectarmos reuso
+   * de um token já consumido, revogamos toda a família de uma vez.
+   */
+  private async createRefreshToken({
+    userId,
+    tenantId,
+    familyId,
+  }: {
+    userId: string;
+    tenantId: string;
+    familyId: string;
+  }): Promise<string> {
+    const rawToken = crypto.randomBytes(48).toString('hex');
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(rawToken)
+      .digest('hex');
+
+    await this.prisma.refreshToken.create({
+      data: {
+        token: tokenHash,
+        userId,
+        tenantId,
+        familyId,
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+      },
+    });
+
+    return rawToken;
+  }
+
+  /**
+   * Valida o refresh token recebido e emite um novo par (access + refresh).
+   *
+   * Fluxo:
+   * 1. Hash do token recebido → busca no banco.
+   * 2. Token não existe / revogado / expirado → 401.
+   * 3. Token já foi consumido antes (revokedAt preenchido mas ainda no banco)
+   *    → REUSO DETECTADO → revoga toda a família → 401.
+   * 4. Marca o token atual como revogado.
+   * 5. Emite novo par com o mesmo familyId.
+   */
+  async refreshTokens(rawToken: string): Promise<AuthSessionResponse> {
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(rawToken)
+      .digest('hex');
+
+    const storedToken = await this.prisma.refreshToken.findUnique({
+      where: { token: tokenHash },
+    });
+
+    // Token inexistente ou expirado
+    if (!storedToken || storedToken.expiresAt < new Date()) {
+      throw new UnauthorizedException('Refresh token inválido ou expirado');
+    }
+
+    // ⚠️  Reuso detectado: token já foi revogado mas alguém está tentando usá-lo.
+    // Isso indica que o token pode ter sido roubado. A decisão mais segura
+    // é revogar toda a família — forçando novo login para todos.
+    if (storedToken.revokedAt !== null) {
+      await this.prisma.refreshToken.updateMany({
+        where: { familyId: storedToken.familyId },
+        data: { revokedAt: new Date() },
+      });
+      throw new UnauthorizedException(
+        'Sessão inválida. Faça login novamente.',
+      );
+    }
+
+    // Revoga o token atual antes de emitir o próximo
+    await this.prisma.refreshToken.update({
+      where: { id: storedToken.id },
+      data: { revokedAt: new Date() },
+    });
+
+    const user = await this.getAuthUserById(storedToken.userId);
+    if (!user) {
+      throw new UnauthorizedException('Usuário não encontrado');
+    }
+
+    const mappedUser = this.mapAuthUserContext(user);
+    const [access_token, refresh_token] = await Promise.all([
+      this.signToken(mappedUser),
+      // Herda o mesmo familyId — a "linhagem" da sessão original
+      this.createRefreshToken({
+        userId: user.id,
+        tenantId: user.tenantId,
+        familyId: storedToken.familyId,
+      }),
+    ]);
+
+    return {
+      access_token,
+      refresh_token,
+      user: mappedUser,
+      tenant: {
+        id: user.tenant.id,
+        legalName: user.tenant.legalName,
+        slug: user.tenant.slug,
+      },
+    };
+  }
+
+  /**
+   * Revoga toda a família do refresh token recebido.
+   * Isso garante que tokens roubados antes do logout não continuem válidos.
+   */
+  async revokeRefreshToken(rawToken: string): Promise<void> {
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(rawToken)
+      .digest('hex');
+
+    const storedToken = await this.prisma.refreshToken.findUnique({
+      where: { token: tokenHash },
+    });
+
+    if (!storedToken) return; // Token inválido — logout silencioso
+
+    await this.prisma.refreshToken.updateMany({
+      where: { familyId: storedToken.familyId },
+      data: { revokedAt: new Date() },
     });
   }
 
@@ -256,9 +394,15 @@ export class AuthService {
     }
 
     const mappedUser = this.mapAuthUserContext(user);
+    const familyId = crypto.randomUUID();
+    const [access_token, refresh_token] = await Promise.all([
+      this.signToken(mappedUser),
+      this.createRefreshToken({ userId: user.id, tenantId: user.tenantId, familyId }),
+    ]);
 
     return {
-      access_token: await this.signToken(mappedUser),
+      access_token,
+      refresh_token,
       user: mappedUser,
       tenant: {
         id: user.tenant.id,
@@ -282,9 +426,15 @@ export class AuthService {
     }
 
     const mappedUser = this.mapAuthUserContext(user);
+    const familyId = crypto.randomUUID();
+    const [access_token, refresh_token] = await Promise.all([
+      this.signToken(mappedUser),
+      this.createRefreshToken({ userId: user.id, tenantId: user.tenantId, familyId }),
+    ]);
 
     return {
-      access_token: await this.signToken(mappedUser),
+      access_token,
+      refresh_token,
       user: mappedUser,
       tenant: {
         id: user.tenant.id,

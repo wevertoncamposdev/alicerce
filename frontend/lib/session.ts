@@ -6,25 +6,27 @@ import { cookies } from "next/headers";
 
 export const SESSION_COOKIE = "session_token";
 export const TENANT_COOKIE = "session_tenant";
+// Cookie que guarda o refresh token opaco. Enviado automaticamente pelo browser
+// para /api/auth/* graças ao path restrito — e jamais acessível via JS.
+export const REFRESH_COOKIE = "refresh_token";
 
-// Duração do cookie. Ajuste para bater com a expiração real do JWT emitido pelo Nest.
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 8; // 8 horas
+const SESSION_MAX_AGE_SECONDS = 60 * 15;         // 15 min — igual ao JWT
+const REFRESH_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 dias
 
 export interface SessionCookieOptions {
     accessToken: string;
     tenantId: string;
+    refreshToken: string;
 }
 
 /**
- * Grava a sessão em dois cookies:
- * - session_token: httpOnly -> JavaScript no navegador NUNCA consegue ler isso.
- *   Só o servidor (Route Handlers, Server Components, middleware) lê.
- * - session_tenant: NÃO é httpOnly de propósito. Não é segredo (é só "qual tenant
- *   o usuário está olhando agora"), e a UI (ex: seletor de tenant) pode precisar
- *   ler/mudar no cliente. A autorização de verdade quem faz é o Nest, validando
- *   o JWT — este cookie é só um contexto de navegação.
+ * Grava a sessão em três cookies:
+ * - session_token: httpOnly — access JWT; só o servidor lê.
+ * - refresh_token: httpOnly, path=/api/auth — refresh opaco; só vai para endpoints de auth.
+ * - session_tenant: NÃO httpOnly — contexto de navegação para a UI (ex: seletor de tenant).
+ *   A autorização real é feita pelo Nest validando o JWT, não por este cookie.
  */
-export async function setSessionCookies({ accessToken, tenantId }: SessionCookieOptions) {
+export async function setSessionCookies({ accessToken, tenantId, refreshToken }: SessionCookieOptions) {
     const cookieStore = await cookies();
 
     cookieStore.set(SESSION_COOKIE, accessToken, {
@@ -35,29 +37,46 @@ export async function setSessionCookies({ accessToken, tenantId }: SessionCookie
         maxAge: SESSION_MAX_AGE_SECONDS,
     });
 
+    cookieStore.set(REFRESH_COOKIE, refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        // Path restrito: o browser só envia este cookie para /api/auth/*,
+        // não para /api/users, /api/tasks etc. Reduz a superfície de ataque.
+        path: "/api/auth",
+        maxAge: REFRESH_MAX_AGE_SECONDS,
+    });
+
     cookieStore.set(TENANT_COOKIE, tenantId, {
         httpOnly: false,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
-        maxAge: SESSION_MAX_AGE_SECONDS,
+        maxAge: REFRESH_MAX_AGE_SECONDS,
     });
 }
 
-/** Apaga os dois cookies. Precisa ser feito no servidor (JS não pode apagar um cookie httpOnly). */
+/** Apaga os três cookies. Precisa ser feito no servidor (JS não pode apagar httpOnly). */
 export async function clearSessionCookies() {
     const cookieStore = await cookies();
     cookieStore.delete(SESSION_COOKIE);
+    cookieStore.delete(REFRESH_COOKIE);
     cookieStore.delete(TENANT_COOKIE);
 }
 
-/** Lê o token da sessão atual. Use em Server Components, Route Handlers e middleware. */
+/** Lê o access token da sessão atual. Use em Server Components, Route Handlers e middleware. */
 export async function getSessionToken(): Promise<string | null> {
     const cookieStore = await cookies();
     return cookieStore.get(SESSION_COOKIE)?.value ?? null;
 }
 
+/** Lê o refresh token opaco. Usado pelo Route Handler de refresh do BFF. */
+export async function getRefreshToken(): Promise<string | null> {
+    const cookieStore = await cookies();
+    return cookieStore.get(REFRESH_COOKIE)?.value ?? null;
+}
+
 export async function getSessionTenantId(): Promise<string | null> {
     const cookieStore = await cookies();
     return cookieStore.get(TENANT_COOKIE)?.value ?? null;
-}
+}

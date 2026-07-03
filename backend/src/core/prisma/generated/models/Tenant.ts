@@ -1193,10 +1193,6 @@ export type TenantScalarRelationFilter = {
   isNot?: Prisma.TenantWhereInput
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
-}
-
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
@@ -1221,20 +1217,12 @@ export type NullableEnumOrganizationSizeFieldUpdateOperationsInput = {
   set?: $Enums.OrganizationSize | null
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
 }
 
 export type EnumStatusFieldUpdateOperationsInput = {
   set?: $Enums.Status
-}
-
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
 }
 
 export type TenantCreateNestedOneWithoutServiceAreasInput = {

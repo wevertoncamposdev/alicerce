@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
 
     await setSessionCookies({
         accessToken: payload.access_token,
+        refreshToken: payload.refresh_token,
         tenantId: payload.tenant.id,
     });
 

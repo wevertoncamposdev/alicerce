@@ -221,6 +221,7 @@ export type UserWhereInput = {
   tasksCreated?: Prisma.TaskListRelationFilter
   tasksAssignedTo?: Prisma.TaskListRelationFilter
   favorites?: Prisma.FavoriteListRelationFilter
+  refreshTokens?: Prisma.RefreshTokenListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -240,6 +241,7 @@ export type UserOrderByWithRelationInput = {
   tasksCreated?: Prisma.TaskOrderByRelationAggregateInput
   tasksAssignedTo?: Prisma.TaskOrderByRelationAggregateInput
   favorites?: Prisma.FavoriteOrderByRelationAggregateInput
+  refreshTokens?: Prisma.RefreshTokenOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -263,6 +265,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   tasksCreated?: Prisma.TaskListRelationFilter
   tasksAssignedTo?: Prisma.TaskListRelationFilter
   favorites?: Prisma.FavoriteListRelationFilter
+  refreshTokens?: Prisma.RefreshTokenListRelationFilter
 }, "id" | "email" | "tenantId_email">
 
 export type UserOrderByWithAggregationInput = {
@@ -311,6 +314,7 @@ export type UserCreateInput = {
   tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
   tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -329,6 +333,7 @@ export type UserUncheckedCreateInput = {
   tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
   tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -347,6 +352,7 @@ export type UserUpdateInput = {
   tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
   tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -365,6 +371,7 @@ export type UserUncheckedUpdateInput = {
   tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
   tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -400,6 +407,11 @@ export type UserUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type UserScalarRelationFilter = {
+  is?: Prisma.UserWhereInput
+  isNot?: Prisma.UserWhereInput
 }
 
 export type UserListRelationFilter = {
@@ -453,14 +465,23 @@ export type UserMinOrderByAggregateInput = {
   deletedAt?: Prisma.SortOrder
 }
 
-export type UserScalarRelationFilter = {
-  is?: Prisma.UserWhereInput
-  isNot?: Prisma.UserWhereInput
-}
-
 export type UserNullableScalarRelationFilter = {
   is?: Prisma.UserWhereInput | null
   isNot?: Prisma.UserWhereInput | null
+}
+
+export type UserCreateNestedOneWithoutRefreshTokensInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRefreshTokensInput, Prisma.UserUncheckedCreateWithoutRefreshTokensInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRefreshTokensInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutRefreshTokensNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRefreshTokensInput, Prisma.UserUncheckedCreateWithoutRefreshTokensInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRefreshTokensInput
+  upsert?: Prisma.UserUpsertWithoutRefreshTokensInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRefreshTokensInput, Prisma.UserUpdateWithoutRefreshTokensInput>, Prisma.UserUncheckedUpdateWithoutRefreshTokensInput>
 }
 
 export type UserCreateNestedManyWithoutTenantInput = {
@@ -593,6 +614,94 @@ export type UserUpdateOneRequiredWithoutFavoritesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutFavoritesInput, Prisma.UserUpdateWithoutFavoritesInput>, Prisma.UserUncheckedUpdateWithoutFavoritesInput>
 }
 
+export type UserCreateWithoutRefreshTokensInput = {
+  id?: string
+  email: string
+  password: string
+  mfaEnabled?: boolean
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
+  roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
+  audits?: Prisma.AuditCreateNestedManyWithoutUserInput
+  person?: Prisma.PersonCreateNestedOneWithoutUserInput
+  tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
+  tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutRefreshTokensInput = {
+  id?: string
+  tenantId: string
+  email: string
+  password: string
+  mfaEnabled?: boolean
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutUserInput
+  person?: Prisma.PersonUncheckedCreateNestedOneWithoutUserInput
+  tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
+  tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutRefreshTokensInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutRefreshTokensInput, Prisma.UserUncheckedCreateWithoutRefreshTokensInput>
+}
+
+export type UserUpsertWithoutRefreshTokensInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutRefreshTokensInput, Prisma.UserUncheckedUpdateWithoutRefreshTokensInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutRefreshTokensInput, Prisma.UserUncheckedCreateWithoutRefreshTokensInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutRefreshTokensInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutRefreshTokensInput, Prisma.UserUncheckedUpdateWithoutRefreshTokensInput>
+}
+
+export type UserUpdateWithoutRefreshTokensInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
+  roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutUserNestedInput
+  person?: Prisma.PersonUpdateOneWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
+  tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutRefreshTokensInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutUserNestedInput
+  person?: Prisma.PersonUncheckedUpdateOneWithoutUserNestedInput
+  tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
+  tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+}
+
 export type UserCreateWithoutTenantInput = {
   id?: string
   email: string
@@ -608,6 +717,7 @@ export type UserCreateWithoutTenantInput = {
   tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
   tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTenantInput = {
@@ -625,6 +735,7 @@ export type UserUncheckedCreateWithoutTenantInput = {
   tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
   tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTenantInput = {
@@ -683,6 +794,7 @@ export type UserCreateWithoutRolesInput = {
   tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
   tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRolesInput = {
@@ -700,6 +812,7 @@ export type UserUncheckedCreateWithoutRolesInput = {
   tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
   tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRolesInput = {
@@ -733,6 +846,7 @@ export type UserUpdateWithoutRolesInput = {
   tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
   tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRolesInput = {
@@ -750,6 +864,7 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
   tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAuditsInput = {
@@ -767,6 +882,7 @@ export type UserCreateWithoutAuditsInput = {
   tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
   tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAuditsInput = {
@@ -784,6 +900,7 @@ export type UserUncheckedCreateWithoutAuditsInput = {
   tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
   tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuditsInput = {
@@ -817,6 +934,7 @@ export type UserUpdateWithoutAuditsInput = {
   tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
   tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditsInput = {
@@ -834,6 +952,7 @@ export type UserUncheckedUpdateWithoutAuditsInput = {
   tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
   tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPersonInput = {
@@ -851,6 +970,7 @@ export type UserCreateWithoutPersonInput = {
   tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
   tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPersonInput = {
@@ -868,6 +988,7 @@ export type UserUncheckedCreateWithoutPersonInput = {
   tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
   tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPersonInput = {
@@ -901,6 +1022,7 @@ export type UserUpdateWithoutPersonInput = {
   tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
   tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPersonInput = {
@@ -918,6 +1040,7 @@ export type UserUncheckedUpdateWithoutPersonInput = {
   tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
   tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTasksCreatedInput = {
@@ -935,6 +1058,7 @@ export type UserCreateWithoutTasksCreatedInput = {
   person?: Prisma.PersonCreateNestedOneWithoutUserInput
   tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTasksCreatedInput = {
@@ -952,6 +1076,7 @@ export type UserUncheckedCreateWithoutTasksCreatedInput = {
   person?: Prisma.PersonUncheckedCreateNestedOneWithoutUserInput
   tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTasksCreatedInput = {
@@ -974,6 +1099,7 @@ export type UserCreateWithoutTasksAssignedToInput = {
   person?: Prisma.PersonCreateNestedOneWithoutUserInput
   tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTasksAssignedToInput = {
@@ -991,6 +1117,7 @@ export type UserUncheckedCreateWithoutTasksAssignedToInput = {
   person?: Prisma.PersonUncheckedCreateNestedOneWithoutUserInput
   tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTasksAssignedToInput = {
@@ -1024,6 +1151,7 @@ export type UserUpdateWithoutTasksCreatedInput = {
   person?: Prisma.PersonUpdateOneWithoutUserNestedInput
   tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTasksCreatedInput = {
@@ -1041,6 +1169,7 @@ export type UserUncheckedUpdateWithoutTasksCreatedInput = {
   person?: Prisma.PersonUncheckedUpdateOneWithoutUserNestedInput
   tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutTasksAssignedToInput = {
@@ -1069,6 +1198,7 @@ export type UserUpdateWithoutTasksAssignedToInput = {
   person?: Prisma.PersonUpdateOneWithoutUserNestedInput
   tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTasksAssignedToInput = {
@@ -1086,6 +1216,7 @@ export type UserUncheckedUpdateWithoutTasksAssignedToInput = {
   person?: Prisma.PersonUncheckedUpdateOneWithoutUserNestedInput
   tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutFavoritesInput = {
@@ -1103,6 +1234,7 @@ export type UserCreateWithoutFavoritesInput = {
   person?: Prisma.PersonCreateNestedOneWithoutUserInput
   tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatorInput
   tasksAssignedTo?: Prisma.TaskCreateNestedManyWithoutAssignedToInput
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutFavoritesInput = {
@@ -1120,6 +1252,7 @@ export type UserUncheckedCreateWithoutFavoritesInput = {
   person?: Prisma.PersonUncheckedCreateNestedOneWithoutUserInput
   tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatorInput
   tasksAssignedTo?: Prisma.TaskUncheckedCreateNestedManyWithoutAssignedToInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutFavoritesInput = {
@@ -1153,6 +1286,7 @@ export type UserUpdateWithoutFavoritesInput = {
   person?: Prisma.PersonUpdateOneWithoutUserNestedInput
   tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
   tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFavoritesInput = {
@@ -1170,6 +1304,7 @@ export type UserUncheckedUpdateWithoutFavoritesInput = {
   person?: Prisma.PersonUncheckedUpdateOneWithoutUserNestedInput
   tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
   tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyTenantInput = {
@@ -1198,6 +1333,7 @@ export type UserUpdateWithoutTenantInput = {
   tasksCreated?: Prisma.TaskUpdateManyWithoutCreatorNestedInput
   tasksAssignedTo?: Prisma.TaskUpdateManyWithoutAssignedToNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTenantInput = {
@@ -1215,6 +1351,7 @@ export type UserUncheckedUpdateWithoutTenantInput = {
   tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatorNestedInput
   tasksAssignedTo?: Prisma.TaskUncheckedUpdateManyWithoutAssignedToNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutTenantInput = {
@@ -1239,6 +1376,7 @@ export type UserCountOutputType = {
   tasksCreated: number
   tasksAssignedTo: number
   favorites: number
+  refreshTokens: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1247,6 +1385,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   tasksCreated?: boolean | UserCountOutputTypeCountTasksCreatedArgs
   tasksAssignedTo?: boolean | UserCountOutputTypeCountTasksAssignedToArgs
   favorites?: boolean | UserCountOutputTypeCountFavoritesArgs
+  refreshTokens?: boolean | UserCountOutputTypeCountRefreshTokensArgs
 }
 
 /**
@@ -1294,6 +1433,13 @@ export type UserCountOutputTypeCountFavoritesArgs<ExtArgs extends runtime.Types.
   where?: Prisma.FavoriteWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountRefreshTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RefreshTokenWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1312,6 +1458,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   tasksCreated?: boolean | Prisma.User$tasksCreatedArgs<ExtArgs>
   tasksAssignedTo?: boolean | Prisma.User$tasksAssignedToArgs<ExtArgs>
   favorites?: boolean | Prisma.User$favoritesArgs<ExtArgs>
+  refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1362,6 +1509,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   tasksCreated?: boolean | Prisma.User$tasksCreatedArgs<ExtArgs>
   tasksAssignedTo?: boolean | Prisma.User$tasksAssignedToArgs<ExtArgs>
   favorites?: boolean | Prisma.User$favoritesArgs<ExtArgs>
+  refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1381,6 +1529,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     tasksCreated: Prisma.$TaskPayload<ExtArgs>[]
     tasksAssignedTo: Prisma.$TaskPayload<ExtArgs>[]
     favorites: Prisma.$FavoritePayload<ExtArgs>[]
+    refreshTokens: Prisma.$RefreshTokenPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1793,6 +1942,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   tasksCreated<T extends Prisma.User$tasksCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$tasksCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tasksAssignedTo<T extends Prisma.User$tasksAssignedToArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$tasksAssignedToArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   favorites<T extends Prisma.User$favoritesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$favoritesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoritePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  refreshTokens<T extends Prisma.User$refreshTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$refreshTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RefreshTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2368,6 +2518,30 @@ export type User$favoritesArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.FavoriteScalarFieldEnum | Prisma.FavoriteScalarFieldEnum[]
+}
+
+/**
+ * User.refreshTokens
+ */
+export type User$refreshTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RefreshToken
+   */
+  select?: Prisma.RefreshTokenSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RefreshToken
+   */
+  omit?: Prisma.RefreshTokenOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RefreshTokenInclude<ExtArgs> | null
+  where?: Prisma.RefreshTokenWhereInput
+  orderBy?: Prisma.RefreshTokenOrderByWithRelationInput | Prisma.RefreshTokenOrderByWithRelationInput[]
+  cursor?: Prisma.RefreshTokenWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RefreshTokenScalarFieldEnum | Prisma.RefreshTokenScalarFieldEnum[]
 }
 
 /**
