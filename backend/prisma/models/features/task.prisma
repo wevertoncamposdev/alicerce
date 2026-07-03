@@ -1,0 +1,32 @@
+// Modelos de domínio relacionado a tarefas de usuários
+model Task {
+    id String @id @default(uuid(7)) @db.Uuid
+
+    tenantId         String  @db.Uuid
+    userId           String  @db.Uuid
+    assignedToUserId String? @db.Uuid
+
+    title       String  @db.VarChar(255)
+    description String? @db.Text
+
+    status   TaskStatus   @default(PENDING)
+    priority TaskPriority @default(MEDIUM)
+
+    dueDate     DateTime?
+    completedAt DateTime?
+
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
+
+    tenant     Tenant @relation(fields: [tenantId], references: [id])
+    creator    User   @relation("taskCreator", fields: [userId], references: [id])
+    assignedTo User?  @relation("taskAssignedTo", fields: [assignedToUserId], references: [id])
+
+    @@index([tenantId])
+    @@index([userId])
+    @@index([assignedToUserId])
+    @@index([status])
+    @@index([priority])
+    @@map("tasks")
+}

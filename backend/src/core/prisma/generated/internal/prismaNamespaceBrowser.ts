@@ -52,16 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   RefreshToken: 'RefreshToken',
-  Tenant: 'Tenant',
-  TenantArea: 'TenantArea',
-  TenantBoardMember: 'TenantBoardMember',
-  TenantBoardTerm: 'TenantBoardTerm',
-  TenantDocument: 'TenantDocument',
-  User: 'User',
-  Role: 'Role',
-  UserRole: 'UserRole',
-  Permission: 'Permission',
-  RolePermission: 'RolePermission',
+  Favorite: 'Favorite',
   Audit: 'Audit',
   Person: 'Person',
   PersonAddress: 'PersonAddress',
@@ -70,7 +61,16 @@ export const ModelName = {
   PersonDocument: 'PersonDocument',
   Report: 'Report',
   Task: 'Task',
-  Favorite: 'Favorite'
+  User: 'User',
+  Role: 'Role',
+  UserRole: 'UserRole',
+  Permission: 'Permission',
+  RolePermission: 'RolePermission',
+  Tenant: 'Tenant',
+  TenantArea: 'TenantArea',
+  TenantBoardMember: 'TenantBoardMember',
+  TenantBoardTerm: 'TenantBoardTerm',
+  TenantDocument: 'TenantDocument'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -103,184 +103,16 @@ export const RefreshTokenScalarFieldEnum = {
 export type RefreshTokenScalarFieldEnum = (typeof RefreshTokenScalarFieldEnum)[keyof typeof RefreshTokenScalarFieldEnum]
 
 
-export const TenantScalarFieldEnum = {
-  id: 'id',
-  legalName: 'legalName',
-  tradeName: 'tradeName',
-  registrationNumber: 'registrationNumber',
-  slug: 'slug',
-  description: 'description',
-  mission: 'mission',
-  vision: 'vision',
-  values: 'values',
-  category: 'category',
-  primaryServiceArea: 'primaryServiceArea',
-  partnershipType: 'partnershipType',
-  coverageArea: 'coverageArea',
-  organizationSize: 'organizationSize',
-  foundedAt: 'foundedAt',
-  closedAt: 'closedAt',
-  street: 'street',
-  number: 'number',
-  district: 'district',
-  city: 'city',
-  state: 'state',
-  zipCode: 'zipCode',
-  country: 'country',
-  complement: 'complement',
-  reference: 'reference',
-  phone: 'phone',
-  mobilePhone: 'mobilePhone',
-  email: 'email',
-  website: 'website',
-  instagram: 'instagram',
-  facebook: 'facebook',
-  linkedin: 'linkedin',
-  usesVolunteers: 'usesVolunteers',
-  acceptsDonations: 'acceptsDonations',
-  hasGovernmentPartnership: 'hasGovernmentPartnership',
-  isNonProfit: 'isNonProfit',
-  notes: 'notes',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type TenantScalarFieldEnum = (typeof TenantScalarFieldEnum)[keyof typeof TenantScalarFieldEnum]
-
-
-export const TenantAreaScalarFieldEnum = {
+export const FavoriteScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
-  area: 'area'
-} as const
-
-export type TenantAreaScalarFieldEnum = (typeof TenantAreaScalarFieldEnum)[keyof typeof TenantAreaScalarFieldEnum]
-
-
-export const TenantBoardMemberScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  boardTermId: 'boardTermId',
-  personId: 'personId',
-  role: 'role',
   title: 'title',
-  startDate: 'startDate',
-  endDate: 'endDate',
-  notes: 'notes',
-  status: 'status',
+  url: 'url',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  userId: 'userId'
 } as const
 
-export type TenantBoardMemberScalarFieldEnum = (typeof TenantBoardMemberScalarFieldEnum)[keyof typeof TenantBoardMemberScalarFieldEnum]
-
-
-export const TenantBoardTermScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  name: 'name',
-  startDate: 'startDate',
-  endDate: 'endDate',
-  notes: 'notes',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type TenantBoardTermScalarFieldEnum = (typeof TenantBoardTermScalarFieldEnum)[keyof typeof TenantBoardTermScalarFieldEnum]
-
-
-export const TenantDocumentScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  boardTermId: 'boardTermId',
-  type: 'type',
-  title: 'title',
-  description: 'description',
-  fileUrl: 'fileUrl',
-  fileName: 'fileName',
-  mimeType: 'mimeType',
-  documentDate: 'documentDate',
-  publishedAt: 'publishedAt',
-  expiresAt: 'expiresAt',
-  isPublic: 'isPublic',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type TenantDocumentScalarFieldEnum = (typeof TenantDocumentScalarFieldEnum)[keyof typeof TenantDocumentScalarFieldEnum]
-
-
-export const UserScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  email: 'email',
-  password: 'password',
-  mfaEnabled: 'mfaEnabled',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
-
-
-export const RoleScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  name: 'name',
-  type: 'type',
-  description: 'description',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
-
-
-export const UserRoleScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  userId: 'userId',
-  roleId: 'roleId',
-  assignedBy: 'assignedBy',
-  assignedAt: 'assignedAt'
-} as const
-
-export type UserRoleScalarFieldEnum = (typeof UserRoleScalarFieldEnum)[keyof typeof UserRoleScalarFieldEnum]
-
-
-export const PermissionScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  name: 'name',
-  description: 'description',
-  type: 'type',
-  resource: 'resource',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
-
-
-export const RolePermissionScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  roleId: 'roleId',
-  permissionId: 'permissionId',
-  resource: 'resource'
-} as const
-
-export type RolePermissionScalarFieldEnum = (typeof RolePermissionScalarFieldEnum)[keyof typeof RolePermissionScalarFieldEnum]
+export type FavoriteScalarFieldEnum = (typeof FavoriteScalarFieldEnum)[keyof typeof FavoriteScalarFieldEnum]
 
 
 export const AuditScalarFieldEnum = {
@@ -413,15 +245,184 @@ export const TaskScalarFieldEnum = {
 export type TaskScalarFieldEnum = (typeof TaskScalarFieldEnum)[keyof typeof TaskScalarFieldEnum]
 
 
-export const FavoriteScalarFieldEnum = {
+export const UserScalarFieldEnum = {
   id: 'id',
-  title: 'title',
-  url: 'url',
+  tenantId: 'tenantId',
+  email: 'email',
+  password: 'password',
+  mfaEnabled: 'mfaEnabled',
+  status: 'status',
   createdAt: 'createdAt',
-  userId: 'userId'
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 } as const
 
-export type FavoriteScalarFieldEnum = (typeof FavoriteScalarFieldEnum)[keyof typeof FavoriteScalarFieldEnum]
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const RoleScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  type: 'type',
+  description: 'description',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
+
+
+export const UserRoleScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  roleId: 'roleId',
+  assignedBy: 'assignedBy',
+  assignedAt: 'assignedAt'
+} as const
+
+export type UserRoleScalarFieldEnum = (typeof UserRoleScalarFieldEnum)[keyof typeof UserRoleScalarFieldEnum]
+
+
+export const PermissionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  description: 'description',
+  type: 'type',
+  resource: 'resource',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
+
+
+export const RolePermissionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  roleId: 'roleId',
+  permissionId: 'permissionId',
+  resource: 'resource'
+} as const
+
+export type RolePermissionScalarFieldEnum = (typeof RolePermissionScalarFieldEnum)[keyof typeof RolePermissionScalarFieldEnum]
+
+
+export const TenantScalarFieldEnum = {
+  id: 'id',
+  legalName: 'legalName',
+  tradeName: 'tradeName',
+  registrationNumber: 'registrationNumber',
+  slug: 'slug',
+  description: 'description',
+  mission: 'mission',
+  vision: 'vision',
+  values: 'values',
+  category: 'category',
+  primaryServiceArea: 'primaryServiceArea',
+  partnershipType: 'partnershipType',
+  coverageArea: 'coverageArea',
+  organizationSize: 'organizationSize',
+  foundedAt: 'foundedAt',
+  closedAt: 'closedAt',
+  street: 'street',
+  number: 'number',
+  district: 'district',
+  city: 'city',
+  state: 'state',
+  zipCode: 'zipCode',
+  country: 'country',
+  complement: 'complement',
+  reference: 'reference',
+  phone: 'phone',
+  mobilePhone: 'mobilePhone',
+  email: 'email',
+  website: 'website',
+  instagram: 'instagram',
+  facebook: 'facebook',
+  linkedin: 'linkedin',
+  usesVolunteers: 'usesVolunteers',
+  acceptsDonations: 'acceptsDonations',
+  hasGovernmentPartnership: 'hasGovernmentPartnership',
+  isNonProfit: 'isNonProfit',
+  notes: 'notes',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type TenantScalarFieldEnum = (typeof TenantScalarFieldEnum)[keyof typeof TenantScalarFieldEnum]
+
+
+export const TenantAreaScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  area: 'area'
+} as const
+
+export type TenantAreaScalarFieldEnum = (typeof TenantAreaScalarFieldEnum)[keyof typeof TenantAreaScalarFieldEnum]
+
+
+export const TenantBoardMemberScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  boardTermId: 'boardTermId',
+  personId: 'personId',
+  role: 'role',
+  title: 'title',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  notes: 'notes',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TenantBoardMemberScalarFieldEnum = (typeof TenantBoardMemberScalarFieldEnum)[keyof typeof TenantBoardMemberScalarFieldEnum]
+
+
+export const TenantBoardTermScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  notes: 'notes',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TenantBoardTermScalarFieldEnum = (typeof TenantBoardTermScalarFieldEnum)[keyof typeof TenantBoardTermScalarFieldEnum]
+
+
+export const TenantDocumentScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  boardTermId: 'boardTermId',
+  type: 'type',
+  title: 'title',
+  description: 'description',
+  fileUrl: 'fileUrl',
+  fileName: 'fileName',
+  mimeType: 'mimeType',
+  documentDate: 'documentDate',
+  publishedAt: 'publishedAt',
+  expiresAt: 'expiresAt',
+  isPublic: 'isPublic',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type TenantDocumentScalarFieldEnum = (typeof TenantDocumentScalarFieldEnum)[keyof typeof TenantDocumentScalarFieldEnum]
 
 
 export const SortOrder = {

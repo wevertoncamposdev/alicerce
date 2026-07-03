@@ -1,0 +1,15 @@
+model Favorite {
+    id        String   @id @default(uuid(7)) @db.Uuid
+    tenantId  String   @db.Uuid
+    title     String
+    url       String
+    createdAt DateTime @default(now())
+
+    userId String @db.Uuid
+    user   User   @relation(fields: [userId], references: [id])
+    tenant Tenant @relation(fields: [tenantId], references: [id])
+
+    @@index([tenantId])
+    @@index([userId])
+    @@map("favorites")
+}

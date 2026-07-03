@@ -367,16 +367,6 @@ export type PermissionUncheckedUpdateManyInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
-export type PermissionListRelationFilter = {
-  every?: Prisma.PermissionWhereInput
-  some?: Prisma.PermissionWhereInput
-  none?: Prisma.PermissionWhereInput
-}
-
-export type PermissionOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
-}
-
 export type PermissionTenantIdNameResourceCompoundUniqueInput = {
   tenantId: string
   name: string
@@ -424,6 +414,34 @@ export type PermissionScalarRelationFilter = {
   isNot?: Prisma.PermissionWhereInput
 }
 
+export type PermissionListRelationFilter = {
+  every?: Prisma.PermissionWhereInput
+  some?: Prisma.PermissionWhereInput
+  none?: Prisma.PermissionWhereInput
+}
+
+export type PermissionOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
+export type EnumPermissionTypeFieldUpdateOperationsInput = {
+  set?: $Enums.PermissionType
+}
+
+export type PermissionCreateNestedOneWithoutRolesInput = {
+  create?: Prisma.XOR<Prisma.PermissionCreateWithoutRolesInput, Prisma.PermissionUncheckedCreateWithoutRolesInput>
+  connectOrCreate?: Prisma.PermissionCreateOrConnectWithoutRolesInput
+  connect?: Prisma.PermissionWhereUniqueInput
+}
+
+export type PermissionUpdateOneRequiredWithoutRolesNestedInput = {
+  create?: Prisma.XOR<Prisma.PermissionCreateWithoutRolesInput, Prisma.PermissionUncheckedCreateWithoutRolesInput>
+  connectOrCreate?: Prisma.PermissionCreateOrConnectWithoutRolesInput
+  upsert?: Prisma.PermissionUpsertWithoutRolesInput
+  connect?: Prisma.PermissionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PermissionUpdateToOneWithWhereWithoutRolesInput, Prisma.PermissionUpdateWithoutRolesInput>, Prisma.PermissionUncheckedUpdateWithoutRolesInput>
+}
+
 export type PermissionCreateNestedManyWithoutTenantInput = {
   create?: Prisma.XOR<Prisma.PermissionCreateWithoutTenantInput, Prisma.PermissionUncheckedCreateWithoutTenantInput> | Prisma.PermissionCreateWithoutTenantInput[] | Prisma.PermissionUncheckedCreateWithoutTenantInput[]
   connectOrCreate?: Prisma.PermissionCreateOrConnectWithoutTenantInput | Prisma.PermissionCreateOrConnectWithoutTenantInput[]
@@ -466,22 +484,68 @@ export type PermissionUncheckedUpdateManyWithoutTenantNestedInput = {
   deleteMany?: Prisma.PermissionScalarWhereInput | Prisma.PermissionScalarWhereInput[]
 }
 
-export type EnumPermissionTypeFieldUpdateOperationsInput = {
-  set?: $Enums.PermissionType
+export type PermissionCreateWithoutRolesInput = {
+  id?: string
+  name: string
+  description?: string | null
+  type: $Enums.PermissionType
+  resource?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  tenant: Prisma.TenantCreateNestedOneWithoutPermissionsInput
 }
 
-export type PermissionCreateNestedOneWithoutRolesInput = {
-  create?: Prisma.XOR<Prisma.PermissionCreateWithoutRolesInput, Prisma.PermissionUncheckedCreateWithoutRolesInput>
-  connectOrCreate?: Prisma.PermissionCreateOrConnectWithoutRolesInput
-  connect?: Prisma.PermissionWhereUniqueInput
+export type PermissionUncheckedCreateWithoutRolesInput = {
+  id?: string
+  tenantId: string
+  name: string
+  description?: string | null
+  type: $Enums.PermissionType
+  resource?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
 }
 
-export type PermissionUpdateOneRequiredWithoutRolesNestedInput = {
-  create?: Prisma.XOR<Prisma.PermissionCreateWithoutRolesInput, Prisma.PermissionUncheckedCreateWithoutRolesInput>
-  connectOrCreate?: Prisma.PermissionCreateOrConnectWithoutRolesInput
-  upsert?: Prisma.PermissionUpsertWithoutRolesInput
-  connect?: Prisma.PermissionWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.PermissionUpdateToOneWithWhereWithoutRolesInput, Prisma.PermissionUpdateWithoutRolesInput>, Prisma.PermissionUncheckedUpdateWithoutRolesInput>
+export type PermissionCreateOrConnectWithoutRolesInput = {
+  where: Prisma.PermissionWhereUniqueInput
+  create: Prisma.XOR<Prisma.PermissionCreateWithoutRolesInput, Prisma.PermissionUncheckedCreateWithoutRolesInput>
+}
+
+export type PermissionUpsertWithoutRolesInput = {
+  update: Prisma.XOR<Prisma.PermissionUpdateWithoutRolesInput, Prisma.PermissionUncheckedUpdateWithoutRolesInput>
+  create: Prisma.XOR<Prisma.PermissionCreateWithoutRolesInput, Prisma.PermissionUncheckedCreateWithoutRolesInput>
+  where?: Prisma.PermissionWhereInput
+}
+
+export type PermissionUpdateToOneWithWhereWithoutRolesInput = {
+  where?: Prisma.PermissionWhereInput
+  data: Prisma.XOR<Prisma.PermissionUpdateWithoutRolesInput, Prisma.PermissionUncheckedUpdateWithoutRolesInput>
+}
+
+export type PermissionUpdateWithoutRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumPermissionTypeFieldUpdateOperationsInput | $Enums.PermissionType
+  resource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutPermissionsNestedInput
+}
+
+export type PermissionUncheckedUpdateWithoutRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumPermissionTypeFieldUpdateOperationsInput | $Enums.PermissionType
+  resource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type PermissionCreateWithoutTenantInput = {
@@ -547,70 +611,6 @@ export type PermissionScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Permission"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Permission"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Permission"> | Date | string | null
-}
-
-export type PermissionCreateWithoutRolesInput = {
-  id?: string
-  name: string
-  description?: string | null
-  type: $Enums.PermissionType
-  resource?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  tenant: Prisma.TenantCreateNestedOneWithoutPermissionsInput
-}
-
-export type PermissionUncheckedCreateWithoutRolesInput = {
-  id?: string
-  tenantId: string
-  name: string
-  description?: string | null
-  type: $Enums.PermissionType
-  resource?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-}
-
-export type PermissionCreateOrConnectWithoutRolesInput = {
-  where: Prisma.PermissionWhereUniqueInput
-  create: Prisma.XOR<Prisma.PermissionCreateWithoutRolesInput, Prisma.PermissionUncheckedCreateWithoutRolesInput>
-}
-
-export type PermissionUpsertWithoutRolesInput = {
-  update: Prisma.XOR<Prisma.PermissionUpdateWithoutRolesInput, Prisma.PermissionUncheckedUpdateWithoutRolesInput>
-  create: Prisma.XOR<Prisma.PermissionCreateWithoutRolesInput, Prisma.PermissionUncheckedCreateWithoutRolesInput>
-  where?: Prisma.PermissionWhereInput
-}
-
-export type PermissionUpdateToOneWithWhereWithoutRolesInput = {
-  where?: Prisma.PermissionWhereInput
-  data: Prisma.XOR<Prisma.PermissionUpdateWithoutRolesInput, Prisma.PermissionUncheckedUpdateWithoutRolesInput>
-}
-
-export type PermissionUpdateWithoutRolesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  type?: Prisma.EnumPermissionTypeFieldUpdateOperationsInput | $Enums.PermissionType
-  resource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  tenant?: Prisma.TenantUpdateOneRequiredWithoutPermissionsNestedInput
-}
-
-export type PermissionUncheckedUpdateWithoutRolesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  type?: Prisma.EnumPermissionTypeFieldUpdateOperationsInput | $Enums.PermissionType
-  resource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type PermissionCreateManyTenantInput = {

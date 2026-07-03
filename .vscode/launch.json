@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "🐛 Backend (NestJS)",
+            "name": "Backend",
             "type": "node",
             "request": "attach",
             "port": 9229,
@@ -12,19 +12,35 @@
             ]
         },
         {
-            "name": "🌐 Frontend (Next.js Chrome)",
+            "name": "Frontend (Chrome)",
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}/frontend"
+        },
+        {
+            "name": "Frontend (Server)",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/frontend",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "dev"
+            ],
+            "console": "integratedTerminal",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
         }
     ],
     "compounds": [
         {
-            "name": "🚀 Fullstack Debug",
+            "name": "Fullstack Debug",
             "configurations": [
-                "🐛 Backend (NestJS)",
-                "🌐 Frontend (Next.js Chrome)"
+                "Backend",
+                "Frontend (Server)",
+                "Frontend (Chrome)"
             ]
         }
     ]

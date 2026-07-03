@@ -28,6 +28,7 @@ export class FavoritesService {
         title: dto.title,
         url: dto.url,
         userId: dto.userId,
+        tenantId: dto.tenantId,
       },
     });
   }

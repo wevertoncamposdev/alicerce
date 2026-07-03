@@ -475,6 +475,48 @@ export type TenantBoardMemberMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type TenantBoardMemberCreateNestedManyWithoutPersonInput = {
+  create?: Prisma.XOR<Prisma.TenantBoardMemberCreateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput> | Prisma.TenantBoardMemberCreateWithoutPersonInput[] | Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput[]
+  connectOrCreate?: Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput | Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput[]
+  createMany?: Prisma.TenantBoardMemberCreateManyPersonInputEnvelope
+  connect?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
+}
+
+export type TenantBoardMemberUncheckedCreateNestedManyWithoutPersonInput = {
+  create?: Prisma.XOR<Prisma.TenantBoardMemberCreateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput> | Prisma.TenantBoardMemberCreateWithoutPersonInput[] | Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput[]
+  connectOrCreate?: Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput | Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput[]
+  createMany?: Prisma.TenantBoardMemberCreateManyPersonInputEnvelope
+  connect?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
+}
+
+export type TenantBoardMemberUpdateManyWithoutPersonNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantBoardMemberCreateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput> | Prisma.TenantBoardMemberCreateWithoutPersonInput[] | Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput[]
+  connectOrCreate?: Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput | Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput[]
+  upsert?: Prisma.TenantBoardMemberUpsertWithWhereUniqueWithoutPersonInput | Prisma.TenantBoardMemberUpsertWithWhereUniqueWithoutPersonInput[]
+  createMany?: Prisma.TenantBoardMemberCreateManyPersonInputEnvelope
+  set?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
+  disconnect?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
+  delete?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
+  connect?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
+  update?: Prisma.TenantBoardMemberUpdateWithWhereUniqueWithoutPersonInput | Prisma.TenantBoardMemberUpdateWithWhereUniqueWithoutPersonInput[]
+  updateMany?: Prisma.TenantBoardMemberUpdateManyWithWhereWithoutPersonInput | Prisma.TenantBoardMemberUpdateManyWithWhereWithoutPersonInput[]
+  deleteMany?: Prisma.TenantBoardMemberScalarWhereInput | Prisma.TenantBoardMemberScalarWhereInput[]
+}
+
+export type TenantBoardMemberUncheckedUpdateManyWithoutPersonNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantBoardMemberCreateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput> | Prisma.TenantBoardMemberCreateWithoutPersonInput[] | Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput[]
+  connectOrCreate?: Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput | Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput[]
+  upsert?: Prisma.TenantBoardMemberUpsertWithWhereUniqueWithoutPersonInput | Prisma.TenantBoardMemberUpsertWithWhereUniqueWithoutPersonInput[]
+  createMany?: Prisma.TenantBoardMemberCreateManyPersonInputEnvelope
+  set?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
+  disconnect?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
+  delete?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
+  connect?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
+  update?: Prisma.TenantBoardMemberUpdateWithWhereUniqueWithoutPersonInput | Prisma.TenantBoardMemberUpdateWithWhereUniqueWithoutPersonInput[]
+  updateMany?: Prisma.TenantBoardMemberUpdateManyWithWhereWithoutPersonInput | Prisma.TenantBoardMemberUpdateManyWithWhereWithoutPersonInput[]
+  deleteMany?: Prisma.TenantBoardMemberScalarWhereInput | Prisma.TenantBoardMemberScalarWhereInput[]
+}
+
 export type TenantBoardMemberCreateNestedManyWithoutTenantInput = {
   create?: Prisma.XOR<Prisma.TenantBoardMemberCreateWithoutTenantInput, Prisma.TenantBoardMemberUncheckedCreateWithoutTenantInput> | Prisma.TenantBoardMemberCreateWithoutTenantInput[] | Prisma.TenantBoardMemberUncheckedCreateWithoutTenantInput[]
   connectOrCreate?: Prisma.TenantBoardMemberCreateOrConnectWithoutTenantInput | Prisma.TenantBoardMemberCreateOrConnectWithoutTenantInput[]
@@ -563,46 +605,76 @@ export type TenantBoardMemberUncheckedUpdateManyWithoutBoardTermNestedInput = {
   deleteMany?: Prisma.TenantBoardMemberScalarWhereInput | Prisma.TenantBoardMemberScalarWhereInput[]
 }
 
-export type TenantBoardMemberCreateNestedManyWithoutPersonInput = {
-  create?: Prisma.XOR<Prisma.TenantBoardMemberCreateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput> | Prisma.TenantBoardMemberCreateWithoutPersonInput[] | Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput[]
-  connectOrCreate?: Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput | Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput[]
-  createMany?: Prisma.TenantBoardMemberCreateManyPersonInputEnvelope
-  connect?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
+export type TenantBoardMemberCreateWithoutPersonInput = {
+  id?: string
+  role: $Enums.BoardRoleType
+  title?: string | null
+  startDate?: Date | string | null
+  endDate?: Date | string | null
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tenant: Prisma.TenantCreateNestedOneWithoutBoardMembersInput
+  boardTerm: Prisma.TenantBoardTermCreateNestedOneWithoutMembersInput
 }
 
-export type TenantBoardMemberUncheckedCreateNestedManyWithoutPersonInput = {
-  create?: Prisma.XOR<Prisma.TenantBoardMemberCreateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput> | Prisma.TenantBoardMemberCreateWithoutPersonInput[] | Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput[]
-  connectOrCreate?: Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput | Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput[]
-  createMany?: Prisma.TenantBoardMemberCreateManyPersonInputEnvelope
-  connect?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
+export type TenantBoardMemberUncheckedCreateWithoutPersonInput = {
+  id?: string
+  tenantId: string
+  boardTermId: string
+  role: $Enums.BoardRoleType
+  title?: string | null
+  startDate?: Date | string | null
+  endDate?: Date | string | null
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
-export type TenantBoardMemberUpdateManyWithoutPersonNestedInput = {
-  create?: Prisma.XOR<Prisma.TenantBoardMemberCreateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput> | Prisma.TenantBoardMemberCreateWithoutPersonInput[] | Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput[]
-  connectOrCreate?: Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput | Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput[]
-  upsert?: Prisma.TenantBoardMemberUpsertWithWhereUniqueWithoutPersonInput | Prisma.TenantBoardMemberUpsertWithWhereUniqueWithoutPersonInput[]
-  createMany?: Prisma.TenantBoardMemberCreateManyPersonInputEnvelope
-  set?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
-  disconnect?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
-  delete?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
-  connect?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
-  update?: Prisma.TenantBoardMemberUpdateWithWhereUniqueWithoutPersonInput | Prisma.TenantBoardMemberUpdateWithWhereUniqueWithoutPersonInput[]
-  updateMany?: Prisma.TenantBoardMemberUpdateManyWithWhereWithoutPersonInput | Prisma.TenantBoardMemberUpdateManyWithWhereWithoutPersonInput[]
-  deleteMany?: Prisma.TenantBoardMemberScalarWhereInput | Prisma.TenantBoardMemberScalarWhereInput[]
+export type TenantBoardMemberCreateOrConnectWithoutPersonInput = {
+  where: Prisma.TenantBoardMemberWhereUniqueInput
+  create: Prisma.XOR<Prisma.TenantBoardMemberCreateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput>
 }
 
-export type TenantBoardMemberUncheckedUpdateManyWithoutPersonNestedInput = {
-  create?: Prisma.XOR<Prisma.TenantBoardMemberCreateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput> | Prisma.TenantBoardMemberCreateWithoutPersonInput[] | Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput[]
-  connectOrCreate?: Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput | Prisma.TenantBoardMemberCreateOrConnectWithoutPersonInput[]
-  upsert?: Prisma.TenantBoardMemberUpsertWithWhereUniqueWithoutPersonInput | Prisma.TenantBoardMemberUpsertWithWhereUniqueWithoutPersonInput[]
-  createMany?: Prisma.TenantBoardMemberCreateManyPersonInputEnvelope
-  set?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
-  disconnect?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
-  delete?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
-  connect?: Prisma.TenantBoardMemberWhereUniqueInput | Prisma.TenantBoardMemberWhereUniqueInput[]
-  update?: Prisma.TenantBoardMemberUpdateWithWhereUniqueWithoutPersonInput | Prisma.TenantBoardMemberUpdateWithWhereUniqueWithoutPersonInput[]
-  updateMany?: Prisma.TenantBoardMemberUpdateManyWithWhereWithoutPersonInput | Prisma.TenantBoardMemberUpdateManyWithWhereWithoutPersonInput[]
-  deleteMany?: Prisma.TenantBoardMemberScalarWhereInput | Prisma.TenantBoardMemberScalarWhereInput[]
+export type TenantBoardMemberCreateManyPersonInputEnvelope = {
+  data: Prisma.TenantBoardMemberCreateManyPersonInput | Prisma.TenantBoardMemberCreateManyPersonInput[]
+  skipDuplicates?: boolean
+}
+
+export type TenantBoardMemberUpsertWithWhereUniqueWithoutPersonInput = {
+  where: Prisma.TenantBoardMemberWhereUniqueInput
+  update: Prisma.XOR<Prisma.TenantBoardMemberUpdateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedUpdateWithoutPersonInput>
+  create: Prisma.XOR<Prisma.TenantBoardMemberCreateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput>
+}
+
+export type TenantBoardMemberUpdateWithWhereUniqueWithoutPersonInput = {
+  where: Prisma.TenantBoardMemberWhereUniqueInput
+  data: Prisma.XOR<Prisma.TenantBoardMemberUpdateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedUpdateWithoutPersonInput>
+}
+
+export type TenantBoardMemberUpdateManyWithWhereWithoutPersonInput = {
+  where: Prisma.TenantBoardMemberScalarWhereInput
+  data: Prisma.XOR<Prisma.TenantBoardMemberUpdateManyMutationInput, Prisma.TenantBoardMemberUncheckedUpdateManyWithoutPersonInput>
+}
+
+export type TenantBoardMemberScalarWhereInput = {
+  AND?: Prisma.TenantBoardMemberScalarWhereInput | Prisma.TenantBoardMemberScalarWhereInput[]
+  OR?: Prisma.TenantBoardMemberScalarWhereInput[]
+  NOT?: Prisma.TenantBoardMemberScalarWhereInput | Prisma.TenantBoardMemberScalarWhereInput[]
+  id?: Prisma.UuidFilter<"TenantBoardMember"> | string
+  tenantId?: Prisma.UuidFilter<"TenantBoardMember"> | string
+  boardTermId?: Prisma.UuidFilter<"TenantBoardMember"> | string
+  personId?: Prisma.UuidFilter<"TenantBoardMember"> | string
+  role?: Prisma.EnumBoardRoleTypeFilter<"TenantBoardMember"> | $Enums.BoardRoleType
+  title?: Prisma.StringNullableFilter<"TenantBoardMember"> | string | null
+  startDate?: Prisma.DateTimeNullableFilter<"TenantBoardMember"> | Date | string | null
+  endDate?: Prisma.DateTimeNullableFilter<"TenantBoardMember"> | Date | string | null
+  notes?: Prisma.StringNullableFilter<"TenantBoardMember"> | string | null
+  status?: Prisma.EnumStatusFilter<"TenantBoardMember"> | $Enums.Status
+  createdAt?: Prisma.DateTimeFilter<"TenantBoardMember"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"TenantBoardMember"> | Date | string
 }
 
 export type TenantBoardMemberCreateWithoutTenantInput = {
@@ -659,24 +731,6 @@ export type TenantBoardMemberUpdateManyWithWhereWithoutTenantInput = {
   data: Prisma.XOR<Prisma.TenantBoardMemberUpdateManyMutationInput, Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantInput>
 }
 
-export type TenantBoardMemberScalarWhereInput = {
-  AND?: Prisma.TenantBoardMemberScalarWhereInput | Prisma.TenantBoardMemberScalarWhereInput[]
-  OR?: Prisma.TenantBoardMemberScalarWhereInput[]
-  NOT?: Prisma.TenantBoardMemberScalarWhereInput | Prisma.TenantBoardMemberScalarWhereInput[]
-  id?: Prisma.UuidFilter<"TenantBoardMember"> | string
-  tenantId?: Prisma.UuidFilter<"TenantBoardMember"> | string
-  boardTermId?: Prisma.UuidFilter<"TenantBoardMember"> | string
-  personId?: Prisma.UuidFilter<"TenantBoardMember"> | string
-  role?: Prisma.EnumBoardRoleTypeFilter<"TenantBoardMember"> | $Enums.BoardRoleType
-  title?: Prisma.StringNullableFilter<"TenantBoardMember"> | string | null
-  startDate?: Prisma.DateTimeNullableFilter<"TenantBoardMember"> | Date | string | null
-  endDate?: Prisma.DateTimeNullableFilter<"TenantBoardMember"> | Date | string | null
-  notes?: Prisma.StringNullableFilter<"TenantBoardMember"> | string | null
-  status?: Prisma.EnumStatusFilter<"TenantBoardMember"> | $Enums.Status
-  createdAt?: Prisma.DateTimeFilter<"TenantBoardMember"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"TenantBoardMember"> | Date | string
-}
-
 export type TenantBoardMemberCreateWithoutBoardTermInput = {
   id?: string
   role: $Enums.BoardRoleType
@@ -731,21 +785,7 @@ export type TenantBoardMemberUpdateManyWithWhereWithoutBoardTermInput = {
   data: Prisma.XOR<Prisma.TenantBoardMemberUpdateManyMutationInput, Prisma.TenantBoardMemberUncheckedUpdateManyWithoutBoardTermInput>
 }
 
-export type TenantBoardMemberCreateWithoutPersonInput = {
-  id?: string
-  role: $Enums.BoardRoleType
-  title?: string | null
-  startDate?: Date | string | null
-  endDate?: Date | string | null
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  tenant: Prisma.TenantCreateNestedOneWithoutBoardMembersInput
-  boardTerm: Prisma.TenantBoardTermCreateNestedOneWithoutMembersInput
-}
-
-export type TenantBoardMemberUncheckedCreateWithoutPersonInput = {
+export type TenantBoardMemberCreateManyPersonInput = {
   id?: string
   tenantId: string
   boardTermId: string
@@ -759,30 +799,46 @@ export type TenantBoardMemberUncheckedCreateWithoutPersonInput = {
   updatedAt?: Date | string
 }
 
-export type TenantBoardMemberCreateOrConnectWithoutPersonInput = {
-  where: Prisma.TenantBoardMemberWhereUniqueInput
-  create: Prisma.XOR<Prisma.TenantBoardMemberCreateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput>
+export type TenantBoardMemberUpdateWithoutPersonInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumBoardRoleTypeFieldUpdateOperationsInput | $Enums.BoardRoleType
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutBoardMembersNestedInput
+  boardTerm?: Prisma.TenantBoardTermUpdateOneRequiredWithoutMembersNestedInput
 }
 
-export type TenantBoardMemberCreateManyPersonInputEnvelope = {
-  data: Prisma.TenantBoardMemberCreateManyPersonInput | Prisma.TenantBoardMemberCreateManyPersonInput[]
-  skipDuplicates?: boolean
+export type TenantBoardMemberUncheckedUpdateWithoutPersonInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  boardTermId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumBoardRoleTypeFieldUpdateOperationsInput | $Enums.BoardRoleType
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type TenantBoardMemberUpsertWithWhereUniqueWithoutPersonInput = {
-  where: Prisma.TenantBoardMemberWhereUniqueInput
-  update: Prisma.XOR<Prisma.TenantBoardMemberUpdateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedUpdateWithoutPersonInput>
-  create: Prisma.XOR<Prisma.TenantBoardMemberCreateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedCreateWithoutPersonInput>
-}
-
-export type TenantBoardMemberUpdateWithWhereUniqueWithoutPersonInput = {
-  where: Prisma.TenantBoardMemberWhereUniqueInput
-  data: Prisma.XOR<Prisma.TenantBoardMemberUpdateWithoutPersonInput, Prisma.TenantBoardMemberUncheckedUpdateWithoutPersonInput>
-}
-
-export type TenantBoardMemberUpdateManyWithWhereWithoutPersonInput = {
-  where: Prisma.TenantBoardMemberScalarWhereInput
-  data: Prisma.XOR<Prisma.TenantBoardMemberUpdateManyMutationInput, Prisma.TenantBoardMemberUncheckedUpdateManyWithoutPersonInput>
+export type TenantBoardMemberUncheckedUpdateManyWithoutPersonInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  boardTermId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumBoardRoleTypeFieldUpdateOperationsInput | $Enums.BoardRoleType
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type TenantBoardMemberCreateManyTenantInput = {
@@ -887,62 +943,6 @@ export type TenantBoardMemberUncheckedUpdateManyWithoutBoardTermInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   personId?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumBoardRoleTypeFieldUpdateOperationsInput | $Enums.BoardRoleType
-  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type TenantBoardMemberCreateManyPersonInput = {
-  id?: string
-  tenantId: string
-  boardTermId: string
-  role: $Enums.BoardRoleType
-  title?: string | null
-  startDate?: Date | string | null
-  endDate?: Date | string | null
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-}
-
-export type TenantBoardMemberUpdateWithoutPersonInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumBoardRoleTypeFieldUpdateOperationsInput | $Enums.BoardRoleType
-  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  tenant?: Prisma.TenantUpdateOneRequiredWithoutBoardMembersNestedInput
-  boardTerm?: Prisma.TenantBoardTermUpdateOneRequiredWithoutMembersNestedInput
-}
-
-export type TenantBoardMemberUncheckedUpdateWithoutPersonInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  boardTermId?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumBoardRoleTypeFieldUpdateOperationsInput | $Enums.BoardRoleType
-  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type TenantBoardMemberUncheckedUpdateManyWithoutPersonInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  boardTermId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBoardRoleTypeFieldUpdateOperationsInput | $Enums.BoardRoleType
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null

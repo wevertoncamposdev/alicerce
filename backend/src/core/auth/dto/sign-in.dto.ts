@@ -22,7 +22,7 @@ export class SignInDto {
   @MaxLength(20)
   @ApiProperty({
     description: 'Senha do usuário',
-    example: 'admin123',
+    example: 'admin@123',
   })
   password!: string;
 }
