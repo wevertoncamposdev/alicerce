@@ -18,7 +18,6 @@ type Favorite = {
 export default function FavoritesPage() {
     const [favorites, setFavorites] = useState<Favorite[]>([]);
     const [loading, setLoading] = useState(true);
-
     const [title, setTitle] = useState('');
     const [url, setUrl] = useState('');
     const [saving, setSaving] = useState(false);

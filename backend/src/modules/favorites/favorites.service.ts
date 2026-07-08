@@ -9,13 +9,14 @@ export class FavoritesService {
     private readonly prisma: PrismaService,
   ) { }
 
-  async create(dto: CreateFavoriteDto) {
-    const data = dto;
+  async create(dto: CreateFavoriteDto, tenantId: string, userSub: string) {
 
     const existingFavorite = await this.prisma.favorite.findFirst({
       where: {
         url: dto.url,
-        userId: dto.userId,
+        title: dto.title,
+        tenantId: tenantId,
+        userId: userSub,
       },
     });
 
@@ -27,14 +28,18 @@ export class FavoritesService {
       data: {
         title: dto.title,
         url: dto.url,
-        userId: dto.userId,
-        tenantId: dto.tenantId,
+        userId: userSub,
+        tenantId: tenantId,
       },
     });
   }
 
-  async findAll() {
+  async findAll(tenantId: string, userSub: string) {
     const favorites = await this.prisma.favorite.findMany({
+      where: {
+        tenantId: tenantId,
+        userId: userSub,
+      },
       orderBy: {
         createdAt: 'desc',
       },

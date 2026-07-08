@@ -21,25 +21,4 @@ export class CreateFavoriteDto {
     })
     @IsUrl()
     url!: string;
-
-    @ApiProperty({
-        description: 'ID do usuário',
-        example: 'f85445f6-126c-4b4c-b25f-094613eb41ce',
-    })
-    @IsString()
-    userId!: string;
-
-    @ApiProperty({
-        description: 'Data de criação do favorito',
-        example: '2023-01-01T00:00:00Z',
-    })
-    @IsDateString()
-    createdAt!: string;
-
-    @ApiProperty({
-        description: 'ID do tenant',
-        example: 'f85445f6-126c-4b4c-b25f-094613eb41ce',
-    })
-    @IsString()
-    tenantId!: string;
 }
