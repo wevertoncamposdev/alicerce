@@ -110,7 +110,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <Link href="/main" passHref>
+                <Link href="/" passHref>
                   <SidebarMenuButton asChild>
                     <span className="flex items-center">
                       <Home className="mr-2 h-4 w-4" />
