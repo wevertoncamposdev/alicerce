@@ -1,3 +1,4 @@
+/** standardize the best structure for implementing new features */
 'use client';
 
 import { useEffect, useState } from 'react';
