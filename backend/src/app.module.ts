@@ -5,6 +5,10 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 
+import * as path from 'path';
+import * as fs from 'fs';
+import { I18nModule, HeaderResolver, AcceptLanguageResolver } from 'nestjs-i18n';
+
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from '@src/app.controller';
 import { AppService } from '@src/app.service';
@@ -21,6 +25,7 @@ import { TenantModule } from '@modules/tenant/tenant.module';
 import { TaskModule } from '@modules/task/task.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -31,6 +36,15 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
     AuditModule,
     TaskModule,
     FavoritesModule,
+    I18nModule.forRoot({
+      fallbackLanguage: 'pt',
+      loaderOptions: {
+        path: fs.existsSync(path.join(__dirname, '/i18n/'))
+      ? path.join(__dirname, '/i18n/')
+      : path.join(__dirname, '../i18n/'),
+        watch: true,
+      }
+    }),
   ],
   controllers: [AppController],
   providers: [

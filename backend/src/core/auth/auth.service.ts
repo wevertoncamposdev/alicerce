@@ -16,6 +16,7 @@ import {
   TenantCategory,
   TenantServiceArea,
 } from '@core/prisma/generated/enums';
+import { I18nService } from 'nestjs-i18n';
 
 export interface AuthUserContext {
   id: string;
@@ -45,6 +46,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly i18n: I18nService,
   ) { }
 
   private mapPermissionType(permissionName: string): PermissionType {
@@ -416,13 +418,19 @@ export class AuthService {
     const user = await this.getAuthUserByEmail(signInDto.email);
 
     if (!user) {
-      throw new UnauthorizedException('Not found');
+      const message = await this.i18n.translate('messages.USER.NOT_FOUND', {
+        lang: 'pt-BR',
+      });
+      throw new UnauthorizedException(message);
     }
 
     const isPasswordValid = await bcrypt.compare(signInDto.password, user.password);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      const message = await this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
+        lang: 'pt-BR',
+      });
+      throw new UnauthorizedException(message);
     }
 
     const mappedUser = this.mapAuthUserContext(user);

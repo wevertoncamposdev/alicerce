@@ -31,7 +31,7 @@ export async function setSessionCookies({ accessToken, tenantId, refreshToken }:
 
     cookieStore.set(SESSION_COOKIE, accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.COOKIE_SECURE === "true", //process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
         maxAge: SESSION_MAX_AGE_SECONDS,
@@ -39,7 +39,7 @@ export async function setSessionCookies({ accessToken, tenantId, refreshToken }:
 
     cookieStore.set(REFRESH_COOKIE, refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.COOKIE_SECURE === "true",
         sameSite: "lax",
         // Path restrito: o browser só envia este cookie para /api/auth/*,
         // não para /api/users, /api/tasks etc. Reduz a superfície de ataque.
@@ -49,7 +49,7 @@ export async function setSessionCookies({ accessToken, tenantId, refreshToken }:
 
     cookieStore.set(TENANT_COOKIE, tenantId, {
         httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.COOKIE_SECURE === "true",
         sameSite: "lax",
         path: "/",
         maxAge: REFRESH_MAX_AGE_SECONDS,
@@ -79,4 +79,4 @@ export async function getRefreshToken(): Promise<string | null> {
 export async function getSessionTenantId(): Promise<string | null> {
     const cookieStore = await cookies();
     return cookieStore.get(TENANT_COOKIE)?.value ?? null;
-}
+}

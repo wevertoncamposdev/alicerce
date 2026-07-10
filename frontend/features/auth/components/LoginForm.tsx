@@ -21,7 +21,7 @@ export function LoginForm() {
                         id="email"
                         name="email"
                         type="email"
-                        placeholder="voce@exemplo.com"
+                        placeholder="email@exemplo.com"
                         required
                         disabled={isPending}
                     />

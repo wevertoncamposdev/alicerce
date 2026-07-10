@@ -16,7 +16,6 @@ export class FavoritesController {
   @Post()
   @ApiOperation({ summary: 'Criar favorito' })
   @ApiResponse({ status: 201, description: 'Favorito criado com sucesso.' })
-
   create(@Body() createFavoriteDto: CreateFavoriteDto, @TenantId() tenantId: string, @CurrentUserId() userSub: string) {
     return this.favoritesService.create(createFavoriteDto, tenantId, userSub);
   }

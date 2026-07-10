@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { FavoritesForm } from '@/features/favorites/components/FavoritesForm';
 
 type Favorite = {
     id: string;
@@ -87,29 +88,7 @@ export default function FavoritesPage() {
                 </CardHeader>
 
                 <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label>Título</Label>
-                            <Input
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                placeholder="Ex: Documentação NestJS"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>URL</Label>
-                            <Input
-                                value={url}
-                                onChange={(e) => setUrl(e.target.value)}
-                                placeholder="https://..."
-                            />
-                        </div>
-
-                        <Button type="submit" disabled={saving}>
-                            {saving ? 'Salvando...' : 'Adicionar favorito'}
-                        </Button>
-                    </form>
+                    <FavoritesForm />
                 </CardContent>
             </Card>
 

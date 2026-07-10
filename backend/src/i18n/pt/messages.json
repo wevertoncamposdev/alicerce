@@ -1,0 +1,28 @@
+{
+    "WELCOME": "Bem-vindo ao {{appName}}, {{username}}!",
+    "USER":{
+        "CREATED": "Usuário criado com sucesso.",
+        "UPDATED": "Usuário atualizado com sucesso.",
+        "DELETED": "Usuário excluído com sucesso.",
+        "NOT_FOUND": "Usuário não encontrado!",
+        "INVALID_CREDENTIALS": "Credenciais inválidas."
+    },
+    "UNAUTHORIZED": "Não autorizado.",
+    "FORBIDDEN": "Proibido.",
+    "NOT_FOUND": "Não encontrado.",
+    "INTERNAL_SERVER_ERROR": "Erro interno do servidor.",
+    "EMAIL_ALREADY_EXISTS": "O e-mail já está em uso.",
+    "PASSWORD_RESET_REQUESTED": "Solicitação de redefinição de senha enviada para o seu e-mail.",
+    "PASSWORD_RESET_SUCCESS": "Senha redefinida com sucesso.",
+    "PASSWORD_RESET_FAILED": "Falha ao redefinir a senha.",
+    "INVALID_TOKEN": "Token inválido ou expirado.",
+    "EMAIL_NOT_VERIFIED": "E-mail não verificado.",
+    "EMAIL_VERIFICATION_SENT": "E-mail de verificação enviado.",
+    "EMAIL_VERIFIED": "E-mail verificado com sucesso.",
+    "EMAIL_VERIFICATION_FAILED": "Falha na verificação do e-mail.",
+    "PROFILE_UPDATED": "Perfil atualizado com sucesso.",
+    "PASSWORD_UPDATED": "Senha atualizada com sucesso.",
+    "PASSWORD_UPDATE_FAILED": "Falha ao atualizar a senha.",
+    "ACCOUNT_LOCKED": "Conta bloqueada devido a várias tentativas de login malsucedidas.",
+    "ACCOUNT_UNLOCKED": "Conta desbloqueada com sucesso."
+}
