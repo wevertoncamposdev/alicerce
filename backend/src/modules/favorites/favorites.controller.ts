@@ -27,4 +27,18 @@ export class FavoritesController {
     return this.favoritesService.findAll(tenantId, userSub);
   }
 
+  @Patch(':id')
+  @ApiOperation({ summary: 'Atualizar favorito' })
+  @ApiResponse({ status: 200, description: 'Favorito atualizado com sucesso.' })
+  update(@Param('id') id: string, @Body() updateFavoriteDto: UpdateFavoriteDto, @TenantId() tenantId: string, @CurrentUserId() userSub: string) {
+    return this.favoritesService.update(id, updateFavoriteDto, tenantId, userSub);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Remover favorito' })
+  @ApiResponse({ status: 200, description: 'Favorito removido com sucesso.' })
+  remove(@Param('id') id: string, @TenantId() tenantId: string, @CurrentUserId() userSub: string) {
+    return this.favoritesService.remove(id, tenantId, userSub);
+  }
+
 }
