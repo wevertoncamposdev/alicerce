@@ -14,11 +14,11 @@ describe('RBAC Guards - Fluxos Criticos', () => {
         }
 
         const ROUTE_RULES: RouteAccessMeta[] = [
-            { prefix: '/main/users', permission: 'user.read', module: 'users' },
-            { prefix: '/main/roles', permission: 'role.read', module: 'roles' },
-            { prefix: '/main/permissions', permission: 'permission.read', module: 'permissions' },
-            { prefix: '/main/audit', permission: 'audit.read', module: 'audit' },
-            { prefix: '/main/tenants', permission: 'tenant.read', module: 'tenants' },
+            { prefix: '/users', permission: 'user.read', module: 'users' },
+            { prefix: '/roles', permission: 'role.read', module: 'roles' },
+            { prefix: '/permissions', permission: 'permission.read', module: 'permissions' },
+            { prefix: '/audit', permission: 'audit.read', module: 'audit' },
+            { prefix: '/tenants', permission: 'tenant.read', module: 'tenants' },
         ];
 
         function canAccessRoute(pathname: string, userPermissions: string[]): boolean {
@@ -33,14 +33,14 @@ describe('RBAC Guards - Fluxos Criticos', () => {
 
         it('deve permitir acesso a rota com permissao valida', () => {
             const userPermissions = ['user.read', 'user.create'];
-            const canAccess = canAccessRoute('/main/users', userPermissions);
+            const canAccess = canAccessRoute('/users', userPermissions);
 
             expect(canAccess).toBe(true);
         });
 
         it('deve negar acesso a rota sem permissao', () => {
             const userPermissions = ['user.read'];
-            const canAccess = canAccessRoute('/main/roles', userPermissions);
+            const canAccess = canAccessRoute('/roles', userPermissions);
 
             expect(canAccess).toBe(false);
         });
@@ -60,13 +60,13 @@ describe('RBAC Guards - Fluxos Criticos', () => {
                 'user.delete',
             ];
 
-            expect(canAccessRoute('/main/users', adminPermissions)).toBe(true);
+            expect(canAccessRoute('/users', adminPermissions)).toBe(true);
         });
 
         it('deve bloquear acesso sem permissao necessaria', () => {
             const limitedPermissions = ['user.read']; // So leitura
 
-            expect(canAccessRoute('/main/users', limitedPermissions)).toBe(true);
+            expect(canAccessRoute('/users', limitedPermissions)).toBe(true);
             // Criar/atualizar/deletar seria bloqueado no nivel de acao
         });
     });

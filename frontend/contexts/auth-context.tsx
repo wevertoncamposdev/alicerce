@@ -1,29 +1,13 @@
 "use client";
 
-import {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-} from "react";
-import {
-    AuthUserProfile,
-    fetchProfile,
-    loginWithPassword,
-    registerPublic,
-    RegisterInput,
-} from "@/features/auth/auth.service";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { AuthUserProfile, RegisterInput } from "@/features/auth/auth.service";
 import { toErrorMessage } from "@/types/api";
 
-const TOKEN_STORAGE_KEY = "session.access_token";
-const TENANT_STORAGE_KEY = "session.tenant_id";
+const TENANT_COOKIE = "session_tenant";
 
 type AuthState = {
-    token: string | null;
     user: AuthUserProfile | null;
-    loading: boolean;
     isAuthenticated: boolean;
     currentTenantId: string | null;
     hasRole: (role: string) => boolean;
@@ -31,113 +15,79 @@ type AuthState = {
     setCurrentTenantId: (tenantId: string | null) => void;
     signIn: (email: string, password: string) => Promise<void>;
     signUp: (payload: RegisterInput) => Promise<void>;
-    signOut: () => void;
+    signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [token, setToken] = useState<string | null>(null);
-    const [user, setUser] = useState<AuthUserProfile | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [currentTenantId, setCurrentTenantIdState] = useState<string | null>(null);
+type AuthProviderProps = {
+    children: React.ReactNode;
+    initialUser?: AuthUserProfile | null;
+    initialTenantId?: string | null;
+};
 
-    const clearSession = useCallback(() => {
-        setToken(null);
-        setUser(null);
-        setCurrentTenantIdState(null);
-        localStorage.removeItem(TOKEN_STORAGE_KEY);
-        localStorage.removeItem(TENANT_STORAGE_KEY);
-    }, []);
-
-    const applySession = useCallback((session: {
-        access_token: string;
-        user: AuthUserProfile;
-        tenant: { id: string };
-    }) => {
-        setToken(session.access_token);
-        setUser(session.user);
-        setCurrentTenantIdState(session.tenant.id);
-        localStorage.setItem(TOKEN_STORAGE_KEY, session.access_token);
-        localStorage.setItem(TENANT_STORAGE_KEY, session.tenant.id);
-    }, []);
-
-    useEffect(() => {
-        const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
-        const storedTenantId = localStorage.getItem(TENANT_STORAGE_KEY);
-
-        if (storedTenantId) {
-            setCurrentTenantIdState(storedTenantId);
-        }
-
-        if (!storedToken) {
-            setLoading(false);
-            return;
-        }
-
-        void fetchProfile(storedToken)
-            .then((profile) => {
-                setToken(storedToken);
-                setUser(profile);
-                setCurrentTenantIdState(storedTenantId ?? profile.tenantId);
-            })
-            .catch(() => {
-                clearSession();
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-    }, [clearSession]);
+export function AuthProvider({ children, initialUser = null, initialTenantId = null }: AuthProviderProps) {
+    const [user, setUser] = useState<AuthUserProfile | null>(initialUser);
+    const [currentTenantId, setCurrentTenantIdState] = useState<string | null>(initialTenantId);
 
     const setCurrentTenantId = useCallback((tenantId: string | null) => {
         setCurrentTenantIdState(tenantId);
 
         if (!tenantId) {
-            localStorage.removeItem(TENANT_STORAGE_KEY);
+            document.cookie = `${TENANT_COOKIE}=; path=/; max-age=0`;
             return;
         }
 
-        localStorage.setItem(TENANT_STORAGE_KEY, tenantId);
+        document.cookie = `${TENANT_COOKIE}=${tenantId}; path=/; max-age=${60 * 60 * 8}`;
     }, []);
 
     const signIn = useCallback(async (email: string, password: string) => {
-        try {
-            const response = await loginWithPassword({ email, password });
-            applySession(response);
-        } catch (error) {
-            throw new Error(toErrorMessage(error, "Falha ao autenticar."));
+        const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(new Error(data?.message), "Falha ao autenticar."));
         }
-    }, [applySession]);
+
+        setUser(data.user);
+        setCurrentTenantId(data.tenant.id);
+    }, [setCurrentTenantId]);
 
     const signUp = useCallback(async (payload: RegisterInput) => {
-        try {
-            const response = await registerPublic(payload);
-            applySession(response);
-        } catch (error) {
-            throw new Error(toErrorMessage(error, "Falha no auto-onboarding."));
+        const response = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(toErrorMessage(new Error(data?.message), "Falha no auto-onboarding."));
         }
-    }, [applySession]);
 
-    const signOut = useCallback(() => {
-        clearSession();
-    }, [clearSession]);
+        setUser(data.user);
+        setCurrentTenantId(data.tenant.id);
+    }, [setCurrentTenantId]);
 
-    const hasRole = useCallback(
-        (role: string) => (user?.roles ?? []).includes(role),
-        [user],
-    );
+    const signOut = useCallback(async () => {
+        await fetch("/api/auth/logout", { method: "POST" });
+        setUser(null);
+        setCurrentTenantId(null);
+    }, [setCurrentTenantId]);
 
-    const hasPermission = useCallback(
-        (permission: string) => (user?.permissions ?? []).includes(permission),
-        [user],
-    );
+    const hasRole = useCallback((role: string) => (user?.roles ?? []).includes(role), [user]);
+    const hasPermission = useCallback((permission: string) => (user?.permissions ?? []).includes(permission), [user]);
 
     const value = useMemo<AuthState>(
         () => ({
-            token,
             user,
-            loading,
-            isAuthenticated: Boolean(token),
+            isAuthenticated: Boolean(user),
             currentTenantId,
             hasRole,
             hasPermission,
@@ -146,18 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             signUp,
             signOut,
         }),
-        [
-            token,
-            user,
-            loading,
-            currentTenantId,
-            hasRole,
-            hasPermission,
-            setCurrentTenantId,
-            signIn,
-            signUp,
-            signOut,
-        ],
+        [user, currentTenantId, hasRole, hasPermission, setCurrentTenantId, signIn, signUp, signOut],
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -165,10 +104,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
     const context = useContext(AuthContext);
-
     if (!context) {
         throw new Error("useAuth precisa ser usado dentro de AuthProvider.");
     }
-
     return context;
 }

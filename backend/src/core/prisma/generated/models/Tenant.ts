@@ -483,6 +483,7 @@ export type TenantWhereInput = {
   people?: Prisma.PersonListRelationFilter
   reports?: Prisma.ReportListRelationFilter
   tasks?: Prisma.TaskListRelationFilter
+  favorites?: Prisma.FavoriteListRelationFilter
 }
 
 export type TenantOrderByWithRelationInput = {
@@ -540,6 +541,7 @@ export type TenantOrderByWithRelationInput = {
   people?: Prisma.PersonOrderByRelationAggregateInput
   reports?: Prisma.ReportOrderByRelationAggregateInput
   tasks?: Prisma.TaskOrderByRelationAggregateInput
+  favorites?: Prisma.FavoriteOrderByRelationAggregateInput
 }
 
 export type TenantWhereUniqueInput = Prisma.AtLeast<{
@@ -600,6 +602,7 @@ export type TenantWhereUniqueInput = Prisma.AtLeast<{
   people?: Prisma.PersonListRelationFilter
   reports?: Prisma.ReportListRelationFilter
   tasks?: Prisma.TaskListRelationFilter
+  favorites?: Prisma.FavoriteListRelationFilter
 }, "id" | "legalName" | "registrationNumber" | "slug">
 
 export type TenantOrderByWithAggregationInput = {
@@ -751,6 +754,7 @@ export type TenantCreateInput = {
   people?: Prisma.PersonCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateInput = {
@@ -808,6 +812,7 @@ export type TenantUncheckedCreateInput = {
   people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUpdateInput = {
@@ -865,6 +870,7 @@ export type TenantUpdateInput = {
   people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateInput = {
@@ -922,6 +928,7 @@ export type TenantUncheckedUpdateInput = {
   people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateManyInput = {
@@ -1056,6 +1063,11 @@ export type TenantUncheckedUpdateManyInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
+export type TenantScalarRelationFilter = {
+  is?: Prisma.TenantWhereInput
+  isNot?: Prisma.TenantWhereInput
+}
+
 export type TenantCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   legalName?: Prisma.SortOrder
@@ -1188,109 +1200,74 @@ export type TenantMinOrderByAggregateInput = {
   deletedAt?: Prisma.SortOrder
 }
 
-export type TenantScalarRelationFilter = {
-  is?: Prisma.TenantWhereInput
-  isNot?: Prisma.TenantWhereInput
-}
-
-export type StringFieldUpdateOperationsInput = {
-  set?: string
-}
-
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
-export type EnumTenantCategoryFieldUpdateOperationsInput = {
-  set?: $Enums.TenantCategory
-}
-
-export type EnumTenantServiceAreaFieldUpdateOperationsInput = {
-  set?: $Enums.TenantServiceArea
-}
-
-export type EnumPartnershipTypeFieldUpdateOperationsInput = {
-  set?: $Enums.PartnershipType
-}
-
-export type NullableEnumCoverageAreaFieldUpdateOperationsInput = {
-  set?: $Enums.CoverageArea | null
-}
-
-export type NullableEnumOrganizationSizeFieldUpdateOperationsInput = {
-  set?: $Enums.OrganizationSize | null
-}
-
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
-export type EnumStatusFieldUpdateOperationsInput = {
-  set?: $Enums.Status
-}
-
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
-export type TenantCreateNestedOneWithoutServiceAreasInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutServiceAreasInput, Prisma.TenantUncheckedCreateWithoutServiceAreasInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutServiceAreasInput
+export type TenantCreateNestedOneWithoutFavoritesInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutFavoritesInput, Prisma.TenantUncheckedCreateWithoutFavoritesInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutFavoritesInput
   connect?: Prisma.TenantWhereUniqueInput
 }
 
-export type TenantUpdateOneRequiredWithoutServiceAreasNestedInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutServiceAreasInput, Prisma.TenantUncheckedCreateWithoutServiceAreasInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutServiceAreasInput
-  upsert?: Prisma.TenantUpsertWithoutServiceAreasInput
+export type TenantUpdateOneRequiredWithoutFavoritesNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutFavoritesInput, Prisma.TenantUncheckedCreateWithoutFavoritesInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutFavoritesInput
+  upsert?: Prisma.TenantUpsertWithoutFavoritesInput
   connect?: Prisma.TenantWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutServiceAreasInput, Prisma.TenantUpdateWithoutServiceAreasInput>, Prisma.TenantUncheckedUpdateWithoutServiceAreasInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutFavoritesInput, Prisma.TenantUpdateWithoutFavoritesInput>, Prisma.TenantUncheckedUpdateWithoutFavoritesInput>
 }
 
-export type TenantCreateNestedOneWithoutBoardMembersInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutBoardMembersInput, Prisma.TenantUncheckedCreateWithoutBoardMembersInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutBoardMembersInput
-  connect?: Prisma.TenantWhereUniqueInput
-}
-
-export type TenantUpdateOneRequiredWithoutBoardMembersNestedInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutBoardMembersInput, Prisma.TenantUncheckedCreateWithoutBoardMembersInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutBoardMembersInput
-  upsert?: Prisma.TenantUpsertWithoutBoardMembersInput
-  connect?: Prisma.TenantWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutBoardMembersInput, Prisma.TenantUpdateWithoutBoardMembersInput>, Prisma.TenantUncheckedUpdateWithoutBoardMembersInput>
-}
-
-export type TenantCreateNestedOneWithoutBoardTermsInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutBoardTermsInput, Prisma.TenantUncheckedCreateWithoutBoardTermsInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutBoardTermsInput
+export type TenantCreateNestedOneWithoutAuditsInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutAuditsInput, Prisma.TenantUncheckedCreateWithoutAuditsInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutAuditsInput
   connect?: Prisma.TenantWhereUniqueInput
 }
 
-export type TenantUpdateOneRequiredWithoutBoardTermsNestedInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutBoardTermsInput, Prisma.TenantUncheckedCreateWithoutBoardTermsInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutBoardTermsInput
-  upsert?: Prisma.TenantUpsertWithoutBoardTermsInput
+export type TenantUpdateOneRequiredWithoutAuditsNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutAuditsInput, Prisma.TenantUncheckedCreateWithoutAuditsInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutAuditsInput
+  upsert?: Prisma.TenantUpsertWithoutAuditsInput
   connect?: Prisma.TenantWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutBoardTermsInput, Prisma.TenantUpdateWithoutBoardTermsInput>, Prisma.TenantUncheckedUpdateWithoutBoardTermsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutAuditsInput, Prisma.TenantUpdateWithoutAuditsInput>, Prisma.TenantUncheckedUpdateWithoutAuditsInput>
 }
 
-export type TenantCreateNestedOneWithoutDocumentsInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutDocumentsInput, Prisma.TenantUncheckedCreateWithoutDocumentsInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutDocumentsInput
+export type TenantCreateNestedOneWithoutPeopleInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutPeopleInput, Prisma.TenantUncheckedCreateWithoutPeopleInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutPeopleInput
   connect?: Prisma.TenantWhereUniqueInput
 }
 
-export type TenantUpdateOneRequiredWithoutDocumentsNestedInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutDocumentsInput, Prisma.TenantUncheckedCreateWithoutDocumentsInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutDocumentsInput
-  upsert?: Prisma.TenantUpsertWithoutDocumentsInput
+export type TenantUpdateOneRequiredWithoutPeopleNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutPeopleInput, Prisma.TenantUncheckedCreateWithoutPeopleInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutPeopleInput
+  upsert?: Prisma.TenantUpsertWithoutPeopleInput
   connect?: Prisma.TenantWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutDocumentsInput, Prisma.TenantUpdateWithoutDocumentsInput>, Prisma.TenantUncheckedUpdateWithoutDocumentsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutPeopleInput, Prisma.TenantUpdateWithoutPeopleInput>, Prisma.TenantUncheckedUpdateWithoutPeopleInput>
+}
+
+export type TenantCreateNestedOneWithoutReportsInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutReportsInput, Prisma.TenantUncheckedCreateWithoutReportsInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutReportsInput
+  connect?: Prisma.TenantWhereUniqueInput
+}
+
+export type TenantUpdateOneRequiredWithoutReportsNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutReportsInput, Prisma.TenantUncheckedCreateWithoutReportsInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutReportsInput
+  upsert?: Prisma.TenantUpsertWithoutReportsInput
+  connect?: Prisma.TenantWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutReportsInput, Prisma.TenantUpdateWithoutReportsInput>, Prisma.TenantUncheckedUpdateWithoutReportsInput>
+}
+
+export type TenantCreateNestedOneWithoutTasksInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutTasksInput, Prisma.TenantUncheckedCreateWithoutTasksInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutTasksInput
+  connect?: Prisma.TenantWhereUniqueInput
+}
+
+export type TenantUpdateOneRequiredWithoutTasksNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutTasksInput, Prisma.TenantUncheckedCreateWithoutTasksInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutTasksInput
+  upsert?: Prisma.TenantUpsertWithoutTasksInput
+  connect?: Prisma.TenantWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutTasksInput, Prisma.TenantUpdateWithoutTasksInput>, Prisma.TenantUncheckedUpdateWithoutTasksInput>
 }
 
 export type TenantCreateNestedOneWithoutUsersInput = {
@@ -1363,783 +1340,83 @@ export type TenantUpdateOneRequiredWithoutRolePermissionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutRolePermissionsInput, Prisma.TenantUpdateWithoutRolePermissionsInput>, Prisma.TenantUncheckedUpdateWithoutRolePermissionsInput>
 }
 
-export type TenantCreateNestedOneWithoutAuditsInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutAuditsInput, Prisma.TenantUncheckedCreateWithoutAuditsInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutAuditsInput
+export type EnumTenantCategoryFieldUpdateOperationsInput = {
+  set?: $Enums.TenantCategory
+}
+
+export type EnumTenantServiceAreaFieldUpdateOperationsInput = {
+  set?: $Enums.TenantServiceArea
+}
+
+export type EnumPartnershipTypeFieldUpdateOperationsInput = {
+  set?: $Enums.PartnershipType
+}
+
+export type NullableEnumCoverageAreaFieldUpdateOperationsInput = {
+  set?: $Enums.CoverageArea | null
+}
+
+export type NullableEnumOrganizationSizeFieldUpdateOperationsInput = {
+  set?: $Enums.OrganizationSize | null
+}
+
+export type TenantCreateNestedOneWithoutServiceAreasInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutServiceAreasInput, Prisma.TenantUncheckedCreateWithoutServiceAreasInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutServiceAreasInput
   connect?: Prisma.TenantWhereUniqueInput
 }
 
-export type TenantUpdateOneRequiredWithoutAuditsNestedInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutAuditsInput, Prisma.TenantUncheckedCreateWithoutAuditsInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutAuditsInput
-  upsert?: Prisma.TenantUpsertWithoutAuditsInput
+export type TenantUpdateOneRequiredWithoutServiceAreasNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutServiceAreasInput, Prisma.TenantUncheckedCreateWithoutServiceAreasInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutServiceAreasInput
+  upsert?: Prisma.TenantUpsertWithoutServiceAreasInput
   connect?: Prisma.TenantWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutAuditsInput, Prisma.TenantUpdateWithoutAuditsInput>, Prisma.TenantUncheckedUpdateWithoutAuditsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutServiceAreasInput, Prisma.TenantUpdateWithoutServiceAreasInput>, Prisma.TenantUncheckedUpdateWithoutServiceAreasInput>
 }
 
-export type TenantCreateNestedOneWithoutPeopleInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutPeopleInput, Prisma.TenantUncheckedCreateWithoutPeopleInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutPeopleInput
-  connect?: Prisma.TenantWhereUniqueInput
-}
-
-export type TenantUpdateOneRequiredWithoutPeopleNestedInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutPeopleInput, Prisma.TenantUncheckedCreateWithoutPeopleInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutPeopleInput
-  upsert?: Prisma.TenantUpsertWithoutPeopleInput
-  connect?: Prisma.TenantWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutPeopleInput, Prisma.TenantUpdateWithoutPeopleInput>, Prisma.TenantUncheckedUpdateWithoutPeopleInput>
-}
-
-export type TenantCreateNestedOneWithoutReportsInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutReportsInput, Prisma.TenantUncheckedCreateWithoutReportsInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutReportsInput
+export type TenantCreateNestedOneWithoutBoardMembersInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutBoardMembersInput, Prisma.TenantUncheckedCreateWithoutBoardMembersInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutBoardMembersInput
   connect?: Prisma.TenantWhereUniqueInput
 }
 
-export type TenantUpdateOneRequiredWithoutReportsNestedInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutReportsInput, Prisma.TenantUncheckedCreateWithoutReportsInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutReportsInput
-  upsert?: Prisma.TenantUpsertWithoutReportsInput
+export type TenantUpdateOneRequiredWithoutBoardMembersNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutBoardMembersInput, Prisma.TenantUncheckedCreateWithoutBoardMembersInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutBoardMembersInput
+  upsert?: Prisma.TenantUpsertWithoutBoardMembersInput
   connect?: Prisma.TenantWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutReportsInput, Prisma.TenantUpdateWithoutReportsInput>, Prisma.TenantUncheckedUpdateWithoutReportsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutBoardMembersInput, Prisma.TenantUpdateWithoutBoardMembersInput>, Prisma.TenantUncheckedUpdateWithoutBoardMembersInput>
 }
 
-export type TenantCreateNestedOneWithoutTasksInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutTasksInput, Prisma.TenantUncheckedCreateWithoutTasksInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutTasksInput
+export type TenantCreateNestedOneWithoutBoardTermsInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutBoardTermsInput, Prisma.TenantUncheckedCreateWithoutBoardTermsInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutBoardTermsInput
   connect?: Prisma.TenantWhereUniqueInput
 }
 
-export type TenantUpdateOneRequiredWithoutTasksNestedInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutTasksInput, Prisma.TenantUncheckedCreateWithoutTasksInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutTasksInput
-  upsert?: Prisma.TenantUpsertWithoutTasksInput
+export type TenantUpdateOneRequiredWithoutBoardTermsNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutBoardTermsInput, Prisma.TenantUncheckedCreateWithoutBoardTermsInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutBoardTermsInput
+  upsert?: Prisma.TenantUpsertWithoutBoardTermsInput
   connect?: Prisma.TenantWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutTasksInput, Prisma.TenantUpdateWithoutTasksInput>, Prisma.TenantUncheckedUpdateWithoutTasksInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutBoardTermsInput, Prisma.TenantUpdateWithoutBoardTermsInput>, Prisma.TenantUncheckedUpdateWithoutBoardTermsInput>
 }
 
-export type TenantCreateWithoutServiceAreasInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  users?: Prisma.UserCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+export type TenantCreateNestedOneWithoutDocumentsInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutDocumentsInput, Prisma.TenantUncheckedCreateWithoutDocumentsInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutDocumentsInput
+  connect?: Prisma.TenantWhereUniqueInput
 }
 
-export type TenantUncheckedCreateWithoutServiceAreasInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+export type TenantUpdateOneRequiredWithoutDocumentsNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutDocumentsInput, Prisma.TenantUncheckedCreateWithoutDocumentsInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutDocumentsInput
+  upsert?: Prisma.TenantUpsertWithoutDocumentsInput
+  connect?: Prisma.TenantWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutDocumentsInput, Prisma.TenantUpdateWithoutDocumentsInput>, Prisma.TenantUncheckedUpdateWithoutDocumentsInput>
 }
 
-export type TenantCreateOrConnectWithoutServiceAreasInput = {
-  where: Prisma.TenantWhereUniqueInput
-  create: Prisma.XOR<Prisma.TenantCreateWithoutServiceAreasInput, Prisma.TenantUncheckedCreateWithoutServiceAreasInput>
-}
-
-export type TenantUpsertWithoutServiceAreasInput = {
-  update: Prisma.XOR<Prisma.TenantUpdateWithoutServiceAreasInput, Prisma.TenantUncheckedUpdateWithoutServiceAreasInput>
-  create: Prisma.XOR<Prisma.TenantCreateWithoutServiceAreasInput, Prisma.TenantUncheckedCreateWithoutServiceAreasInput>
-  where?: Prisma.TenantWhereInput
-}
-
-export type TenantUpdateToOneWithWhereWithoutServiceAreasInput = {
-  where?: Prisma.TenantWhereInput
-  data: Prisma.XOR<Prisma.TenantUpdateWithoutServiceAreasInput, Prisma.TenantUncheckedUpdateWithoutServiceAreasInput>
-}
-
-export type TenantUpdateWithoutServiceAreasInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantUncheckedUpdateWithoutServiceAreasInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantCreateWithoutBoardMembersInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
-  users?: Prisma.UserCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
-}
-
-export type TenantUncheckedCreateWithoutBoardMembersInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
-}
-
-export type TenantCreateOrConnectWithoutBoardMembersInput = {
-  where: Prisma.TenantWhereUniqueInput
-  create: Prisma.XOR<Prisma.TenantCreateWithoutBoardMembersInput, Prisma.TenantUncheckedCreateWithoutBoardMembersInput>
-}
-
-export type TenantUpsertWithoutBoardMembersInput = {
-  update: Prisma.XOR<Prisma.TenantUpdateWithoutBoardMembersInput, Prisma.TenantUncheckedUpdateWithoutBoardMembersInput>
-  create: Prisma.XOR<Prisma.TenantCreateWithoutBoardMembersInput, Prisma.TenantUncheckedCreateWithoutBoardMembersInput>
-  where?: Prisma.TenantWhereInput
-}
-
-export type TenantUpdateToOneWithWhereWithoutBoardMembersInput = {
-  where?: Prisma.TenantWhereInput
-  data: Prisma.XOR<Prisma.TenantUpdateWithoutBoardMembersInput, Prisma.TenantUncheckedUpdateWithoutBoardMembersInput>
-}
-
-export type TenantUpdateWithoutBoardMembersInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
-  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantUncheckedUpdateWithoutBoardMembersInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
-  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantCreateWithoutBoardTermsInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
-  users?: Prisma.UserCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
-}
-
-export type TenantUncheckedCreateWithoutBoardTermsInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
-}
-
-export type TenantCreateOrConnectWithoutBoardTermsInput = {
-  where: Prisma.TenantWhereUniqueInput
-  create: Prisma.XOR<Prisma.TenantCreateWithoutBoardTermsInput, Prisma.TenantUncheckedCreateWithoutBoardTermsInput>
-}
-
-export type TenantUpsertWithoutBoardTermsInput = {
-  update: Prisma.XOR<Prisma.TenantUpdateWithoutBoardTermsInput, Prisma.TenantUncheckedUpdateWithoutBoardTermsInput>
-  create: Prisma.XOR<Prisma.TenantCreateWithoutBoardTermsInput, Prisma.TenantUncheckedCreateWithoutBoardTermsInput>
-  where?: Prisma.TenantWhereInput
-}
-
-export type TenantUpdateToOneWithWhereWithoutBoardTermsInput = {
-  where?: Prisma.TenantWhereInput
-  data: Prisma.XOR<Prisma.TenantUpdateWithoutBoardTermsInput, Prisma.TenantUncheckedUpdateWithoutBoardTermsInput>
-}
-
-export type TenantUpdateWithoutBoardTermsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
-  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantUncheckedUpdateWithoutBoardTermsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
-  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantCreateWithoutDocumentsInput = {
+export type TenantCreateWithoutFavoritesInput = {
   id?: string
   legalName: string
   tradeName?: string | null
@@ -2190,12 +1467,13 @@ export type TenantCreateWithoutDocumentsInput = {
   audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
   boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
   boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
   people?: Prisma.PersonCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
 }
 
-export type TenantUncheckedCreateWithoutDocumentsInput = {
+export type TenantUncheckedCreateWithoutFavoritesInput = {
   id?: string
   legalName: string
   tradeName?: string | null
@@ -2246,28 +1524,29 @@ export type TenantUncheckedCreateWithoutDocumentsInput = {
   audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
   boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
   boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
   people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
 }
 
-export type TenantCreateOrConnectWithoutDocumentsInput = {
+export type TenantCreateOrConnectWithoutFavoritesInput = {
   where: Prisma.TenantWhereUniqueInput
-  create: Prisma.XOR<Prisma.TenantCreateWithoutDocumentsInput, Prisma.TenantUncheckedCreateWithoutDocumentsInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutFavoritesInput, Prisma.TenantUncheckedCreateWithoutFavoritesInput>
 }
 
-export type TenantUpsertWithoutDocumentsInput = {
-  update: Prisma.XOR<Prisma.TenantUpdateWithoutDocumentsInput, Prisma.TenantUncheckedUpdateWithoutDocumentsInput>
-  create: Prisma.XOR<Prisma.TenantCreateWithoutDocumentsInput, Prisma.TenantUncheckedCreateWithoutDocumentsInput>
+export type TenantUpsertWithoutFavoritesInput = {
+  update: Prisma.XOR<Prisma.TenantUpdateWithoutFavoritesInput, Prisma.TenantUncheckedUpdateWithoutFavoritesInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutFavoritesInput, Prisma.TenantUncheckedCreateWithoutFavoritesInput>
   where?: Prisma.TenantWhereInput
 }
 
-export type TenantUpdateToOneWithWhereWithoutDocumentsInput = {
+export type TenantUpdateToOneWithWhereWithoutFavoritesInput = {
   where?: Prisma.TenantWhereInput
-  data: Prisma.XOR<Prisma.TenantUpdateWithoutDocumentsInput, Prisma.TenantUncheckedUpdateWithoutDocumentsInput>
+  data: Prisma.XOR<Prisma.TenantUpdateWithoutFavoritesInput, Prisma.TenantUncheckedUpdateWithoutFavoritesInput>
 }
 
-export type TenantUpdateWithoutDocumentsInput = {
+export type TenantUpdateWithoutFavoritesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   legalName?: Prisma.StringFieldUpdateOperationsInput | string
   tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2318,12 +1597,13 @@ export type TenantUpdateWithoutDocumentsInput = {
   audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
   boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
   boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
   people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
 }
 
-export type TenantUncheckedUpdateWithoutDocumentsInput = {
+export type TenantUncheckedUpdateWithoutFavoritesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   legalName?: Prisma.StringFieldUpdateOperationsInput | string
   tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2370,1205 +1650,6 @@ export type TenantUncheckedUpdateWithoutDocumentsInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
   userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
   rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantCreateWithoutUsersInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
-}
-
-export type TenantUncheckedCreateWithoutUsersInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
-}
-
-export type TenantCreateOrConnectWithoutUsersInput = {
-  where: Prisma.TenantWhereUniqueInput
-  create: Prisma.XOR<Prisma.TenantCreateWithoutUsersInput, Prisma.TenantUncheckedCreateWithoutUsersInput>
-}
-
-export type TenantUpsertWithoutUsersInput = {
-  update: Prisma.XOR<Prisma.TenantUpdateWithoutUsersInput, Prisma.TenantUncheckedUpdateWithoutUsersInput>
-  create: Prisma.XOR<Prisma.TenantCreateWithoutUsersInput, Prisma.TenantUncheckedCreateWithoutUsersInput>
-  where?: Prisma.TenantWhereInput
-}
-
-export type TenantUpdateToOneWithWhereWithoutUsersInput = {
-  where?: Prisma.TenantWhereInput
-  data: Prisma.XOR<Prisma.TenantUpdateWithoutUsersInput, Prisma.TenantUncheckedUpdateWithoutUsersInput>
-}
-
-export type TenantUpdateWithoutUsersInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantUncheckedUpdateWithoutUsersInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantCreateWithoutRolesInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
-  users?: Prisma.UserCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
-}
-
-export type TenantUncheckedCreateWithoutRolesInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
-}
-
-export type TenantCreateOrConnectWithoutRolesInput = {
-  where: Prisma.TenantWhereUniqueInput
-  create: Prisma.XOR<Prisma.TenantCreateWithoutRolesInput, Prisma.TenantUncheckedCreateWithoutRolesInput>
-}
-
-export type TenantUpsertWithoutRolesInput = {
-  update: Prisma.XOR<Prisma.TenantUpdateWithoutRolesInput, Prisma.TenantUncheckedUpdateWithoutRolesInput>
-  create: Prisma.XOR<Prisma.TenantCreateWithoutRolesInput, Prisma.TenantUncheckedCreateWithoutRolesInput>
-  where?: Prisma.TenantWhereInput
-}
-
-export type TenantUpdateToOneWithWhereWithoutRolesInput = {
-  where?: Prisma.TenantWhereInput
-  data: Prisma.XOR<Prisma.TenantUpdateWithoutRolesInput, Prisma.TenantUncheckedUpdateWithoutRolesInput>
-}
-
-export type TenantUpdateWithoutRolesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
-  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantUncheckedUpdateWithoutRolesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
-  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantCreateWithoutUserRolesInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
-  users?: Prisma.UserCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
-}
-
-export type TenantUncheckedCreateWithoutUserRolesInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
-}
-
-export type TenantCreateOrConnectWithoutUserRolesInput = {
-  where: Prisma.TenantWhereUniqueInput
-  create: Prisma.XOR<Prisma.TenantCreateWithoutUserRolesInput, Prisma.TenantUncheckedCreateWithoutUserRolesInput>
-}
-
-export type TenantUpsertWithoutUserRolesInput = {
-  update: Prisma.XOR<Prisma.TenantUpdateWithoutUserRolesInput, Prisma.TenantUncheckedUpdateWithoutUserRolesInput>
-  create: Prisma.XOR<Prisma.TenantCreateWithoutUserRolesInput, Prisma.TenantUncheckedCreateWithoutUserRolesInput>
-  where?: Prisma.TenantWhereInput
-}
-
-export type TenantUpdateToOneWithWhereWithoutUserRolesInput = {
-  where?: Prisma.TenantWhereInput
-  data: Prisma.XOR<Prisma.TenantUpdateWithoutUserRolesInput, Prisma.TenantUncheckedUpdateWithoutUserRolesInput>
-}
-
-export type TenantUpdateWithoutUserRolesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
-  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantUncheckedUpdateWithoutUserRolesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
-  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantCreateWithoutPermissionsInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
-  users?: Prisma.UserCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
-}
-
-export type TenantUncheckedCreateWithoutPermissionsInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
-  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
-}
-
-export type TenantCreateOrConnectWithoutPermissionsInput = {
-  where: Prisma.TenantWhereUniqueInput
-  create: Prisma.XOR<Prisma.TenantCreateWithoutPermissionsInput, Prisma.TenantUncheckedCreateWithoutPermissionsInput>
-}
-
-export type TenantUpsertWithoutPermissionsInput = {
-  update: Prisma.XOR<Prisma.TenantUpdateWithoutPermissionsInput, Prisma.TenantUncheckedUpdateWithoutPermissionsInput>
-  create: Prisma.XOR<Prisma.TenantCreateWithoutPermissionsInput, Prisma.TenantUncheckedCreateWithoutPermissionsInput>
-  where?: Prisma.TenantWhereInput
-}
-
-export type TenantUpdateToOneWithWhereWithoutPermissionsInput = {
-  where?: Prisma.TenantWhereInput
-  data: Prisma.XOR<Prisma.TenantUpdateWithoutPermissionsInput, Prisma.TenantUncheckedUpdateWithoutPermissionsInput>
-}
-
-export type TenantUpdateWithoutPermissionsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
-  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantUncheckedUpdateWithoutPermissionsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
-  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
-  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantCreateWithoutRolePermissionsInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
-  users?: Prisma.UserCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
-}
-
-export type TenantUncheckedCreateWithoutRolePermissionsInput = {
-  id?: string
-  legalName: string
-  tradeName?: string | null
-  registrationNumber: string
-  slug: string
-  description?: string | null
-  mission?: string | null
-  vision?: string | null
-  values?: string | null
-  category: $Enums.TenantCategory
-  primaryServiceArea: $Enums.TenantServiceArea
-  partnershipType?: $Enums.PartnershipType
-  coverageArea?: $Enums.CoverageArea | null
-  organizationSize?: $Enums.OrganizationSize | null
-  foundedAt?: Date | string | null
-  closedAt?: Date | string | null
-  street?: string | null
-  number?: string | null
-  district?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  country?: string | null
-  complement?: string | null
-  reference?: string | null
-  phone?: string | null
-  mobilePhone?: string | null
-  email?: string | null
-  website?: string | null
-  instagram?: string | null
-  facebook?: string | null
-  linkedin?: string | null
-  usesVolunteers?: boolean
-  acceptsDonations?: boolean
-  hasGovernmentPartnership?: boolean
-  isNonProfit?: boolean
-  notes?: string | null
-  status?: $Enums.Status
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
-  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
-  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
-  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
-  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
-  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
-  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
-  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
-  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
-  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
-}
-
-export type TenantCreateOrConnectWithoutRolePermissionsInput = {
-  where: Prisma.TenantWhereUniqueInput
-  create: Prisma.XOR<Prisma.TenantCreateWithoutRolePermissionsInput, Prisma.TenantUncheckedCreateWithoutRolePermissionsInput>
-}
-
-export type TenantUpsertWithoutRolePermissionsInput = {
-  update: Prisma.XOR<Prisma.TenantUpdateWithoutRolePermissionsInput, Prisma.TenantUncheckedUpdateWithoutRolePermissionsInput>
-  create: Prisma.XOR<Prisma.TenantCreateWithoutRolePermissionsInput, Prisma.TenantUncheckedCreateWithoutRolePermissionsInput>
-  where?: Prisma.TenantWhereInput
-}
-
-export type TenantUpdateToOneWithWhereWithoutRolePermissionsInput = {
-  where?: Prisma.TenantWhereInput
-  data: Prisma.XOR<Prisma.TenantUpdateWithoutRolePermissionsInput, Prisma.TenantUncheckedUpdateWithoutRolePermissionsInput>
-}
-
-export type TenantUpdateWithoutRolePermissionsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
-  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
-  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
-  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
-  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
-  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
-  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
-  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
-  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
-  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
-}
-
-export type TenantUncheckedUpdateWithoutRolePermissionsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legalName?: Prisma.StringFieldUpdateOperationsInput | string
-  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  slug?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
-  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
-  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
-  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
-  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
-  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
-  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
-  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
-  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
   permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
   audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
   boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
@@ -3633,6 +1714,7 @@ export type TenantCreateWithoutAuditsInput = {
   people?: Prisma.PersonCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutAuditsInput = {
@@ -3689,6 +1771,7 @@ export type TenantUncheckedCreateWithoutAuditsInput = {
   people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutAuditsInput = {
@@ -3761,6 +1844,7 @@ export type TenantUpdateWithoutAuditsInput = {
   people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutAuditsInput = {
@@ -3817,6 +1901,7 @@ export type TenantUncheckedUpdateWithoutAuditsInput = {
   people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutPeopleInput = {
@@ -3873,6 +1958,7 @@ export type TenantCreateWithoutPeopleInput = {
   documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutPeopleInput = {
@@ -3929,6 +2015,7 @@ export type TenantUncheckedCreateWithoutPeopleInput = {
   documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutPeopleInput = {
@@ -4001,6 +2088,7 @@ export type TenantUpdateWithoutPeopleInput = {
   documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutPeopleInput = {
@@ -4057,6 +2145,7 @@ export type TenantUncheckedUpdateWithoutPeopleInput = {
   documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutReportsInput = {
@@ -4113,6 +2202,7 @@ export type TenantCreateWithoutReportsInput = {
   documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
   people?: Prisma.PersonCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutReportsInput = {
@@ -4169,6 +2259,7 @@ export type TenantUncheckedCreateWithoutReportsInput = {
   documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
   people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutReportsInput = {
@@ -4241,6 +2332,7 @@ export type TenantUpdateWithoutReportsInput = {
   documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
   people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutReportsInput = {
@@ -4297,6 +2389,7 @@ export type TenantUncheckedUpdateWithoutReportsInput = {
   documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
   people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutTasksInput = {
@@ -4353,6 +2446,7 @@ export type TenantCreateWithoutTasksInput = {
   documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
   people?: Prisma.PersonCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutTasksInput = {
@@ -4409,6 +2503,7 @@ export type TenantUncheckedCreateWithoutTasksInput = {
   documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
   people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutTasksInput = {
@@ -4481,6 +2576,7 @@ export type TenantUpdateWithoutTasksInput = {
   documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
   people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutTasksInput = {
@@ -4537,6 +2633,2203 @@ export type TenantUncheckedUpdateWithoutTasksInput = {
   documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
   people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantCreateWithoutUsersInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+}
+
+export type TenantUncheckedCreateWithoutUsersInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+}
+
+export type TenantCreateOrConnectWithoutUsersInput = {
+  where: Prisma.TenantWhereUniqueInput
+  create: Prisma.XOR<Prisma.TenantCreateWithoutUsersInput, Prisma.TenantUncheckedCreateWithoutUsersInput>
+}
+
+export type TenantUpsertWithoutUsersInput = {
+  update: Prisma.XOR<Prisma.TenantUpdateWithoutUsersInput, Prisma.TenantUncheckedUpdateWithoutUsersInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutUsersInput, Prisma.TenantUncheckedCreateWithoutUsersInput>
+  where?: Prisma.TenantWhereInput
+}
+
+export type TenantUpdateToOneWithWhereWithoutUsersInput = {
+  where?: Prisma.TenantWhereInput
+  data: Prisma.XOR<Prisma.TenantUpdateWithoutUsersInput, Prisma.TenantUncheckedUpdateWithoutUsersInput>
+}
+
+export type TenantUpdateWithoutUsersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantUncheckedUpdateWithoutUsersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantCreateWithoutRolesInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+}
+
+export type TenantUncheckedCreateWithoutRolesInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+}
+
+export type TenantCreateOrConnectWithoutRolesInput = {
+  where: Prisma.TenantWhereUniqueInput
+  create: Prisma.XOR<Prisma.TenantCreateWithoutRolesInput, Prisma.TenantUncheckedCreateWithoutRolesInput>
+}
+
+export type TenantUpsertWithoutRolesInput = {
+  update: Prisma.XOR<Prisma.TenantUpdateWithoutRolesInput, Prisma.TenantUncheckedUpdateWithoutRolesInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutRolesInput, Prisma.TenantUncheckedCreateWithoutRolesInput>
+  where?: Prisma.TenantWhereInput
+}
+
+export type TenantUpdateToOneWithWhereWithoutRolesInput = {
+  where?: Prisma.TenantWhereInput
+  data: Prisma.XOR<Prisma.TenantUpdateWithoutRolesInput, Prisma.TenantUncheckedUpdateWithoutRolesInput>
+}
+
+export type TenantUpdateWithoutRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantUncheckedUpdateWithoutRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantCreateWithoutUserRolesInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+}
+
+export type TenantUncheckedCreateWithoutUserRolesInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+}
+
+export type TenantCreateOrConnectWithoutUserRolesInput = {
+  where: Prisma.TenantWhereUniqueInput
+  create: Prisma.XOR<Prisma.TenantCreateWithoutUserRolesInput, Prisma.TenantUncheckedCreateWithoutUserRolesInput>
+}
+
+export type TenantUpsertWithoutUserRolesInput = {
+  update: Prisma.XOR<Prisma.TenantUpdateWithoutUserRolesInput, Prisma.TenantUncheckedUpdateWithoutUserRolesInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutUserRolesInput, Prisma.TenantUncheckedCreateWithoutUserRolesInput>
+  where?: Prisma.TenantWhereInput
+}
+
+export type TenantUpdateToOneWithWhereWithoutUserRolesInput = {
+  where?: Prisma.TenantWhereInput
+  data: Prisma.XOR<Prisma.TenantUpdateWithoutUserRolesInput, Prisma.TenantUncheckedUpdateWithoutUserRolesInput>
+}
+
+export type TenantUpdateWithoutUserRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantUncheckedUpdateWithoutUserRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantCreateWithoutPermissionsInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+}
+
+export type TenantUncheckedCreateWithoutPermissionsInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+}
+
+export type TenantCreateOrConnectWithoutPermissionsInput = {
+  where: Prisma.TenantWhereUniqueInput
+  create: Prisma.XOR<Prisma.TenantCreateWithoutPermissionsInput, Prisma.TenantUncheckedCreateWithoutPermissionsInput>
+}
+
+export type TenantUpsertWithoutPermissionsInput = {
+  update: Prisma.XOR<Prisma.TenantUpdateWithoutPermissionsInput, Prisma.TenantUncheckedUpdateWithoutPermissionsInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutPermissionsInput, Prisma.TenantUncheckedCreateWithoutPermissionsInput>
+  where?: Prisma.TenantWhereInput
+}
+
+export type TenantUpdateToOneWithWhereWithoutPermissionsInput = {
+  where?: Prisma.TenantWhereInput
+  data: Prisma.XOR<Prisma.TenantUpdateWithoutPermissionsInput, Prisma.TenantUncheckedUpdateWithoutPermissionsInput>
+}
+
+export type TenantUpdateWithoutPermissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantUncheckedUpdateWithoutPermissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantCreateWithoutRolePermissionsInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+}
+
+export type TenantUncheckedCreateWithoutRolePermissionsInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+}
+
+export type TenantCreateOrConnectWithoutRolePermissionsInput = {
+  where: Prisma.TenantWhereUniqueInput
+  create: Prisma.XOR<Prisma.TenantCreateWithoutRolePermissionsInput, Prisma.TenantUncheckedCreateWithoutRolePermissionsInput>
+}
+
+export type TenantUpsertWithoutRolePermissionsInput = {
+  update: Prisma.XOR<Prisma.TenantUpdateWithoutRolePermissionsInput, Prisma.TenantUncheckedUpdateWithoutRolePermissionsInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutRolePermissionsInput, Prisma.TenantUncheckedCreateWithoutRolePermissionsInput>
+  where?: Prisma.TenantWhereInput
+}
+
+export type TenantUpdateToOneWithWhereWithoutRolePermissionsInput = {
+  where?: Prisma.TenantWhereInput
+  data: Prisma.XOR<Prisma.TenantUpdateWithoutRolePermissionsInput, Prisma.TenantUncheckedUpdateWithoutRolePermissionsInput>
+}
+
+export type TenantUpdateWithoutRolePermissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantUncheckedUpdateWithoutRolePermissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantCreateWithoutServiceAreasInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  users?: Prisma.UserCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+}
+
+export type TenantUncheckedCreateWithoutServiceAreasInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+}
+
+export type TenantCreateOrConnectWithoutServiceAreasInput = {
+  where: Prisma.TenantWhereUniqueInput
+  create: Prisma.XOR<Prisma.TenantCreateWithoutServiceAreasInput, Prisma.TenantUncheckedCreateWithoutServiceAreasInput>
+}
+
+export type TenantUpsertWithoutServiceAreasInput = {
+  update: Prisma.XOR<Prisma.TenantUpdateWithoutServiceAreasInput, Prisma.TenantUncheckedUpdateWithoutServiceAreasInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutServiceAreasInput, Prisma.TenantUncheckedCreateWithoutServiceAreasInput>
+  where?: Prisma.TenantWhereInput
+}
+
+export type TenantUpdateToOneWithWhereWithoutServiceAreasInput = {
+  where?: Prisma.TenantWhereInput
+  data: Prisma.XOR<Prisma.TenantUpdateWithoutServiceAreasInput, Prisma.TenantUncheckedUpdateWithoutServiceAreasInput>
+}
+
+export type TenantUpdateWithoutServiceAreasInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantUncheckedUpdateWithoutServiceAreasInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantCreateWithoutBoardMembersInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+}
+
+export type TenantUncheckedCreateWithoutBoardMembersInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+}
+
+export type TenantCreateOrConnectWithoutBoardMembersInput = {
+  where: Prisma.TenantWhereUniqueInput
+  create: Prisma.XOR<Prisma.TenantCreateWithoutBoardMembersInput, Prisma.TenantUncheckedCreateWithoutBoardMembersInput>
+}
+
+export type TenantUpsertWithoutBoardMembersInput = {
+  update: Prisma.XOR<Prisma.TenantUpdateWithoutBoardMembersInput, Prisma.TenantUncheckedUpdateWithoutBoardMembersInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutBoardMembersInput, Prisma.TenantUncheckedCreateWithoutBoardMembersInput>
+  where?: Prisma.TenantWhereInput
+}
+
+export type TenantUpdateToOneWithWhereWithoutBoardMembersInput = {
+  where?: Prisma.TenantWhereInput
+  data: Prisma.XOR<Prisma.TenantUpdateWithoutBoardMembersInput, Prisma.TenantUncheckedUpdateWithoutBoardMembersInput>
+}
+
+export type TenantUpdateWithoutBoardMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantUncheckedUpdateWithoutBoardMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantCreateWithoutBoardTermsInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+}
+
+export type TenantUncheckedCreateWithoutBoardTermsInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+}
+
+export type TenantCreateOrConnectWithoutBoardTermsInput = {
+  where: Prisma.TenantWhereUniqueInput
+  create: Prisma.XOR<Prisma.TenantCreateWithoutBoardTermsInput, Prisma.TenantUncheckedCreateWithoutBoardTermsInput>
+}
+
+export type TenantUpsertWithoutBoardTermsInput = {
+  update: Prisma.XOR<Prisma.TenantUpdateWithoutBoardTermsInput, Prisma.TenantUncheckedUpdateWithoutBoardTermsInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutBoardTermsInput, Prisma.TenantUncheckedCreateWithoutBoardTermsInput>
+  where?: Prisma.TenantWhereInput
+}
+
+export type TenantUpdateToOneWithWhereWithoutBoardTermsInput = {
+  where?: Prisma.TenantWhereInput
+  data: Prisma.XOR<Prisma.TenantUpdateWithoutBoardTermsInput, Prisma.TenantUncheckedUpdateWithoutBoardTermsInput>
+}
+
+export type TenantUpdateWithoutBoardTermsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantUncheckedUpdateWithoutBoardTermsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantCreateWithoutDocumentsInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+}
+
+export type TenantUncheckedCreateWithoutDocumentsInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+}
+
+export type TenantCreateOrConnectWithoutDocumentsInput = {
+  where: Prisma.TenantWhereUniqueInput
+  create: Prisma.XOR<Prisma.TenantCreateWithoutDocumentsInput, Prisma.TenantUncheckedCreateWithoutDocumentsInput>
+}
+
+export type TenantUpsertWithoutDocumentsInput = {
+  update: Prisma.XOR<Prisma.TenantUpdateWithoutDocumentsInput, Prisma.TenantUncheckedUpdateWithoutDocumentsInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutDocumentsInput, Prisma.TenantUncheckedCreateWithoutDocumentsInput>
+  where?: Prisma.TenantWhereInput
+}
+
+export type TenantUpdateToOneWithWhereWithoutDocumentsInput = {
+  where?: Prisma.TenantWhereInput
+  data: Prisma.XOR<Prisma.TenantUpdateWithoutDocumentsInput, Prisma.TenantUncheckedUpdateWithoutDocumentsInput>
+}
+
+export type TenantUpdateWithoutDocumentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantUncheckedUpdateWithoutDocumentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 
@@ -4558,6 +4851,7 @@ export type TenantCountOutputType = {
   people: number
   reports: number
   tasks: number
+  favorites: number
 }
 
 export type TenantCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4574,6 +4868,7 @@ export type TenantCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   people?: boolean | TenantCountOutputTypeCountPeopleArgs
   reports?: boolean | TenantCountOutputTypeCountReportsArgs
   tasks?: boolean | TenantCountOutputTypeCountTasksArgs
+  favorites?: boolean | TenantCountOutputTypeCountFavoritesArgs
 }
 
 /**
@@ -4677,6 +4972,13 @@ export type TenantCountOutputTypeCountTasksArgs<ExtArgs extends runtime.Types.Ex
   where?: Prisma.TaskWhereInput
 }
 
+/**
+ * TenantCountOutputType without action
+ */
+export type TenantCountOutputTypeCountFavoritesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FavoriteWhereInput
+}
+
 
 export type TenantSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -4733,6 +5035,7 @@ export type TenantSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   people?: boolean | Prisma.Tenant$peopleArgs<ExtArgs>
   reports?: boolean | Prisma.Tenant$reportsArgs<ExtArgs>
   tasks?: boolean | Prisma.Tenant$tasksArgs<ExtArgs>
+  favorites?: boolean | Prisma.Tenant$favoritesArgs<ExtArgs>
   _count?: boolean | Prisma.TenantCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["tenant"]>
 
@@ -4883,6 +5186,7 @@ export type TenantInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   people?: boolean | Prisma.Tenant$peopleArgs<ExtArgs>
   reports?: boolean | Prisma.Tenant$reportsArgs<ExtArgs>
   tasks?: boolean | Prisma.Tenant$tasksArgs<ExtArgs>
+  favorites?: boolean | Prisma.Tenant$favoritesArgs<ExtArgs>
   _count?: boolean | Prisma.TenantCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TenantIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -4904,6 +5208,7 @@ export type $TenantPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     people: Prisma.$PersonPayload<ExtArgs>[]
     reports: Prisma.$ReportPayload<ExtArgs>[]
     tasks: Prisma.$TaskPayload<ExtArgs>[]
+    favorites: Prisma.$FavoritePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -5354,6 +5659,7 @@ export interface Prisma__TenantClient<T, Null = never, ExtArgs extends runtime.T
   people<T extends Prisma.Tenant$peopleArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tenant$peopleArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PersonPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reports<T extends Prisma.Tenant$reportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tenant$reportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tasks<T extends Prisma.Tenant$tasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tenant$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  favorites<T extends Prisma.Tenant$favoritesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tenant$favoritesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoritePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6126,6 +6432,30 @@ export type Tenant$tasksArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.TaskScalarFieldEnum | Prisma.TaskScalarFieldEnum[]
+}
+
+/**
+ * Tenant.favorites
+ */
+export type Tenant$favoritesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Favorite
+   */
+  select?: Prisma.FavoriteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Favorite
+   */
+  omit?: Prisma.FavoriteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FavoriteInclude<ExtArgs> | null
+  where?: Prisma.FavoriteWhereInput
+  orderBy?: Prisma.FavoriteOrderByWithRelationInput | Prisma.FavoriteOrderByWithRelationInput[]
+  cursor?: Prisma.FavoriteWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FavoriteScalarFieldEnum | Prisma.FavoriteScalarFieldEnum[]
 }
 
 /**

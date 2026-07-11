@@ -1,36 +1,27 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/auth-context';
-import {
-  createUser,
-  fetchUsers,
-  removeUser,
-  updateUser,
-} from '../services/userService';
-import { UserEntity, UserPayload, UserUpdatePayload } from '../user.types';
-import { toErrorMessage } from '@/types/api';
-import { AsyncError } from '@/types/async-state';
+// features/users/hooks/useUsers.ts
 
-export interface UseUsersResult {
-  users: UserEntity[];
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { userService, type User } from "../services/userService";
+
+type UseUsersState = {
+  users: User[];
   loading: boolean;
-  saving: boolean;
-  error: AsyncError;
-  createUser: (payload: Omit<UserPayload, 'tenantId'>) => Promise<void>;
-  updateUser: (id: string, payload: UserUpdatePayload) => Promise<void>;
-  removeUser: (id: string) => Promise<void>;
-  reload: () => Promise<void>;
-}
+  error: string | null;
+  total: number;
+};
 
-export function useUsers(): UseUsersResult {
-  const { token, currentTenantId } = useAuth();
-  const [users, setUsers] = useState<UserEntity[]>([]);
+export function useUsers(tenantId: string | null) {
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
 
   const loadUsers = useCallback(async () => {
-    if (!token || !currentTenantId) {
+    if (!tenantId) {
       setUsers([]);
+      setTotal(0);
       setLoading(false);
       return;
     }
@@ -39,93 +30,59 @@ export function useUsers(): UseUsersResult {
     setError(null);
 
     try {
-      const data = await fetchUsers({ token, tenantId: currentTenantId });
-      setUsers(data);
+      const response = await userService.list(tenantId);
+      setUsers(response);
+      setTotal(response.length);
     } catch (err) {
-      setError(toErrorMessage(err, 'Falha ao carregar usuarios.'));
+      setError(err instanceof Error ? err.message : "Erro ao carregar usuários");
     } finally {
       setLoading(false);
     }
-  }, [token, currentTenantId]);
+  }, [tenantId]);
 
   useEffect(() => {
     void loadUsers();
   }, [loadUsers]);
 
-  const handleCreateUser = useCallback(async (payload: Omit<UserPayload, 'tenantId'>) => {
-    if (!token || !currentTenantId) {
-      throw new Error('Sessao ou tenant nao definido.');
-    }
+  const createUser = useCallback(
+    async (payload: { email: string; password: string }) => {
+      if (!tenantId) {
+        throw new Error("Selecione um tenant antes de criar usuário.");
+      }
 
-    setSaving(true);
-    setError(null);
+      const response = await userService.create({ ...payload, tenantId });
+      await loadUsers();
+      return response;
+    },
+    [loadUsers, tenantId],
+  );
 
-    try {
-      const created = await createUser({
-        token,
-        payload: {
-          ...payload,
-          tenantId: currentTenantId,
-        },
-      });
-      setUsers((prev) => [created, ...prev]);
-    } catch (err) {
-      const message = toErrorMessage(err, 'Falha ao criar usuario.');
-      setError(message);
-      throw new Error(message);
-    } finally {
-      setSaving(false);
-    }
-  }, [token, currentTenantId]);
+  const updateUser = useCallback(
+    async (id: string, payload: Parameters<typeof userService.update>[1]) => {
+      const response = await userService.update(id, payload);
+      await loadUsers();
+      return response;
+    },
+    [loadUsers],
+  );
 
-  const handleUpdateUser = useCallback(async (id: string, payload: UserUpdatePayload) => {
-    if (!token) {
-      throw new Error('Sessao nao definida.');
-    }
-
-    setSaving(true);
-    setError(null);
-
-    try {
-      const updated = await updateUser({ token, userId: id, payload });
-      setUsers((prev) => prev.map((user) => (user.id === id ? updated : user)));
-    } catch (err) {
-      const message = toErrorMessage(err, 'Falha ao atualizar usuario.');
-      setError(message);
-      throw new Error(message);
-    } finally {
-      setSaving(false);
-    }
-  }, [token]);
-
-  const handleRemoveUser = useCallback(async (id: string) => {
-    if (!token) {
-      throw new Error('Sessao nao definida.');
-    }
-
-    setSaving(true);
-    setError(null);
-
-    try {
-      await removeUser({ token, userId: id });
-      setUsers((prev) => prev.filter((user) => user.id !== id));
-    } catch (err) {
-      const message = toErrorMessage(err, 'Falha ao remover usuario.');
-      setError(message);
-      throw new Error(message);
-    } finally {
-      setSaving(false);
-    }
-  }, [token]);
+  const deleteUser = useCallback(
+    async (id: string) => {
+      const response = await userService.remove(id);
+      await loadUsers();
+      return response;
+    },
+    [loadUsers],
+  );
 
   return {
     users,
+    total,
     loading,
-    saving,
     error,
-    createUser: handleCreateUser,
-    updateUser: handleUpdateUser,
-    removeUser: handleRemoveUser,
     reload: loadUsers,
+    createUser,
+    updateUser,
+    deleteUser,
   };
 }

@@ -380,16 +380,6 @@ export type AuditUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type AuditListRelationFilter = {
-  every?: Prisma.AuditWhereInput
-  some?: Prisma.AuditWhereInput
-  none?: Prisma.AuditWhereInput
-}
-
-export type AuditOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
-}
-
 export type AuditCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
@@ -429,46 +419,22 @@ export type AuditMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
 }
 
-export type AuditCreateNestedManyWithoutTenantInput = {
-  create?: Prisma.XOR<Prisma.AuditCreateWithoutTenantInput, Prisma.AuditUncheckedCreateWithoutTenantInput> | Prisma.AuditCreateWithoutTenantInput[] | Prisma.AuditUncheckedCreateWithoutTenantInput[]
-  connectOrCreate?: Prisma.AuditCreateOrConnectWithoutTenantInput | Prisma.AuditCreateOrConnectWithoutTenantInput[]
-  createMany?: Prisma.AuditCreateManyTenantInputEnvelope
-  connect?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
+export type AuditListRelationFilter = {
+  every?: Prisma.AuditWhereInput
+  some?: Prisma.AuditWhereInput
+  none?: Prisma.AuditWhereInput
 }
 
-export type AuditUncheckedCreateNestedManyWithoutTenantInput = {
-  create?: Prisma.XOR<Prisma.AuditCreateWithoutTenantInput, Prisma.AuditUncheckedCreateWithoutTenantInput> | Prisma.AuditCreateWithoutTenantInput[] | Prisma.AuditUncheckedCreateWithoutTenantInput[]
-  connectOrCreate?: Prisma.AuditCreateOrConnectWithoutTenantInput | Prisma.AuditCreateOrConnectWithoutTenantInput[]
-  createMany?: Prisma.AuditCreateManyTenantInputEnvelope
-  connect?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
+export type AuditOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
-export type AuditUpdateManyWithoutTenantNestedInput = {
-  create?: Prisma.XOR<Prisma.AuditCreateWithoutTenantInput, Prisma.AuditUncheckedCreateWithoutTenantInput> | Prisma.AuditCreateWithoutTenantInput[] | Prisma.AuditUncheckedCreateWithoutTenantInput[]
-  connectOrCreate?: Prisma.AuditCreateOrConnectWithoutTenantInput | Prisma.AuditCreateOrConnectWithoutTenantInput[]
-  upsert?: Prisma.AuditUpsertWithWhereUniqueWithoutTenantInput | Prisma.AuditUpsertWithWhereUniqueWithoutTenantInput[]
-  createMany?: Prisma.AuditCreateManyTenantInputEnvelope
-  set?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
-  disconnect?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
-  delete?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
-  connect?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
-  update?: Prisma.AuditUpdateWithWhereUniqueWithoutTenantInput | Prisma.AuditUpdateWithWhereUniqueWithoutTenantInput[]
-  updateMany?: Prisma.AuditUpdateManyWithWhereWithoutTenantInput | Prisma.AuditUpdateManyWithWhereWithoutTenantInput[]
-  deleteMany?: Prisma.AuditScalarWhereInput | Prisma.AuditScalarWhereInput[]
+export type EnumAuditTypeFieldUpdateOperationsInput = {
+  set?: $Enums.AuditType
 }
 
-export type AuditUncheckedUpdateManyWithoutTenantNestedInput = {
-  create?: Prisma.XOR<Prisma.AuditCreateWithoutTenantInput, Prisma.AuditUncheckedCreateWithoutTenantInput> | Prisma.AuditCreateWithoutTenantInput[] | Prisma.AuditUncheckedCreateWithoutTenantInput[]
-  connectOrCreate?: Prisma.AuditCreateOrConnectWithoutTenantInput | Prisma.AuditCreateOrConnectWithoutTenantInput[]
-  upsert?: Prisma.AuditUpsertWithWhereUniqueWithoutTenantInput | Prisma.AuditUpsertWithWhereUniqueWithoutTenantInput[]
-  createMany?: Prisma.AuditCreateManyTenantInputEnvelope
-  set?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
-  disconnect?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
-  delete?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
-  connect?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
-  update?: Prisma.AuditUpdateWithWhereUniqueWithoutTenantInput | Prisma.AuditUpdateWithWhereUniqueWithoutTenantInput[]
-  updateMany?: Prisma.AuditUpdateManyWithWhereWithoutTenantInput | Prisma.AuditUpdateManyWithWhereWithoutTenantInput[]
-  deleteMany?: Prisma.AuditScalarWhereInput | Prisma.AuditScalarWhereInput[]
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
 }
 
 export type AuditCreateNestedManyWithoutUserInput = {
@@ -513,74 +479,46 @@ export type AuditUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.AuditScalarWhereInput | Prisma.AuditScalarWhereInput[]
 }
 
-export type EnumAuditTypeFieldUpdateOperationsInput = {
-  set?: $Enums.AuditType
+export type AuditCreateNestedManyWithoutTenantInput = {
+  create?: Prisma.XOR<Prisma.AuditCreateWithoutTenantInput, Prisma.AuditUncheckedCreateWithoutTenantInput> | Prisma.AuditCreateWithoutTenantInput[] | Prisma.AuditUncheckedCreateWithoutTenantInput[]
+  connectOrCreate?: Prisma.AuditCreateOrConnectWithoutTenantInput | Prisma.AuditCreateOrConnectWithoutTenantInput[]
+  createMany?: Prisma.AuditCreateManyTenantInputEnvelope
+  connect?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
 }
 
-export type AuditCreateWithoutTenantInput = {
-  id?: string
-  type: $Enums.AuditType
-  action: string
-  entity: string
-  entityId?: string | null
-  before?: string | null
-  after?: string | null
-  createdAt?: Date | string
-  user: Prisma.UserCreateNestedOneWithoutAuditsInput
+export type AuditUncheckedCreateNestedManyWithoutTenantInput = {
+  create?: Prisma.XOR<Prisma.AuditCreateWithoutTenantInput, Prisma.AuditUncheckedCreateWithoutTenantInput> | Prisma.AuditCreateWithoutTenantInput[] | Prisma.AuditUncheckedCreateWithoutTenantInput[]
+  connectOrCreate?: Prisma.AuditCreateOrConnectWithoutTenantInput | Prisma.AuditCreateOrConnectWithoutTenantInput[]
+  createMany?: Prisma.AuditCreateManyTenantInputEnvelope
+  connect?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
 }
 
-export type AuditUncheckedCreateWithoutTenantInput = {
-  id?: string
-  userId: string
-  type: $Enums.AuditType
-  action: string
-  entity: string
-  entityId?: string | null
-  before?: string | null
-  after?: string | null
-  createdAt?: Date | string
+export type AuditUpdateManyWithoutTenantNestedInput = {
+  create?: Prisma.XOR<Prisma.AuditCreateWithoutTenantInput, Prisma.AuditUncheckedCreateWithoutTenantInput> | Prisma.AuditCreateWithoutTenantInput[] | Prisma.AuditUncheckedCreateWithoutTenantInput[]
+  connectOrCreate?: Prisma.AuditCreateOrConnectWithoutTenantInput | Prisma.AuditCreateOrConnectWithoutTenantInput[]
+  upsert?: Prisma.AuditUpsertWithWhereUniqueWithoutTenantInput | Prisma.AuditUpsertWithWhereUniqueWithoutTenantInput[]
+  createMany?: Prisma.AuditCreateManyTenantInputEnvelope
+  set?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
+  disconnect?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
+  delete?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
+  connect?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
+  update?: Prisma.AuditUpdateWithWhereUniqueWithoutTenantInput | Prisma.AuditUpdateWithWhereUniqueWithoutTenantInput[]
+  updateMany?: Prisma.AuditUpdateManyWithWhereWithoutTenantInput | Prisma.AuditUpdateManyWithWhereWithoutTenantInput[]
+  deleteMany?: Prisma.AuditScalarWhereInput | Prisma.AuditScalarWhereInput[]
 }
 
-export type AuditCreateOrConnectWithoutTenantInput = {
-  where: Prisma.AuditWhereUniqueInput
-  create: Prisma.XOR<Prisma.AuditCreateWithoutTenantInput, Prisma.AuditUncheckedCreateWithoutTenantInput>
-}
-
-export type AuditCreateManyTenantInputEnvelope = {
-  data: Prisma.AuditCreateManyTenantInput | Prisma.AuditCreateManyTenantInput[]
-  skipDuplicates?: boolean
-}
-
-export type AuditUpsertWithWhereUniqueWithoutTenantInput = {
-  where: Prisma.AuditWhereUniqueInput
-  update: Prisma.XOR<Prisma.AuditUpdateWithoutTenantInput, Prisma.AuditUncheckedUpdateWithoutTenantInput>
-  create: Prisma.XOR<Prisma.AuditCreateWithoutTenantInput, Prisma.AuditUncheckedCreateWithoutTenantInput>
-}
-
-export type AuditUpdateWithWhereUniqueWithoutTenantInput = {
-  where: Prisma.AuditWhereUniqueInput
-  data: Prisma.XOR<Prisma.AuditUpdateWithoutTenantInput, Prisma.AuditUncheckedUpdateWithoutTenantInput>
-}
-
-export type AuditUpdateManyWithWhereWithoutTenantInput = {
-  where: Prisma.AuditScalarWhereInput
-  data: Prisma.XOR<Prisma.AuditUpdateManyMutationInput, Prisma.AuditUncheckedUpdateManyWithoutTenantInput>
-}
-
-export type AuditScalarWhereInput = {
-  AND?: Prisma.AuditScalarWhereInput | Prisma.AuditScalarWhereInput[]
-  OR?: Prisma.AuditScalarWhereInput[]
-  NOT?: Prisma.AuditScalarWhereInput | Prisma.AuditScalarWhereInput[]
-  id?: Prisma.UuidFilter<"Audit"> | string
-  tenantId?: Prisma.UuidFilter<"Audit"> | string
-  userId?: Prisma.UuidFilter<"Audit"> | string
-  type?: Prisma.EnumAuditTypeFilter<"Audit"> | $Enums.AuditType
-  action?: Prisma.StringFilter<"Audit"> | string
-  entity?: Prisma.StringFilter<"Audit"> | string
-  entityId?: Prisma.StringNullableFilter<"Audit"> | string | null
-  before?: Prisma.StringNullableFilter<"Audit"> | string | null
-  after?: Prisma.StringNullableFilter<"Audit"> | string | null
-  createdAt?: Prisma.DateTimeFilter<"Audit"> | Date | string
+export type AuditUncheckedUpdateManyWithoutTenantNestedInput = {
+  create?: Prisma.XOR<Prisma.AuditCreateWithoutTenantInput, Prisma.AuditUncheckedCreateWithoutTenantInput> | Prisma.AuditCreateWithoutTenantInput[] | Prisma.AuditUncheckedCreateWithoutTenantInput[]
+  connectOrCreate?: Prisma.AuditCreateOrConnectWithoutTenantInput | Prisma.AuditCreateOrConnectWithoutTenantInput[]
+  upsert?: Prisma.AuditUpsertWithWhereUniqueWithoutTenantInput | Prisma.AuditUpsertWithWhereUniqueWithoutTenantInput[]
+  createMany?: Prisma.AuditCreateManyTenantInputEnvelope
+  set?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
+  disconnect?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
+  delete?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
+  connect?: Prisma.AuditWhereUniqueInput | Prisma.AuditWhereUniqueInput[]
+  update?: Prisma.AuditUpdateWithWhereUniqueWithoutTenantInput | Prisma.AuditUpdateWithWhereUniqueWithoutTenantInput[]
+  updateMany?: Prisma.AuditUpdateManyWithWhereWithoutTenantInput | Prisma.AuditUpdateManyWithWhereWithoutTenantInput[]
+  deleteMany?: Prisma.AuditScalarWhereInput | Prisma.AuditScalarWhereInput[]
 }
 
 export type AuditCreateWithoutUserInput = {
@@ -633,7 +571,35 @@ export type AuditUpdateManyWithWhereWithoutUserInput = {
   data: Prisma.XOR<Prisma.AuditUpdateManyMutationInput, Prisma.AuditUncheckedUpdateManyWithoutUserInput>
 }
 
-export type AuditCreateManyTenantInput = {
+export type AuditScalarWhereInput = {
+  AND?: Prisma.AuditScalarWhereInput | Prisma.AuditScalarWhereInput[]
+  OR?: Prisma.AuditScalarWhereInput[]
+  NOT?: Prisma.AuditScalarWhereInput | Prisma.AuditScalarWhereInput[]
+  id?: Prisma.UuidFilter<"Audit"> | string
+  tenantId?: Prisma.UuidFilter<"Audit"> | string
+  userId?: Prisma.UuidFilter<"Audit"> | string
+  type?: Prisma.EnumAuditTypeFilter<"Audit"> | $Enums.AuditType
+  action?: Prisma.StringFilter<"Audit"> | string
+  entity?: Prisma.StringFilter<"Audit"> | string
+  entityId?: Prisma.StringNullableFilter<"Audit"> | string | null
+  before?: Prisma.StringNullableFilter<"Audit"> | string | null
+  after?: Prisma.StringNullableFilter<"Audit"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Audit"> | Date | string
+}
+
+export type AuditCreateWithoutTenantInput = {
+  id?: string
+  type: $Enums.AuditType
+  action: string
+  entity: string
+  entityId?: string | null
+  before?: string | null
+  after?: string | null
+  createdAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutAuditsInput
+}
+
+export type AuditUncheckedCreateWithoutTenantInput = {
   id?: string
   userId: string
   type: $Enums.AuditType
@@ -645,40 +611,30 @@ export type AuditCreateManyTenantInput = {
   createdAt?: Date | string
 }
 
-export type AuditUpdateWithoutTenantInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumAuditTypeFieldUpdateOperationsInput | $Enums.AuditType
-  action?: Prisma.StringFieldUpdateOperationsInput | string
-  entity?: Prisma.StringFieldUpdateOperationsInput | string
-  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  before?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  after?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  user?: Prisma.UserUpdateOneRequiredWithoutAuditsNestedInput
+export type AuditCreateOrConnectWithoutTenantInput = {
+  where: Prisma.AuditWhereUniqueInput
+  create: Prisma.XOR<Prisma.AuditCreateWithoutTenantInput, Prisma.AuditUncheckedCreateWithoutTenantInput>
 }
 
-export type AuditUncheckedUpdateWithoutTenantInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  userId?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumAuditTypeFieldUpdateOperationsInput | $Enums.AuditType
-  action?: Prisma.StringFieldUpdateOperationsInput | string
-  entity?: Prisma.StringFieldUpdateOperationsInput | string
-  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  before?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  after?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+export type AuditCreateManyTenantInputEnvelope = {
+  data: Prisma.AuditCreateManyTenantInput | Prisma.AuditCreateManyTenantInput[]
+  skipDuplicates?: boolean
 }
 
-export type AuditUncheckedUpdateManyWithoutTenantInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  userId?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumAuditTypeFieldUpdateOperationsInput | $Enums.AuditType
-  action?: Prisma.StringFieldUpdateOperationsInput | string
-  entity?: Prisma.StringFieldUpdateOperationsInput | string
-  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  before?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  after?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+export type AuditUpsertWithWhereUniqueWithoutTenantInput = {
+  where: Prisma.AuditWhereUniqueInput
+  update: Prisma.XOR<Prisma.AuditUpdateWithoutTenantInput, Prisma.AuditUncheckedUpdateWithoutTenantInput>
+  create: Prisma.XOR<Prisma.AuditCreateWithoutTenantInput, Prisma.AuditUncheckedCreateWithoutTenantInput>
+}
+
+export type AuditUpdateWithWhereUniqueWithoutTenantInput = {
+  where: Prisma.AuditWhereUniqueInput
+  data: Prisma.XOR<Prisma.AuditUpdateWithoutTenantInput, Prisma.AuditUncheckedUpdateWithoutTenantInput>
+}
+
+export type AuditUpdateManyWithWhereWithoutTenantInput = {
+  where: Prisma.AuditScalarWhereInput
+  data: Prisma.XOR<Prisma.AuditUpdateManyMutationInput, Prisma.AuditUncheckedUpdateManyWithoutTenantInput>
 }
 
 export type AuditCreateManyUserInput = {
@@ -720,6 +676,54 @@ export type AuditUncheckedUpdateWithoutUserInput = {
 export type AuditUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAuditTypeFieldUpdateOperationsInput | $Enums.AuditType
+  action?: Prisma.StringFieldUpdateOperationsInput | string
+  entity?: Prisma.StringFieldUpdateOperationsInput | string
+  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  before?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  after?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AuditCreateManyTenantInput = {
+  id?: string
+  userId: string
+  type: $Enums.AuditType
+  action: string
+  entity: string
+  entityId?: string | null
+  before?: string | null
+  after?: string | null
+  createdAt?: Date | string
+}
+
+export type AuditUpdateWithoutTenantInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAuditTypeFieldUpdateOperationsInput | $Enums.AuditType
+  action?: Prisma.StringFieldUpdateOperationsInput | string
+  entity?: Prisma.StringFieldUpdateOperationsInput | string
+  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  before?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  after?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutAuditsNestedInput
+}
+
+export type AuditUncheckedUpdateWithoutTenantInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAuditTypeFieldUpdateOperationsInput | $Enums.AuditType
+  action?: Prisma.StringFieldUpdateOperationsInput | string
+  entity?: Prisma.StringFieldUpdateOperationsInput | string
+  entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  before?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  after?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AuditUncheckedUpdateManyWithoutTenantInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumAuditTypeFieldUpdateOperationsInput | $Enums.AuditType
   action?: Prisma.StringFieldUpdateOperationsInput | string
   entity?: Prisma.StringFieldUpdateOperationsInput | string

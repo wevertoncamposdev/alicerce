@@ -409,6 +409,10 @@ export type EnumAddressTypeFieldUpdateOperationsInput = {
   set?: $Enums.AddressType
 }
 
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
 export type PersonAddressCreateNestedManyWithoutAddressInput = {
   create?: Prisma.XOR<Prisma.PersonAddressCreateWithoutAddressInput, Prisma.PersonAddressUncheckedCreateWithoutAddressInput> | Prisma.PersonAddressCreateWithoutAddressInput[] | Prisma.PersonAddressUncheckedCreateWithoutAddressInput[]
   connectOrCreate?: Prisma.PersonAddressCreateOrConnectWithoutAddressInput | Prisma.PersonAddressCreateOrConnectWithoutAddressInput[]

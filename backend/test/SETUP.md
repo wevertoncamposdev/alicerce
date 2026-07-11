@@ -4,8 +4,6 @@
 
 Este projeto é uma aplicação NestJS + Prisma + PostgreSQL pronta para escalar. A estrutura foi cuidadosamente organizada para suportar projetos pequenos e grandes com padrões consistentes.
 
----
-
 ## Configuração Inicial
 
 ### 1. Instalar Dependências
@@ -35,8 +33,6 @@ npx prisma generate
 # (Opcional) Abrir o Prisma Studio
 npx prisma studio
 ```
-
----
 
 ## Comandos Disponíveis
 
@@ -82,11 +78,9 @@ npm run format
 npm run lint
 ```
 
----
-
 ## Estrutura do Projeto
 
-```
+```bash
 src/
 ├── core/
 │   ├── prisma/              # Configuração do Prisma
@@ -107,8 +101,6 @@ src/
 └── main.ts
 ```
 
----
-
 ## Padrões e Convenções
 
 ### Aliases de Imports
@@ -124,6 +116,7 @@ import { PrismaService } from '../prisma/prisma.service';
 ```
 
 **Aliases configurados:**
+
 - `@src/*` → `./src/*`
 - `@core/*` → `./src/core/*`
 - `@modules/*` → `./src/modules/*`
@@ -176,9 +169,7 @@ async remove(id: string) {
 }
 ```
 
----
-
-## Testes
+## Padrão de Testes
 
 ### Executar Testes
 
@@ -193,11 +184,10 @@ npm run test
 Veja [TEST_PATTERN.md](./TEST_PATTERN.md) para o padrão completo de testes.
 
 **Resumo:**
+
 - Service tests: Mock do `PrismaService`
 - Controller tests: Mock do service
 - Cada módulo deve ter `.service.spec.ts` e `.controller.spec.ts`
-
----
 
 ## Dados de Referência
 
@@ -208,7 +198,7 @@ Veja [TEST_PATTERN.md](./TEST_PATTERN.md) para o padrão completo de testes.
 
 ### Endpoints Principales (Users)
 
-```
+```bash
 POST   /users                    # Criar usuário
 GET    /users                    # Listar usuários
 GET    /users/:id                # Obter usuário específico
@@ -221,15 +211,11 @@ GET    /users/adult-stats        # Filtro de adultos
 GET    /users/filters/by-age     # Filtro por faixa etária
 ```
 
----
-
 ## Recursos
 
-- **Documentação do Prisma:** https://www.prisma.io/docs/
-- **Documentação do NestJS:** https://docs.nestjs.com/
-- **Jest Testing:** https://jestjs.io/docs/getting-started
-
----
+- **Documentação do Prisma:** <https://www.prisma.io/docs/>
+- **Documentação do NestJS:** <https://docs.nestjs.com/>
+- **Jest Testing:** <https://jestjs.io/docs/getting-started>
 
 ## Próximos Passos
 
@@ -240,11 +226,10 @@ GET    /users/filters/by-age     # Filtro por faixa etária
 - [ ] Documentação API com Swagger
 - [ ] Testes e2e completos
 
----
-
 ## Suporte
 
 Para dúvidas ou problemas:
+
 1. Verifique o [TEST_PATTERN.md](./TEST_PATTERN.md) para padrões de teste
 2. Consulte os módulos `users` e `teams` como referência
 3. Rode `npm run test` para validar mudanças

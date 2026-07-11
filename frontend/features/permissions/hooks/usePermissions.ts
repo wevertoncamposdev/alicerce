@@ -22,14 +22,14 @@ export interface UsePermissionsResult {
 }
 
 export function usePermissions(): UsePermissionsResult {
-    const { token, currentTenantId } = useAuth();
+    const { currentTenantId } = useAuth();
     const [permissions, setPermissions] = useState<PermissionEntity[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const load = useCallback(async () => {
-        if (!token || !currentTenantId) {
+        if (!currentTenantId) {
             setPermissions([]);
             setLoading(false);
             return;
@@ -39,32 +39,29 @@ export function usePermissions(): UsePermissionsResult {
         setError(null);
 
         try {
-            const data = await fetchPermissions({ token, tenantId: currentTenantId });
+            const data = await fetchPermissions({ tenantId: currentTenantId });
             setPermissions(data);
         } catch (err) {
             setError(toErrorMessage(err, 'Falha ao carregar permissoes.'));
         } finally {
             setLoading(false);
         }
-    }, [token, currentTenantId]);
+    }, [currentTenantId]);
 
     useEffect(() => {
         void load();
     }, [load]);
 
     const create = useCallback(async (payload: Omit<PermissionPayload, 'tenantId'>) => {
-        if (!token || !currentTenantId) {
-            throw new Error('Sessao ou tenant nao definido.');
+        if (!currentTenantId) {
+            throw new Error('Tenant nao definido.');
         }
 
         setSaving(true);
         setError(null);
 
         try {
-            const created = await createPermission({
-                token,
-                payload: { ...payload, tenantId: currentTenantId },
-            });
+            const created = await createPermission({ ...payload, tenantId: currentTenantId });
             setPermissions((prev) => [created, ...prev]);
         } catch (err) {
             const message = toErrorMessage(err, 'Falha ao criar permissao.');
@@ -73,18 +70,14 @@ export function usePermissions(): UsePermissionsResult {
         } finally {
             setSaving(false);
         }
-    }, [token, currentTenantId]);
+    }, [currentTenantId]);
 
     const update = useCallback(async (permissionId: string, payload: Partial<PermissionPayload>) => {
-        if (!token) {
-            throw new Error('Sessao nao definida.');
-        }
-
         setSaving(true);
         setError(null);
 
         try {
-            const updated = await updatePermission({ token, permissionId, payload });
+            const updated = await updatePermission({ permissionId, payload });
             setPermissions((prev) =>
                 prev.map((permission) => (permission.id === permissionId ? updated : permission)),
             );
@@ -95,18 +88,14 @@ export function usePermissions(): UsePermissionsResult {
         } finally {
             setSaving(false);
         }
-    }, [token]);
+    }, []);
 
     const remove = useCallback(async (permissionId: string) => {
-        if (!token) {
-            throw new Error('Sessao nao definida.');
-        }
-
         setSaving(true);
         setError(null);
 
         try {
-            await removePermission({ token, permissionId });
+            await removePermission({ permissionId });
             setPermissions((prev) => prev.filter((permission) => permission.id !== permissionId));
         } catch (err) {
             const message = toErrorMessage(err, 'Falha ao remover permissao.');
@@ -115,7 +104,7 @@ export function usePermissions(): UsePermissionsResult {
         } finally {
             setSaving(false);
         }
-    }, [token]);
+    }, []);
 
     return {
         permissions,

@@ -29,8 +29,8 @@ export * from "./enums.js"
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Tenants
- * const tenants = await prisma.tenant.findMany()
+ * // Fetch zero or more RefreshTokens
+ * const refreshTokens = await prisma.refreshToken.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -40,55 +40,15 @@ export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts exten
 export { Prisma }
 
 /**
- * Model Tenant
- * Main organizational entity of the system.
- */
-export type Tenant = Prisma.TenantModel
-/**
- * Model TenantArea
+ * Model RefreshToken
  * 
  */
-export type TenantArea = Prisma.TenantAreaModel
+export type RefreshToken = Prisma.RefreshTokenModel
 /**
- * Model TenantBoardMember
+ * Model Favorite
  * 
  */
-export type TenantBoardMember = Prisma.TenantBoardMemberModel
-/**
- * Model TenantBoardTerm
- * 
- */
-export type TenantBoardTerm = Prisma.TenantBoardTermModel
-/**
- * Model TenantDocument
- * 
- */
-export type TenantDocument = Prisma.TenantDocumentModel
-/**
- * Model User
- * 
- */
-export type User = Prisma.UserModel
-/**
- * Model Role
- * 
- */
-export type Role = Prisma.RoleModel
-/**
- * Model UserRole
- * 
- */
-export type UserRole = Prisma.UserRoleModel
-/**
- * Model Permission
- * 
- */
-export type Permission = Prisma.PermissionModel
-/**
- * Model RolePermission
- * 
- */
-export type RolePermission = Prisma.RolePermissionModel
+export type Favorite = Prisma.FavoriteModel
 /**
  * Model Audit
  * 
@@ -129,3 +89,53 @@ export type Report = Prisma.ReportModel
  * 
  */
 export type Task = Prisma.TaskModel
+/**
+ * Model User
+ * 
+ */
+export type User = Prisma.UserModel
+/**
+ * Model Role
+ * 
+ */
+export type Role = Prisma.RoleModel
+/**
+ * Model UserRole
+ * 
+ */
+export type UserRole = Prisma.UserRoleModel
+/**
+ * Model Permission
+ * 
+ */
+export type Permission = Prisma.PermissionModel
+/**
+ * Model RolePermission
+ * 
+ */
+export type RolePermission = Prisma.RolePermissionModel
+/**
+ * Model Tenant
+ * Main organizational entity of the system.
+ */
+export type Tenant = Prisma.TenantModel
+/**
+ * Model TenantArea
+ * 
+ */
+export type TenantArea = Prisma.TenantAreaModel
+/**
+ * Model TenantBoardMember
+ * 
+ */
+export type TenantBoardMember = Prisma.TenantBoardMemberModel
+/**
+ * Model TenantBoardTerm
+ * 
+ */
+export type TenantBoardTerm = Prisma.TenantBoardTermModel
+/**
+ * Model TenantDocument
+ * 
+ */
+export type TenantDocument = Prisma.TenantDocumentModel

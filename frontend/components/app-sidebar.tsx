@@ -25,6 +25,7 @@ import {
   FileText,
   CheckSquare2,
   LogOut,
+  Star
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
@@ -32,6 +33,7 @@ import { listRouteRules, RouteAccessMeta } from "@/lib/authz";
 
 const MODULE_ICONS: Record<RouteAccessMeta["module"], LucideIcon> = {
   users: Users,
+  favorites: Star,
   tenants: Building2,
   roles: KeyRound,
   permissions: Shield,
@@ -108,7 +110,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <Link href="/main" passHref>
+                <Link href="/" passHref>
                   <SidebarMenuButton asChild>
                     <span className="flex items-center">
                       <Home className="mr-2 h-4 w-4" />

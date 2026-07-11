@@ -3,6 +3,7 @@
 Este repositório é dedicado ao estudo e prática de arquitetura de software utilizando o framework [NestJS](https://docs.nestjs.com/). O objetivo é experimentar padrões, organização de código, integração com banco de dados via Prisma e boas práticas de desenvolvimento backend.
 
 ## Comandos úteis
+
 ### Instalar dependências
 
 ```bash
@@ -27,11 +28,13 @@ npm run start
 ```
 
 ## Requisitos
+
 - Node.js
 - Banco de dados configurado no arquivo `.env`
 - Dependências instaladas (`npm install`)
 
 ## Recomendações
+
 - Consulte a documentação oficial do [NestJS](https://docs.nestjs.com/) e do [Prisma](https://www.prisma.io/docs/).
 - Use o VS Code com extensões de GitHub e Project Manager para facilitar o gerenciamento do projeto.
 

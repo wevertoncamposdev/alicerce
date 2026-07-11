@@ -18,55 +18,15 @@ export { Prisma }
 export * as $Enums from './enums.js'
 export * from './enums.js';
 /**
- * Model Tenant
- * Main organizational entity of the system.
- */
-export type Tenant = Prisma.TenantModel
-/**
- * Model TenantArea
+ * Model RefreshToken
  * 
  */
-export type TenantArea = Prisma.TenantAreaModel
+export type RefreshToken = Prisma.RefreshTokenModel
 /**
- * Model TenantBoardMember
+ * Model Favorite
  * 
  */
-export type TenantBoardMember = Prisma.TenantBoardMemberModel
-/**
- * Model TenantBoardTerm
- * 
- */
-export type TenantBoardTerm = Prisma.TenantBoardTermModel
-/**
- * Model TenantDocument
- * 
- */
-export type TenantDocument = Prisma.TenantDocumentModel
-/**
- * Model User
- * 
- */
-export type User = Prisma.UserModel
-/**
- * Model Role
- * 
- */
-export type Role = Prisma.RoleModel
-/**
- * Model UserRole
- * 
- */
-export type UserRole = Prisma.UserRoleModel
-/**
- * Model Permission
- * 
- */
-export type Permission = Prisma.PermissionModel
-/**
- * Model RolePermission
- * 
- */
-export type RolePermission = Prisma.RolePermissionModel
+export type Favorite = Prisma.FavoriteModel
 /**
  * Model Audit
  * 
@@ -107,3 +67,53 @@ export type Report = Prisma.ReportModel
  * 
  */
 export type Task = Prisma.TaskModel
+/**
+ * Model User
+ * 
+ */
+export type User = Prisma.UserModel
+/**
+ * Model Role
+ * 
+ */
+export type Role = Prisma.RoleModel
+/**
+ * Model UserRole
+ * 
+ */
+export type UserRole = Prisma.UserRoleModel
+/**
+ * Model Permission
+ * 
+ */
+export type Permission = Prisma.PermissionModel
+/**
+ * Model RolePermission
+ * 
+ */
+export type RolePermission = Prisma.RolePermissionModel
+/**
+ * Model Tenant
+ * Main organizational entity of the system.
+ */
+export type Tenant = Prisma.TenantModel
+/**
+ * Model TenantArea
+ * 
+ */
+export type TenantArea = Prisma.TenantAreaModel
+/**
+ * Model TenantBoardMember
+ * 
+ */
+export type TenantBoardMember = Prisma.TenantBoardMemberModel
+/**
+ * Model TenantBoardTerm
+ * 
+ */
+export type TenantBoardTerm = Prisma.TenantBoardTermModel
+/**
+ * Model TenantDocument
+ * 
+ */
+export type TenantDocument = Prisma.TenantDocumentModel

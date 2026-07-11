@@ -1,17 +1,18 @@
 export type RouteAccessMeta = {
     prefix: string;
     permission: string;
-    module: 'users' | 'roles' | 'permissions' | 'audit' | 'tenants' | 'tasks';
+    module: 'users' | 'roles' | 'permissions' | 'audit' | 'tenants' | 'tasks' | 'favorites';
     title: string;
 };
 
 const ROUTE_RULES: ReadonlyArray<RouteAccessMeta> = [
-    { prefix: '/main/users', permission: 'user.read', module: 'users', title: 'Usuarios' },
-    { prefix: '/main/roles', permission: 'role.read', module: 'roles', title: 'Papeis' },
-    { prefix: '/main/permissions', permission: 'permission.read', module: 'permissions', title: 'Permissoes' },
-    { prefix: '/main/audit', permission: 'audit.read', module: 'audit', title: 'Auditoria' },
-    { prefix: '/main/tenants', permission: 'tenant.read', module: 'tenants', title: 'Tenants' },
-    { prefix: '/main/tasks', permission: 'task.read', module: 'tasks', title: 'Tarefas' },
+    { prefix: '/users', permission: 'user.read', module: 'users', title: 'Usuarios' },
+    { prefix: '/favorites', permission: 'user.read', module: 'favorites', title: 'Favoritos' },
+    { prefix: '/roles', permission: 'role.read', module: 'roles', title: 'Papeis' },
+    { prefix: '/permissions', permission: 'permission.read', module: 'permissions', title: 'Permissoes' },
+    { prefix: '/audit', permission: 'audit.read', module: 'audit', title: 'Auditoria' },
+    { prefix: '/tenants', permission: 'tenant.read', module: 'tenants', title: 'Tenants' },
+    { prefix: '/tasks', permission: 'task.read', module: 'tasks', title: 'Tarefas' },
 ];
 
 const ACTION_PERMISSION_RULES = {

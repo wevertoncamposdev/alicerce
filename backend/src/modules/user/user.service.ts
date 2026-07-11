@@ -78,7 +78,8 @@ export class UsersService {
 
   async findAll(tenantId?: string) {
     try {
-      return await this.userRepository.findManyActive(tenantId);
+      const users = await this.userRepository.findManyActive(tenantId);
+      return users;
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'findAll');
     }

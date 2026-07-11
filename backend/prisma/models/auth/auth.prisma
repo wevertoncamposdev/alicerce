@@ -1,0 +1,14 @@
+model RefreshToken {
+    id        String    @id @default(uuid(7)) @db.Uuid
+    token     String    @unique // hash do token (nunca o token em claro)
+    userId    String    @db.Uuid
+    tenantId  String    @db.Uuid
+    familyId  String    @db.Uuid // detectar reuso: toda rotação compartilha o mesmo familyId
+    expiresAt DateTime
+    revokedAt DateTime?
+    createdAt DateTime  @default(now())
+
+    user User @relation(fields: [userId], references: [id])
+
+    @@map("refresh_tokens")
+}
