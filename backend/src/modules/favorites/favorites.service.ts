@@ -48,4 +48,33 @@ export class FavoritesService {
     return favorites;
   }
 
+  async update(id: string, dto: UpdateFavoriteDto, tenantId: string, userSub: string) {
+    const favorite = await this.prisma.favorite.findUnique({
+      where: { id },
+    }); 
+    if (!favorite || favorite.tenantId !== tenantId || favorite.userId !== userSub) {
+      throw new Error('Favorite not found or access denied');
+    }
+
+    return this.prisma.favorite.update({
+      where: { id },
+      data: {
+        ...dto,
+      },
+    });
+  }
+
+  async remove(id: string, tenantId: string, userSub: string) {
+    const favorite = await this.prisma.favorite.findUnique({
+      where: { id },
+    });
+    if (!favorite || favorite.tenantId !== tenantId || favorite.userId !== userSub) {
+      throw new Error('Favorite not found or access denied');
+    }
+    return this.prisma.favorite.delete({
+      where: { id },
+    });
+    
+  }
+
 }
