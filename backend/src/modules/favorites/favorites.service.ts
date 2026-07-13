@@ -48,6 +48,16 @@ export class FavoritesService {
     return favorites;
   }
 
+  async findOne(id: string, tenantId: string, userSub: string) {
+    const favorite = await this.prisma.favorite.findUnique({
+      where: { id },
+    });
+    if (!favorite || favorite.tenantId !== tenantId || favorite.userId !== userSub) {
+      throw new Error('Favorite not found or access denied');
+    }
+    return favorite;
+  }
+
   async update(id: string, dto: UpdateFavoriteDto, tenantId: string, userSub: string) {
     const favorite = await this.prisma.favorite.findUnique({
       where: { id },

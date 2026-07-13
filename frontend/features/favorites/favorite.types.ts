@@ -1,7 +1,7 @@
 export interface FavoriteEntity {
     id: string;
-    url: string;
     title: string;
+    url: string;
     tenantId?: string;
     userId?: string;
     createdAt: string;
@@ -20,3 +20,9 @@ export interface UpdateFavoritePayload {
 export type FavoriteActionState = {
     error: string | null;
 };
+
+export interface Favorite {
+    id: string;
+    title: string;
+    url: string;
+}

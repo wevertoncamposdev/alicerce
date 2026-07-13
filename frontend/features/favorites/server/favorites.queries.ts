@@ -8,5 +8,11 @@ import { FavoriteEntity } from '../favorite.types';
  * O apiServer já injeta Bearer token + x-tenant-id automaticamente.
  */
 export async function getFavorites(): Promise<FavoriteEntity[]> {
-    return apiServer.get<FavoriteEntity[]>('favorites');
+    const response = await apiServer.get<FavoriteEntity[]>('favorites');
+    return response;
+}
+
+export async function getFavorite(id: string): Promise<FavoriteEntity> {
+    const response = await apiServer.get<FavoriteEntity>(`favorites/${id}`);
+    return response;
 }

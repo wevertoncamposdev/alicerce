@@ -1,26 +1,30 @@
-// Server Component — sem 'use client'
-import { getFavorites } from '@/features/favorites/server/favorites.queries';
-import { FavoritesCreateForm } from '@/features/favorites/components/FavoritesCreateForm';
+// @SSR
+
+import { FavoriteCreateForm } from '@/features/favorites/components/FavoritesCreateForm';
 import { FavoritesList } from '@/features/favorites/components/FavoritesList';
+import { FavoriteItem } from '@/features/favorites/components/FavoritesItem';
+import { Favorite } from '@/features/favorites/favorite.types';
+import { getFavorites } from '@/features/favorites/server/favorites.queries';
 
 /**
- * Página de favoritos renderizada no servidor.
- * getFavorites() é aguardado aqui: os dados chegam prontos no HTML,
- * sem loading spinner nem token exposto ao browser.
- */
+ * @alias /favorites
+ * */
 export default async function FavoritesPage() {
-    const favorites = await getFavorites();
+    //const favorites = await getFavorites(); // Server Component, can await directly.
+
+    const favorites = await getFavorites(); // Server Component, can await directly.
 
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Meus Favoritos</h1>
-                <p className="text-muted-foreground">Gerencie seus links salvos no sistema</p>
+                <h1 className="text-3xl font-bold tracking-tight">Favoritos</h1>
+                <FavoriteCreateForm />
             </div>
-
-            <FavoritesCreateForm />
-
-            <FavoritesList favorites={favorites} />
+            <ul>
+                {favorites.map((favorite) => (
+                    <FavoriteItem key={favorite.id} favorite={favorite} />
+                ))}
+            </ul>
         </div>
     );
 }

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FavoriteEntity } from '../favorite.types';
 import { FavoritesDeleteButton } from './FavoritesDeleteButton';
-import { FavoritesEditForm } from './FavoritesEditForm';
+
 
 interface FavoritesListProps {
     favorites: FavoriteEntity[];
@@ -47,10 +47,7 @@ export function FavoritesList({ favorites }: FavoritesListProps) {
                                 key={fav.id}
                                 className="rounded-lg border border-blue-200 bg-blue-50/40 p-4"
                             >
-                                <FavoritesEditForm
-                                    favorite={fav}
-                                    onCancel={() => setEditingId(null)}
-                                />
+
                             </div>
                         ) : (
                             <div

@@ -27,6 +27,13 @@ export class FavoritesController {
     return this.favoritesService.findAll(tenantId, userSub);
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Obter favorito por ID' })
+  @ApiResponse({ status: 200, description: 'Favorito retornado com sucesso.' })
+  findOne(@Param('id') id: string, @TenantId() tenantId: string, @CurrentUserId() userSub: string) {
+    return this.favoritesService.findOne(id, tenantId, userSub);
+  }
+
   @Patch(':id')
   @ApiOperation({ summary: 'Atualizar favorito' })
   @ApiResponse({ status: 200, description: 'Favorito atualizado com sucesso.' })
