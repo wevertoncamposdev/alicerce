@@ -6,7 +6,7 @@ import UsersForm from "@/features/users/components/UsersForm";
 import { useUsers } from "@/features/users/hooks/useUsers";
 import { UserEntity } from "@/features/users/user.types";
 import { useAuth } from "@/contexts/auth-context";
-import { DetailShell, PainelSearchShell, SideShell } from "@/components/shells";
+import { DetailShell, PainelSearchShell, SideShell } from "@/components/Shells";
 
 export default function UsersPage() {
   const { hasPermission, currentTenantId } = useAuth();

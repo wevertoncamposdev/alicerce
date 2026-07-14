@@ -18,7 +18,7 @@ interface TypeViewProps<TData> {
     gridClassName?: string;
 }
 
-export function TypeView<TData>({
+export function TypeViewOld<TData>({
     mode,
     data,
     columns,

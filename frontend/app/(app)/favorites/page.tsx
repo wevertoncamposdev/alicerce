@@ -1,30 +1,39 @@
-// @SSR
+import { createDataProvider } from "@/lib/data-provider";
+import type { FavoriteEntity } from "@/features/favorites/favorite.types";
+import { FavoriteItem } from "@/features/favorites/components/FavoritesItem";
+import { FavoriteCharts } from "@/features/favorites/components/FavoriteCharts";
+import { FavoriteCreateForm } from "@/features/favorites/components/FavoritesCreateForm";
+import { Separator } from "@/components/ui/separator";
 
-import { FavoriteCreateForm } from '@/features/favorites/components/FavoritesCreateForm';
-import { FavoritesList } from '@/features/favorites/components/FavoritesList';
-import { FavoriteItem } from '@/features/favorites/components/FavoritesItem';
-import { Favorite } from '@/features/favorites/favorite.types';
-import { getFavorites } from '@/features/favorites/server/favorites.queries';
 
-/**
- * @alias /favorites
- * */
+
+
 export default async function FavoritesPage() {
-    //const favorites = await getFavorites(); // Server Component, can await directly.
+    const dataProvider = createDataProvider();
 
-    const favorites = await getFavorites(); // Server Component, can await directly.
+    const result = await dataProvider.search<FavoriteEntity>("favorites.list", {
+        searchText: "",
+        pagination: { pageIndex: 0, pageSize: 20 },
+    });
 
     return (
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Favoritos</h1>
-                <FavoriteCreateForm />
-            </div>
-            <ul>
-                {favorites.map((favorite) => (
-                    <FavoriteItem key={favorite.id} favorite={favorite} />
-                ))}
-            </ul>
+        <div className="p-4">
+
+            <h1 className="text-2xl font-bold mb-4">Favoritos</h1>
+            <p>Exemplo de página de favoritos. Aqui você pode listar, criar, atualizar e deletar favoritos.</p>
+
+            <FavoriteCreateForm />
+
+            <Separator className="my-4" />
+
+            {result.data.map((favorite) => (
+                <FavoriteItem key={favorite.id} favorite={favorite} />
+            ))}
+
+            <Separator className="my-4" />
+
+
+            <FavoriteCharts favorites={result.data} />
         </div>
     );
 }

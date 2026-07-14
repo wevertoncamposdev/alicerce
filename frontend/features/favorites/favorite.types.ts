@@ -26,3 +26,7 @@ export interface Favorite {
     title: string;
     url: string;
 }
+
+export interface FavoriteChartsProps {
+    favorites: FavoriteEntity[]
+}

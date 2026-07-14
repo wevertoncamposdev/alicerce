@@ -11,7 +11,7 @@ export function FavoriteCreateForm() {
     const [state, formAction, isPending] = useActionState(createFavorite, initialState);
 
     return (
-        <form action={formAction}>
+        <form action={formAction} className="flex flex-col gap-2 mt-4 border p-4 rounded-lg shadow-md">
             <Input name="title" placeholder="Título" />
             <Input name="url" placeholder="URL" />
             <Button type="submit" disabled={isPending}>

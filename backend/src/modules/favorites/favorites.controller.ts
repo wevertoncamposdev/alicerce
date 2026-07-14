@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Search } from '@nestjs/common';
+import { SearchFavoritesDto } from './dto/search-favorite.dto';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { FavoritesService } from './favorites.service';
 import { CreateFavoriteDto } from './dto/create-favorite.dto';
@@ -46,6 +47,14 @@ export class FavoritesController {
   @ApiResponse({ status: 200, description: 'Favorito removido com sucesso.' })
   remove(@Param('id') id: string, @TenantId() tenantId: string, @CurrentUserId() userSub: string) {
     return this.favoritesService.remove(id, tenantId, userSub);
+  }
+
+  @Search()
+  @ApiOperation({ summary: 'Buscar favoritos' })
+  @ApiResponse({ status: 200, description: 'Favoritos encontrados com sucesso.' })
+
+  search(@Body() query: SearchFavoritesDto, @TenantId() tenantId: string, @CurrentUserId() userSub: string) {
+    return this.favoritesService.search(query, tenantId, userSub);
   }
 
 }

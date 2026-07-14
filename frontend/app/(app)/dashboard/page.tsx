@@ -5,7 +5,7 @@ import { useAudit } from "@/features/audit/hooks/useAudit";
 import { usePermissions } from "@/features/permissions/hooks/usePermissions";
 import { useRoles } from "@/features/roles/hooks/useRoles";
 import { useUsers } from "@/features/users/hooks/useUsers";
-import { DetailShell, PainelSearchShell } from "@/components/shells";
+import { DetailShell, PainelSearchShell } from "@/components/Shells";
 import { Button } from "@/components/ui/index";
 
 function StatCard({

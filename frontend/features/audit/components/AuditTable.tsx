@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { TypeView } from "@/components/TypeView";
+import { TypeViewOld } from "@/components/TypeView";
 import { AuditEntry } from "../audit.types";
 
 function formatDate(value: string) {
@@ -37,7 +37,7 @@ export default function AuditTable({ entries }: AuditTableProps) {
     ];
 
     return (
-        <TypeView
+        <TypeViewOld
             mode="table"
             data={entries}
             columns={auditColumns}

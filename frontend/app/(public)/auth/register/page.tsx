@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { Button, Input } from "@/components/ui/index";
-import { SideShell } from "@/components/shells";
+import { SideShell } from "@/components/Shells";
 import Link from "next/link";
 
 export default function RegisterPage() {

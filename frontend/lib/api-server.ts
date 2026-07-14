@@ -10,7 +10,7 @@ import { getSessionTenantId, getSessionToken } from "@/lib/session";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL ?? "http://localhost:5000/api";
 
-type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "SEARCH";
 
 type ApiServerOptions = {
     method?: HttpMethod;
@@ -45,15 +45,14 @@ async function request<T>(path: string, options: ApiServerOptions = {}): Promise
         Authorization: `Bearer ${token}`,
     };
 
-    if (tenantId) {
-        headers["x-tenant-id"] = tenantId;
-    }
+    if (tenantId) headers["x-tenant-id"] = tenantId;
+    if (body !== undefined) headers["Content-Type"] = "application/json";
 
-    if (body !== undefined) {
-        headers["Content-Type"] = "application/json";
-    }
+    const cleanBase = INTERNAL_API_URL.replace(/\/+$/, "");
+    const cleanPath = path.replace(/^\/+/, "");
+    const url = `${cleanBase}/${cleanPath}`;
 
-    const response = await fetch(`${INTERNAL_API_URL}/${path}`, {
+    const response = await fetch(url, {
         method,
         cache,
         headers,
@@ -80,7 +79,16 @@ async function request<T>(path: string, options: ApiServerOptions = {}): Promise
     return data as T;
 }
 
+async function search<T>(path: string, body: unknown): Promise<T> {
+    return request<T>(path, {
+        method: "SEARCH",
+        body,
+    });
+}
+
+
 export const apiServer = {
+    search,
     get: <T>(path: string, options?: { cache?: RequestCache }) =>
         request<T>(path, { method: "GET", cache: options?.cache }),
 

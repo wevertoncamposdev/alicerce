@@ -5,7 +5,7 @@ import { Button, Input } from "@/components/ui";
 import { usePermissions } from "@/features/permissions/hooks/usePermissions";
 import { PermissionEntity, PermissionType } from "@/features/permissions/permission.types";
 import { useAuth } from "@/contexts/auth-context";
-import { DetailShell, PainelSearchShell } from "@/components/shells";
+import { DetailShell, PainelSearchShell } from "@/components/Shells";
 import { TypeView } from "@/components/TypeView";
 import { ColumnDef } from "@tanstack/react-table";
 
