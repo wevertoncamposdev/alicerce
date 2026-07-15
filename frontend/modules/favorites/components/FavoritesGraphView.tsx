@@ -1,8 +1,8 @@
 // components/type-view/graph-view/FavoritesGraphView.tsx — ESPECÍFICO de favorites
 "use client";
 import * as React from "react";
-import { GraphView } from "./GraphView";
-import type { FavoriteEntity } from "@/features/favorites/favorite.types";
+import { GraphView } from "@components/type-view/graph-view/GraphView";
+import type { FavoriteEntity } from "../types";
 
 const chartConfig = { total: { label: "Favoritos", color: "var(--chart-1)" } };
 

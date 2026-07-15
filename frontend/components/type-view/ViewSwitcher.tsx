@@ -1,39 +1,82 @@
 "use client";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+
+import {
+    ToggleGroup,
+    ToggleGroupItem,
+} from "@/components/ui/toggle-group";
+
+import {
+    LayoutGrid,
+    LayoutList,
+    LineChart,
+    FileText,
+    FormInput,
+} from "lucide-react";
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { TypeViewMode } from "./TypeView";
-import { LayoutList, LayoutGrid, LineChart, FileText, FormIcon } from "lucide-react";
 
-const VIEW_OPTIONS: { value: TypeViewMode; label: string; icon: React.ReactNode }[] = [
-    { value: "form", label: "Form", icon: <FormIcon className="w-4 h-4" /> },
-    { value: "list", label: "List", icon: <LayoutList className="w-4 h-4" /> },
-    { value: "cards", label: "Cards", icon: <LayoutGrid className="w-4 h-4" /> },
-    { value: "graph", label: "Graph", icon: <LineChart className="w-4 h-4" /> },
-    { value: "text", label: "Text", icon: <FileText className="w-4 h-4" /> },
-];
+const VIEW_OPTIONS = [
+    {
+        value: "form",
+        icon: <FormInput className="h-4 w-4" />,
+    },
+    {
+        value: "list",
+        icon: <LayoutList className="h-4 w-4" />,
+    },
+    {
+        value: "cards",
+        icon: <LayoutGrid className="h-4 w-4" />,
+    },
+    {
+        value: "graph",
+        icon: <LineChart className="h-4 w-4" />,
+    },
+    {
+        value: "text",
+        icon: <FileText className="h-4 w-4" />,
+    },
+] as const;
 
-export function ViewSwitcher({ current }: { current: TypeViewMode }) {
+export function ViewSwitcher({
+    current,
+}: {
+    current: TypeViewMode;
+}) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    function handleChange(next: TypeViewMode) {
+    function handleChange(next: string) {
         const params = new URLSearchParams(searchParams);
+
         params.set("view", next);
-        router.push(`${pathname}?${params.toString()}`);
+
+        router.push(
+            `${pathname}?${params.toString()}`
+        );
     }
 
     return (
-        <div className="flex items-center gap-1 rounded-md border p-1 shadow-sm">
+        <ToggleGroup
+            type="single"
+            value={current}
+            onValueChange={(value) => {
+                if (value) {
+                    handleChange(value);
+                }
+            }}
+        >
             {VIEW_OPTIONS.map((option) => (
-                <button
+                <ToggleGroupItem
                     key={option.value}
-                    onClick={() => handleChange(option.value)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-colors ${current === option.value ? "bg-gray-200 text-black" : "hover:bg-gray-100"
-                        }`}
+                    value={option.value}
+                    aria-label={option.value}
                 >
                     {option.icon}
-                </button>
+                </ToggleGroupItem>
             ))}
-        </div>
+        </ToggleGroup>
     );
 }

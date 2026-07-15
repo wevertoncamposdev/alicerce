@@ -100,9 +100,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2 font-bold text-lg">
-          <User2 className="w-5 h-5" /> SaaS Admin
-        </div>
+
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

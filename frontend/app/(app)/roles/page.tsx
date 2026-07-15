@@ -6,7 +6,6 @@ import { useRoles } from "@/features/roles/hooks/useRoles";
 import { RoleEntity, RoleType } from "@/features/roles/role.types";
 import { useAuth } from "@/contexts/auth-context";
 import { DetailShell, PainelSearchShell, RelationShell } from "@/components/Shells";
-import { TypeView } from "@/components/TypeView";
 import { ColumnDef } from "@tanstack/react-table";
 
 export default function RolesPage() {
@@ -98,52 +97,6 @@ export default function RolesPage() {
           Selecione um tenant no modulo de tenants para gerenciar papeis.
         </div>
       ) : null}
-
-      <PainelSearchShell
-        title="Cadastro rapido"
-        actions={
-          <>
-            <Button
-              disabled={saving || !canCreate || !hasTenantContext}
-              onClick={async () => {
-                await createRole({ name, type, description });
-                setName("");
-                setDescription("");
-              }}
-            >
-              Criar papel
-            </Button>
-            <Button variant="outline" disabled={loading || saving} onClick={() => void reload()}>
-              Atualizar
-            </Button>
-          </>
-        }
-        filters={
-          <>
-            <Input placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} disabled={saving} />
-            <select
-              className="border rounded px-3 py-2"
-              value={type}
-              onChange={(e) => setType(e.target.value as RoleType)}
-              disabled={saving}
-            >
-              <option value="ADMIN">ADMIN</option>
-              <option value="USER">USER</option>
-              <option value="GUEST">GUEST</option>
-            </select>
-            <Input placeholder="Descricao" value={description} onChange={(e) => setDescription(e.target.value)} disabled={saving} />
-          </>
-        }
-      >
-        <TypeView
-          mode="table"
-          data={roles}
-          columns={roleColumns}
-          isLoading={loading}
-          loadingMessage="Carregando papeis..."
-          emptyMessage="Nenhum papel encontrado."
-        />
-      </PainelSearchShell>
 
       <RelationShell
         title="Vinculos do papel"

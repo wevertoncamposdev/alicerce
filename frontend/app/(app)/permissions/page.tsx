@@ -6,7 +6,6 @@ import { usePermissions } from "@/features/permissions/hooks/usePermissions";
 import { PermissionEntity, PermissionType } from "@/features/permissions/permission.types";
 import { useAuth } from "@/contexts/auth-context";
 import { DetailShell, PainelSearchShell } from "@/components/Shells";
-import { TypeView } from "@/components/TypeView";
 import { ColumnDef } from "@tanstack/react-table";
 
 export default function PermissionsPage() {
@@ -99,53 +98,6 @@ export default function PermissionsPage() {
         </div>
       ) : null}
 
-      <PainelSearchShell
-        title="Cadastro rapido"
-        filters={
-          <>
-            <Input placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} disabled={saving} />
-            <select
-              className="border rounded px-3 py-2"
-              value={type}
-              onChange={(e) => setType(e.target.value as PermissionType)}
-              disabled={saving}
-            >
-              <option value="READ">READ</option>
-              <option value="WRITE">WRITE</option>
-              <option value="DELETE">DELETE</option>
-            </select>
-            <Input placeholder="Resource" value={resource} onChange={(e) => setResource(e.target.value)} disabled={saving} />
-            <Input placeholder="Descricao" value={description} onChange={(e) => setDescription(e.target.value)} disabled={saving} />
-          </>
-        }
-        actions={
-          <>
-            <Button
-              disabled={!canCreate || saving || !hasTenantContext}
-              onClick={async () => {
-                await createPermission({ name, type, resource, description });
-                setName("");
-                setResource("");
-                setDescription("");
-              }}
-            >
-              Criar permissao
-            </Button>
-            <Button variant="outline" disabled={loading || saving} onClick={() => void reload()}>
-              Atualizar
-            </Button>
-          </>
-        }
-      >
-        <TypeView
-          mode="table"
-          data={permissions}
-          columns={permissionColumns}
-          isLoading={loading}
-          loadingMessage="Carregando permissoes..."
-          emptyMessage="Nenhuma permissao encontrada."
-        />
-      </PainelSearchShell>
     </DetailShell>
   );
 }
