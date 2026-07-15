@@ -24,16 +24,16 @@
     ],
     "paths": {
       "@/*": [
-        "./*"
+        "./src/*"
       ],
       "@lib/*": [
-        "./lib/*"
+        "./src/lib/*"
       ],
       "@modules/*": [
-        "./modules/*"
+        "./src/modules/*"
       ],
       "@components/*": [
-        "./components/*"
+        "./src/components/*"
       ],
     }
   },
@@ -47,6 +47,6 @@
   ],
   "exclude": [
     "node_modules",
-    "tests"
+    "src/tests"
   ]
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE } from "@/lib/session";
+import { SESSION_COOKIE } from "@lib/session";
 
 const PUBLIC_ROUTES = ["/", "/auth/login", "/auth/register"];
 const AUTH_ROUTES = ["/auth/login", "/auth/register"];

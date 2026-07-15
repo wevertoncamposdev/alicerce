@@ -1,0 +1,13 @@
+{
+  "user.title": "Users",
+  "user.name": "Name",
+  "user.email": "Email",
+  "user.password": "Password",
+  "user.gender": "Gender",
+  "user.actions.edit": "Edit",
+  "user.actions.add": "Add user",
+  "gender.male": "Male",
+  "gender.female": "Female",
+  "gender.intersex": "Intersex",
+  "gender.not_informed": "Not informed"
+}

@@ -12,7 +12,28 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    {
+      rules: {
+        'no-restricted-imports': ['error', {
+          patterns: [
+            {
+              group: ['@/lib/*'],
+              message: 'Use @lib/* em vez de @/lib/*.'
+            },
+            {
+              group: ['@/modules/*'],
+              message: 'Use @modules/* em vez de @/modules/*.'
+            },
+            {
+              group: ['@/components/*'],
+              message: 'Use @components/* em vez de @/components/*.'
+            },
+          ],
+        }],
+      },
+    }
   ]),
 ]);
+
 
 export default eslintConfig;
