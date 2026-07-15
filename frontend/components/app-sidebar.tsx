@@ -71,7 +71,7 @@ function NavItem({
       <Link href={href} passHref>
         <SidebarMenuButton asChild>
           <span className="flex items-center">
-            <Icon className="mr-2 h-4 w-4" />
+            <Icon className="mr-2 h-2 w-2" />
             {label}
           </span>
         </SidebarMenuButton>

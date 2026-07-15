@@ -1,39 +1,42 @@
 import { createDataProvider } from "@/lib/data-provider";
-import type { FavoriteEntity } from "@/features/favorites/favorite.types";
-import { FavoriteItem } from "@/features/favorites/components/FavoritesItem";
-import { FavoriteCharts } from "@/features/favorites/components/FavoriteCharts";
+import { TypeView, type TypeViewMode } from "@/components/type-view/TypeView";
+import { CardsView } from "@/components/type-view/cards-view/CardsView";
 import { FavoriteCreateForm } from "@/features/favorites/components/FavoritesCreateForm";
-import { Separator } from "@/components/ui/separator";
+import { FavoritesGraphView } from "@/components/type-view/graph-view/FavoritesGraphView";
+import { FavoritesListView } from "@/components/type-view/list-view/FavoritesListView";
+import { ViewSwitcher } from "@/components/type-view/ViewSwitcher";
+import type { FavoriteEntity } from "@/features/favorites/favorite.types";
+import { AppTopbar } from "@/components/layout/AppTopbar";
 
+export default async function FavoritesPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ view?: string }>;
+}) {
+    const { view } = await searchParams;
+    const VALID_MODES: TypeViewMode[] = ["list", "cards", "text", "graph", "form"];
+    const mode: TypeViewMode = VALID_MODES.includes(view as TypeViewMode)
+        ? (view as TypeViewMode)
+        : "list";
 
-
-
-export default async function FavoritesPage() {
     const dataProvider = createDataProvider();
-
     const result = await dataProvider.search<FavoriteEntity>("favorites.list", {
         searchText: "",
         pagination: { pageIndex: 0, pageSize: 20 },
     });
 
     return (
-        <div className="p-4">
+        <div className="">
+            <AppTopbar title="Favoritos" actions={<ViewSwitcher current={mode} />} />
 
-            <h1 className="text-2xl font-bold mb-4">Favoritos</h1>
-            <p>Exemplo de página de favoritos. Aqui você pode listar, criar, atualizar e deletar favoritos.</p>
-
-            <FavoriteCreateForm />
-
-            <Separator className="my-4" />
-
-            {result.data.map((favorite) => (
-                <FavoriteItem key={favorite.id} favorite={favorite} />
-            ))}
-
-            <Separator className="my-4" />
-
-
-            <FavoriteCharts favorites={result.data} />
+            <TypeView
+                data={result.data}
+                mode={mode}
+                listView={<FavoritesListView data={result.data} />}
+                graphView={<FavoritesGraphView data={result.data} />}
+                cardsView={<CardsView data={result.data} detail="/favorites" />}
+                formView={<FavoriteCreateForm />}
+            />
         </div>
     );
 }

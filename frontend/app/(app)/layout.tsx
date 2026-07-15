@@ -31,8 +31,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <AuthProvider initialUser={currentUser.user} initialTenantId={currentUser.tenantId}>
       <SidebarProvider>
         <AppSidebar />
-        <main className="flex-1 p-4">
-          <SidebarTrigger />
+        <main className="flex-1">
           {children}
         </main>
       </SidebarProvider>
