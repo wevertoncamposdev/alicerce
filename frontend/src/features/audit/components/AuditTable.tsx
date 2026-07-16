@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { TypeViewOld } from "@components/TypeView";
+import { TypeView } from "@components/type-view/TypeView";
 import { AuditEntry } from "@/features/audit/audit.types";
 
 function formatDate(value: string) {
@@ -37,11 +37,8 @@ export default function AuditTable({ entries }: AuditTableProps) {
     ];
 
     return (
-        <TypeViewOld
-            mode="table"
-            data={entries}
-            columns={auditColumns}
-            emptyMessage="Nenhum registro encontrado."
-        />
+        <pre>
+            {JSON.stringify(entries, null, 2)}
+        </pre>
     );
 }

@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { FavoriteEntity } from "@/features/favorites/favorite.types";
+import type { FavoriteEntity } from "@modules/favorites/types";
 
 export const favoriteColumns: ColumnDef<FavoriteEntity>[] = [
     {

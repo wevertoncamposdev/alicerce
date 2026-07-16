@@ -8,12 +8,20 @@ export type RecordModuleDataHandlers<T> = {
     delete: (id: string) => Promise<void>;
 };
 
+export type FormFieldConfig<T> = {
+    name: keyof T & string;
+    label: string;
+    type: "text" | "url" | "textarea";
+    required?: boolean;
+};
+
 export type RecordModuleDefinition<T = unknown> = {
     model: string;
     label: string;
     views: string[];
     defaultView: string;
     dataHandlers: RecordModuleDataHandlers<T>;
+    formFields: FormFieldConfig<T>[];
     parseListState: (searchParams: Record<string, string | string[] | undefined>) => SearchArgs;
     serializeListState: (current: URLSearchParams, patch: Record<string, unknown>) => URLSearchParams;
 };

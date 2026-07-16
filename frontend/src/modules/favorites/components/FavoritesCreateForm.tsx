@@ -1,5 +1,6 @@
 'use client';
 
+import { FormView } from "@components/type-view/form-view/FormView";
 import { createFavorite } from '@modules/favorites/actions/actions';
 import { useActionState } from 'react';
 import { Input } from "@components/ui/input";
