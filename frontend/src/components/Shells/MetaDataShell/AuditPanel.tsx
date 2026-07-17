@@ -2,9 +2,9 @@ import type { AuditFeedItem } from "./types";
 
 function actionLabel(action: string) {
     switch (action) {
-        case "POST": return "Criado por:";
+        case "POST": return "Criado por: ";
         case "PATCH": return "Atualizado por: ";
-        case "DELETE": return "Removido";
+        case "DELETE": return "Removido por: ";
         default: return action;
     }
 }
@@ -22,7 +22,7 @@ export function AuditPanel({ items }: { items: AuditFeedItem[] }) {
                         <span className="font-medium text-foreground">
                             {actionLabel(item.action)}
                             <span className="text-xs text-muted-foreground">
-                                {item.userEmail} @ {item.tenantName}
+                                {item.userEmail}
                             </span>
                         </span>
 
