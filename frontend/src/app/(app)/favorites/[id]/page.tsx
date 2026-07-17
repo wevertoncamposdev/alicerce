@@ -2,9 +2,9 @@ import { getModule } from "@lib/registry";
 import { createDataProvider } from "@lib/data-provider";
 import { getEntityAuditTrail } from "@lib/data-provider/rest/audit";
 import { DetailView } from "@/components/DetailView/DetailView";
-import { AppTopbar } from "@/components/Layout/AppTopbar";
+import { AppTopbar } from "@/components/out/AppTopbar";
 import { AutoSaveStatusProvider } from "@/contexts/autosave-status-context";
-import { AutoSaveIndicator } from "@/components/Layout/AutoSaveIndicator";
+import { AutoSaveIndicator } from "@/components/out/AutoSaveIndicator";
 import type { ContextItem, AuditFeedItem } from "@/components/DetailView/MetaDataView/types";
 import type { FavoriteEntity } from "@/modules/favorites/types/types";
 

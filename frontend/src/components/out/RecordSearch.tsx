@@ -1,5 +1,5 @@
 
-import { SearchInput } from "@/components/Layout/SearchInput";
+import { SearchInput } from "@/components/out/SearchInput";
 
 type Props = {
     searchText?: string;
