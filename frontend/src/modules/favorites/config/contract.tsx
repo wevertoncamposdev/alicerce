@@ -10,9 +10,9 @@ import {
 import type { Favorite, FavoriteEntity } from "@modules/favorites/types";
 
 import { FormView } from "@components/type-view/form-view/FormView";
-import { MetaDataShell } from "@/components/shel/MetaDataShell";
-import { MetaDataSidebar } from "@/components/shel/MetaDataShell/MetaDataSidebar";
-import { RelationTablePanel } from "@/components/shel/RelationShell/RelationTablePanel";
+import { MetaDataShell } from "@/components/engine/MetaDataShell";
+import { MetaDataSidebar } from "@/components/engine/MetaDataShell/MetaDataSidebar";
+import { RelationTablePanel } from "@/components/engine/RelationShell/RelationTablePanel";
 import { listFavoriteNotes } from "./notes-provider";
 
 const formFields = [

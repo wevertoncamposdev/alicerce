@@ -5,7 +5,7 @@ import { Button, Input } from "@components/ui";
 import { usePermissions } from "@/features/permissions/hooks/usePermissions";
 import { PermissionEntity, PermissionType } from "@/features/permissions/permission.types";
 import { useAuth } from "@/contexts/auth-context";
-import { DetailShell, PainelSearchShell } from "@/components/shel";
+import { DetailShell, PainelSearchShell } from "@/components/engine";
 import { ColumnDef } from "@tanstack/react-table";
 
 export default function PermissionsPage() {

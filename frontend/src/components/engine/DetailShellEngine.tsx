@@ -1,8 +1,8 @@
 // components/Shells/DetailShellEngine.tsx
 import * as React from "react";
 import type { RecordModuleDefinition, DetailContext } from "@lib/registry/types";
-import type { ContextItem, AuditFeedItem } from "@/components/shel/MetaDataShell/types";
-import { DetailShell } from "@/components/shel/DetailShell";
+import type { ContextItem, AuditFeedItem } from "@/components/engine/MetaDataShell/types";
+import { DetailShell } from "@/components/engine/DetailShell";
 
 interface DetailShellEngineProps<T> {
     moduleDefinition: RecordModuleDefinition<T>;

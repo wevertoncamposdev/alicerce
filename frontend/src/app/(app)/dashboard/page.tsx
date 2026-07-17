@@ -5,7 +5,7 @@ import { useAudit } from "@/features/audit/hooks/useAudit";
 import { usePermissions } from "@/features/permissions/hooks/usePermissions";
 import { useRoles } from "@/features/roles/hooks/useRoles";
 import { useUsers } from "@/features/users/hooks/useUsers";
-import { DetailShell, PainelSearchShell } from "@/components/shel";
+import { DetailShell, PainelSearchShell } from "@/components/engine";
 import { Button } from "@components/ui/index";
 import App from "next/app";
 import { AppTopbar } from "@/components/layout/AppTopbar";
