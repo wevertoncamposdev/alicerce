@@ -1,5 +1,5 @@
 import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
-import type { ContextItem, AuditFeedItem } from "@components/shells/MetaDataShell/types";
+import type { ContextItem, AuditFeedItem } from "@/components/DetailView/MetaDataView/types";
 import type React from "react";
 
 export type RecordModuleDataHandlers<T> = {

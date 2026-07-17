@@ -1,18 +1,18 @@
 
 import { getModule } from "@lib/registry";
 import { createDataProvider } from "@lib/data-provider";
-import { AppTopbar } from "@components/layout/AppTopbar";
-import { RecordListHost } from "@components/layout/RecordListHost";
-import { TypeView, type TypeViewMode } from "@components/type-view/TypeView";
-import { ViewSwitcher } from "@components/type-view/ViewSwitcher";
+import { AppTopbar } from "@/components/Layout/AppTopbar";
+import { RecordListHost } from "@/components/Layout/RecordListHost";
+import { TypeView, type TypeViewMode } from "@/components/Type-View/TypeView";
+import { ViewSwitcher } from "@/components/Type-View/ViewSwitcher";
 
-import { CardsView } from "@components/type-view/cards-view/CardsView";
+import { CardsView } from "@/components/Type-View/CardsView/CardsView";
 
 import { FavoritesGraphView } from "@modules/favorites/components/FavoritesGraphView";
 import { FavoritesListView } from "@modules/favorites/components/FavoritesListView";
-import type { FavoriteEntity, CreateFavoritePayload } from "@modules/favorites/types";
-import { RecordSearch } from "@components/layout/RecordSearch";
-import { FormView } from "@/components/type-view/form-view/FormView";
+import type { FavoriteEntity, CreateFavoritePayload } from "@/modules/favorites/types/types";
+import { RecordSearch } from "@/components/Layout/RecordSearch";
+import { FormView } from "@/components/Type-View/FormView/FormView";
 import { createFavorite } from "@/modules/favorites/actions/actions";
 
 export default async function FavoritesPage({

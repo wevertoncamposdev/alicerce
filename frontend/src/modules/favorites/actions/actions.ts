@@ -1,6 +1,6 @@
 'use server';
 import { revalidatePath } from 'next/cache';
-import { CreateFavoritePayload, UpdateFavoritePayload } from '@modules/favorites/types';
+import { CreateFavoritePayload, UpdateFavoritePayload } from '@/modules/favorites/types/types';
 import { apiServer } from '@lib/api-server';
 
 export interface ActionState { ok: boolean; message?: string }

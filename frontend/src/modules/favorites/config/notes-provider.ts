@@ -1,7 +1,7 @@
 'use server';
 
 import { apiServer } from "@lib/api-server";
-import type { FavoriteNote } from "@modules/favorites/types";
+import type { FavoriteNote } from "@/modules/favorites/types/types";
 
 export async function listFavoriteNotes(favoriteId: string): Promise<FavoriteNote[]> {
     return apiServer.get<FavoriteNote[]>(`favorites/${favoriteId}/notes`);

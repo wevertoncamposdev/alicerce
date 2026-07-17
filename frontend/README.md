@@ -10,27 +10,46 @@ npm run build
 npm run start
 ```
 
+## Gestão
+
+Verificar se existe erros
+
+```bash
+npx tsc --noEmit
+```
+
+O Knip encontra e corrige dependências, exportações e arquivos não utilizados em seus projetos JavaScript e TypeScript. Menos código e menos dependências resultam em melhor desempenho, menos manutenção e refatorações mais fáceis.
+
+```bash
+npx knip
+```
+
 ## Arquitetura da Fase 2 - Telas Atualizadas
 
 **Todas as telas agora utilizam 100% das ferramentas implementadas:**
 
 ### Componentes Estruturais (Shells)
+
 - `DetailShell`: Layout principal com título, descrição e erro global
 - `SideShell`: Painel lateral para formulários e sidebars
 - `PainelSearchShell`: Seção com filtros, títulos e ações
 - `RelationShell`: Container para visualizar relações entre entidades
 
 ### Componentes de Dados
+
 - `TypeView`: Renderização flexível em modo table ou grid
 - `DataTable`: Tabela com Tanstack React Table, loading states e mensagens vazias
 
 ### Navegação e Autorização
+
 - `components/app-sidebar.tsx`: Navegação derivada de metadados (listRouteRules)
 - `lib/authz.ts`: Regras de acesso por rota e por ação
 - `contexts/auth-context.tsx`: Gerenciamento de sessão e tenant
 
 ### Telas Atualizadas (Junho 2026)
+
 Ver [SCREENS_UPDATES.md](./SCREENS_UPDATES.md) para detalhes completos:
+
 - ✅ Dashboard (/main/page.tsx)
 - ✅ Login (/auth/login/page.tsx)
 - ✅ Registro (/auth/register/page.tsx)

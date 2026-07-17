@@ -4,7 +4,7 @@ import { getCurrentUser } from "@lib/auth-server";
 import { canAccessRoute, resolveRoutePermission } from "@lib/authz";
 import { AuthProvider } from "@/contexts/auth-context";
 import { SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
-import { AppSidebar } from "@/components/layout/AppSidebar";
+import { AppSidebar } from "@/components/Layout/AppSidebar";
 import "@lib/registry/bootstrap";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {

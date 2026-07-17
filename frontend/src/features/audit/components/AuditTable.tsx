@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { TypeView } from "@components/type-view/TypeView";
+import { TypeView } from "@/components/Type-View/TypeView";
 import { AuditEntry } from "@/features/audit/audit.types";
 
 function formatDate(value: string) {
