@@ -5,12 +5,14 @@ import { SidebarTrigger } from "@components/ui/sidebar";
 type AppTopbarProps = {
     title: string;
     center?: React.ReactNode;
+    autosave?: React.ReactNode;
     actions?: React.ReactNode;
 };
 
 export function AppTopbar({
     title,
     center,
+    autosave,
     actions,
 }: AppTopbarProps) {
     return (
@@ -20,15 +22,15 @@ export function AppTopbar({
                 <SidebarTrigger />
                 <h1 className="text-lg font-semibold">{title}</h1>
             </div>
-
+            <div className="">
+                {autosave}
+            </div>
             <div className="flex-1 flex justify-center">
                 {center}
             </div>
-
             <div className="flex items-center gap-2 shrink-0">
                 {actions}
             </div>
-
         </div>
     );
 }

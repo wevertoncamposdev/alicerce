@@ -6,12 +6,12 @@ import {
     createFavorite,
     updateFavorite,
     deleteFavorite,
-} from "@lib/data-provider/rest/favorites";
+} from "./provider";
 import {
     parseFavoritesListState,
     serializeFavoritesListState,
 } from "@lib/query-state/favorites-query-state";
-import type { Favorite } from "@modules/favorites/types";
+import type { Favorite, FavoriteEntity } from "@modules/favorites/types";
 
 export const favoritesModule = defineRecordModule<Favorite>({
     model: "favorites",
@@ -25,6 +25,10 @@ export const favoritesModule = defineRecordModule<Favorite>({
         update: updateFavorite,
         delete: deleteFavorite,
     },
+    formFields: [
+        { name: "title", label: "Título", type: "text", required: true },
+        { name: "url", label: "URL", type: "url", required: true },
+    ],
     parseListState: parseFavoritesListState,
     serializeListState: serializeFavoritesListState,
 });

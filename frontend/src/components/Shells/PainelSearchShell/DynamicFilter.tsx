@@ -1,7 +1,7 @@
 // DynamicFilter.tsx — renderiza o input certo baseado no schema escolhido
 import { useState } from "react";
-import { FilterSelect } from "@components/Shells/PainelSearchShell/FilterSelect";
-import { SearchInput } from "@components/Shells/PainelSearchShell/SearchInput";
+import { FilterSelect } from "@/components/shells/PainelSearchShell/FilterSelect";
+import { SearchInput } from "@/components/shells/PainelSearchShell/SearchInput";
 
 export function DynamicFilter({ schema }: { schema: FilterSchema[] }) {
     const [activeKey, setActiveKey] = useState(schema[0]?.key);

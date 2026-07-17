@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Search } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Search, Put } from '@nestjs/common';
 import { SearchFavoritesDto } from './dto/search-favorite.dto';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { FavoritesService } from './favorites.service';

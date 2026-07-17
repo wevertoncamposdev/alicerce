@@ -51,7 +51,7 @@ export async function createFavorite(payload: unknown): Promise<Favorite> {
 }
 
 export async function updateFavorite(id: string, payload: unknown): Promise<Favorite> {
-    const response: Favorite = await apiServer.put(`favorites/${id}`, payload);
+    const response: Favorite = await apiServer.patch(`favorites/${id}`, payload);
     return response;
 }
 

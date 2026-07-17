@@ -31,6 +31,7 @@ export class AuditInterceptor implements NestInterceptor {
     const method = req.method;
     const url = req.originalUrl;
     const body = req.body;
+    const routeId = req.params?.id as string | undefined;
 
     return next.handle().pipe(
       tap((result) => {
@@ -43,12 +44,21 @@ export class AuditInterceptor implements NestInterceptor {
           tenantId ?? user?.tenantId ?? result?.tenant?.id ?? result?.user?.tenantId;
         const resolvedUserId = user?.id ?? user?.sub ?? result?.user?.id;
 
+        // Extrai o nome do recurso da URL, ignorando prefixo /api e,
+        // quando existir, o segmento tenant/:tenantId/.
+        // "/api/favorites/019f..."        -> "favorites"
+        // "/api/tenant/abc/audit"         -> "audit"
+        // "/api/tenant/abc/favorites/xy"  -> "favorites"
+        const resourceMatch = url.match(/^\/api\/(?:tenant\/[^/]+\/)?([^/?]+)/);
+        const resource = resourceMatch?.[1] ?? url;
+
         void this.auditService
           .register({
             tenantId: resolvedTenantId,
             userId: resolvedUserId,
             action: method,
-            entity: url,
+            entity: resource,
+            entityId: routeId ?? (result?.id as string | undefined),
             payload: this.sanitizePayload(body),
           })
           .catch(() => {

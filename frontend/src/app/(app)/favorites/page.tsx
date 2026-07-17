@@ -11,8 +11,10 @@ import { CardsView } from "@components/type-view/cards-view/CardsView";
 import { FavoriteCreateForm } from "@modules/favorites/components/FavoritesCreateForm";
 import { FavoritesGraphView } from "@modules/favorites/components/FavoritesGraphView";
 import { FavoritesListView } from "@modules/favorites/components/FavoritesListView";
-import type { FavoriteEntity } from "@modules/favorites/types";
+import type { FavoriteEntity, CreateFavoritePayload } from "@modules/favorites/types";
 import { RecordSearch } from "@components/layout/RecordSearch";
+import { FormView } from "@/components/type-view/form-view/FormView";
+import { createFavorite } from "@/modules/favorites/actions/actions";
 
 export default async function FavoritesPage({
     searchParams,
@@ -52,7 +54,13 @@ export default async function FavoritesPage({
                         listView={<FavoritesListView data={result.data} />}
                         graphView={<FavoritesGraphView data={result.data} />}
                         cardsView={<CardsView data={result.data} detail="/favorites" />}
-                        formView={<FavoriteCreateForm />}
+                        formView={
+                            <FormView<FavoriteEntity>
+                                mode="create"
+                                fields={favoritesModule.formFields}
+                                createAction={createFavorite}
+                            />
+                        }
                     />
                 </RecordListHost>
             </div>

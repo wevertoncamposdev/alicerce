@@ -16,6 +16,7 @@ type ApiServerOptions = {
     method?: HttpMethod;
     body?: unknown;
     cache?: RequestCache;
+    query?: Record<string, string | undefined>;
 };
 
 export class ApiServerError extends Error {
@@ -31,7 +32,7 @@ export class ApiServerError extends Error {
 }
 
 async function request<T>(path: string, options: ApiServerOptions = {}): Promise<T> {
-    const { method = "GET", body, cache = "no-store" } = options;
+    const { method = "GET", body, cache = "no-store", query } = options;
 
     const token = await getSessionToken();
 
@@ -50,7 +51,16 @@ async function request<T>(path: string, options: ApiServerOptions = {}): Promise
 
     const cleanBase = INTERNAL_API_URL.replace(/\/+$/, "");
     const cleanPath = path.replace(/^\/+/, "");
-    const url = `${cleanBase}/${cleanPath}`;
+    const searchParams = new URLSearchParams();
+
+    if (query) {
+        for (const [key, value] of Object.entries(query)) {
+            if (value !== undefined) searchParams.set(key, value);
+        }
+    }
+
+    const queryString = searchParams.toString();
+    const url = `${cleanBase}/${cleanPath}${queryString ? `?${queryString}` : ""}`;
 
     const response = await fetch(url, {
         method,
@@ -89,8 +99,8 @@ async function search<T>(path: string, body: unknown): Promise<T> {
 
 export const apiServer = {
     search,
-    get: <T>(path: string, options?: { cache?: RequestCache }) =>
-        request<T>(path, { method: "GET", cache: options?.cache }),
+    get: <T>(path: string, options?: { cache?: RequestCache, query?: Record<string, string | undefined> }) =>
+        request<T>(path, { method: "GET", cache: options?.cache, query: options?.query }),
 
     post: <T>(path: string, body?: unknown) => request<T>(path, { method: "POST", body }),
 
