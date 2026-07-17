@@ -11,6 +11,7 @@ export type RecordModuleDataHandlers<T> = {
 export type FormFieldConfig<T> = {
     name: keyof T & string;
     label: string;
+    placeholder?: string;
     type: "text" | "url" | "textarea";
     required?: boolean;
 };

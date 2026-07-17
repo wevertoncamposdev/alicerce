@@ -26,8 +26,8 @@ export const favoritesModule = defineRecordModule<Favorite>({
         delete: deleteFavorite,
     },
     formFields: [
-        { name: "title", label: "Título", type: "text", required: true },
-        { name: "url", label: "URL", type: "url", required: true },
+        { name: "title", label: "Título", placeholder: "Digite o título", type: "text", required: true },
+        { name: "url", label: "URL", placeholder: "Digite a URL", type: "url", required: true },
     ],
     parseListState: parseFavoritesListState,
     serializeListState: serializeFavoritesListState,

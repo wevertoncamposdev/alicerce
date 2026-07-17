@@ -9,6 +9,7 @@ import { useAutoSaveController } from "@/hooks/use-autosave-controller";
 import { autoSaveRecord } from "@lib/registry/actions";
 import type { FormFieldConfig } from "@lib/registry/types";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
+import { Label } from "@components/ui/label";
 
 type ActionState = { ok: boolean; message?: string };
 
@@ -51,14 +52,20 @@ function CreateFormView<T extends object>({
 
     return (
         <form action={formAction} className="flex flex-col gap-2 mt-4">
+
             {fields.map((field) => (
-                <Input
-                    key={field.name}
-                    id={field.name}
-                    name={field.name}
-                    variant="inline-detail"
-                    className="flex-1 min-w-0"
-                />
+                <div key={field.name} className="flex flex-col gap-1">
+                    <Label htmlFor={field.name} className="text-sm font-medium text-gray-700">
+                        {field.label}
+                    </Label>
+                    <Input
+                        id={field.name}
+                        name={field.name}
+                        placeholder={field.placeholder}
+                        variant="inline-detail"
+                        className="flex-1 min-w-0"
+                    />
+                </div>
             ))}
             <Button type="submit" disabled={isPending} variant="save" size="sm">
                 {isPending ? "Criando..." : "Criar"}
@@ -114,6 +121,9 @@ function EditFormView<T extends object>({
         <div className="flex flex-col gap-4">
             {fields.map((field) => (
                 <div key={field.name} className="space-y-1.5">
+                    <Label htmlFor={field.name} className="text-sm font-medium text-gray-700">
+                        {field.label}
+                    </Label>
                     <Input
                         id={field.name}
                         name={field.name}
