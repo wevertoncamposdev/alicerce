@@ -2,7 +2,6 @@
 model User {
     id       String @id @default(uuid(7)) @db.Uuid
     tenantId String @db.Uuid
-
     email    String @unique @db.VarChar(255)
     password String @db.VarChar(100)
 
@@ -21,6 +20,7 @@ model User {
     tasksAssignedTo Task[]         @relation("taskAssignedTo")
     favorites       Favorite[]
     refreshTokens   RefreshToken[]
+    favoriteNotes   FavoriteNote[]
 
     @@unique([tenantId, email])
     @@map("users")

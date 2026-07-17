@@ -40,3 +40,10 @@ export interface Favorite {
 export interface FavoriteChartsProps {
     favorites: FavoriteEntity[]
 }
+
+export type FavoriteNote = {
+    id: string;
+    content: string;
+    createdAt: string;
+    user: { id: string; email: string };
+};

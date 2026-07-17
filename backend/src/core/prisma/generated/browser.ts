@@ -28,10 +28,10 @@ export type RefreshToken = Prisma.RefreshTokenModel
  */
 export type Favorite = Prisma.FavoriteModel
 /**
- * Model Audit
+ * Model FavoriteNote
  * 
  */
-export type Audit = Prisma.AuditModel
+export type FavoriteNote = Prisma.FavoriteNoteModel
 /**
  * Model Person
  * 
@@ -92,6 +92,11 @@ export type Permission = Prisma.PermissionModel
  * 
  */
 export type RolePermission = Prisma.RolePermissionModel
+/**
+ * Model Audit
+ * 
+ */
+export type Audit = Prisma.AuditModel
 /**
  * Model Tenant
  * Main organizational entity of the system.
