@@ -9,7 +9,6 @@ import type { UpdateFavoritePayload, FavoriteEntity } from "@modules/favorites/t
 import type { AuditFeedItem, ContextItem } from "@components/shells/MetaDataShell/types";
 import { MetaDataSidebar } from "@/components/shells/MetaDataShell/MetaDataSidebar";
 import { AppTopbar } from "@/components/layout/AppTopbar";
-import { ViewSwitcher } from "@/components/type-view/ViewSwitcher";
 import { AutoSaveStatusProvider } from "@/contexts/autosave-status-context";
 import { AutoSaveIndicator } from "@/components/layout/AutoSaveIndicator";
 

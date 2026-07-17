@@ -8,7 +8,6 @@ import { ViewSwitcher } from "@components/type-view/ViewSwitcher";
 
 import { CardsView } from "@components/type-view/cards-view/CardsView";
 
-import { FavoriteCreateForm } from "@modules/favorites/components/FavoritesCreateForm";
 import { FavoritesGraphView } from "@modules/favorites/components/FavoritesGraphView";
 import { FavoritesListView } from "@modules/favorites/components/FavoritesListView";
 import type { FavoriteEntity, CreateFavoritePayload } from "@modules/favorites/types";
