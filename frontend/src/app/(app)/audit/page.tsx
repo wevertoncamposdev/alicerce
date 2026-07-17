@@ -3,7 +3,7 @@ import { apiServer, ApiServerError } from "@lib/api-server";
 import { AuditEntry } from "@/features/audit/audit.types";
 import AuditTable from "@/features/audit/components/AuditTable";
 import AuditRefreshButton from "@/features/audit/components/AuditRefreshButton";
-import { DetailShell, PainelSearchShell } from "@/components/shells";
+import { DetailShell, PainelSearchShell } from "@/components/shel";
 
 // Server Component: os dados são buscados aqui, no servidor, direto via
 // `apiServer` (que lê o cookie httpOnly com `lib/session.ts`). Não há mais

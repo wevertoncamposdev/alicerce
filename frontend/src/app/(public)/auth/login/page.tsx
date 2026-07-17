@@ -1,4 +1,4 @@
-import { SideShell } from "@/components/shells";
+import { SideShell } from "@/components/shel";
 import { LoginForm } from "@/features/auth/components/LoginForm";
 
 export default function LoginPage() {
