@@ -7,12 +7,12 @@ import {
 import {
     parseFavoritesListState, serializeFavoritesListState,
 } from "@lib/query-state/favorites-query-state";
-import type { Favorite, FavoriteEntity } from "@modules/favorites/types";
+import type { Favorite, FavoriteEntity } from "@/modules/favorites/types/types";
 
-import { FormView } from "@components/type-view/form-view/FormView";
-import { MetaDataShell } from "@/components/shells/MetaDataShell";
-import { MetaDataSidebar } from "@/components/shells/MetaDataShell/MetaDataSidebar";
-import { RelationTablePanel } from "@/components/shells/RelationShell/RelationTablePanel";
+import { FormView } from "@/components/Type-View/FormView/FormView";
+import { MetaDataShell } from "@/components/DetailView/MetaDataView";
+import { MetaDataSidebar } from "@/components/DetailView/MetaDataView/MetaDataSidebar";
+import { RelationTablePanel } from "@/components/DetailView/RelationView/RelationTablePanel";
 import { listFavoriteNotes } from "./notes-provider";
 
 const formFields = [

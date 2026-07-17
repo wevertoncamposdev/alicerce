@@ -6,7 +6,7 @@ import { ContextPanel } from "./ContextPanel";
 import { AuditPanel } from "./AuditPanel";
 import type { AuditFeedItem, ContextItem } from "./types";
 
-type MetaDataShellProps = {
+type MetaDataViewProps = {
     contextItems: ContextItem[];
     auditItems?: AuditFeedItem[];
     defaultTab?: string;
@@ -17,7 +17,7 @@ type MetaDataShellProps = {
     attachments?: { items: unknown[] };
 };
 
-export function MetaDataShell({
+export function MetaDataView({
     contextItems,
     auditItems,
     defaultTab = "context",
@@ -25,7 +25,7 @@ export function MetaDataShell({
     notes,
     tags,
     attachments,
-}: MetaDataShellProps) {
+}: MetaDataViewProps) {
     const tabs = React.useMemo(() => {
         const list: { value: string; label: string; badge?: number; content: React.ReactNode }[] = [
             { value: "context", label: "Contexto", content: <ContextPanel items={contextItems} /> },

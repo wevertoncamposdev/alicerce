@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { TypeViewMode } from "@components/type-view/TypeView";
+import type { TypeViewMode } from "@/components/Type-View/TypeView";
 
 const VIEW_OPTIONS = [
     {

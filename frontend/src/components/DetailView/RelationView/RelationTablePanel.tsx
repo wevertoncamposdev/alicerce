@@ -14,7 +14,7 @@ import { Button } from "@components/ui/button";
 import { Trash2 } from "lucide-react";
 import { RelationListHost } from "./RelationListHost";
 import { createFavoriteNote, deleteFavoriteNote } from "@modules/favorites/config/notes-provider";
-import type { FavoriteNote } from "@modules/favorites/types";
+import type { FavoriteNote } from "@/modules/favorites/types/types";
 
 type RelationTablePanelProps = {
     favoriteId: string;

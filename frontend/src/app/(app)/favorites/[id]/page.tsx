@@ -1,12 +1,12 @@
 import { getModule } from "@lib/registry";
 import { createDataProvider } from "@lib/data-provider";
 import { getEntityAuditTrail } from "@lib/data-provider/rest/audit";
-import { DetailShellEngine } from "@/components/shells/DetailShellEngine";
-import { AppTopbar } from "@/components/layout/AppTopbar";
+import { DetailView } from "@/components/DetailView/DetailView";
+import { AppTopbar } from "@/components/Layout/AppTopbar";
 import { AutoSaveStatusProvider } from "@/contexts/autosave-status-context";
-import { AutoSaveIndicator } from "@/components/layout/AutoSaveIndicator";
-import type { ContextItem, AuditFeedItem } from "@/components/shells/MetaDataShell/types";
-import type { FavoriteEntity } from "@modules/favorites/types";
+import { AutoSaveIndicator } from "@/components/Layout/AutoSaveIndicator";
+import type { ContextItem, AuditFeedItem } from "@/components/DetailView/MetaDataView/types";
+import type { FavoriteEntity } from "@/modules/favorites/types/types";
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -39,7 +39,7 @@ export default async function FavoriteDetailPage({ params }: PageProps) {
         <AutoSaveStatusProvider>
             <AppTopbar title={favoritesModule.label} autosave={<AutoSaveIndicator />} />
             <div className="px-4 py-2">
-                <DetailShellEngine<FavoriteEntity>
+                <DetailView<FavoriteEntity>
                     moduleDefinition={favoritesModule}
                     record={favorite}
                     contextItems={contextItems}

@@ -4,9 +4,11 @@ Este diretório é um template de estrutura para novos módulos/features do fron
 
 ## Estrutura
 
-```
+```bash
 _template/
+├── actions/        # Serviços de API - Actions Forms
 ├── components/     # Componentes React da feature
+├── config/         # Configuração do Módulo, contract, providers...
 ├── hooks/          # Custom hooks da feature
 ├── services/       # Serviços de API
 ├── types/          # Tipos/Interfaces da feature
@@ -24,6 +26,7 @@ _template/
 ## Padrões por arquivo
 
 ### `types/*.ts`
+
 Define tipos/interfaces da feature. Exemplo:
 
 ```typescript
@@ -39,6 +42,7 @@ export interface EntityPayload {
 ```
 
 ### `constants/*.ts`
+
 Constantes, valores padrão e mapeamentos. Exemplo:
 
 ```typescript
@@ -51,6 +55,7 @@ export const ENTITY_STATUS_OPTIONS = [
 ```
 
 ### `services/*.ts`
+
 Serviços de API usando `apiRequest`. Exemplo:
 
 ```typescript
@@ -65,6 +70,7 @@ export async function fetchEntities(token: string) {
 ```
 
 ### `hooks/*.ts`
+
 Custom hooks que gerenciam estado e lógica da feature. Exemplo:
 
 ```typescript
@@ -91,12 +97,14 @@ export function useEntities() {
 ```
 
 Padrão de estados:
+
 - `loading`: booleano para carregamento inicial
 - `saving`: booleano para mutações (create, update, delete)
 - `error`: string | null com mensagem de erro
 - `reload`: função async para recarregar dados
 
 ### `components/*.tsx`
+
 Componentes React que consomem hooks e shells. Exemplo:
 
 ```typescript
@@ -134,6 +142,7 @@ export default function EntityList() {
 ## Padrões do projeto
 
 ### Tenant-aware
+
 Sempre passar `tenantId` em contexto via localStorage ou props:
 
 ```typescript
@@ -143,6 +152,7 @@ const data = await fetchData({ token, tenantId: currentTenantId });
 ```
 
 ### Autorizacao
+
 Sempre validar permissões em componentes antes de renderizar ações:
 
 ```typescript
@@ -154,6 +164,7 @@ if (!hasPermission('entity.create')) {
 ```
 
 ### Estados async
+
 Sempre retornar `{ loading, saving, error, reload }` dos hooks:
 
 ```typescript
@@ -169,6 +180,7 @@ export function useEntity() {
 ```
 
 ### Composição de telas
+
 Usar shells padrão (`DetailShell`, `PainelSearchShell`, `SideShell`) para consistência:
 
 ```typescript
@@ -182,21 +194,25 @@ Usar shells padrão (`DetailShell`, `PainelSearchShell`, `SideShell`) para consi
 ## Exemplos completos
 
 Veja os módulos existentes:
+
 - `features/users/` - Exemplo completo de CRUD com usuários
 - `features/roles/` - Exemplo com relações (Role-User, Role-Permission)
 - `features/tenants/` - Exemplo com contexto de tenant
 
 ## Troubleshooting
 
-**Erro: "Sem permissão para criar"**
+### Erro: "Sem permissão para criar"
+
 - Verifique se o usuário tem a permissão no backend
 - Valide `hasPermission()` antes de renderizar o botão
 
-**Dados não atualizam ao trocar tenant**
+### Dados não atualizam ao trocar tenant
+
 - Verifique se `reload()` eh chamado quando `currentTenantId` muda
 - Use `useCallback` com dependências corretas
 
-**TypeScript error em tipos**
+### TypeScript error em tipos
+
 - Certifique-se de que tipos sao exportados corretamente
 - Verifique imports em `types/*.ts`
 
