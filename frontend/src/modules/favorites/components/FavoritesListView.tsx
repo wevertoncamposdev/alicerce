@@ -1,7 +1,7 @@
 // components/type-view/list-view/FavoritesListView.tsx
 "use client";
 
-import { ListView } from "@/components/Type-View/ListView/ListView";
+import { ListView } from "@/components/TypeView/ListView/ListView";
 import { favoriteColumns } from "@modules/favorites/components/columns";
 import type { FavoriteEntity } from "@/modules/favorites/types/types";
 

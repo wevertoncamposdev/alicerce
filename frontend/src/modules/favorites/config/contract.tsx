@@ -9,7 +9,7 @@ import {
 } from "@lib/query-state/favorites-query-state";
 import type { Favorite, FavoriteEntity } from "@/modules/favorites/types/types";
 
-import { FormView } from "@/components/Type-View/FormView/FormView";
+import { FormView } from "@/components/TypeView/FormView/FormView";
 import { MetaDataShell } from "@/components/DetailView/MetaDataView";
 import { MetaDataSidebar } from "@/components/DetailView/MetaDataView/MetaDataSidebar";
 import { RelationTablePanel } from "@/components/DetailView/RelationView/RelationTablePanel";

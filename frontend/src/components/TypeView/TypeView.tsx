@@ -1,7 +1,7 @@
 // components/type-view/TypeView.tsx
-import { CardsView } from "@/components/Type-View/CardsView/CardsView";
-import { TextView } from "@/components/Type-View/TextView/TextView";
-import { FormView } from "@/components/Type-View/FormView/FormView";
+import { CardsView } from "@/components/TypeView/CardsView/CardsView";
+import { TextView } from "@/components/TypeView/TextView/TextView";
+import { FormView } from "@/components/TypeView/FormView/FormView";
 
 export type TypeViewMode = "list" | "cards" | "graph" | "text" | "form";
 
