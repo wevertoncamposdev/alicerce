@@ -484,6 +484,7 @@ export type TenantWhereInput = {
   reports?: Prisma.ReportListRelationFilter
   tasks?: Prisma.TaskListRelationFilter
   favorites?: Prisma.FavoriteListRelationFilter
+  favoriteNotes?: Prisma.FavoriteNoteListRelationFilter
 }
 
 export type TenantOrderByWithRelationInput = {
@@ -542,6 +543,7 @@ export type TenantOrderByWithRelationInput = {
   reports?: Prisma.ReportOrderByRelationAggregateInput
   tasks?: Prisma.TaskOrderByRelationAggregateInput
   favorites?: Prisma.FavoriteOrderByRelationAggregateInput
+  favoriteNotes?: Prisma.FavoriteNoteOrderByRelationAggregateInput
 }
 
 export type TenantWhereUniqueInput = Prisma.AtLeast<{
@@ -603,6 +605,7 @@ export type TenantWhereUniqueInput = Prisma.AtLeast<{
   reports?: Prisma.ReportListRelationFilter
   tasks?: Prisma.TaskListRelationFilter
   favorites?: Prisma.FavoriteListRelationFilter
+  favoriteNotes?: Prisma.FavoriteNoteListRelationFilter
 }, "id" | "legalName" | "registrationNumber" | "slug">
 
 export type TenantOrderByWithAggregationInput = {
@@ -755,6 +758,7 @@ export type TenantCreateInput = {
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateInput = {
@@ -813,6 +817,7 @@ export type TenantUncheckedCreateInput = {
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUpdateInput = {
@@ -871,6 +876,7 @@ export type TenantUpdateInput = {
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateInput = {
@@ -929,6 +935,7 @@ export type TenantUncheckedUpdateInput = {
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateManyInput = {
@@ -1214,18 +1221,18 @@ export type TenantUpdateOneRequiredWithoutFavoritesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutFavoritesInput, Prisma.TenantUpdateWithoutFavoritesInput>, Prisma.TenantUncheckedUpdateWithoutFavoritesInput>
 }
 
-export type TenantCreateNestedOneWithoutAuditsInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutAuditsInput, Prisma.TenantUncheckedCreateWithoutAuditsInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutAuditsInput
+export type TenantCreateNestedOneWithoutFavoriteNotesInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutFavoriteNotesInput, Prisma.TenantUncheckedCreateWithoutFavoriteNotesInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutFavoriteNotesInput
   connect?: Prisma.TenantWhereUniqueInput
 }
 
-export type TenantUpdateOneRequiredWithoutAuditsNestedInput = {
-  create?: Prisma.XOR<Prisma.TenantCreateWithoutAuditsInput, Prisma.TenantUncheckedCreateWithoutAuditsInput>
-  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutAuditsInput
-  upsert?: Prisma.TenantUpsertWithoutAuditsInput
+export type TenantUpdateOneRequiredWithoutFavoriteNotesNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutFavoriteNotesInput, Prisma.TenantUncheckedCreateWithoutFavoriteNotesInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutFavoriteNotesInput
+  upsert?: Prisma.TenantUpsertWithoutFavoriteNotesInput
   connect?: Prisma.TenantWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutAuditsInput, Prisma.TenantUpdateWithoutAuditsInput>, Prisma.TenantUncheckedUpdateWithoutAuditsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutFavoriteNotesInput, Prisma.TenantUpdateWithoutFavoriteNotesInput>, Prisma.TenantUncheckedUpdateWithoutFavoriteNotesInput>
 }
 
 export type TenantCreateNestedOneWithoutPeopleInput = {
@@ -1338,6 +1345,20 @@ export type TenantUpdateOneRequiredWithoutRolePermissionsNestedInput = {
   upsert?: Prisma.TenantUpsertWithoutRolePermissionsInput
   connect?: Prisma.TenantWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutRolePermissionsInput, Prisma.TenantUpdateWithoutRolePermissionsInput>, Prisma.TenantUncheckedUpdateWithoutRolePermissionsInput>
+}
+
+export type TenantCreateNestedOneWithoutAuditsInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutAuditsInput, Prisma.TenantUncheckedCreateWithoutAuditsInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutAuditsInput
+  connect?: Prisma.TenantWhereUniqueInput
+}
+
+export type TenantUpdateOneRequiredWithoutAuditsNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutAuditsInput, Prisma.TenantUncheckedCreateWithoutAuditsInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutAuditsInput
+  upsert?: Prisma.TenantUpsertWithoutAuditsInput
+  connect?: Prisma.TenantWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutAuditsInput, Prisma.TenantUpdateWithoutAuditsInput>, Prisma.TenantUncheckedUpdateWithoutAuditsInput>
 }
 
 export type EnumTenantCategoryFieldUpdateOperationsInput = {
@@ -1471,6 +1492,7 @@ export type TenantCreateWithoutFavoritesInput = {
   people?: Prisma.PersonCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutFavoritesInput = {
@@ -1528,6 +1550,7 @@ export type TenantUncheckedCreateWithoutFavoritesInput = {
   people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutFavoritesInput = {
@@ -1601,6 +1624,7 @@ export type TenantUpdateWithoutFavoritesInput = {
   people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutFavoritesInput = {
@@ -1658,9 +1682,10 @@ export type TenantUncheckedUpdateWithoutFavoritesInput = {
   people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
-export type TenantCreateWithoutAuditsInput = {
+export type TenantCreateWithoutFavoriteNotesInput = {
   id?: string
   legalName: string
   tradeName?: string | null
@@ -1708,6 +1733,7 @@ export type TenantCreateWithoutAuditsInput = {
   userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
   rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
   permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditCreateNestedManyWithoutTenantInput
   boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
   boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
   documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
@@ -1717,7 +1743,7 @@ export type TenantCreateWithoutAuditsInput = {
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
 }
 
-export type TenantUncheckedCreateWithoutAuditsInput = {
+export type TenantUncheckedCreateWithoutFavoriteNotesInput = {
   id?: string
   legalName: string
   tradeName?: string | null
@@ -1765,6 +1791,7 @@ export type TenantUncheckedCreateWithoutAuditsInput = {
   userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
   rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
   permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutTenantInput
   boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
   boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
   documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
@@ -1774,23 +1801,23 @@ export type TenantUncheckedCreateWithoutAuditsInput = {
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
 }
 
-export type TenantCreateOrConnectWithoutAuditsInput = {
+export type TenantCreateOrConnectWithoutFavoriteNotesInput = {
   where: Prisma.TenantWhereUniqueInput
-  create: Prisma.XOR<Prisma.TenantCreateWithoutAuditsInput, Prisma.TenantUncheckedCreateWithoutAuditsInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutFavoriteNotesInput, Prisma.TenantUncheckedCreateWithoutFavoriteNotesInput>
 }
 
-export type TenantUpsertWithoutAuditsInput = {
-  update: Prisma.XOR<Prisma.TenantUpdateWithoutAuditsInput, Prisma.TenantUncheckedUpdateWithoutAuditsInput>
-  create: Prisma.XOR<Prisma.TenantCreateWithoutAuditsInput, Prisma.TenantUncheckedCreateWithoutAuditsInput>
+export type TenantUpsertWithoutFavoriteNotesInput = {
+  update: Prisma.XOR<Prisma.TenantUpdateWithoutFavoriteNotesInput, Prisma.TenantUncheckedUpdateWithoutFavoriteNotesInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutFavoriteNotesInput, Prisma.TenantUncheckedCreateWithoutFavoriteNotesInput>
   where?: Prisma.TenantWhereInput
 }
 
-export type TenantUpdateToOneWithWhereWithoutAuditsInput = {
+export type TenantUpdateToOneWithWhereWithoutFavoriteNotesInput = {
   where?: Prisma.TenantWhereInput
-  data: Prisma.XOR<Prisma.TenantUpdateWithoutAuditsInput, Prisma.TenantUncheckedUpdateWithoutAuditsInput>
+  data: Prisma.XOR<Prisma.TenantUpdateWithoutFavoriteNotesInput, Prisma.TenantUncheckedUpdateWithoutFavoriteNotesInput>
 }
 
-export type TenantUpdateWithoutAuditsInput = {
+export type TenantUpdateWithoutFavoriteNotesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   legalName?: Prisma.StringFieldUpdateOperationsInput | string
   tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1838,6 +1865,7 @@ export type TenantUpdateWithoutAuditsInput = {
   userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
   rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
   permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutTenantNestedInput
   boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
   boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
   documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
@@ -1847,7 +1875,7 @@ export type TenantUpdateWithoutAuditsInput = {
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
 }
 
-export type TenantUncheckedUpdateWithoutAuditsInput = {
+export type TenantUncheckedUpdateWithoutFavoriteNotesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   legalName?: Prisma.StringFieldUpdateOperationsInput | string
   tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1895,6 +1923,7 @@ export type TenantUncheckedUpdateWithoutAuditsInput = {
   userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
   rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
   permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutTenantNestedInput
   boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
   boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
   documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
@@ -1959,6 +1988,7 @@ export type TenantCreateWithoutPeopleInput = {
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutPeopleInput = {
@@ -2016,6 +2046,7 @@ export type TenantUncheckedCreateWithoutPeopleInput = {
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutPeopleInput = {
@@ -2089,6 +2120,7 @@ export type TenantUpdateWithoutPeopleInput = {
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutPeopleInput = {
@@ -2146,6 +2178,7 @@ export type TenantUncheckedUpdateWithoutPeopleInput = {
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutReportsInput = {
@@ -2203,6 +2236,7 @@ export type TenantCreateWithoutReportsInput = {
   people?: Prisma.PersonCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutReportsInput = {
@@ -2260,6 +2294,7 @@ export type TenantUncheckedCreateWithoutReportsInput = {
   people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutReportsInput = {
@@ -2333,6 +2368,7 @@ export type TenantUpdateWithoutReportsInput = {
   people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutReportsInput = {
@@ -2390,6 +2426,7 @@ export type TenantUncheckedUpdateWithoutReportsInput = {
   people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutTasksInput = {
@@ -2447,6 +2484,7 @@ export type TenantCreateWithoutTasksInput = {
   people?: Prisma.PersonCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutTasksInput = {
@@ -2504,6 +2542,7 @@ export type TenantUncheckedCreateWithoutTasksInput = {
   people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutTasksInput = {
@@ -2577,6 +2616,7 @@ export type TenantUpdateWithoutTasksInput = {
   people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutTasksInput = {
@@ -2634,6 +2674,7 @@ export type TenantUncheckedUpdateWithoutTasksInput = {
   people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutUsersInput = {
@@ -2691,6 +2732,7 @@ export type TenantCreateWithoutUsersInput = {
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutUsersInput = {
@@ -2748,6 +2790,7 @@ export type TenantUncheckedCreateWithoutUsersInput = {
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutUsersInput = {
@@ -2821,6 +2864,7 @@ export type TenantUpdateWithoutUsersInput = {
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutUsersInput = {
@@ -2878,6 +2922,7 @@ export type TenantUncheckedUpdateWithoutUsersInput = {
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutRolesInput = {
@@ -2935,6 +2980,7 @@ export type TenantCreateWithoutRolesInput = {
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutRolesInput = {
@@ -2992,6 +3038,7 @@ export type TenantUncheckedCreateWithoutRolesInput = {
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutRolesInput = {
@@ -3065,6 +3112,7 @@ export type TenantUpdateWithoutRolesInput = {
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutRolesInput = {
@@ -3122,6 +3170,7 @@ export type TenantUncheckedUpdateWithoutRolesInput = {
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutUserRolesInput = {
@@ -3179,6 +3228,7 @@ export type TenantCreateWithoutUserRolesInput = {
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutUserRolesInput = {
@@ -3236,6 +3286,7 @@ export type TenantUncheckedCreateWithoutUserRolesInput = {
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutUserRolesInput = {
@@ -3309,6 +3360,7 @@ export type TenantUpdateWithoutUserRolesInput = {
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutUserRolesInput = {
@@ -3366,6 +3418,7 @@ export type TenantUncheckedUpdateWithoutUserRolesInput = {
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutPermissionsInput = {
@@ -3423,6 +3476,7 @@ export type TenantCreateWithoutPermissionsInput = {
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutPermissionsInput = {
@@ -3480,6 +3534,7 @@ export type TenantUncheckedCreateWithoutPermissionsInput = {
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutPermissionsInput = {
@@ -3553,6 +3608,7 @@ export type TenantUpdateWithoutPermissionsInput = {
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutPermissionsInput = {
@@ -3610,6 +3666,7 @@ export type TenantUncheckedUpdateWithoutPermissionsInput = {
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutRolePermissionsInput = {
@@ -3667,6 +3724,7 @@ export type TenantCreateWithoutRolePermissionsInput = {
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutRolePermissionsInput = {
@@ -3724,6 +3782,7 @@ export type TenantUncheckedCreateWithoutRolePermissionsInput = {
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutRolePermissionsInput = {
@@ -3797,6 +3856,7 @@ export type TenantUpdateWithoutRolePermissionsInput = {
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutRolePermissionsInput = {
@@ -3854,6 +3914,255 @@ export type TenantUncheckedUpdateWithoutRolePermissionsInput = {
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantCreateWithoutAuditsInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
+}
+
+export type TenantUncheckedCreateWithoutAuditsInput = {
+  id?: string
+  legalName: string
+  tradeName?: string | null
+  registrationNumber: string
+  slug: string
+  description?: string | null
+  mission?: string | null
+  vision?: string | null
+  values?: string | null
+  category: $Enums.TenantCategory
+  primaryServiceArea: $Enums.TenantServiceArea
+  partnershipType?: $Enums.PartnershipType
+  coverageArea?: $Enums.CoverageArea | null
+  organizationSize?: $Enums.OrganizationSize | null
+  foundedAt?: Date | string | null
+  closedAt?: Date | string | null
+  street?: string | null
+  number?: string | null
+  district?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country?: string | null
+  complement?: string | null
+  reference?: string | null
+  phone?: string | null
+  mobilePhone?: string | null
+  email?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  usesVolunteers?: boolean
+  acceptsDonations?: boolean
+  hasGovernmentPartnership?: boolean
+  isNonProfit?: boolean
+  notes?: string | null
+  status?: $Enums.Status
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutTenantInput
+  userRoles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutTenantInput
+  rolePermissions?: Prisma.RolePermissionUncheckedCreateNestedManyWithoutTenantInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutTenantInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedCreateNestedManyWithoutTenantInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedCreateNestedManyWithoutTenantInput
+  documents?: Prisma.TenantDocumentUncheckedCreateNestedManyWithoutTenantInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutTenantInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
+}
+
+export type TenantCreateOrConnectWithoutAuditsInput = {
+  where: Prisma.TenantWhereUniqueInput
+  create: Prisma.XOR<Prisma.TenantCreateWithoutAuditsInput, Prisma.TenantUncheckedCreateWithoutAuditsInput>
+}
+
+export type TenantUpsertWithoutAuditsInput = {
+  update: Prisma.XOR<Prisma.TenantUpdateWithoutAuditsInput, Prisma.TenantUncheckedUpdateWithoutAuditsInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutAuditsInput, Prisma.TenantUncheckedCreateWithoutAuditsInput>
+  where?: Prisma.TenantWhereInput
+}
+
+export type TenantUpdateToOneWithWhereWithoutAuditsInput = {
+  where?: Prisma.TenantWhereInput
+  data: Prisma.XOR<Prisma.TenantUpdateWithoutAuditsInput, Prisma.TenantUncheckedUpdateWithoutAuditsInput>
+}
+
+export type TenantUpdateWithoutAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantUncheckedUpdateWithoutAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  tradeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mission?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  values?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumTenantCategoryFieldUpdateOperationsInput | $Enums.TenantCategory
+  primaryServiceArea?: Prisma.EnumTenantServiceAreaFieldUpdateOperationsInput | $Enums.TenantServiceArea
+  partnershipType?: Prisma.EnumPartnershipTypeFieldUpdateOperationsInput | $Enums.PartnershipType
+  coverageArea?: Prisma.NullableEnumCoverageAreaFieldUpdateOperationsInput | $Enums.CoverageArea | null
+  organizationSize?: Prisma.NullableEnumOrganizationSizeFieldUpdateOperationsInput | $Enums.OrganizationSize | null
+  foundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  zipCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  complement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobilePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usesVolunteers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  acceptsDonations?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasGovernmentPartnership?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNonProfit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  serviceAreas?: Prisma.TenantAreaUncheckedUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutTenantNestedInput
+  userRoles?: Prisma.UserRoleUncheckedUpdateManyWithoutTenantNestedInput
+  rolePermissions?: Prisma.RolePermissionUncheckedUpdateManyWithoutTenantNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutTenantNestedInput
+  boardTerms?: Prisma.TenantBoardTermUncheckedUpdateManyWithoutTenantNestedInput
+  boardMembers?: Prisma.TenantBoardMemberUncheckedUpdateManyWithoutTenantNestedInput
+  documents?: Prisma.TenantDocumentUncheckedUpdateManyWithoutTenantNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutTenantNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutServiceAreasInput = {
@@ -3911,6 +4220,7 @@ export type TenantCreateWithoutServiceAreasInput = {
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutServiceAreasInput = {
@@ -3968,6 +4278,7 @@ export type TenantUncheckedCreateWithoutServiceAreasInput = {
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutServiceAreasInput = {
@@ -4041,6 +4352,7 @@ export type TenantUpdateWithoutServiceAreasInput = {
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutServiceAreasInput = {
@@ -4098,6 +4410,7 @@ export type TenantUncheckedUpdateWithoutServiceAreasInput = {
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutBoardMembersInput = {
@@ -4155,6 +4468,7 @@ export type TenantCreateWithoutBoardMembersInput = {
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutBoardMembersInput = {
@@ -4212,6 +4526,7 @@ export type TenantUncheckedCreateWithoutBoardMembersInput = {
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutBoardMembersInput = {
@@ -4285,6 +4600,7 @@ export type TenantUpdateWithoutBoardMembersInput = {
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutBoardMembersInput = {
@@ -4342,6 +4658,7 @@ export type TenantUncheckedUpdateWithoutBoardMembersInput = {
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutBoardTermsInput = {
@@ -4399,6 +4716,7 @@ export type TenantCreateWithoutBoardTermsInput = {
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutBoardTermsInput = {
@@ -4456,6 +4774,7 @@ export type TenantUncheckedCreateWithoutBoardTermsInput = {
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutBoardTermsInput = {
@@ -4529,6 +4848,7 @@ export type TenantUpdateWithoutBoardTermsInput = {
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutBoardTermsInput = {
@@ -4586,6 +4906,7 @@ export type TenantUncheckedUpdateWithoutBoardTermsInput = {
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantCreateWithoutDocumentsInput = {
@@ -4643,6 +4964,7 @@ export type TenantCreateWithoutDocumentsInput = {
   reports?: Prisma.ReportCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutDocumentsInput = {
@@ -4700,6 +5022,7 @@ export type TenantUncheckedCreateWithoutDocumentsInput = {
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutTenantInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTenantInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutTenantInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutDocumentsInput = {
@@ -4773,6 +5096,7 @@ export type TenantUpdateWithoutDocumentsInput = {
   reports?: Prisma.ReportUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutDocumentsInput = {
@@ -4830,6 +5154,7 @@ export type TenantUncheckedUpdateWithoutDocumentsInput = {
   reports?: Prisma.ReportUncheckedUpdateManyWithoutTenantNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTenantNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutTenantNestedInput
+  favoriteNotes?: Prisma.FavoriteNoteUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 
@@ -4852,6 +5177,7 @@ export type TenantCountOutputType = {
   reports: number
   tasks: number
   favorites: number
+  favoriteNotes: number
 }
 
 export type TenantCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4869,6 +5195,7 @@ export type TenantCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   reports?: boolean | TenantCountOutputTypeCountReportsArgs
   tasks?: boolean | TenantCountOutputTypeCountTasksArgs
   favorites?: boolean | TenantCountOutputTypeCountFavoritesArgs
+  favoriteNotes?: boolean | TenantCountOutputTypeCountFavoriteNotesArgs
 }
 
 /**
@@ -4979,6 +5306,13 @@ export type TenantCountOutputTypeCountFavoritesArgs<ExtArgs extends runtime.Type
   where?: Prisma.FavoriteWhereInput
 }
 
+/**
+ * TenantCountOutputType without action
+ */
+export type TenantCountOutputTypeCountFavoriteNotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FavoriteNoteWhereInput
+}
+
 
 export type TenantSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -5036,6 +5370,7 @@ export type TenantSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   reports?: boolean | Prisma.Tenant$reportsArgs<ExtArgs>
   tasks?: boolean | Prisma.Tenant$tasksArgs<ExtArgs>
   favorites?: boolean | Prisma.Tenant$favoritesArgs<ExtArgs>
+  favoriteNotes?: boolean | Prisma.Tenant$favoriteNotesArgs<ExtArgs>
   _count?: boolean | Prisma.TenantCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["tenant"]>
 
@@ -5187,6 +5522,7 @@ export type TenantInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   reports?: boolean | Prisma.Tenant$reportsArgs<ExtArgs>
   tasks?: boolean | Prisma.Tenant$tasksArgs<ExtArgs>
   favorites?: boolean | Prisma.Tenant$favoritesArgs<ExtArgs>
+  favoriteNotes?: boolean | Prisma.Tenant$favoriteNotesArgs<ExtArgs>
   _count?: boolean | Prisma.TenantCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TenantIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -5209,6 +5545,7 @@ export type $TenantPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     reports: Prisma.$ReportPayload<ExtArgs>[]
     tasks: Prisma.$TaskPayload<ExtArgs>[]
     favorites: Prisma.$FavoritePayload<ExtArgs>[]
+    favoriteNotes: Prisma.$FavoriteNotePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -5660,6 +5997,7 @@ export interface Prisma__TenantClient<T, Null = never, ExtArgs extends runtime.T
   reports<T extends Prisma.Tenant$reportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tenant$reportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tasks<T extends Prisma.Tenant$tasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tenant$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   favorites<T extends Prisma.Tenant$favoritesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tenant$favoritesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoritePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  favoriteNotes<T extends Prisma.Tenant$favoriteNotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tenant$favoriteNotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoriteNotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6456,6 +6794,30 @@ export type Tenant$favoritesArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.FavoriteScalarFieldEnum | Prisma.FavoriteScalarFieldEnum[]
+}
+
+/**
+ * Tenant.favoriteNotes
+ */
+export type Tenant$favoriteNotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FavoriteNote
+   */
+  select?: Prisma.FavoriteNoteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FavoriteNote
+   */
+  omit?: Prisma.FavoriteNoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FavoriteNoteInclude<ExtArgs> | null
+  where?: Prisma.FavoriteNoteWhereInput
+  orderBy?: Prisma.FavoriteNoteOrderByWithRelationInput | Prisma.FavoriteNoteOrderByWithRelationInput[]
+  cursor?: Prisma.FavoriteNoteWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FavoriteNoteScalarFieldEnum | Prisma.FavoriteNoteScalarFieldEnum[]
 }
 
 /**

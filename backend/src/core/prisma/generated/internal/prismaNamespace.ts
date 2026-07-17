@@ -386,7 +386,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   RefreshToken: 'RefreshToken',
   Favorite: 'Favorite',
-  Audit: 'Audit',
+  FavoriteNote: 'FavoriteNote',
   Person: 'Person',
   PersonAddress: 'PersonAddress',
   Address: 'Address',
@@ -399,6 +399,7 @@ export const ModelName = {
   UserRole: 'UserRole',
   Permission: 'Permission',
   RolePermission: 'RolePermission',
+  Audit: 'Audit',
   Tenant: 'Tenant',
   TenantArea: 'TenantArea',
   TenantBoardMember: 'TenantBoardMember',
@@ -419,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "refreshToken" | "favorite" | "audit" | "person" | "personAddress" | "address" | "contact" | "personDocument" | "report" | "task" | "user" | "role" | "userRole" | "permission" | "rolePermission" | "tenant" | "tenantArea" | "tenantBoardMember" | "tenantBoardTerm" | "tenantDocument"
+    modelProps: "refreshToken" | "favorite" | "favoriteNote" | "person" | "personAddress" | "address" | "contact" | "personDocument" | "report" | "task" | "user" | "role" | "userRole" | "permission" | "rolePermission" | "audit" | "tenant" | "tenantArea" | "tenantBoardMember" | "tenantBoardTerm" | "tenantDocument"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -571,77 +572,77 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Audit: {
-      payload: Prisma.$AuditPayload<ExtArgs>
-      fields: Prisma.AuditFieldRefs
+    FavoriteNote: {
+      payload: Prisma.$FavoriteNotePayload<ExtArgs>
+      fields: Prisma.FavoriteNoteFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.AuditFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload> | null
+          args: Prisma.FavoriteNoteFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNotePayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.AuditFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+          args: Prisma.FavoriteNoteFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNotePayload>
         }
         findFirst: {
-          args: Prisma.AuditFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload> | null
+          args: Prisma.FavoriteNoteFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNotePayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.AuditFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+          args: Prisma.FavoriteNoteFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNotePayload>
         }
         findMany: {
-          args: Prisma.AuditFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>[]
+          args: Prisma.FavoriteNoteFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNotePayload>[]
         }
         create: {
-          args: Prisma.AuditCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+          args: Prisma.FavoriteNoteCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNotePayload>
         }
         createMany: {
-          args: Prisma.AuditCreateManyArgs<ExtArgs>
+          args: Prisma.FavoriteNoteCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.AuditCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>[]
+          args: Prisma.FavoriteNoteCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNotePayload>[]
         }
         delete: {
-          args: Prisma.AuditDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+          args: Prisma.FavoriteNoteDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNotePayload>
         }
         update: {
-          args: Prisma.AuditUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+          args: Prisma.FavoriteNoteUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNotePayload>
         }
         deleteMany: {
-          args: Prisma.AuditDeleteManyArgs<ExtArgs>
+          args: Prisma.FavoriteNoteDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.AuditUpdateManyArgs<ExtArgs>
+          args: Prisma.FavoriteNoteUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.AuditUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>[]
+          args: Prisma.FavoriteNoteUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNotePayload>[]
         }
         upsert: {
-          args: Prisma.AuditUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+          args: Prisma.FavoriteNoteUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoriteNotePayload>
         }
         aggregate: {
-          args: Prisma.AuditAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateAudit>
+          args: Prisma.FavoriteNoteAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFavoriteNote>
         }
         groupBy: {
-          args: Prisma.AuditGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AuditGroupByOutputType>[]
+          args: Prisma.FavoriteNoteGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FavoriteNoteGroupByOutputType>[]
         }
         count: {
-          args: Prisma.AuditCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AuditCountAggregateOutputType> | number
+          args: Prisma.FavoriteNoteCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FavoriteNoteCountAggregateOutputType> | number
         }
       }
     }
@@ -1533,6 +1534,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Audit: {
+      payload: Prisma.$AuditPayload<ExtArgs>
+      fields: Prisma.AuditFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AuditFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AuditFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+        }
+        findFirst: {
+          args: Prisma.AuditFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AuditFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+        }
+        findMany: {
+          args: Prisma.AuditFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>[]
+        }
+        create: {
+          args: Prisma.AuditCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+        }
+        createMany: {
+          args: Prisma.AuditCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AuditCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>[]
+        }
+        delete: {
+          args: Prisma.AuditDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+        }
+        update: {
+          args: Prisma.AuditUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+        }
+        deleteMany: {
+          args: Prisma.AuditDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AuditUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AuditUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>[]
+        }
+        upsert: {
+          args: Prisma.AuditUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+        }
+        aggregate: {
+          args: Prisma.AuditAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAudit>
+        }
+        groupBy: {
+          args: Prisma.AuditGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AuditCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditCountAggregateOutputType> | number
+        }
+      }
+    }
     Tenant: {
       payload: Prisma.$TenantPayload<ExtArgs>
       fields: Prisma.TenantFieldRefs
@@ -1968,20 +2043,16 @@ export const FavoriteScalarFieldEnum = {
 export type FavoriteScalarFieldEnum = (typeof FavoriteScalarFieldEnum)[keyof typeof FavoriteScalarFieldEnum]
 
 
-export const AuditScalarFieldEnum = {
+export const FavoriteNoteScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
+  favoriteId: 'favoriteId',
   userId: 'userId',
-  type: 'type',
-  action: 'action',
-  entity: 'entity',
-  entityId: 'entityId',
-  before: 'before',
-  after: 'after',
+  content: 'content',
   createdAt: 'createdAt'
 } as const
 
-export type AuditScalarFieldEnum = (typeof AuditScalarFieldEnum)[keyof typeof AuditScalarFieldEnum]
+export type FavoriteNoteScalarFieldEnum = (typeof FavoriteNoteScalarFieldEnum)[keyof typeof FavoriteNoteScalarFieldEnum]
 
 
 export const PersonScalarFieldEnum = {
@@ -2166,6 +2237,22 @@ export const RolePermissionScalarFieldEnum = {
 export type RolePermissionScalarFieldEnum = (typeof RolePermissionScalarFieldEnum)[keyof typeof RolePermissionScalarFieldEnum]
 
 
+export const AuditScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  type: 'type',
+  action: 'action',
+  entity: 'entity',
+  entityId: 'entityId',
+  before: 'before',
+  after: 'after',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditScalarFieldEnum = (typeof AuditScalarFieldEnum)[keyof typeof AuditScalarFieldEnum]
+
+
 export const TenantScalarFieldEnum = {
   id: 'id',
   legalName: 'legalName',
@@ -2337,20 +2424,6 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
- * Reference to a field of type 'AuditType'
- */
-export type EnumAuditTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditType'>
-    
-
-
-/**
- * Reference to a field of type 'AuditType[]'
- */
-export type ListEnumAuditTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditType[]'>
-    
-
-
-/**
  * Reference to a field of type 'Status'
  */
 export type EnumStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Status'>
@@ -2480,6 +2553,20 @@ export type EnumPermissionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$P
  * Reference to a field of type 'PermissionType[]'
  */
 export type ListEnumPermissionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PermissionType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AuditType'
+ */
+export type EnumAuditTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditType'>
+    
+
+
+/**
+ * Reference to a field of type 'AuditType[]'
+ */
+export type ListEnumAuditTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditType[]'>
     
 
 
@@ -2706,7 +2793,7 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   refreshToken?: Prisma.RefreshTokenOmit
   favorite?: Prisma.FavoriteOmit
-  audit?: Prisma.AuditOmit
+  favoriteNote?: Prisma.FavoriteNoteOmit
   person?: Prisma.PersonOmit
   personAddress?: Prisma.PersonAddressOmit
   address?: Prisma.AddressOmit
@@ -2719,6 +2806,7 @@ export type GlobalOmitConfig = {
   userRole?: Prisma.UserRoleOmit
   permission?: Prisma.PermissionOmit
   rolePermission?: Prisma.RolePermissionOmit
+  audit?: Prisma.AuditOmit
   tenant?: Prisma.TenantOmit
   tenantArea?: Prisma.TenantAreaOmit
   tenantBoardMember?: Prisma.TenantBoardMemberOmit

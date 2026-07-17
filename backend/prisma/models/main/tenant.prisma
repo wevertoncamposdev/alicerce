@@ -65,6 +65,7 @@ model Tenant {
     reports         Report[]
     tasks           Task[]
     favorites       Favorite[]
+    favoriteNotes   FavoriteNote[]
 
     @@index([slug])
     @@index([registrationNumber])
