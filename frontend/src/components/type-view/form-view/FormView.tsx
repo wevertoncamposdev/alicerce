@@ -4,9 +4,11 @@ import * as React from "react";
 import { useActionState } from "react";
 import { Input } from "@components/ui/input";
 import { Button } from "@components/ui/button";
+import { Cloud, CloudUpload, CloudAlert } from "lucide-react";
 import { useAutoSaveController } from "@/hooks/use-autosave-controller";
 import { autoSaveRecord } from "@lib/registry/actions";
 import type { FormFieldConfig } from "@lib/registry/types";
+import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 
 type ActionState = { ok: boolean; message?: string };
 
@@ -48,11 +50,17 @@ function CreateFormView<T extends object>({
     const [state, formAction, isPending] = useActionState(action, { ok: true, message: "" });
 
     return (
-        <form action={formAction} className="flex flex-col gap-2 mt-4 border p-4 rounded-lg shadow-md">
+        <form action={formAction} className="flex flex-col gap-2 mt-4">
             {fields.map((field) => (
-                <Input key={field.name} name={field.name} placeholder={field.label} required={field.required} />
+                <Input
+                    key={field.name}
+                    id={field.name}
+                    name={field.name}
+                    variant="inline-detail"
+                    className="flex-1 min-w-0"
+                />
             ))}
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending} variant="save" size="sm">
                 {isPending ? "Criando..." : "Criar"}
             </Button>
             {state.message && <p>{state.message}</p>}
@@ -72,7 +80,7 @@ function EditFormView<T extends object>({
     initialValues: T;
 }) {
     const [values, setValues] = React.useState<T>(initialValues);
-    const [error, setError] = React.useState<string | null>(null);
+    const { setStatus } = useAutoSaveStatus();
 
     const editableKeys = React.useMemo(() => fields.map((f) => f.name), [fields]);
 
@@ -84,35 +92,38 @@ function EditFormView<T extends object>({
         return result;
     }
 
-    const { saving, commitField } = useAutoSaveController<Partial<T>>({
+    const { commitField } = useAutoSaveController<Partial<T>>({
         draft: pickEditableFields(values),
-        onSave: (draft) => autoSaveRecord<Partial<T>>(model, recordId, draft),
+        onSave: async (draft) => {
+            setStatus("saving");
+            const updated = await autoSaveRecord<T>(model, recordId, draft);
+            setStatus("saved");
+            return pickEditableFields(updated);
+        },
         onError: (err) => {
             console.error("[autosave]", err);
-            setError("Falha ao salvar. Tentando novamente na próxima alteração.");
+            setStatus("error", "Falha ao salvar. Tentando novamente na próxima alteração.");
         },
     });
 
     function handleChange(name: keyof T & string, value: string) {
-        setError(null);
         setValues((prev) => ({ ...prev, [name]: value }));
     }
 
     return (
-        <div className="flex flex-col gap-2 mt-4 border p-4 rounded-lg shadow-md">
+        <div className="flex flex-col gap-4">
             {fields.map((field) => (
-                <Input
-                    key={field.name}
-                    name={field.name}
-                    value={(values[field.name] as string) ?? ""}
-                    placeholder={field.label}
-                    onChange={(e) => handleChange(field.name, e.target.value)}
-                    onBlur={commitField}
-                />
+                <div key={field.name} className="space-y-1.5">
+                    <Input
+                        id={field.name}
+                        name={field.name}
+                        variant="inline-detail"
+                        value={(values[field.name] as string) ?? ""}
+                        onChange={(e) => handleChange(field.name, e.target.value)}
+                        onBlur={commitField}
+                    />
+                </div>
             ))}
-            <p className="text-xs text-muted-foreground">
-                {saving ? "Salvando..." : error ?? "Salvo"}
-            </p>
         </div>
     );
 }

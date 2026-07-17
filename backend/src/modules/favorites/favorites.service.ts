@@ -52,6 +52,14 @@ export class FavoritesService {
   async findOne(id: string, tenantId: string, userSub: string) {
     const favorite = await this.prisma.favorite.findUnique({
       where: { id },
+      include: {
+        user: {
+          select: { id: true, email: true },
+        },
+        tenant: {
+          select: { id: true, legalName: true },
+        }
+      },
     });
     if (!favorite || favorite.tenantId !== tenantId || favorite.userId !== userSub) {
       throw new Error('Favorite not found or access denied');

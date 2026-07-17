@@ -9,11 +9,6 @@ type UseAutoSaveControllerOptions<TDraft extends object> = {
     onError?: (error: unknown) => void;
 };
 
-/**
- * Versão simplificada do useDetailAutoSaveController (system_development/web-client/detail).
- * Removido: suporte a suspensão por upload de mídia (não existe no nosso caso).
- * Mantido: dedupe por comparação de draft, fila enquanto salva, flag de saving.
- */
 export function useAutoSaveController<TDraft extends object>({
     draft,
     enabled = true,
@@ -22,7 +17,7 @@ export function useAutoSaveController<TDraft extends object>({
 }: UseAutoSaveControllerOptions<TDraft>) {
     const [saving, setSaving] = React.useState(false);
     const draftRef = React.useRef(draft);
-    const lastSavedRef = React.useRef<TDraft | null>(null);
+    const lastSavedRef = React.useRef<TDraft>(draft);
     const queuedRef = React.useRef<TDraft | null>(null);
     const savingRef = React.useRef(false);
 
@@ -34,12 +29,12 @@ export function useAutoSaveController<TDraft extends object>({
         if (!enabled) return;
         const candidate = draftRef.current;
 
-        if (lastSavedRef.current && JSON.stringify(candidate) === JSON.stringify(lastSavedRef.current)) {
-            return; // nada mudou desde o último save — evita request redundante
+        if (JSON.stringify(candidate) === JSON.stringify(lastSavedRef.current)) {
+            return;
         }
 
         if (savingRef.current) {
-            queuedRef.current = candidate; // já tem um save em voo: enfileira o mais recente
+            queuedRef.current = candidate;
             return;
         }
 

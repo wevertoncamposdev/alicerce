@@ -5,6 +5,14 @@ export interface FavoriteEntity {
     tenantId?: string;
     userId?: string;
     createdAt: string;
+    user: {
+        id: string;
+        email: string;
+    };
+    tenant: {
+        id: string;
+        legalName: string;
+    };
 }
 
 export interface CreateFavoritePayload {
