@@ -1,11 +1,11 @@
 import { getModule } from "@lib/registry";
 import { createDataProvider } from "@lib/data-provider";
 import { getEntityAuditTrail } from "@lib/data-provider/rest/audit";
-import { DetailShellEngine } from "@/components/engine/DetailShellEngine";
+import { DetailShellEngine } from "@/components/shells/DetailShellEngine";
 import { AppTopbar } from "@/components/layout/AppTopbar";
 import { AutoSaveStatusProvider } from "@/contexts/autosave-status-context";
 import { AutoSaveIndicator } from "@/components/layout/AutoSaveIndicator";
-import type { ContextItem, AuditFeedItem } from "@/components/engine/MetaDataShell/types";
+import type { ContextItem, AuditFeedItem } from "@/components/shells/MetaDataShell/types";
 import type { FavoriteEntity } from "@modules/favorites/types";
 
 interface PageProps {
