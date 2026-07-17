@@ -1,8 +1,8 @@
 
 import { getModule } from "@lib/registry";
 import { createDataProvider } from "@lib/data-provider";
-import { AppTopbar } from "@/components/out/AppTopbar";
-import { RecordListHost } from "@/components/out/RecordListHost";
+import { AppTopbar } from "@/components/Layout/AppTopbar";
+import { RecordListHost } from "@/components/Layout/RecordListHost";
 import { TypeView, type TypeViewMode } from "@/components/TypeView/TypeView";
 import { ViewSwitcher } from "@/components/TypeView/ViewSwitcher";
 
@@ -11,7 +11,7 @@ import { CardsView } from "@/components/TypeView/CardsView/CardsView";
 import { FavoritesGraphView } from "@modules/favorites/components/FavoritesGraphView";
 import { FavoritesListView } from "@modules/favorites/components/FavoritesListView";
 import type { FavoriteEntity, CreateFavoritePayload } from "@/modules/favorites/types/types";
-import { RecordSearch } from "@/components/out/RecordSearch";
+import { RecordSearch } from "@/components/Layout/RecordSearch";
 import { FormView } from "@/components/TypeView/FormView/FormView";
 import { createFavorite } from "@/modules/favorites/actions/actions";
 

@@ -8,7 +8,7 @@ import { useUsers } from "@/features/users/hooks/useUsers";
 import { DetailShell, PainelSearchShell } from "@/components/shells";
 import { Button } from "@components/ui/index";
 import App from "next/app";
-import { AppTopbar } from "@/components/out/AppTopbar";
+import { AppTopbar } from "@/components/Layout/AppTopbar";
 
 function StatCard({
   title,
