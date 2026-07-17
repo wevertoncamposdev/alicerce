@@ -1,9 +1,9 @@
 import { apiServer } from "@lib/api-server"; // ajuste pro caminho real do seu apiServer
 import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
-import type { Favorite } from "@modules/favorites/types";
+import type { Favorite, FavoriteEntity } from "@modules/favorites/types";
 
 
-export async function searchFavorites(args: SearchArgs): Promise<SearchResult<Favorite>> {
+export async function searchFavorites(args: SearchArgs): Promise<SearchResult<FavoriteEntity>> {
     const query = new URLSearchParams();
 
     if (args.searchText) query.set("search", args.searchText);
@@ -24,9 +24,9 @@ export async function searchFavorites(args: SearchArgs): Promise<SearchResult<Fa
     }
 
     // response JÁ é o corpo — sem wrapper .data
-    const response = await apiServer.search<{ items: Favorite[]; total: number; page: number; limit: number }>(
+    const response = await apiServer.search<{ items: FavoriteEntity[]; total: number; page: number; limit: number }>(
         "favorites",
-        args, // manda o SearchArgs inteiro, sem achatar em query string
+        query.toString(), // manda o SearchArgs inteiro, sem achatar em query string
     );
 
     return {
@@ -40,18 +40,18 @@ export async function searchFavorites(args: SearchArgs): Promise<SearchResult<Fa
     };
 }
 
-export async function readFavorite(id: string): Promise<Favorite> {
-    const response: Favorite = await apiServer.get(`favorites/${id}`, { cache: "no-store" });
+export async function readFavorite(id: string): Promise<FavoriteEntity> {
+    const response: FavoriteEntity = await apiServer.get(`favorites/${id}`, { cache: "no-store" });
     return response;
 }
 
-export async function createFavorite(payload: unknown): Promise<Favorite> {
-    const response: Favorite = await apiServer.post("favorites", payload);
+export async function createFavorite(payload: unknown): Promise<FavoriteEntity> {
+    const response: FavoriteEntity = await apiServer.post("favorites", payload);
     return response;
 }
 
-export async function updateFavorite(id: string, payload: unknown): Promise<Favorite> {
-    const response: Favorite = await apiServer.patch(`favorites/${id}`, payload);
+export async function updateFavorite(id: string, payload: unknown): Promise<FavoriteEntity> {
+    const response: FavoriteEntity = await apiServer.patch(`favorites/${id}`, payload);
     return response;
 }
 
