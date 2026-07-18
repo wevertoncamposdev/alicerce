@@ -1,37 +1,25 @@
-// components/type-view/TypeView.tsx
-import { CardsView } from "@/components/TypeView/CardsView/CardsView";
-import { TextView } from "@/components/TypeView/TextView/TextView";
-import { FormView } from "@/components/TypeView/FormView/FormView";
+// components/TypeView/TypeView.tsx
+import type { ListLayout, ListContext } from "@lib/registry/types";
 
-export type TypeViewMode = "list" | "cards" | "graph" | "text" | "form";
+export type TypeViewMode = string;
 
-export function TypeView<T extends { id: string | number; title: string }>({
-    data,
+export function TypeView<T>({
+    layout,
     mode,
-    cardsView, // um ReactNode já pronto, montado no client, ex: <CardsView data={data} />
-    listView, // um ReactNode já pronto, montado no client, ex: <FavoritesListView data={data} />
-    graphView, // um ReactNode já pronto, montado no client, ex: <FavoritesGraphView data={data} />
-    formView,
+    context,
 }: {
-    data: T[];
+    layout: ListLayout<T>;
     mode: TypeViewMode;
-    cardsView: React.ReactNode;
-    listView: React.ReactNode;
-    graphView: React.ReactNode;
-    formView: React.ReactNode;
+    context: ListContext<T>;
 }) {
-    switch (mode) {
-        case "list":
-            return listView;
-        case "cards":
-            return cardsView;
-        case "graph":
-            return graphView;
-        case "text":
-            return <TextView data={data} />;
-        case "form":
-            return formView;
-        default:
-            return mode satisfies never;
+    const render = layout[mode];
+
+    if (!render) {
+        throw new Error(
+            `View "${mode}" não está definida no listLayout deste módulo. ` +
+            `Views disponíveis: ${Object.keys(layout).join(", ")}`
+        );
     }
+
+    return <>{render(context)}</>;
 }

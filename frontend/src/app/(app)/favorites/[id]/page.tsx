@@ -1,52 +1,7 @@
-import { getModule } from "@lib/registry";
-import { createDataProvider } from "@lib/data-provider";
-import { getEntityAuditTrail } from "@lib/data-provider/rest/audit";
-import { DetailView } from "@/components/DetailView/DetailView";
-import { AppTopbar } from "@/components/Layout/AppTopbar";
-import { AutoSaveStatusProvider } from "@/contexts/autosave-status-context";
-import { AutoSaveIndicator } from "@/components/Layout/AutoSaveIndicator";
-import type { ContextItem, AuditFeedItem } from "@/components/DetailView/MetaDataView/types";
-import type { FavoriteEntity } from "@/modules/favorites/types/types";
+// app/(app)/favorites/[id]/page.tsx
+import { DetailViewScreen } from "@/screens/DetailViewScreen";
 
-interface PageProps {
-    params: Promise<{ id: string }>;
-}
-
-export default async function FavoriteDetailPage({ params }: PageProps) {
+export default async function FavoriteDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const favoritesModule = getModule<FavoriteEntity>("favorites");
-    const dataProvider = createDataProvider();
-
-    const favorite = await dataProvider.read<FavoriteEntity>("favorites", id);
-    const auditTrail = await getEntityAuditTrail("favorites", id);
-
-    const contextItems: ContextItem[] = [
-        { key: "createdAt", label: "Criado em", value: favorite.createdAt.slice(0, 16).replace("T", ", ") },
-        { key: "userId", label: "Usuário", value: favorite.user.email ?? "—" },
-        { key: "tenantId", label: "Tenant", value: favorite.tenant.legalName ?? "—" },
-    ];
-
-    const auditItems: AuditFeedItem[] = auditTrail.map((entry) => ({
-        id: entry.id,
-        action: entry.action,
-        createdAt: entry.createdAt,
-        userEmail: entry.user.email,
-        tenantName: entry.tenant.legalName,
-        summary: entry.after ? `Antes: ${entry.before ?? "—"} | Depois: ${entry.after}` : "—",
-    }));
-
-    return (
-        <AutoSaveStatusProvider>
-            <AppTopbar title={favoritesModule.label} autosave={<AutoSaveIndicator />} />
-            <div className="px-4 py-2">
-                <DetailView<FavoriteEntity>
-                    moduleDefinition={favoritesModule}
-                    record={favorite}
-                    contextItems={contextItems}
-                    auditItems={auditItems}
-                    title={favoritesModule.label}
-                />
-            </div>
-        </AutoSaveStatusProvider>
-    );
+    return <DetailViewScreen moduleName="favorites" id={id} />;
 }
