@@ -2,12 +2,12 @@
 "use client";
 
 import { ToggleGroup, ToggleGroupItem } from "@components/ui/toggle-group";
-import { LayoutGrid, LayoutList, LineChart, FileText, FormInput, Calendar, ListTree, LucideIcon } from "lucide-react";
+import { LayoutGrid, LayoutList, LineChart, FileText, Plus, Calendar, ListTree, LucideIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { TypeViewMode } from "@/components/TypeView/TypeView";
 
 const ICON_BY_VIEW: Record<string, LucideIcon> = {
-    form: FormInput,
+    form: Plus,
     list: LayoutList,
     cards: LayoutGrid,
     graph: LineChart,

@@ -3,30 +3,22 @@ import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
 import type { Favorite, FavoriteEntity } from "@/modules/favorites/types/types";
 
 
+// modules/favorites/config/provider.ts
 export async function searchFavorites(args: SearchArgs): Promise<SearchResult<FavoriteEntity>> {
-    const query = new URLSearchParams();
+    const body = {
+        searchText: args.searchText,
+        groupBy: args.groupBy,
+        sort: args.sort,
+        pagination: {
+            pageIndex: args.pagination?.pageIndex ?? 0,
+            pageSize: args.pagination?.pageSize ?? 20,
+        },
+        filters: args.filters,
+    };
 
-    if (args.searchText) query.set("search", args.searchText);
-    if (args.groupBy?.length) query.set("groupBy", args.groupBy.join(","));
-    if (args.sort?.[0]) {
-        query.set("sortField", args.sort[0].field);
-        query.set("sortDirection", args.sort[0].direction);
-    }
-    query.set("page", String((args.pagination?.pageIndex ?? 0) + 1));
-    query.set("limit", String(args.pagination?.pageSize ?? 20));
-
-    if (args.filters) {
-        for (const [key, value] of Object.entries(args.filters)) {
-            if (value !== undefined && value !== null) {
-                query.set(key, String(value));
-            }
-        }
-    }
-
-    // response JÁ é o corpo — sem wrapper .data
     const response = await apiServer.search<{ items: FavoriteEntity[]; total: number; page: number; limit: number }>(
         "favorites",
-        query.toString(), // manda o SearchArgs inteiro, sem achatar em query string
+        body,   // objeto de verdade agora, não uma URLSearchParams stringificada
     );
 
     return {
