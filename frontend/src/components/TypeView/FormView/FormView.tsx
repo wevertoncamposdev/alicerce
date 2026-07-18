@@ -4,7 +4,6 @@ import * as React from "react";
 import { useActionState } from "react";
 import { Input } from "@components/ui/input";
 import { Button } from "@components/ui/button";
-import { Cloud, CloudUpload, CloudAlert } from "lucide-react";
 import { useAutoSaveController } from "@/hooks/use-autosave-controller";
 import { autoSaveRecord } from "@lib/registry/actions";
 import type { FormFieldConfig } from "@lib/registry/types";
@@ -118,12 +117,9 @@ function EditFormView<T extends object>({
     }
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="w-full">
             {fields.map((field) => (
                 <div key={field.name} className="space-y-1.5">
-                    <Label htmlFor={field.name} className="text-sm font-medium text-gray-700">
-                        {field.label}
-                    </Label>
                     <Input
                         id={field.name}
                         name={field.name}

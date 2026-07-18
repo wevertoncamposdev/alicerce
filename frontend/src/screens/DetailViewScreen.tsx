@@ -12,7 +12,7 @@ export async function DetailViewScreen({ moduleName, id }: { moduleName: string;
     const mod = getModule(moduleName);
     const dataProvider = createDataProvider();
 
-    const record = await dataProvider.read(moduleName, id);
+    const record: Record<string, any> = await dataProvider.read(moduleName, id);
 
     const [contextItems, auditItems] = await Promise.all([
         resolveContextItems(mod, record),
@@ -21,7 +21,7 @@ export async function DetailViewScreen({ moduleName, id }: { moduleName: string;
 
     return (
         <AutoSaveStatusProvider>
-            <AppTopbar title={mod.label} autosave={<AutoSaveIndicator />} />
+            <AppTopbar title={record?.title ?? ""} autosave={<AutoSaveIndicator />} />
             <div className="px-4 py-2">
                 <DetailView
                     moduleDefinition={mod}

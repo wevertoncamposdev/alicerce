@@ -28,4 +28,12 @@ export class TenantRepository {
     deleteById(id: string) {
         return this.prisma.tenant.delete({ where: { id } });
     }
+
+    search(where: Prisma.TenantWhereInput, skip: number, take: number) {
+        return this.prisma.tenant.findMany({ where, skip, take, orderBy: { createdAt: 'desc' } });
+    }
+
+    count(where: Prisma.TenantWhereInput) {
+        return this.prisma.tenant.count({ where });
+    }
 }

@@ -52,7 +52,7 @@ export function DetailView<T>({
                     {mainSlot}
                     {bottomSlot}
                 </div>
-                {sideSlot ? <div className="lg:w-80 lg:flex-shrink-0">{sideSlot}</div> : null}
+                
             </div>
         </DetailShell>
     );

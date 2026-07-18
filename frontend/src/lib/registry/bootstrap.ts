@@ -4,4 +4,5 @@ import "server-only";
 // nível superior do arquivo (que inclui o registerModule(...)), mas não
 // precisamos do valor exportado — por isso não há "import { x } from".
 import "@modules/favorites/config/contract";
+import "@modules/tenants/config/contract";
 // import "@modules/tasks/config/contract";

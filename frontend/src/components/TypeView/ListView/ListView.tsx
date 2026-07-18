@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
     ColumnDef,
     SortingState,
@@ -77,85 +77,70 @@ export function ListView<T extends { id: string | number }>({
     return (
         <div className="space-y-4">
 
-            {/* Contador */}
-            <div className="text-sm text-muted-foreground text-right">
-                {table.getFilteredRowModel().rows.length} registro(s)
-                encontrado(s).
-            </div>
-
             {/* Tabela */}
-            <div className="rounded-md border overflow-hidden">
+            <Table>
+                <TableHeader className="sticky top-0 bg-background z-10">
+                    {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow key={headerGroup.id}>
 
-                <div className="overflow-x-auto">
-
-                    <Table>
-
-                        <TableHeader className="sticky top-0 bg-background z-10">
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
-
-                                    {headerGroup.headers.map((header) => (
-                                        <TableHead
-                                            key={header.id}
-                                            onClick={header.column.getToggleSortingHandler()}
-                                            className="cursor-pointer select-none"
-                                        >
-                                            <div className="flex items-center gap-2">
-
-                                                {flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-
-                                                {header.column.getIsSorted() === "asc" && (
-                                                    <ArrowUp className="h-3 w-3" />
-                                                )}
-
-                                                {header.column.getIsSorted() === "desc" && (
-                                                    <ArrowDown className="h-3 w-3" />
-                                                )}
-
-                                            </div>
-                                        </TableHead>
-                                    ))}
-
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-
-                        <TableBody>
-
-                            {table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    className="cursor-pointer hover:bg-muted/50"
-                                    onClick={() =>
-                                        router.push(
-                                            `${detail}/${row.original.id}`
-                                        )
-                                    }
+                            {headerGroup.headers.map((header) => (
+                                <TableHead
+                                    key={header.id}
+                                    onClick={header.column.getToggleSortingHandler()}
+                                    className="cursor-pointer select-none"
                                 >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell
-                                            key={cell.id}
-                                            className="max-w-[300px] truncate"
-                                        >
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
+                                    <div className="flex items-center gap-2">
+
+                                        {flexRender(
+                                            header.column.columnDef.header,
+                                            header.getContext()
+                                        )}
+
+                                        {header.column.getIsSorted() === "asc" && (
+                                            <ArrowUp className="h-3 w-3" />
+                                        )}
+
+                                        {header.column.getIsSorted() === "desc" && (
+                                            <ArrowDown className="h-3 w-3" />
+                                        )}
+
+                                    </div>
+                                </TableHead>
                             ))}
 
-                        </TableBody>
+                        </TableRow>
+                    ))}
+                </TableHeader>
 
-                    </Table>
+                <TableBody>
 
-                </div>
+                    {table.getRowModel().rows.map((row) => (
+                        <TableRow
+                            key={row.id}
+                            className="cursor-pointer hover:bg-muted/50"
+                            onClick={() =>
+                                router.push(
+                                    `${detail}/${row.original.id}`
+                                )
+                            }
+                        >
+                            {row.getVisibleCells().map((cell) => (
+                                <TableCell
+                                    key={cell.id}
+                                    className="max-w-[300px] truncate"
+                                >
+                                    {flexRender(
+                                        cell.column.columnDef.cell,
+                                        cell.getContext()
+                                    )}
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    ))}
 
-            </div>
+                </TableBody>
+
+            </Table>
 
             {/* Paginação */}
             <div className="flex items-center justify-between">
@@ -168,21 +153,21 @@ export function ListView<T extends { id: string | number }>({
                 <div className="flex gap-2">
 
                     <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => table.previousPage()}
                         disabled={!table.getCanPreviousPage()}
                     >
-                        Anterior
+                        <ChevronLeft className="h-3 w-3" />
                     </Button>
 
                     <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => table.nextPage()}
                         disabled={!table.getCanNextPage()}
                     >
-                        Próxima
+                        <ChevronRight className="h-3 w-3" />
                     </Button>
 
                 </div>

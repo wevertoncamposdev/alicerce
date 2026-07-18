@@ -6,6 +6,7 @@ import { TenantBusinessRules } from './domain/rules/tenant-business-rules';
 import { TenantErrorCode } from './domain/errors/tenant-error-codes';
 import { TenantErrorMapper } from './mappers/tenant-error.mapper';
 import { TenantRepository } from './persistence/repository/tenant.repository';
+import { SearchTenantsDto } from './dto/search-tenant.dto';
 
 @Injectable()
 export class TenantService {
@@ -107,5 +108,27 @@ export class TenantService {
     } catch (error) {
       this.tenantErrorMapper.mapAndThrow(error, 'remove');
     }
+  }
+
+  async search(query: SearchTenantsDto) {
+    const page = query.pagination?.pageIndex !== undefined ? query.pagination.pageIndex + 1 : 1;
+    const limit = query.pagination?.pageSize ?? 20;
+
+    const where: Prisma.TenantWhereInput = query.searchText
+      ? {
+        OR: [
+          { legalName: { contains: query.searchText, mode: 'insensitive' } },
+          { tradeName: { contains: query.searchText, mode: 'insensitive' } },
+          { slug: { contains: query.searchText, mode: 'insensitive' } },
+        ],
+      }
+      : {};
+
+    const [items, total] = await Promise.all([
+      this.tenantRepository.search(where, (page - 1) * limit, limit),
+      this.tenantRepository.count(where),
+    ]);
+
+    return { items, total, page, limit };
   }
 }

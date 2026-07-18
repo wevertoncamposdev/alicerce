@@ -27,7 +27,7 @@ export async function TypeViewScreen({ moduleName, searchParams }: TypeViewScree
         <div>
             <AppTopbar
                 title={mod.label}
-                center={<RecordSearch searchText={args.searchText} />}
+                center={<RecordSearch searchText={args.searchText} resultCount={result.pagination.total} />}
                 actions={<ViewSwitcher current={mode} views={mod.views} />}
             />
             <div className="px-4 py-2">

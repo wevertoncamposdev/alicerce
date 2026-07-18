@@ -1,13 +1,15 @@
 // modules/favorites/config/contract.tsx
 import { defineRecordModule, registerModule } from "@lib/registry";
 import type { DetailLayout, ListLayout } from "@lib/registry/types";
+import { createRecordFormAction } from "@lib/registry/actions";
+import { createListQueryState } from "@lib/query-state/list-query-state";
+
 import {
     searchFavorites, readFavorite, createFavorite, updateFavorite, deleteFavorite,
 } from "./provider";
-import {
-    createListQueryState,
-} from "@lib/query-state/list-query-state";
+
 import type { FavoriteEntity } from "@/modules/favorites/types/types";
+import type { ContextItem } from "@/components/DetailView/MetaDataView/types";
 
 import { FormView } from "@/components/TypeView/FormView/FormView";
 import { CardsView } from "@/components/TypeView/CardsView/CardsView";
@@ -17,10 +19,8 @@ import { RelationTablePanel } from "@/components/DetailView/RelationView/Relatio
 import { FavoritesGraphView } from "@modules/favorites/components/FavoritesGraphView";
 import { FavoritesListView } from "@modules/favorites/components/FavoritesListView";
 import { listFavoriteNotes } from "./notes-provider";
-import type { ContextItem } from "@/components/DetailView/MetaDataView/types";
 
 //ADAPTER
-import { createRecordFormAction } from "@lib/registry/actions";
 
 const formFields = [
     { name: "title" as const, label: "Título", placeholder: "Digite o título", type: "text" as const, required: true },
