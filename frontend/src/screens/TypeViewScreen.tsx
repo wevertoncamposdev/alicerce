@@ -1,4 +1,6 @@
 // screens/TypeViewScreen.tsx
+'use server'
+
 import { getModule } from "@lib/registry";
 import { createDataProvider } from "@lib/data-provider";
 import { AppTopbar } from "@/components/Layout/AppTopbar";

@@ -52,8 +52,9 @@ export function DetailView<T>({
                     {mainSlot}
                     {bottomSlot}
                 </div>
-                
+
             </div>
+            {sideSlot}
         </DetailShell>
     );
 }
