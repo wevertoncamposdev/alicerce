@@ -1,8 +1,11 @@
+'use client'
+
 import type { ColumnDef } from "@tanstack/react-table";
 import type { UserEntity } from "../types/types";
 
 export const userColumns: ColumnDef<UserEntity>[] = [
     { accessorKey: "email", header: "E-mail" },
+    { accessorKey: "status", header: "Status" },
     { accessorKey: "tenantId", header: "Tenant ID" },
     {
         accessorKey: "createdAt",

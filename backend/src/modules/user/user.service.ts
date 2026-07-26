@@ -150,6 +150,6 @@ export class UsersService {
       this.userRepository.count(where),
     ]);
 
-    return { items: items.map((u) => this.userMapper.mapToResponseDto(u)), total, page, limit };
+    return { items: items, total, page, limit };
   }
 }

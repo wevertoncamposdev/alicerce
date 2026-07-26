@@ -1,5 +1,4 @@
 // components/layout/RecordListHost.tsx
-
 import type { ReactNode } from "react";
 
 type Props = {

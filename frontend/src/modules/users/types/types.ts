@@ -3,6 +3,7 @@ export type UserEntity = {
     id: string;
     email: string;
     tenantId: string;
+    status: string;
     createdAt: string;
 };
 
