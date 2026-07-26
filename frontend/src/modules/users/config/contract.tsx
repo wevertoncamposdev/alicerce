@@ -15,6 +15,7 @@ import { TenantEntity } from "@/modules/tenants/types/types";
 
 const formFields = [
     { name: "email" as const, label: "E-mail", type: "text" as const, required: true },
+    { name: "status" as const, label: "Status", type: "text" as const, required: true }
 ];
 
 const { parseListState, serializeListState } = createListQueryState();
