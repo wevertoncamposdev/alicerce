@@ -60,4 +60,12 @@ export class UserRepository {
             },
         });
     }
+
+    search(where: Prisma.UserWhereInput, skip: number, take: number) {
+        return this.prisma.user.findMany({ where, skip, take, orderBy: { createdAt: 'desc' } });
+    }
+
+    count(where: Prisma.UserWhereInput) {
+        return this.prisma.user.count({ where });
+    }
 }

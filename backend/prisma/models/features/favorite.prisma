@@ -9,7 +9,27 @@ model Favorite {
     user   User   @relation(fields: [userId], references: [id])
     tenant Tenant @relation(fields: [tenantId], references: [id])
 
+    favoriteNotes FavoriteNote[]
+
     @@index([tenantId])
     @@index([userId])
     @@map("favorites")
+}
+
+model FavoriteNote {
+    id         String   @id @default(uuid(7)) @db.Uuid
+    tenantId   String   @db.Uuid
+    favoriteId String   @db.Uuid
+    userId     String   @db.Uuid
+    content    String
+    createdAt  DateTime @default(now())
+
+    favorite Favorite @relation(fields: [favoriteId], references: [id], onDelete: Cascade)
+    user     User     @relation(fields: [userId], references: [id])
+    tenant   Tenant   @relation(fields: [tenantId], references: [id])
+
+    @@index([favoriteId])
+    @@index([tenantId])
+    @@index([userId])
+    @@map("favorite_notes")
 }

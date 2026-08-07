@@ -4,11 +4,15 @@ import {
   Post,
   Body,
   Patch,
+  Search,
   Param,
   Delete,
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
+
+import { TenantId } from '@core/common/decorators/tenant-id.decorator';
+import { SearchUsersDto } from './dto/search-users.dto';
 import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -26,8 +30,8 @@ export class UsersController {
   @Post()
   @Roles('ADMIN')
   @Permissions('user.create')
-  async create(@Body() createUserDto: CreateUserDto) {
-    const data = await this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto, @TenantId() tenantId: string): Promise<UserResponseDto> {
+    const data = await this.usersService.create(createUserDto, tenantId);
     return data;
   }
 
@@ -60,5 +64,12 @@ export class UsersController {
   @Permissions('user.delete')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.usersService.remove(id);
+  }
+
+  @Search()
+  @Roles('ADMIN', 'USER')
+  @Permissions('user.read')
+  search(@Body() query: SearchUsersDto, @TenantId() tenantId: string) {
+    return this.usersService.search(query, tenantId);
   }
 }

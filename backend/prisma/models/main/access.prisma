@@ -2,7 +2,6 @@
 model User {
     id       String @id @default(uuid(7)) @db.Uuid
     tenantId String @db.Uuid
-
     email    String @unique @db.VarChar(255)
     password String @db.VarChar(100)
 
@@ -21,6 +20,7 @@ model User {
     tasksAssignedTo Task[]         @relation("taskAssignedTo")
     favorites       Favorite[]
     refreshTokens   RefreshToken[]
+    favoriteNotes   FavoriteNote[]
 
     @@unique([tenantId, email])
     @@map("users")
@@ -95,4 +95,25 @@ model RolePermission {
 
     @@unique([roleId, permissionId, resource])
     @@map("role_permissions")
+}
+
+// Modelos de observabilidade como logs e auditorias.
+model Audit {
+    id       String    @id @default(uuid(7)) @db.Uuid
+    tenantId String    @db.Uuid
+    userId   String    @db.Uuid
+    type     AuditType
+
+    action   String
+    entity   String
+    entityId String?
+    before   String?
+    after    String?
+
+    createdAt DateTime @default(now())
+
+    tenant Tenant @relation(fields: [tenantId], references: [id])
+    user   User   @relation(fields: [userId], references: [id])
+
+    @@map("audits")
 }

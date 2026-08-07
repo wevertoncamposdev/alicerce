@@ -380,6 +380,16 @@ export type AuditUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+export type AuditListRelationFilter = {
+  every?: Prisma.AuditWhereInput
+  some?: Prisma.AuditWhereInput
+  none?: Prisma.AuditWhereInput
+}
+
+export type AuditOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
 export type AuditCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
@@ -417,24 +427,6 @@ export type AuditMinOrderByAggregateInput = {
   before?: Prisma.SortOrder
   after?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-}
-
-export type AuditListRelationFilter = {
-  every?: Prisma.AuditWhereInput
-  some?: Prisma.AuditWhereInput
-  none?: Prisma.AuditWhereInput
-}
-
-export type AuditOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
-}
-
-export type EnumAuditTypeFieldUpdateOperationsInput = {
-  set?: $Enums.AuditType
-}
-
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
 }
 
 export type AuditCreateNestedManyWithoutUserInput = {
@@ -477,6 +469,10 @@ export type AuditUncheckedUpdateManyWithoutUserNestedInput = {
   update?: Prisma.AuditUpdateWithWhereUniqueWithoutUserInput | Prisma.AuditUpdateWithWhereUniqueWithoutUserInput[]
   updateMany?: Prisma.AuditUpdateManyWithWhereWithoutUserInput | Prisma.AuditUpdateManyWithWhereWithoutUserInput[]
   deleteMany?: Prisma.AuditScalarWhereInput | Prisma.AuditScalarWhereInput[]
+}
+
+export type EnumAuditTypeFieldUpdateOperationsInput = {
+  set?: $Enums.AuditType
 }
 
 export type AuditCreateNestedManyWithoutTenantInput = {

@@ -53,7 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   RefreshToken: 'RefreshToken',
   Favorite: 'Favorite',
-  Audit: 'Audit',
+  FavoriteNote: 'FavoriteNote',
   Person: 'Person',
   PersonAddress: 'PersonAddress',
   Address: 'Address',
@@ -66,6 +66,7 @@ export const ModelName = {
   UserRole: 'UserRole',
   Permission: 'Permission',
   RolePermission: 'RolePermission',
+  Audit: 'Audit',
   Tenant: 'Tenant',
   TenantArea: 'TenantArea',
   TenantBoardMember: 'TenantBoardMember',
@@ -115,20 +116,16 @@ export const FavoriteScalarFieldEnum = {
 export type FavoriteScalarFieldEnum = (typeof FavoriteScalarFieldEnum)[keyof typeof FavoriteScalarFieldEnum]
 
 
-export const AuditScalarFieldEnum = {
+export const FavoriteNoteScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
+  favoriteId: 'favoriteId',
   userId: 'userId',
-  type: 'type',
-  action: 'action',
-  entity: 'entity',
-  entityId: 'entityId',
-  before: 'before',
-  after: 'after',
+  content: 'content',
   createdAt: 'createdAt'
 } as const
 
-export type AuditScalarFieldEnum = (typeof AuditScalarFieldEnum)[keyof typeof AuditScalarFieldEnum]
+export type FavoriteNoteScalarFieldEnum = (typeof FavoriteNoteScalarFieldEnum)[keyof typeof FavoriteNoteScalarFieldEnum]
 
 
 export const PersonScalarFieldEnum = {
@@ -311,6 +308,22 @@ export const RolePermissionScalarFieldEnum = {
 } as const
 
 export type RolePermissionScalarFieldEnum = (typeof RolePermissionScalarFieldEnum)[keyof typeof RolePermissionScalarFieldEnum]
+
+
+export const AuditScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  type: 'type',
+  action: 'action',
+  entity: 'entity',
+  entityId: 'entityId',
+  before: 'before',
+  after: 'after',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditScalarFieldEnum = (typeof AuditScalarFieldEnum)[keyof typeof AuditScalarFieldEnum]
 
 
 export const TenantScalarFieldEnum = {

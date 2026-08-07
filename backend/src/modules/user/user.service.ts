@@ -8,7 +8,7 @@ import { UserErrorCode } from './domain/errors/user-error-codes';
 import { UserRepository } from './persistence/repository/user.repository';
 import { UserErrorMapper } from './mappers/user-error.mapper';
 import { Prisma } from '@core/prisma/generated/client';
-
+import { SearchUsersDto } from './dto/search-users.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -20,9 +20,9 @@ export class UsersService {
     private readonly userErrorMapper: UserErrorMapper,
   ) { }
 
-  async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  async create(createUserDto: CreateUserDto, tenantId: string): Promise<UserResponseDto> {
     try {
-      const { tenantId, personId, ...rest } = createUserDto;
+      const { personId, ...rest } = createUserDto;
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
       const user = await this.userRepository.create({
         ...rest,
@@ -133,5 +133,23 @@ export class UsersService {
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'findAll');
     }
+  }
+
+  async search(query: SearchUsersDto, tenantId: string) {
+    const page = query.pagination?.pageIndex !== undefined ? query.pagination.pageIndex + 1 : 1;
+    const limit = query.pagination?.pageSize ?? 20;
+
+    const where: Prisma.UserWhereInput = {
+      tenantId,
+      deletedAt: null,
+      ...(query.searchText ? { email: { contains: query.searchText, mode: 'insensitive' } } : {}),
+    };
+
+    const [items, total] = await Promise.all([
+      this.userRepository.search(where, (page - 1) * limit, limit),
+      this.userRepository.count(where),
+    ]);
+
+    return { items: items, total, page, limit };
   }
 }
