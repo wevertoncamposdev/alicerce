@@ -7,6 +7,7 @@ import { ListView } from "@components/TypeView/ListView/ListView";
 import { FormView } from "@components/TypeView/FormView/FormView";
 import { MetaDataView } from "@components/DetailView/MetaDataView";
 import { MetaDataSidebar } from "@components/DetailView/MetaDataView/MetaDataSidebar";
+import { TenantsListView } from "@modules/tenants/components/TenantsListView";
 
 import { searchTenants, readTenant, createTenant, updateTenant, deleteTenant } from "./provider";
 import { tenantColumns } from "../components/columns";
@@ -29,7 +30,7 @@ const createTenantAction = createRecordFormAction.bind(
 );
 
 const tenantsListLayout: ListLayout<TenantEntity> = {
-    list: ({ data }) => <ListView data={data} columns={tenantColumns} detail="/tenants" />,
+    list: ({ data }) => <TenantsListView data={data} />,
     form: () => (
         <FormView<TenantEntity>
             mode="create"
