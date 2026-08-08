@@ -1,4 +1,4 @@
-# Study
+# Alicerce
 
 Projeto desenvolvido para estudar e aplicar práticas de engenharia de software em um ambiente próximo ao de um projeto real.
 
