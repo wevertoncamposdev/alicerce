@@ -1,15 +1,30 @@
+//@Lib
 import { Injectable, NotFoundException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+
+//@Core
+import { Prisma } from '@core/prisma/generated/client';
+
+//@DTO
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { SearchUsersDto } from './dto/search-users.dto';
+
+//@Mappers
 import { UserMapper } from './mappers/user.mapper';
+import { UserErrorMapper } from './mappers/user-error.mapper';
+
+//@Domain
 import { UserBusinessRules } from './domain/rules/user-business-rules';
 import { UserErrorCode } from './domain/errors/user-error-codes';
+
+//@Repository
 import { UserRepository } from './persistence/repository/user.repository';
-import { UserErrorMapper } from './mappers/user-error.mapper';
-import { Prisma } from '@core/prisma/generated/client';
-import { SearchUsersDto } from './dto/search-users.dto';
-import * as bcrypt from 'bcrypt';
+import { TenantId } from '@src/core/common/decorators/tenant-id.decorator';
+
+
+
 
 @Injectable()
 export class UsersService {

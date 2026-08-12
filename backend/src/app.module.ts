@@ -25,6 +25,11 @@ import { TenantModule } from '@modules/tenant/tenant.module';
 import { TaskModule } from '@modules/task/task.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 
+import { RolesController } from '@modules/role/roles.controller';
+import { RolesService } from '@modules/role/roles.service';
+import { PermissionsController } from '@modules/permission/permissions.controller';
+import { PermissionsService } from '@modules/permission/permissions.service';
+
 
 @Module({
   imports: [
@@ -40,15 +45,17 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
       fallbackLanguage: 'pt',
       loaderOptions: {
         path: fs.existsSync(path.join(__dirname, '/i18n/'))
-      ? path.join(__dirname, '/i18n/')
-      : path.join(__dirname, '../i18n/'),
+          ? path.join(__dirname, '/i18n/')
+          : path.join(__dirname, '../i18n/'),
         watch: true,
       }
     }),
   ],
-  controllers: [AppController],
+  controllers: [AppController, RolesController, PermissionsController],
   providers: [
     AppService,
+    RolesService,
+    PermissionsService,
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,

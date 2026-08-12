@@ -53,10 +53,10 @@ describe('UsersController', () => {
       const expected = { id: 'user-id', ...dto };
       service.create.mockResolvedValueOnce(expected as never);
 
-      const result = await controller.create(dto);
+      const result = await controller.create(dto, dto.tenantId);
 
       expect(result).toEqual(expected);
-      expect(service.create).toHaveBeenCalledWith(dto);
+      expect(service.create).toHaveBeenCalledWith(dto, dto.tenantId);
     });
   });
 
