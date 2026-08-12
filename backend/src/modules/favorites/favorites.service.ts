@@ -3,6 +3,7 @@ import { CreateFavoriteDto } from './dto/create-favorite.dto';
 import { UpdateFavoriteDto } from './dto/update-favorite.dto';
 import { PrismaService } from '@src/core/prisma/prisma.service';
 import { SearchFavoritesDto } from './dto/search-favorite.dto';
+import { TenantId } from '@src/core/common/decorators/tenant-id.decorator';
 
 @Injectable()
 export class FavoritesService {

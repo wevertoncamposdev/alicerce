@@ -9,18 +9,20 @@ import {
   Delete,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
-import { SearchUsersDto } from './dto/search-users.dto';
-import { UsersService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { UserResponseDto } from './dto/user-response.dto';
-import { UseGuards } from '@nestjs/common';
 import { Roles } from '@core/common/decorators/roles.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
+
+import { SearchUsersDto } from './dto/search-users.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UserResponseDto } from './dto/user-response.dto';
+
+import { UsersService } from './user.service';
 
 @Controller('user')
 @UseGuards(RolesPermissionsGuard)

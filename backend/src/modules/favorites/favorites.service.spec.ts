@@ -36,9 +36,12 @@ describe('FavoritesService', () => {
     // Arrange (Preparação)
 
     const dto = {
+      id: '7bef0254-e4b4-4ad2-91c3-97eb86d3e9da',
+      tenantId: '275ea732-f063-48e2-92e1-c640a0bc5928',
       title: 'NestJS',
       url: 'https://nestjs.com',
-      userId: 'user-1',
+      createdAt: new Date(),
+      userId: '7ac4d61e-82c0-4782-8c1a-da2418cfe1ab',
     };
 
     const favoriteCreated = {
@@ -54,7 +57,7 @@ describe('FavoritesService', () => {
 
     // Act (Execução)
 
-    const result = await service.create(dto);
+    const result = await service.create(dto, dto.tenantId, dto.userId);
 
     // Assert (Verificação)
 
@@ -62,6 +65,7 @@ describe('FavoritesService', () => {
       data: {
         title: 'NestJS',
         url: 'https://nestjs.com',
+        tenantId: 'tenant-1',
         userId: 'user-1',
       },
     });

@@ -83,7 +83,7 @@ describe('UsersService', () => {
             email: 'john@example.com',
             tenantId: 'adf4f488-faa3-4fca-946e-522f7c2d4976',
             password: '123456',
-        });
+        }, 'adf4f488-faa3-4fca-946e-522f7c2d4976');
 
         expect(result).toEqual(mappedResult);
         expect(repository.create).toHaveBeenCalledWith({
@@ -110,7 +110,7 @@ describe('UsersService', () => {
                 email: 'john@example.com',
                 tenantId: 'adf4f488-faa3-4fca-946e-522f7c2d4976',
                 password: '123456',
-            }),
+            }, 'adf4f488-faa3-4fca-946e-522f7c2d4976'),
         ).rejects.toBeInstanceOf(ConflictException);
     });
 });
