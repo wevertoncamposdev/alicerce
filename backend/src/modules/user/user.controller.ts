@@ -23,11 +23,16 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 
 import { UsersService } from './user.service';
+import { RolesService } from '../role/roles.service';
 
 @Controller('user')
 @UseGuards(RolesPermissionsGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly rolesService: RolesService,
+  ) { }
 
   @Post()
   @Roles('ADMIN')
@@ -73,5 +78,12 @@ export class UsersController {
   @Permissions('user.read')
   search(@Body() query: SearchUsersDto, @TenantId() tenantId: string) {
     return this.usersService.search(query, tenantId);
+  }
+
+  @Get(':id/roles')
+  @Roles('ADMIN')
+  @Permissions('user.read')
+  listRoles(@Param('id') id: string, @Query('tenantId') tenantId: string) {
+    return this.rolesService.findUsersOfRole(id, tenantId); // método novo, espelha findUsersOfRole
   }
 }

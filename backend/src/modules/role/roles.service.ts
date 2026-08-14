@@ -2,10 +2,18 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { SearchRoleDto } from './dto/search-role.dto';
+import { Prisma } from '@core/prisma/generated/client';
+import { RoleRepository } from './persistence/role.repository';
 
 @Injectable()
 export class RolesService {
-    constructor(private readonly prisma: PrismaService) { }
+
+
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly roleRepository: RoleRepository,
+    ) { }
 
     async findAll(tenantId: string) {
         return this.prisma.role.findMany({
@@ -127,5 +135,39 @@ export class RolesService {
         });
 
         return { removed: result.count > 0 };
+    }
+
+    async search(query: SearchRoleDto) {
+        const page = query.pagination?.pageIndex !== undefined ? query.pagination.pageIndex + 1 : 1;
+        const limit = query.pagination?.pageSize ?? 20;
+
+        const where: Prisma.RoleWhereInput = query.searchText
+            ? {
+                OR: [
+                    { name: { contains: query.searchText, mode: 'insensitive' } },
+                ],
+            }
+            : {};
+
+        const [items, total] = await Promise.all([
+            this.roleRepository.search(where, (page - 1) * limit, limit),
+            this.roleRepository.count(where),
+        ]);
+
+        return { items, total, page, limit };
+    }
+
+    async findPermissionsOfRole(roleId: string, tenantId: string) {
+        return this.prisma.rolePermission.findMany({
+            where: { roleId, tenantId },
+            include: { permission: { select: { id: true, name: true } } },
+        });
+    }
+
+    async findUsersOfRole(roleId: string, tenantId: string) {
+        return this.prisma.userRole.findMany({
+            where: { roleId, tenantId },
+            include: { user: { select: { id: true } } },
+        });
     }
 }

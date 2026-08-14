@@ -7,6 +7,7 @@ import {
     Patch,
     Post,
     Query,
+    Search,
     UseGuards,
 } from '@nestjs/common';
 
@@ -19,7 +20,7 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { AttachRoleUserDto } from './dto/attach-role-user.dto';
 import { AttachRolePermissionDto } from './dto/attach-role-permission.dto';
-
+import { SearchRoleDto } from './dto/search-role.dto';
 import { RolesService } from './roles.service';
 
 @Controller('roles')
@@ -89,5 +90,26 @@ export class RolesController {
         @Query('tenantId') tenantId: string,
     ) {
         return this.rolesService.detachPermission(id, tenantId, permissionId);
+    }
+
+    @Search()
+    @Roles('ADMIN')
+    @Permissions('role.read') // ou 'permission.read'
+    search(@Body() query: SearchRoleDto) { // ou SearchPermissionDto
+        return this.rolesService.search(query); // implementar em roles.service.ts, espelhando tenant.service.ts
+    }
+
+    @Get(':id/permissions')
+    @Roles('ADMIN')
+    @Permissions('role.read')
+    listPermissions(@Param('id') id: string, @Query('tenantId') tenantId: string) {
+        return this.rolesService.findPermissionsOfRole(id, tenantId);
+    }
+
+    @Get(':id/users')
+    @Roles('ADMIN')
+    @Permissions('role.read')
+    listUsers(@Param('id') id: string, @Query('tenantId') tenantId: string) {
+        return this.rolesService.findUsersOfRole(id, tenantId);
     }
 }

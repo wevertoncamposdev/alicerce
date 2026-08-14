@@ -25,17 +25,16 @@ import { TenantModule } from '@modules/tenant/tenant.module';
 import { TaskModule } from '@modules/task/task.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 
-import { RolesController } from '@modules/role/roles.controller';
-import { RolesService } from '@modules/role/roles.service';
-import { PermissionsController } from '@modules/permission/permissions.controller';
-import { PermissionsService } from '@modules/permission/permissions.service';
-
+import { RoleModule } from '@modules/role/role.module';
+import { PermissionModule } from '@modules/permission/permission.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     UsersModule,
+    RoleModule,
+    PermissionModule,
     AuthModule,
     TenantModule,
     AuditModule,
@@ -51,11 +50,9 @@ import { PermissionsService } from '@modules/permission/permissions.service';
       }
     }),
   ],
-  controllers: [AppController, RolesController, PermissionsController],
+  controllers: [AppController],
   providers: [
     AppService,
-    RolesService,
-    PermissionsService,
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
