@@ -19,6 +19,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "tsx prisma/seed.ts"
+    ,"export:openapi": "tsx -r tsconfig-paths/register scripts/export-openapi.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
@@ -100,12 +101,13 @@
       "<rootDir>/jest-setup.ts"
     ],
     "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1",
       "^@core/(.*)$": "<rootDir>/core/$1",
       "^@modules/(.*)$": "<rootDir>/modules/$1",
       "^@src/(.*)$": "<rootDir>/$1"
-    },
-    "prisma": {
-      "seed": "tsx prisma/seed.ts"
     }
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }

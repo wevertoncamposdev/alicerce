@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
+import { SearchPermissionDto } from './dto/search-permission.dto';
+import { Prisma } from '@core/prisma/generated/client';
 
 @Injectable()
 export class PermissionsService {
@@ -60,5 +62,26 @@ export class PermissionsService {
                 deletedAt: new Date(),
             },
         });
+    }
+
+    async search(query: SearchPermissionDto) {
+        const page = query.pagination?.pageIndex !== undefined ? query.pagination.pageIndex + 1 : 1;
+        const limit = query.pagination?.pageSize ?? 20;
+
+        const where: Prisma.PermissionWhereInput = query.searchText
+            ? {
+                OR: [
+                    { name: { contains: query.searchText, mode: 'insensitive' } },
+                    { resource: { contains: query.searchText, mode: 'insensitive' } },
+                ],
+            }
+            : {};
+
+        const [items, total] = await Promise.all([
+            this.prisma.permission.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: 'desc' } }),
+            this.prisma.permission.count({ where }),
+        ]);
+
+        return { items, total, page, limit };
     }
 }

@@ -1,10 +1,10 @@
 import { apiServer } from "@lib/api-server";
 import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
-import type { RoleEntity, CreateRolePayload, UpdateRolePayload } from "@modules/roles/types/types";
+import type { RoleEntity, CreateRolePayload, UpdateRolePayload } from "../types/types";
 
-export async function search(args: SearchArgs): Promise<SearchResult<RoleEntity>> {
+export async function searchRoles(args: SearchArgs): Promise<SearchResult<RoleEntity>> {
     const response = await apiServer.search<{ items: RoleEntity[]; total: number; page: number; limit: number }>(
-        "role",
+        "roles",
         {
             searchText: args.searchText,
             sort: args.sort,
@@ -24,18 +24,26 @@ export async function search(args: SearchArgs): Promise<SearchResult<RoleEntity>
     };
 }
 
-export async function read(id: string): Promise<RoleEntity> {
-    return apiServer.get<RoleEntity>(`role/${id}`);
+export async function readRole(id: string): Promise<RoleEntity> {
+    return apiServer.get<RoleEntity>(`roles/${id}`);
 }
 
-export async function create(payload: unknown): Promise<RoleEntity> {
-    return apiServer.post<RoleEntity>("role", payload as CreateRolePayload);
+export async function createRole(payload: unknown): Promise<RoleEntity> {
+    return apiServer.post<RoleEntity>("roles", payload as CreateRolePayload);
 }
 
-export async function update(id: string, payload: unknown): Promise<RoleEntity> {
-    return apiServer.patch<RoleEntity>(`role/${id}`, payload as UpdateRolePayload);
+export async function updateRole(id: string, payload: unknown): Promise<RoleEntity> {
+    return apiServer.patch<RoleEntity>(`roles/${id}`, payload as UpdateRolePayload);
 }
 
-export async function remove(id: string): Promise<void> {
-    await apiServer.delete(`role/${id}`);
+export async function deleteRole(id: string): Promise<void> {
+    await apiServer.delete(`roles/${id}`);
+}
+
+export async function readRolePermissions(id: string) {
+    return apiServer.get<import("@/modules/permissions/types/types").PermissionEntity[]>(`roles/${id}/permissions`);
+}
+
+export async function readRoleUsers(id: string) {
+    return apiServer.get<import("@/modules/users/types/types").UserEntity[]>(`roles/${id}/users`);
 }

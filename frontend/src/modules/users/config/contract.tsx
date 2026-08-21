@@ -7,8 +7,9 @@ import { ListView } from "@components/TypeView/ListView/ListView";
 import { FormView } from "@components/TypeView/FormView/FormView";
 import { MetaDataView } from "@components/DetailView/MetaDataView";
 import { MetaDataSidebar } from "@components/DetailView/MetaDataView/MetaDataSidebar";
+import UserRolesHost from "@modules/users/components/UserRolesHost";
 
-import { searchUsers, readUser, createUser, updateUser, deleteUser } from "./provider";
+import { searchUsers, readUser, createUser, updateUser, deleteUser, readUserRoles } from "./provider";
 import { userColumns } from "../components/columns";
 import type { UserEntity, ContextItem } from "../types/types";
 import { TenantEntity } from "@/modules/tenants/types/types";
@@ -52,6 +53,7 @@ const usersDetailLayout: DetailLayout<UserEntity> = {
             <MetaDataView contextItems={contextItems} auditItems={auditItems} />
         </MetaDataSidebar>
     ),
+    bottom: ({ record }) => <UserRolesSection userId={record.id} />,
 };
 
 function loadUserContext(record: UserEntity): ContextItem[] {
@@ -76,3 +78,8 @@ export const usersModule = defineRecordModule<UserEntity>({
 });
 
 registerModule(usersModule);
+
+async function UserRolesSection({ userId }: { userId: string }) {
+    const roles = await readUserRoles(userId);
+    return <UserRolesHost userId={userId} initial={roles ?? []} />;
+}

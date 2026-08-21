@@ -4,6 +4,7 @@ import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { randomUUID } from 'crypto';
+import { RolesService } from '../role/roles.service';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -31,6 +32,10 @@ describe('UsersController', () => {
         {
           provide: UsersService,
           useValue: usersServiceMock,
+        },
+        {
+          provide: RolesService,
+          useValue: {},
         },
       ],
     }).compile();

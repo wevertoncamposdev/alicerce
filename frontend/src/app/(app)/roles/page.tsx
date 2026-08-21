@@ -1,5 +1,5 @@
+// app/(app)/roles/page.tsx
 import { TypeViewScreen } from "@/screens/TypeViewScreen";
-
 export default function RolesPage({
   searchParams,
 }: {

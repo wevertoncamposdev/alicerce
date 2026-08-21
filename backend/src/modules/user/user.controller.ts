@@ -18,6 +18,7 @@ import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 
 import { SearchUsersDto } from './dto/search-users.dto';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
@@ -25,6 +26,7 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { UsersService } from './user.service';
 import { RolesService } from '../role/roles.service';
 
+@ApiTags('users')
 @Controller('user')
 @UseGuards(RolesPermissionsGuard)
 export class UsersController {
@@ -83,7 +85,9 @@ export class UsersController {
   @Get(':id/roles')
   @Roles('ADMIN')
   @Permissions('user.read')
+  @ApiOperation({ summary: 'List roles of a user' })
+  @ApiResponse({ status: 200, description: 'List of roles' })
   listRoles(@Param('id') id: string, @Query('tenantId') tenantId: string) {
-    return this.rolesService.findUsersOfRole(id, tenantId); // método novo, espelha findUsersOfRole
+    return this.rolesService.findRolesOfUser(id, tenantId);
   }
 }

@@ -7,7 +7,9 @@ import {
     Patch,
     Post,
     Query,
+    Search,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { Roles } from '@core/common/decorators/roles.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { UseGuards } from '@nestjs/common';
@@ -15,7 +17,9 @@ import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.gua
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
+import { SearchPermissionDto } from './dto/search-permission.dto';
 
+@ApiTags('permissions')
 @Controller('permissions')
 @UseGuards(RolesPermissionsGuard)
 export class PermissionsController {
@@ -47,5 +51,15 @@ export class PermissionsController {
     @Permissions('permission.delete')
     remove(@Param('id') id: string) {
         return this.permissionsService.remove(id);
+    }
+
+    @Search()
+    @Roles('ADMIN')
+    @Permissions('permission.read')
+    @ApiOperation({ summary: 'Search permissions' })
+    @ApiResponse({ status: 200, description: 'Search results' })
+    @ApiBody({ schema: { type: 'object' } })
+    search(@Body() query: SearchPermissionDto) {
+        return this.permissionsService.search(query);
     }
 }

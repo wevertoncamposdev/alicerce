@@ -1,0 +1,3 @@
+{
+  "error": "[SearchPermissionDto] A circular dependency has been detected (property key: \"searchText\"). To resolve this, use a lazy resolver for the property type (\"type: () => ClassType\") on each side of the relationship, or break the cycle by introducing a reference via @ApiExtraModels."
+}

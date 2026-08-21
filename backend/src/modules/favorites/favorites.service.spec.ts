@@ -8,7 +8,13 @@ describe('FavoritesService', () => {
   // Nosso Prisma "falso"
   const prismaMock = {
     favorite: {
+      findFirst: jest.fn(),
       create: jest.fn(),
+      findMany: jest.fn(),
+      count: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
     },
   };
 
@@ -65,8 +71,8 @@ describe('FavoritesService', () => {
       data: {
         title: 'NestJS',
         url: 'https://nestjs.com',
-        tenantId: 'tenant-1',
-        userId: 'user-1',
+        tenantId: dto.tenantId,
+        userId: dto.userId,
       },
     });
 

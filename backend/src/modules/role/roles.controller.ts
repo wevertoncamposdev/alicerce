@@ -10,6 +10,7 @@ import {
     Search,
     UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 
 import { Roles } from '@core/common/decorators/roles.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
@@ -23,6 +24,7 @@ import { AttachRolePermissionDto } from './dto/attach-role-permission.dto';
 import { SearchRoleDto } from './dto/search-role.dto';
 import { RolesService } from './roles.service';
 
+@ApiTags('roles')
 @Controller('roles')
 @UseGuards(RolesPermissionsGuard)
 export class RolesController {
@@ -95,6 +97,9 @@ export class RolesController {
     @Search()
     @Roles('ADMIN')
     @Permissions('role.read') // ou 'permission.read'
+    @ApiOperation({ summary: 'Search roles' })
+    @ApiResponse({ status: 200, description: 'Search results' })
+    @ApiBody({ schema: { type: 'object' } })
     search(@Body() query: SearchRoleDto) { // ou SearchPermissionDto
         return this.rolesService.search(query); // implementar em roles.service.ts, espelhando tenant.service.ts
     }
@@ -102,6 +107,8 @@ export class RolesController {
     @Get(':id/permissions')
     @Roles('ADMIN')
     @Permissions('role.read')
+    @ApiOperation({ summary: 'List permissions of a role' })
+    @ApiResponse({ status: 200, description: 'List of permissions' })
     listPermissions(@Param('id') id: string, @Query('tenantId') tenantId: string) {
         return this.rolesService.findPermissionsOfRole(id, tenantId);
     }
@@ -109,6 +116,8 @@ export class RolesController {
     @Get(':id/users')
     @Roles('ADMIN')
     @Permissions('role.read')
+    @ApiOperation({ summary: 'List users of a role' })
+    @ApiResponse({ status: 200, description: 'List of users' })
     listUsers(@Param('id') id: string, @Query('tenantId') tenantId: string) {
         return this.rolesService.findUsersOfRole(id, tenantId);
     }

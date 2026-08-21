@@ -35,3 +35,7 @@ export async function updateUser(id: string, payload: unknown): Promise<UserEnti
 export async function deleteUser(id: string): Promise<void> {
     await apiServer.delete(`user/${id}`);
 }
+
+export async function readUserRoles(id: string) {
+    return apiServer.get<import("@/modules/roles/types/types").RoleEntity[]>(`user/${id}/roles`);
+}

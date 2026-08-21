@@ -3,29 +3,26 @@ import type { DetailLayout, ListLayout } from "@lib/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
 import { createRecordFormAction } from "@lib/registry/actions";
 
-import { ListView } from "@components/TypeView/ListView/ListView";
+import { RolesListView } from "@modules/roles/components/RoleListView";
 import { FormView } from "@components/TypeView/FormView/FormView";
 import { MetaDataView } from "@components/DetailView/MetaDataView";
 import { MetaDataSidebar } from "@components/DetailView/MetaDataView/MetaDataSidebar";
-import { RolesListView } from "@modules/roles/components/RoleListView";
+import RolePermissionsHost from "@modules/roles/components/RolePermissionsHost";
+import RoleUsersHost from "@modules/roles/components/RoleUsersHost";
 
-import { search, read, create, update, remove } from "./provider";
-import { roleColumns } from "@modules/roles/components/columns";
-import type { RoleEntity, ContextItem } from "@modules/roles/types/types";
+import { searchRoles, readRole, createRole, updateRole, deleteRole, readRolePermissions, readRoleUsers } from "./provider";
+import { roleColumns } from "../components/columns";
+import type { RoleEntity, ContextItem } from "../types/types";
 
 const formFields = [
     { name: "name" as const, label: "Nome", type: "text" as const, required: true },
-    { name: "type" as const, label: "Tipo", type: "text" as const, required: true },
-    { name: "description" as const, label: "Descrição", type: "text" as const, required: true },
+    { name: "type" as const, label: "Tipo", type: "text" as const },
+    { name: "description" as const, label: "Descrição", type: "textarea" as const },
 ];
 
 const { parseListState, serializeListState } = createListQueryState();
 
-const createRoleAction = createRecordFormAction.bind(
-    null,
-    "roles",
-    formFields.map((f) => f.name)
-);
+const createRoleAction = createRecordFormAction.bind(null, "roles", formFields.map((f) => f.name));
 
 const rolesListLayout: ListLayout<RoleEntity> = {
     list: ({ data }) => <RolesListView data={data} />,
@@ -53,11 +50,17 @@ const rolesDetailLayout: DetailLayout<RoleEntity> = {
             <MetaDataView contextItems={contextItems} auditItems={auditItems} />
         </MetaDataSidebar>
     ),
+    bottom: ({ record }) => (
+        <div className="space-y-6">
+            <RolePermissionsSection roleId={record.id} />
+            <RoleUsersSection roleId={record.id} />
+        </div>
+    ),
 };
 
 function loadRoleContext(record: RoleEntity): ContextItem[] {
     return [
-        { key: "createdAt", label: "Criado em", value: record.createdAt.slice(0, 16).replace("T", ", ") }
+        { key: "createdAt", label: "Criado em", value: record.createdAt?.slice?.(0, 16).replace("T", ", ") ?? "" },
     ];
 }
 
@@ -66,7 +69,7 @@ export const rolesModule = defineRecordModule<RoleEntity>({
     label: "Roles",
     views: ["list", "form"],
     defaultView: "list",
-    dataHandlers: { search: search, read: read, create: create, update: update, delete: remove },
+    dataHandlers: { search: searchRoles, read: readRole, create: createRole, update: updateRole, delete: deleteRole },
     formFields,
     parseListState,
     serializeListState,
@@ -76,3 +79,13 @@ export const rolesModule = defineRecordModule<RoleEntity>({
 });
 
 registerModule(rolesModule);
+
+async function RolePermissionsSection({ roleId }: { roleId: string }) {
+    const permissions = await readRolePermissions(roleId);
+    return <RolePermissionsHost roleId={roleId} initial={permissions ?? []} />;
+}
+
+async function RoleUsersSection({ roleId }: { roleId: string }) {
+    const users = await readRoleUsers(roleId);
+    return <RoleUsersHost roleId={roleId} initial={users ?? []} />;
+}
