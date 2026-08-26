@@ -141,7 +141,7 @@ export default function EntityList() {
 
 ## Padrões do projeto
 
-### Tenant-aware
+### Role-aware
 
 Sempre passar `tenantId` em contexto via localStorage ou props:
 

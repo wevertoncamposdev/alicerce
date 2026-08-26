@@ -8,14 +8,13 @@ import { UserMapper } from './mappers/user.mapper';
 import { UserErrorMapper } from './mappers/user-error.mapper';
 
 import { UserValidator } from './validators/user.validator';
-
 import { UserBusinessRules } from './domain/rules/user-business-rules';
-
 import { UserRepository } from './persistence/repository/user.repository';
 
+import { RoleModule } from '../role/role.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, RoleModule],
   controllers: [UsersController],
   providers: [
     UsersService,
@@ -24,6 +23,7 @@ import { UserRepository } from './persistence/repository/user.repository';
     UserBusinessRules,
     UserRepository,
     UserErrorMapper,
+
   ],
   exports: [UsersService],
 })

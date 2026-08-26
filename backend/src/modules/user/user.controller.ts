@@ -18,16 +18,23 @@ import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 
 import { SearchUsersDto } from './dto/search-users.dto';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 
 import { UsersService } from './user.service';
+import { RolesService } from '../role/roles.service';
 
+@ApiTags('users')
 @Controller('user')
 @UseGuards(RolesPermissionsGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly rolesService: RolesService,
+  ) { }
 
   @Post()
   @Roles('ADMIN')
@@ -73,5 +80,14 @@ export class UsersController {
   @Permissions('user.read')
   search(@Body() query: SearchUsersDto, @TenantId() tenantId: string) {
     return this.usersService.search(query, tenantId);
+  }
+
+  @Get(':id/roles')
+  @Roles('ADMIN')
+  @Permissions('user.read')
+  @ApiOperation({ summary: 'List roles of a user' })
+  @ApiResponse({ status: 200, description: 'List of roles' })
+  listRoles(@Param('id') id: string, @Query('tenantId') tenantId: string) {
+    return this.rolesService.findRolesOfUser(id, tenantId);
   }
 }

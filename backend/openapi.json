@@ -1,0 +1,782 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/user": {
+      "post": {
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "get": {
+        "operationId": "UsersController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "search": {
+        "operationId": "UsersController_search",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/user/{id}": {
+      "get": {
+        "operationId": "UsersController_findOne",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_remove",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/user/{id}/roles": {
+      "get": {
+        "operationId": "UsersController_listRoles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of roles"
+          }
+        },
+        "summary": "List roles of a user",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/roles": {
+      "get": {
+        "operationId": "RolesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "roles"
+        ]
+      },
+      "post": {
+        "operationId": "RolesController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "roles"
+        ]
+      },
+      "search": {
+        "operationId": "RolesController_search",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Search results"
+          }
+        },
+        "summary": "Search roles",
+        "tags": [
+          "roles"
+        ]
+      }
+    },
+    "/roles/{id}": {
+      "patch": {
+        "operationId": "RolesController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "roles"
+        ]
+      },
+      "delete": {
+        "operationId": "RolesController_remove",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "roles"
+        ]
+      }
+    },
+    "/roles/{id}/users": {
+      "post": {
+        "operationId": "RolesController_attachUser",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "roles"
+        ]
+      },
+      "get": {
+        "operationId": "RolesController_listUsers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of users"
+          }
+        },
+        "summary": "List users of a role",
+        "tags": [
+          "roles"
+        ]
+      }
+    },
+    "/roles/{id}/users/{userId}": {
+      "delete": {
+        "operationId": "RolesController_detachUser",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "roles"
+        ]
+      }
+    },
+    "/roles/{id}/permissions": {
+      "post": {
+        "operationId": "RolesController_attachPermission",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "roles"
+        ]
+      },
+      "get": {
+        "operationId": "RolesController_listPermissions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of permissions"
+          }
+        },
+        "summary": "List permissions of a role",
+        "tags": [
+          "roles"
+        ]
+      }
+    },
+    "/roles/{id}/permissions/{permissionId}": {
+      "delete": {
+        "operationId": "RolesController_detachPermission",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "roles"
+        ]
+      }
+    },
+    "/permissions": {
+      "get": {
+        "operationId": "PermissionsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "permissions"
+        ]
+      },
+      "post": {
+        "operationId": "PermissionsController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "permissions"
+        ]
+      },
+      "search": {
+        "operationId": "PermissionsController_search",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Search results"
+          }
+        },
+        "summary": "Search permissions",
+        "tags": [
+          "permissions"
+        ]
+      }
+    },
+    "/permissions/{id}": {
+      "patch": {
+        "operationId": "PermissionsController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "permissions"
+        ]
+      },
+      "delete": {
+        "operationId": "PermissionsController_remove",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "permissions"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_signUp",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_signIn",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/profile": {
+      "get": {
+        "operationId": "AuthController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/tenant": {
+      "post": {
+        "operationId": "TenantController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tenants"
+        ]
+      },
+      "search": {
+        "operationId": "TenantController_search",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Tenants encontrados com sucesso."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Buscar tenants",
+        "tags": [
+          "tenants"
+        ]
+      }
+    },
+    "/tenant/{id}": {
+      "get": {
+        "operationId": "TenantController_findOne",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tenants"
+        ]
+      },
+      "patch": {
+        "operationId": "TenantController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tenants"
+        ]
+      },
+      "delete": {
+        "operationId": "TenantController_remove",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tenants"
+        ]
+      }
+    },
+    "/tenant/{tenantId}/audit": {
+      "get": {
+        "operationId": "AuditController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Audit"
+        ]
+      }
+    },
+    "/tenant/{tenantId}/task": {
+      "post": {
+        "operationId": "TaskController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Task"
+        ]
+      },
+      "get": {
+        "operationId": "TaskController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Task"
+        ]
+      }
+    },
+    "/tenant/{tenantId}/task/user/{userId}": {
+      "get": {
+        "operationId": "TaskController_getByUser",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Task"
+        ]
+      }
+    },
+    "/tenant/{tenantId}/task/{id}": {
+      "get": {
+        "operationId": "TaskController_findOne",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Task"
+        ]
+      },
+      "patch": {
+        "operationId": "TaskController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Task"
+        ]
+      },
+      "delete": {
+        "operationId": "TaskController_remove",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Task"
+        ]
+      }
+    },
+    "/favorites": {
+      "post": {
+        "operationId": "FavoritesController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Favorito criado com sucesso."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Criar favorito",
+        "tags": [
+          "favorites"
+        ]
+      },
+      "get": {
+        "operationId": "FavoritesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista de favoritos retornada com sucesso."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar favoritos",
+        "tags": [
+          "favorites"
+        ]
+      },
+      "search": {
+        "operationId": "FavoritesController_search",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Favoritos encontrados com sucesso."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Buscar favoritos",
+        "tags": [
+          "favorites"
+        ]
+      }
+    },
+    "/favorites/{id}": {
+      "get": {
+        "operationId": "FavoritesController_findOne",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Favorito retornado com sucesso."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obter favorito por ID",
+        "tags": [
+          "favorites"
+        ]
+      },
+      "patch": {
+        "operationId": "FavoritesController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Favorito atualizado com sucesso."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Atualizar favorito",
+        "tags": [
+          "favorites"
+        ]
+      },
+      "delete": {
+        "operationId": "FavoritesController_remove",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Favorito removido com sucesso."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remover favorito",
+        "tags": [
+          "favorites"
+        ]
+      }
+    },
+    "/favorites/{favoriteId}/notes": {
+      "get": {
+        "operationId": "FavoriteNotesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar notas de um favorito",
+        "tags": [
+          "favorite-notes"
+        ]
+      },
+      "post": {
+        "operationId": "FavoriteNotesController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Criar nota em um favorito",
+        "tags": [
+          "favorite-notes"
+        ]
+      }
+    },
+    "/favorites/{favoriteId}/notes/{id}": {
+      "delete": {
+        "operationId": "FavoriteNotesController_remove",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remover nota",
+        "tags": [
+          "favorite-notes"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Study API",
+    "description": "Documentação da API do projeto",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {}
+  }
+}

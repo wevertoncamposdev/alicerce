@@ -58,3 +58,13 @@ export async function attachRolePermission(params: AttachRolePermissionParams): 
         permissionId: params.permissionId,
     });
 }
+
+export async function detachRoleUser(params: { roleId: string; tenantId: string; userId: string }): Promise<null> {
+    const qs = params.tenantId ? `?tenantId=${params.tenantId}` : "";
+    return apiClient.delete<null>(`roles/${params.roleId}/users/${params.userId}${qs}`);
+}
+
+export async function detachRolePermission(params: { roleId: string; tenantId: string; permissionId: string }): Promise<null> {
+    const qs = params.tenantId ? `?tenantId=${params.tenantId}` : "";
+    return apiClient.delete<null>(`roles/${params.roleId}/permissions/${params.permissionId}${qs}`);
+}

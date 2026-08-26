@@ -12,12 +12,28 @@ type ApiClientOptions = {
 class ApiError extends Error {
     status: number;
     data: unknown;
+    code?: string;
 
     constructor(message: string, status: number, data: unknown) {
         super(message);
         this.name = "ApiError";
         this.status = status;
         this.data = data;
+        // try to extract a code if present
+        if (data && typeof data === 'object' && 'code' in (data as any)) {
+            this.code = String((data as any).code);
+        }
+    }
+
+    friendlyMessage() {
+        // common NestJS error shapes: { statusCode, message, error }
+        if (this.data && typeof this.data === 'object') {
+            const d: any = this.data;
+            if (Array.isArray(d.message)) return d.message.join('; ');
+            if (typeof d.message === 'string') return d.message;
+            if (typeof d.error === 'string') return d.error;
+        }
+        return this.message;
     }
 }
 
@@ -44,10 +60,15 @@ async function request<T>(
     const data = isJson ? await response.json() : await response.text();
 
     if (!response.ok) {
-        const message =
-            typeof data === "object" && data && "message" in data
-                ? String((data as { message: unknown }).message)
-                : `Request failed with status ${response.status}`;
+        let message: string;
+        if (typeof data === 'object' && data && 'message' in data) {
+            const m = (data as any).message;
+            message = Array.isArray(m) ? m.join('; ') : String(m);
+        } else if (typeof data === 'string') {
+            message = data;
+        } else {
+            message = `Request failed with status ${response.status}`;
+        }
 
         throw new ApiError(message, response.status, data);
     }

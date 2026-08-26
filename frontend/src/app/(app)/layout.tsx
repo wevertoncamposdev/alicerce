@@ -6,6 +6,7 @@ import { AuthProvider } from "@/contexts/auth-context";
 import { SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 import { AppSidebar } from "@/components/Layout/AppSidebar";
 import "@lib/registry/bootstrap";
+import ToastProvider from "@components/ui/toast";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const currentUser = await getCurrentUser();
@@ -31,10 +32,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <AuthProvider initialUser={currentUser.user} initialTenantId={currentUser.tenantId}>
       <SidebarProvider>
-        <AppSidebar />
-        <main className="flex-1">
-          {children}
-        </main>
+        <ToastProvider>
+          <AppSidebar />
+          <main className="flex-1">{children}</main>
+        </ToastProvider>
       </SidebarProvider>
     </AuthProvider>
   );

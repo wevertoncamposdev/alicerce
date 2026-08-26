@@ -8,3 +8,4 @@ export { Skeleton } from '@components/ui/skeleton';
 export { Table } from '@components/ui/table';
 export { Tooltip } from '@components/ui/tooltip';
 export { Select } from '@components/ui/select';
+export { ToastProvider, useToast } from '@components/ui/toast';

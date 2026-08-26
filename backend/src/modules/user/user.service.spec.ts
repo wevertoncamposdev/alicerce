@@ -88,8 +88,10 @@ describe('UsersService', () => {
         expect(result).toEqual(mappedResult);
         expect(repository.create).toHaveBeenCalledWith({
             email: 'john@example.com',
-            tenantId: 'adf4f488-faa3-4fca-946e-522f7c2d4976',
             password: 'hashed-password',
+            tenant: { connect: { id: 'adf4f488-faa3-4fca-946e-522f7c2d4976' } },
+            person: undefined,
+            tenantId: 'adf4f488-faa3-4fca-946e-522f7c2d4976',
         });
     });
 
