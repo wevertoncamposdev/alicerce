@@ -11,6 +11,8 @@ import { MetaDataSidebar } from "@components/DetailView/MetaDataView/MetaDataSid
 import { searchPermissions, readPermission, createPermission, updatePermission, deletePermission } from "./provider";
 import { permissionColumns } from "../components/columns";
 import type { PermissionEntity, ContextItem } from "../types/types";
+import { readPermissionRoles } from "./provider";
+import PermissionRolesHost from "@modules/permissions/components/PermissionRolesHost";
 
 const formFields = [
     { name: "name" as const, label: "Nome", type: "text" as const, required: true },
@@ -48,7 +50,13 @@ const permissionsDetailLayout: DetailLayout<PermissionEntity> = {
             <MetaDataView contextItems={contextItems} auditItems={auditItems} />
         </MetaDataSidebar>
     ),
+    bottom: ({ record }) => <PermissionRolesSection permissionId={record.id} />
 };
+
+async function PermissionRolesSection({ permissionId }: { permissionId: string }) {
+    const roles = await readPermissionRoles(permissionId);
+    return <PermissionRolesHost items={roles ?? []} />;
+}
 
 function loadPermissionContext(record: PermissionEntity): ContextItem[] {
     return [

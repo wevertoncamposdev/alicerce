@@ -8,7 +8,7 @@ import {
     fetchRoles,
     removeRole,
     updateRole,
-} from '@/features/roles/services/roleService';
+} from '@/modules/roles/actions/roleService';
 import { toErrorMessage } from '@/types/api';
 import { AsyncError } from '@/types/async-state';
 

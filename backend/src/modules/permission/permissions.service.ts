@@ -9,6 +9,12 @@ import { Prisma } from '@core/prisma/generated/client';
 export class PermissionsService {
     constructor(private readonly prisma: PrismaService) { }
 
+    async findOne(id: string) {
+        const permission = await this.prisma.permission.findUnique({ where: { id } });
+        if (!permission || permission.deletedAt) throw new NotFoundException('Permission nao encontrada');
+        return permission;
+    }
+
     async findAll(tenantId: string) {
         return this.prisma.permission.findMany({
             where: {
@@ -18,6 +24,7 @@ export class PermissionsService {
             orderBy: { createdAt: 'desc' },
         });
     }
+
 
     async create(dto: CreatePermissionDto) {
         return this.prisma.permission.create({
@@ -84,4 +91,13 @@ export class PermissionsService {
 
         return { items, total, page, limit };
     }
+
+    //Roles
+
+    async findRolesOfPermission(permissionId: string, tenantId: string) {
+    return this.prisma.rolePermission.findMany({
+        where: { permissionId, tenantId },
+        include: { role: { select: { id: true, name: true, type: true } } },
+    });
+}
 }

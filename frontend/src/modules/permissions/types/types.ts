@@ -5,6 +5,7 @@ export type PermissionEntity = {
     resource?: string | null;
     description?: string | null;
     createdAt?: string;
+    tenantId: string;
 };
 
 export type CreatePermissionPayload = {

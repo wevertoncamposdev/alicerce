@@ -15,6 +15,12 @@ export class RolesService {
         private readonly roleRepository: RoleRepository,
     ) { }
 
+    async findOne(id: string) {
+        const role = await this.prisma.role.findUnique({ where: { id } });
+        if (!role || role.deletedAt) throw new NotFoundException('Role nao encontrada');
+        return role;
+    }
+
     async findAll(tenantId: string) {
         return this.prisma.role.findMany({
             where: {

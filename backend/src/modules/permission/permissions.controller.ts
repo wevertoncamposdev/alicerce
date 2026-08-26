@@ -25,11 +25,20 @@ import { SearchPermissionDto } from './dto/search-permission.dto';
 export class PermissionsController {
     constructor(private readonly permissionsService: PermissionsService) { }
 
+
+
     @Get()
     @Roles('ADMIN')
     @Permissions('permission.read')
     findAll(@Query('tenantId') tenantId: string) {
         return this.permissionsService.findAll(tenantId);
+    }
+
+    @Get(':id')
+    @Roles('ADMIN')
+    @Permissions('permission.read')
+    findOne(@Param('id') id: string) {
+        return this.permissionsService.findOne(id);
     }
 
     @Post()
@@ -61,5 +70,14 @@ export class PermissionsController {
     @ApiBody({ schema: { type: 'object' } })
     search(@Body() query: SearchPermissionDto) {
         return this.permissionsService.search(query);
+    }
+
+    //Roles
+
+    @Get(':id/roles')
+    @Roles('ADMIN')
+    @Permissions('permission.read')
+    listRoles(@Param('id') id: string, @Query('tenantId') tenantId: string) {
+        return this.permissionsService.findRolesOfPermission(id, tenantId);
     }
 }

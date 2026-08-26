@@ -76,7 +76,13 @@ export async function getRefreshToken(): Promise<string | null> {
     return cookieStore.get(REFRESH_COOKIE)?.value ?? null;
 }
 
-export async function getSessionTenantId(): Promise<string | null> {
+export async function getSessionTenantId(): Promise<string> {
     const cookieStore = await cookies();
-    return cookieStore.get(TENANT_COOKIE)?.value ?? null;
+
+    if (!cookieStore) {
+        console.error("Cookie store is not available. Are you calling this function in a client component?");
+        throw new Error("Cookie store is not available");
+    }
+
+    return cookieStore.get(TENANT_COOKIE)?.value ?? "";
 }

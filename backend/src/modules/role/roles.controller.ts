@@ -37,6 +37,13 @@ export class RolesController {
         return this.rolesService.findAll(tenantId);
     }
 
+    @Get(':id')
+    @Roles('ADMIN')
+    @Permissions('role.read')
+    findOne(@Param('id') id: string) {
+        return this.rolesService.findOne(id);
+    }
+
     @Post()
     @Roles('ADMIN')
     @Permissions('role.create')

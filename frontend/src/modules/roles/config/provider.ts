@@ -1,6 +1,7 @@
 import { apiServer } from "@lib/api-server";
 import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
 import type { RoleEntity, CreateRolePayload, UpdateRolePayload } from "../types/types";
+import { getSessionTenantId } from "@lib/session";
 
 export async function searchRoles(args: SearchArgs): Promise<SearchResult<RoleEntity>> {
     const response = await apiServer.search<{ items: RoleEntity[]; total: number; page: number; limit: number }>(
@@ -41,9 +42,17 @@ export async function deleteRole(id: string): Promise<void> {
 }
 
 export async function readRolePermissions(id: string) {
-    return apiServer.get<import("@/modules/permissions/types/types").PermissionEntity[]>(`roles/${id}/permissions`);
+    const tenantId = await getSessionTenantId();
+    return apiServer.get<import("@/modules/permissions/types/types").PermissionEntity[]>(
+        `roles/${id}/permissions`,
+        { query: { tenantId } },
+    );
 }
 
 export async function readRoleUsers(id: string) {
-    return apiServer.get<import("@/modules/users/types/types").UserEntity[]>(`roles/${id}/users`);
+    const tenantId = await getSessionTenantId();
+    return apiServer.get<import("@/modules/users/types/types").UserEntity[]>(
+        `roles/${id}/users`,
+        { query: { tenantId } },
+    );
 }

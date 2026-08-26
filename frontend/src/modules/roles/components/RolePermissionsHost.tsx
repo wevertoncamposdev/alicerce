@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { PermissionEntity } from "@/modules/permissions/types/types";
 import { PermissionsListView } from "@modules/permissions/components/PermissionsListView";
 import { apiClient } from "@lib/api-client";
-import * as roleService from "@/features/roles/services/roleService";
+import * as roleService from "@/modules/roles/actions/roleService";
 import RelationPicker from "@/components/RelationPicker/RelationPicker";
 import { useToast } from "@components/ui/toast";
 import useApiError from "@/hooks/useApiError";
