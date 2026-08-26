@@ -6,4 +6,6 @@ import "server-only";
 import "@modules/favorites/config/contract";
 import "@modules/tenants/config/contract";
 import "@modules/users/config/contract";
+import "@modules/roles/config/contract";try
+import "@modules/permissions/config/contract";
 // import "@modules/tasks/config/contract";

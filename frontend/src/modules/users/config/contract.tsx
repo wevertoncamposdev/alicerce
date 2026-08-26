@@ -13,6 +13,7 @@ import { searchUsers, readUser, createUser, updateUser, deleteUser, readUserRole
 import { userColumns } from "../components/columns";
 import type { UserEntity, ContextItem } from "../types/types";
 import { TenantEntity } from "@/modules/tenants/types/types";
+import UsersListView from "../components/UsersListView";
 
 const formFields = [
     { name: "email" as const, label: "E-mail", type: "text" as const, required: true },
@@ -28,7 +29,7 @@ const createUserAction = createRecordFormAction.bind(
 );
 
 const usersListLayout: ListLayout<UserEntity> = {
-    list: ({ data }) => <ListView data={data} columns={userColumns} detail="/users" />,
+    list: ({ data }) => <UsersListView data={data} />,
     form: () => (
         <FormView<UserEntity>
             mode="create"
