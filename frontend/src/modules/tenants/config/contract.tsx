@@ -8,9 +8,10 @@ import { FormView } from "@components/TypeView/FormView/FormView";
 import { MetaDataView } from "@components/DetailView/MetaDataView";
 import { MetaDataSidebar } from "@components/DetailView/MetaDataView/MetaDataSidebar";
 import { TenantsListView } from "@modules/tenants/components/TenantsListView";
+import { TenantUsersHost } from "@modules/tenants/components/TenantUsersHost";
+import { TenantRolesHost } from "@modules/tenants/components/TenantRolesHost";
 
-import { searchTenants, readTenant, createTenant, updateTenant, deleteTenant } from "./provider";
-import { tenantColumns } from "../components/columns";
+import { searchTenants, readTenant, createTenant, updateTenant, deleteTenant, readTenantUsers, readTenantRoles } from "./provider";
 import type { TenantEntity, ContextItem } from "../types/types";
 
 const formFields = [
@@ -55,6 +56,10 @@ const tenantsDetailLayout: DetailLayout<TenantEntity> = {
             <MetaDataView contextItems={contextItems} auditItems={auditItems} />
         </MetaDataSidebar>
     ),
+    relations: ({ record }) => [
+        { key: "users", label: "Users", content: <TenantUsersSection tenantId={record.id} /> },
+        { key: "roles", label: "Roles", content: <TenantRolesSection tenantId={record.id} /> },
+    ],
 };
 
 function loadTenantContext(record: TenantEntity): ContextItem[] {
@@ -79,3 +84,13 @@ export const tenantsModule = defineRecordModule<TenantEntity>({
 });
 
 registerModule(tenantsModule);
+
+async function TenantUsersSection({ tenantId }: { tenantId: string }) {
+    const users = await readTenantUsers(tenantId);
+    return <TenantUsersHost items={users ?? []} />;
+}
+
+async function TenantRolesSection({ tenantId }: { tenantId: string }) {
+    const roles = await readTenantRoles(tenantId);
+    return <TenantRolesHost items={roles ?? []} />;
+}

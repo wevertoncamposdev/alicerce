@@ -25,10 +25,17 @@ export type DetailContext<T> = {
     auditItems: AuditFeedItem[];
 };
 
+export type RelationTabConfig = {
+    key: string;
+    label: string;
+    content: React.ReactNode;
+};
+
 export type DetailLayout<T> = {
     main: (ctx: DetailContext<T>) => React.ReactNode;
     side?: (ctx: DetailContext<T>) => React.ReactNode;
     bottom?: (ctx: DetailContext<T>) => React.ReactNode;
+    relations?: (ctx: DetailContext<T>) => RelationTabConfig[];
 };
 
 // ============================================================

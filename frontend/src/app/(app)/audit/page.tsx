@@ -1,14 +1,11 @@
 import { getCurrentUser } from "@lib/auth-server";
 import { apiServer, ApiServerError } from "@lib/api-server";
-import { AuditEntry } from "@/features/audit/audit.types";
-import AuditTable from "@/features/audit/components/AuditTable";
-import AuditRefreshButton from "@/features/audit/components/AuditRefreshButton";
 import { DetailShell, PainelSearchShell } from "@/components/shells";
+import { AuditListView } from "@/modules/audit/components/AuditListView";
+import type { AuditEntry } from "@/modules/audit/types/types";
 
 // Server Component: os dados são buscados aqui, no servidor, direto via
-// `apiServer` (que lê o cookie httpOnly com `lib/session.ts`). Não há mais
-// `useEffect`/`useState` de loading para a carga inicial — quando a página
-// chega no navegador, os dados já estão no HTML.
+// `apiServer` (que lê o cookie httpOnly com `lib/session.ts`).
 export default async function AuditPage() {
   const currentUser = await getCurrentUser();
   const tenantId = currentUser?.tenantId;
@@ -39,8 +36,8 @@ export default async function AuditPage() {
         </div>
       ) : null}
 
-      <PainelSearchShell title="Registros" actions={<AuditRefreshButton />}>
-        <AuditTable entries={entries} />
+      <PainelSearchShell title="Registros">
+        <AuditListView data={entries} />
       </PainelSearchShell>
     </DetailShell>
   );

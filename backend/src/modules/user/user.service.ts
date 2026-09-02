@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 
 //@Core
 import { Prisma } from '@core/prisma/generated/client';
+import { PrismaService } from '@core/prisma/prisma.service';
 
 //@DTO
 import { CreateUserDto } from './dto/create-user.dto';
@@ -33,6 +34,7 @@ export class UsersService {
     private readonly userMapper: UserMapper,
     private readonly userBusinessRules: UserBusinessRules,
     private readonly userErrorMapper: UserErrorMapper,
+    private readonly prisma: PrismaService,
   ) { }
 
   async create(createUserDto: CreateUserDto, tenantId: string): Promise<UserResponseDto> {
@@ -166,5 +168,29 @@ export class UsersService {
     ]);
 
     return { items: items, total, page, limit };
+  }
+
+  async findPermissionsOfUser(userId: string, tenantId: string) {
+    const userRoles = await this.prisma.userRole.findMany({
+      where: { userId, tenantId },
+      select: { roleId: true },
+    });
+
+    if (!userRoles.length) return [];
+
+    const roleIds = userRoles.map((entry) => entry.roleId);
+    const rolePermissions = await this.prisma.rolePermission.findMany({
+      where: { tenantId, roleId: { in: roleIds } },
+      include: { permission: true },
+    });
+
+    const uniquePermissions = new Map<string, any>();
+    for (const item of rolePermissions) {
+      if (item.permission && !uniquePermissions.has(item.permission.id)) {
+        uniquePermissions.set(item.permission.id, item.permission);
+      }
+    }
+
+    return [...uniquePermissions.values()];
   }
 }

@@ -8,10 +8,8 @@ import { FormView } from "@components/TypeView/FormView/FormView";
 import { MetaDataView } from "@components/DetailView/MetaDataView";
 import { MetaDataSidebar } from "@components/DetailView/MetaDataView/MetaDataSidebar";
 
-import { searchPermissions, readPermission, createPermission, updatePermission, deletePermission } from "./provider";
-import { permissionColumns } from "../components/columns";
+import { searchPermissions, readPermission, createPermission, updatePermission, deletePermission, readPermissionRoles } from "./provider";
 import type { PermissionEntity, ContextItem } from "../types/types";
-import { readPermissionRoles } from "./provider";
 import PermissionRolesHost from "@modules/permissions/components/PermissionRolesHost";
 
 const formFields = [
@@ -50,7 +48,9 @@ const permissionsDetailLayout: DetailLayout<PermissionEntity> = {
             <MetaDataView contextItems={contextItems} auditItems={auditItems} />
         </MetaDataSidebar>
     ),
-    bottom: ({ record }) => <PermissionRolesSection permissionId={record.id} />
+    relations: ({ record }) => [
+        { key: "roles", label: "Roles", content: <PermissionRolesSection permissionId={record.id} /> },
+    ],
 };
 
 async function PermissionRolesSection({ permissionId }: { permissionId: string }) {

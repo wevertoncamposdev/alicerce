@@ -169,17 +169,19 @@ export class RolesService {
         return { removed: result.count > 0 };
     }
 
-    async search(query: SearchRoleDto) {
+    async search(query: SearchRoleDto, tenantId?: string) {
         const page = query.pagination?.pageIndex !== undefined ? query.pagination.pageIndex + 1 : 1;
         const limit = query.pagination?.pageSize ?? 20;
 
-        const where: Prisma.RoleWhereInput = query.searchText
-            ? {
+        const where: Prisma.RoleWhereInput = {
+            tenantId: tenantId ?? undefined,
+            deletedAt: null,
+            ...(query.searchText ? {
                 OR: [
                     { name: { contains: query.searchText, mode: 'insensitive' } },
                 ],
-            }
-            : {};
+            } : {}),
+        };
 
         const [items, total] = await Promise.all([
             this.roleRepository.search(where, (page - 1) * limit, limit),
@@ -192,14 +194,36 @@ export class RolesService {
     async findPermissionsOfRole(roleId: string, tenantId: string) {
         return this.prisma.rolePermission.findMany({
             where: { roleId, tenantId },
-            include: { permission: { select: { id: true, name: true } } },
+            include: {
+                permission: {
+                    select: {
+                        id: true,
+                        name: true,
+                        type: true,
+                        resource: true,
+                        description: true,
+                        tenantId: true,
+                        createdAt: true,
+                    },
+                },
+            },
         });
     }
 
     async findUsersOfRole(roleId: string, tenantId: string) {
         return this.prisma.userRole.findMany({
             where: { roleId, tenantId },
-            include: { user: { select: { id: true } } },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        tenantId: true,
+                        status: true,
+                        createdAt: true,
+                    },
+                },
+            },
         });
     }
 

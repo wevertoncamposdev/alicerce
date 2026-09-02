@@ -6,6 +6,7 @@ import { TenantBusinessRules } from './domain/rules/tenant-business-rules';
 import { TenantErrorMapper } from './mappers/tenant-error.mapper';
 import { TenantRepository } from './persistence/repository/tenant.repository';
 import { CreateTenantDto } from './dto/create-tenant.dto';
+import { PrismaService } from '@core/prisma/prisma.service';
 
 describe('TenantService', () => {
   let service: TenantService;
@@ -25,6 +26,13 @@ describe('TenantService', () => {
             findById: jest.fn(),
             updateById: jest.fn(),
             deleteById: jest.fn(),
+          },
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            user: { findMany: jest.fn() },
+            role: { findMany: jest.fn() },
           },
         },
       ],

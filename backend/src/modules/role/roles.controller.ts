@@ -10,6 +10,7 @@ import {
     Search,
     UseGuards,
 } from '@nestjs/common';
+import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 
 import { Roles } from '@core/common/decorators/roles.decorator';
@@ -103,12 +104,12 @@ export class RolesController {
 
     @Search()
     @Roles('ADMIN')
-    @Permissions('role.read') // ou 'permission.read'
+    @Permissions('role.read')
     @ApiOperation({ summary: 'Search roles' })
     @ApiResponse({ status: 200, description: 'Search results' })
     @ApiBody({ schema: { type: 'object' } })
-    search(@Body() query: SearchRoleDto) { // ou SearchPermissionDto
-        return this.rolesService.search(query); // implementar em roles.service.ts, espelhando tenant.service.ts
+    search(@Body() query: SearchRoleDto, @TenantId() tenantId: string) {
+        return this.rolesService.search(query, tenantId);
     }
 
     @Get(':id/permissions')

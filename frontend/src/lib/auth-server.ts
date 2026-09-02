@@ -9,7 +9,7 @@
 import "server-only";
 import { cache } from "react";
 import { getSessionTenantId, getSessionToken } from "@lib/session";
-import type { AuthUserProfile } from "@/features/auth/auth.service";
+import type { AuthUserProfile } from "@/lib/auth-types";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL ?? "http://localhost:5000/api";
 

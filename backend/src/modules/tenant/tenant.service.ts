@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '@core/prisma/prisma.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { Prisma } from '@core/prisma/generated/client';
@@ -14,6 +15,7 @@ export class TenantService {
     private readonly tenantRepository: TenantRepository,
     private readonly tenantBusinessRules: TenantBusinessRules,
     private readonly tenantErrorMapper: TenantErrorMapper,
+    private readonly prisma: PrismaService,
   ) { }
 
   async create(createTenantDto: CreateTenantDto) {
@@ -130,5 +132,19 @@ export class TenantService {
     ]);
 
     return { items, total, page, limit };
+  }
+
+  async findUsersOfTenant(tenantId: string) {
+    return this.prisma.user.findMany({
+      where: { tenantId, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findRolesOfTenant(tenantId: string) {
+    return this.prisma.role.findMany({
+      where: { tenantId, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 }

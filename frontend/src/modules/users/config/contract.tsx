@@ -8,11 +8,10 @@ import { FormView } from "@components/TypeView/FormView/FormView";
 import { MetaDataView } from "@components/DetailView/MetaDataView";
 import { MetaDataSidebar } from "@components/DetailView/MetaDataView/MetaDataSidebar";
 import UserRolesHost from "@modules/users/components/UserRolesHost";
+import { UserPermissionsHost } from "@modules/users/components/UserPermissionsHost";
 
-import { searchUsers, readUser, createUser, updateUser, deleteUser, readUserRoles } from "./provider";
-import { userColumns } from "../components/columns";
+import { searchUsers, readUser, createUser, updateUser, deleteUser, readUserRoles, readUserPermissions } from "./provider";
 import type { UserEntity, ContextItem } from "../types/types";
-import { TenantEntity } from "@/modules/tenants/types/types";
 import UsersListView from "../components/UsersListView";
 
 const formFields = [
@@ -54,13 +53,17 @@ const usersDetailLayout: DetailLayout<UserEntity> = {
             <MetaDataView contextItems={contextItems} auditItems={auditItems} />
         </MetaDataSidebar>
     ),
-    bottom: ({ record }) => <UserRolesSection userId={record.id} />,
+    relations: ({ record }) => [
+        { key: "roles", label: "Roles", content: <UserRolesSection userId={record.id} /> },
+        { key: "permissions", label: "Permissions", content: <UserPermissionsSection userId={record.id} /> },
+    ],
 };
 
 function loadUserContext(record: UserEntity): ContextItem[] {
     return [
         { key: "createdAt", label: "Criado em", value: record.createdAt.slice(0, 16).replace("T", ", ") },
         { key: "email", label: "E-mail", value: record.email },
+        { key: "tenantId", label: "Tenant", value: record.tenantId },
     ];
 }
 
@@ -83,4 +86,9 @@ registerModule(usersModule);
 async function UserRolesSection({ userId }: { userId: string }) {
     const roles = await readUserRoles(userId);
     return <UserRolesHost userId={userId} initial={roles ?? []} />;
+}
+
+async function UserPermissionsSection({ userId }: { userId: string }) {
+    const permissions = await readUserPermissions(userId);
+    return <UserPermissionsHost items={permissions ?? []} />;
 }

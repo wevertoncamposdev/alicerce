@@ -90,4 +90,13 @@ export class UsersController {
   listRoles(@Param('id') id: string, @Query('tenantId') tenantId: string) {
     return this.rolesService.findRolesOfUser(id, tenantId);
   }
+
+  @Get(':id/permissions')
+  @Roles('ADMIN', 'USER')
+  @Permissions('user.read')
+  @ApiOperation({ summary: 'List effective permissions of a user' })
+  @ApiResponse({ status: 200, description: 'List of effective permissions inherited from the user roles' })
+  listPermissions(@Param('id') id: string, @Query('tenantId') tenantId: string) {
+    return this.usersService.findPermissionsOfUser(id, tenantId);
+  }
 }

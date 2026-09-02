@@ -1,66 +1,77 @@
-"use client";
-
-import { useAuth } from "@/contexts/auth-context";
-import { useAudit } from "@/features/audit/hooks/useAudit";
-import { usePermissions } from "@/features/permissions/hooks/usePermissions";
-import { useRoles } from "@/features/roles/hooks/useRoles";
-import { useUsers } from "@/features/users/hooks/useUsers";
-import { DetailShell, PainelSearchShell } from "@/components/shells";
-import { Button } from "@components/ui/index";
-import App from "next/app";
 import { AppTopbar } from "@/components/Layout/AppTopbar";
+import { apiServer, ApiServerError } from "@/lib/api-server";
+import { getCurrentUser } from "@/lib/auth-server";
+import { searchPermissions } from "@/modules/permissions/config/provider";
+import { searchRoles } from "@/modules/roles/config/provider";
+import { searchUsers } from "@/modules/users/config/provider";
 
 function StatCard({
   title,
   value,
-  loading,
 }: {
   title: string;
   value: number;
-  loading?: boolean;
 }) {
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
       <p className="text-sm font-medium text-zinc-500">{title}</p>
-      <p className="mt-3 text-3xl font-bold text-zinc-900">
-        {loading ? "Carregando..." : value}
-      </p>
+      <p className="mt-3 text-3xl font-bold text-zinc-900">{value}</p>
     </div>
   );
 }
 
-export default function MainPage() {
-  const { currentTenantId } = useAuth();
-  const { users, loading: usersLoading, error: usersError } = useUsers(currentTenantId);
-  const { roles, loading: rolesLoading, error: rolesError } = useRoles();
-  const {
-    permissions,
-    loading: permissionsLoading,
-    error: permissionsError,
-  } = usePermissions();
-  const {
-    entries,
-    loading: auditsLoading,
-    error: auditsError,
-  } = useAudit({
-    tenantId: currentTenantId,
-  });
+type DashboardAuditEntry = {
+  id: string;
+  action: string;
+  entity: string;
+  entityId: string | null;
+  createdAt: string;
+  user?: { email?: string };
+};
 
-  const errorMessage = usersError || rolesError || permissionsError || auditsError;
-  const isLoading = usersLoading || rolesLoading || permissionsLoading || auditsLoading;
-  const hasData = users.length > 0 || roles.length > 0 || permissions.length > 0 || entries.length > 0;
+export default async function MainPage() {
+  const currentUser = await getCurrentUser();
+  const tenantId = currentUser?.tenantId;
+
+  let error: string | null = null;
+  let users = 0;
+  let roles = 0;
+  let permissions = 0;
+  let entries = 0;
+
+  try {
+    const [usersResult, rolesResult, permissionsResult] = await Promise.all([
+      searchUsers({ pagination: { pageIndex: 0, pageSize: 1 } }),
+      searchRoles({ pagination: { pageIndex: 0, pageSize: 1 } }),
+      searchPermissions({ pagination: { pageIndex: 0, pageSize: 1 } }),
+    ]);
+
+    users = usersResult.pagination.total;
+    roles = rolesResult.pagination.total;
+    permissions = permissionsResult.pagination.total;
+
+    if (tenantId) {
+      const auditResult = await apiServer.get<DashboardAuditEntry[]>(`tenant/${tenantId}/audit`);
+      entries = auditResult.length;
+    }
+  } catch (err) {
+    error = err instanceof ApiServerError ? err.message : err instanceof Error ? err.message : "Falha ao carregar dashboard.";
+  }
 
   return (
-
     <>
       <AppTopbar title="Dashboard" />
+      {error ? (
+        <div className="mt-4 mx-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
       <div className="mt-4 p-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Usuarios" value={users.length} loading={usersLoading} />
-        <StatCard title="Papeis" value={roles.length} loading={rolesLoading} />
-        <StatCard title="Permissoes" value={permissions.length} loading={permissionsLoading} />
-        <StatCard title="Auditorias" value={entries.length} loading={auditsLoading} />
+        <StatCard title="Usuarios" value={users} />
+        <StatCard title="Papeis" value={roles} />
+        <StatCard title="Permissoes" value={permissions} />
+        <StatCard title="Auditorias" value={entries} />
       </div>
     </>
-
   );
 }

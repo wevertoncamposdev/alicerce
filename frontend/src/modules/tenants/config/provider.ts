@@ -39,3 +39,11 @@ export async function updateTenant(id: string, payload: unknown): Promise<Tenant
 export async function deleteTenant(id: string): Promise<void> {
     await apiServer.delete(`tenant/${id}`);
 }
+
+export async function readTenantUsers(id: string) {
+    return apiServer.get<import("@/modules/users/types/types").UserEntity[]>(`tenant/${id}/users`);
+}
+
+export async function readTenantRoles(id: string) {
+    return apiServer.get<import("@/modules/roles/types/types").RoleEntity[]>(`tenant/${id}/roles`);
+}

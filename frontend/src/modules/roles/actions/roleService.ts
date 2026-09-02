@@ -1,5 +1,5 @@
 import { apiClient } from '@lib/api-client';
-import { RoleEntity, RolePayload } from '@/features/roles/role.types';
+import type { RoleEntity, RolePayload } from '@/modules/roles/types/types';
 
 // Nota: autenticação agora é via cookie httpOnly (lida pelo proxy em
 // /api/proxy), então nenhum destes métodos precisa mais receber `token`.

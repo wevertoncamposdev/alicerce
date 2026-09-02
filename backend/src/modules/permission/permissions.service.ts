@@ -71,18 +71,20 @@ export class PermissionsService {
         });
     }
 
-    async search(query: SearchPermissionDto) {
+    async search(query: SearchPermissionDto, tenantId?: string) {
         const page = query.pagination?.pageIndex !== undefined ? query.pagination.pageIndex + 1 : 1;
         const limit = query.pagination?.pageSize ?? 20;
 
-        const where: Prisma.PermissionWhereInput = query.searchText
-            ? {
+        const where: Prisma.PermissionWhereInput = {
+            tenantId: tenantId ?? undefined,
+            deletedAt: null,
+            ...(query.searchText ? {
                 OR: [
                     { name: { contains: query.searchText, mode: 'insensitive' } },
                     { resource: { contains: query.searchText, mode: 'insensitive' } },
                 ],
-            }
-            : {};
+            } : {}),
+        };
 
         const [items, total] = await Promise.all([
             this.prisma.permission.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: 'desc' } }),
@@ -95,9 +97,9 @@ export class PermissionsService {
     //Roles
 
     async findRolesOfPermission(permissionId: string, tenantId: string) {
-    return this.prisma.rolePermission.findMany({
-        where: { permissionId, tenantId },
-        include: { role: { select: { id: true, name: true, type: true } } },
-    });
-}
+        return this.prisma.rolePermission.findMany({
+            where: { permissionId, tenantId },
+            include: { role: { select: { id: true, name: true, type: true } } },
+        });
+    }
 }

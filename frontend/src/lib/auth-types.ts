@@ -1,18 +1,11 @@
-
-// Este arquivo hoje só guarda os TIPOS compartilhados de auth. As funções
-// que faziam fetch direto pro Nest (loginWithPassword, registerPublic,
-// fetchProfile) foram removidas: esse fetch agora acontece só dentro dos
-// Route Handlers em app/api/auth/*, que rodam no servidor e têm acesso ao
-// cookie httpOnly. Ver contexts/auth-context.tsx.
-
 export interface LoginInput {
     email: string;
     password: string;
 }
 
 export interface RegisterInput {
-    tenantName: string;
-    tenantSlug: string;
+    tenantName?: string;
+    tenantSlug?: string;
     email: string;
     password: string;
 }

@@ -14,16 +14,32 @@ import { Button } from "@components/ui/button";
 import { Trash2 } from "lucide-react";
 import { RelationListHost } from "./RelationListHost";
 import { createFavoriteNote, deleteFavoriteNote } from "@modules/favorites/config/notes-provider";
-import type { FavoriteNote } from "@/modules/favorites/types/types";
 
-type RelationTablePanelProps = {
-    favoriteId: string;
-    initialNotes: FavoriteNote[];
+export type NoteRowLike = {
+    id: string;
+    content: string;
+    createdAt: string;
+    user?: { email?: string | null } | null;
 };
 
-const columns: ColumnDef<FavoriteNote>[] = [
+type RelationTablePanelProps<T extends NoteRowLike> = {
+    favoriteId: string;
+    initialNotes: T[];
+    createNoteFn?: (favoriteId: string, content: string) => Promise<T>;
+    deleteNoteFn?: (favoriteId: string, noteId: string) => Promise<void>;
+    columns?: ColumnDef<T>[];
+    searchPlaceholder?: string;
+    addLabel?: string;
+    emptyMessage?: string;
+};
+
+const defaultColumns = <T extends NoteRowLike>(): ColumnDef<T>[] => [
     { accessorKey: "content", header: "Nota" },
-    { accessorKey: "user.email", header: "Autor", cell: ({ row }) => row.original.user.email },
+    {
+        accessorKey: "user.email",
+        header: "Autor",
+        cell: ({ row }) => row.original.user?.email ?? "—",
+    },
     {
         accessorKey: "createdAt",
         header: "Criado em",
@@ -31,12 +47,24 @@ const columns: ColumnDef<FavoriteNote>[] = [
     },
 ];
 
-export function RelationTablePanel({ favoriteId, initialNotes }: RelationTablePanelProps) {
-    const [notes, setNotes] = React.useState<FavoriteNote[]>(initialNotes);
+export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePanelProps<T>) {
+    const {
+        favoriteId,
+        initialNotes,
+        createNoteFn,
+        deleteNoteFn,
+        columns: overrideColumns,
+        searchPlaceholder = "Pesquisar notas",
+        addLabel = "Nova nota",
+        emptyMessage = "Nenhuma nota encontrada.",
+    } = props;
+    const [notes, setNotes] = React.useState<T[]>(initialNotes);
     const [searchText, setSearchText] = React.useState("");
     const [newNoteText, setNewNoteText] = React.useState("");
     const [isAdding, setIsAdding] = React.useState(false);
     const [isPending, startTransition] = useTransition();
+    const createFn = createNoteFn ?? (createFavoriteNote as unknown as (favoriteId: string, content: string) => Promise<T>);
+    const deleteFn = deleteNoteFn ?? (deleteFavoriteNote as unknown as (favoriteId: string, noteId: string) => Promise<void>);
 
     const filteredNotes = React.useMemo(() => {
         const query = searchText.trim().toLowerCase();
@@ -44,9 +72,9 @@ export function RelationTablePanel({ favoriteId, initialNotes }: RelationTablePa
         return notes.filter((note) => note.content.toLowerCase().includes(query));
     }, [notes, searchText]);
 
-    const tableColumns = React.useMemo<ColumnDef<FavoriteNote>[]>(
+    const tableColumns = React.useMemo<ColumnDef<T>[]>(
         () => [
-            ...columns,
+            ...(overrideColumns ?? defaultColumns<T>()),
             {
                 id: "actions",
                 header: "",
@@ -63,7 +91,7 @@ export function RelationTablePanel({ favoriteId, initialNotes }: RelationTablePa
                 ),
             },
         ],
-        [notes],
+        [overrideColumns, notes],
     );
 
     const table = useReactTable({
@@ -74,14 +102,14 @@ export function RelationTablePanel({ favoriteId, initialNotes }: RelationTablePa
 
     function handleDelete(noteId: string) {
         const previous = notes;
-        setNotes((current) => current.filter((n) => n.id !== noteId)); // otimista
+        setNotes((current) => current.filter((n) => n.id !== noteId));
 
         startTransition(async () => {
             try {
-                await deleteFavoriteNote(favoriteId, noteId);
+                await deleteFn(favoriteId, noteId);
             } catch (err) {
                 console.error("[relation-shell] falha ao remover nota", err);
-                setNotes(previous); // reverte se der erro
+                setNotes(previous);
             }
         });
     }
@@ -92,7 +120,7 @@ export function RelationTablePanel({ favoriteId, initialNotes }: RelationTablePa
 
         startTransition(async () => {
             try {
-                const created = await createFavoriteNote(favoriteId, content);
+                const created = await createFn(favoriteId, content);
                 setNotes((current) => [created, ...current]);
                 setNewNoteText("");
                 setIsAdding(false);
@@ -106,9 +134,9 @@ export function RelationTablePanel({ favoriteId, initialNotes }: RelationTablePa
         <RelationListHost
             searchText={searchText}
             onSearchTextChange={setSearchText}
-            searchPlaceholder="Pesquisar notas"
+            searchPlaceholder={searchPlaceholder}
             filteredCount={filteredNotes.length}
-            addLabel="Nova nota"
+            addLabel={addLabel}
             onAdd={() => setIsAdding(true)}
         >
             {isAdding ? (
@@ -130,9 +158,7 @@ export function RelationTablePanel({ favoriteId, initialNotes }: RelationTablePa
             ) : null}
 
             {filteredNotes.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-6 text-center">
-                    Nenhuma nota encontrada.
-                </p>
+                <p className="text-sm text-muted-foreground py-6 text-center">{emptyMessage}</p>
             ) : (
                 <div className="rounded-md border overflow-hidden">
                     <Table>
@@ -151,9 +177,7 @@ export function RelationTablePanel({ favoriteId, initialNotes }: RelationTablePa
                             {table.getRowModel().rows.map((row) => (
                                 <TableRow key={row.id}>
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
+                                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                                     ))}
                                 </TableRow>
                             ))}

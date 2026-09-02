@@ -3,6 +3,7 @@ import * as React from "react";
 import type { RecordModuleDefinition, DetailContext } from "@lib/registry/types";
 import type { ContextItem, AuditFeedItem } from "@/components/DetailView/MetaDataView/types";
 import { DetailShell } from "@/components/DetailView/DetailShell";
+import { RelationShell } from "@/components/DetailView/RelationView/RelationShell";
 
 interface DetailViewProps<T> {
     moduleDefinition: RecordModuleDefinition<T>;
@@ -44,15 +45,16 @@ export function DetailView<T>({
     const mainSlot = layout.main(context);
     const sideSlot = layout.side?.(context) ?? null;
     const bottomSlot = layout.bottom?.(context) ?? null;
+    const relationTabs = layout.relations?.(context) ?? [];
 
     return (
         <DetailShell title={title} description={description} toolbar={toolbar}>
             <div className="flex flex-col gap-6 lg:flex-row">
                 <div className="flex-1 space-y-6">
                     {mainSlot}
+                    {relationTabs.length > 0 ? <RelationShell tabs={relationTabs} /> : null}
                     {bottomSlot}
                 </div>
-
             </div>
             {sideSlot}
         </DetailShell>

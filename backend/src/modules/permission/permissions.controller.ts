@@ -9,6 +9,7 @@ import {
     Query,
     Search,
 } from '@nestjs/common';
+import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { Roles } from '@core/common/decorators/roles.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
@@ -68,8 +69,8 @@ export class PermissionsController {
     @ApiOperation({ summary: 'Search permissions' })
     @ApiResponse({ status: 200, description: 'Search results' })
     @ApiBody({ schema: { type: 'object' } })
-    search(@Body() query: SearchPermissionDto) {
-        return this.permissionsService.search(query);
+    search(@Body() query: SearchPermissionDto, @TenantId() tenantId: string) {
+        return this.permissionsService.search(query, tenantId);
     }
 
     //Roles

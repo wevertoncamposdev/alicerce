@@ -32,3 +32,5 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 - Estrutura inicial do projeto
 - Feature favorites
+
+## [0.7.0] - Em desenvolvimento

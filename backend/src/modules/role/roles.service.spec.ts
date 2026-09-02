@@ -73,4 +73,20 @@ describe('RolesService', () => {
 
         await expect(service.attachUser('role-1', 't1', 'user-404')).rejects.toBeInstanceOf(NotFoundException);
     });
+
+    it('search: should include tenantId in where clause to prevent cross-tenant queries', async () => {
+        roleRepositoryMock.search.mockResolvedValueOnce([{ id: 'r1', tenantId: 'tenant-1' }]);
+        roleRepositoryMock.count.mockResolvedValueOnce(1);
+
+        await service.search({ searchText: 'admin' }, 'tenant-1');
+
+        expect(roleRepositoryMock.search).toHaveBeenCalledWith(
+            expect.objectContaining({
+                tenantId: 'tenant-1',
+                OR: expect.any(Array),
+            }),
+            0,
+            20,
+        );
+    });
 });

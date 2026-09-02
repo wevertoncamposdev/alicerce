@@ -24,6 +24,20 @@ export class TenantController {
     return this.tenantService.findOne(id);
   }
 
+  @Get(':id/users')
+  @ApiOperation({ summary: 'List users of a tenant' })
+  @ApiResponse({ status: 200, description: 'Users of the tenant.' })
+  listUsers(@Param('id') id: string) {
+    return this.tenantService.findUsersOfTenant(id);
+  }
+
+  @Get(':id/roles')
+  @ApiOperation({ summary: 'List roles of a tenant' })
+  @ApiResponse({ status: 200, description: 'Roles of the tenant.' })
+  listRoles(@Param('id') id: string) {
+    return this.tenantService.findRolesOfTenant(id);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateTenantDto) {
     return this.tenantService.update(id, dto);

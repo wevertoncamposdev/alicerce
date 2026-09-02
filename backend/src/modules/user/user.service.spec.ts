@@ -6,6 +6,7 @@ import { UserMapper } from './mappers/user.mapper';
 import { UserBusinessRules } from './domain/rules/user-business-rules';
 import { UserErrorMapper } from './mappers/user-error.mapper';
 import { UserRepository } from './persistence/repository/user.repository';
+import { PrismaService } from '@core/prisma/prisma.service';
 
 jest.mock('bcrypt', () => ({
     hash: jest.fn().mockResolvedValue('hashed-password'),
@@ -47,6 +48,13 @@ describe('UsersService', () => {
                 {
                     provide: UserMapper,
                     useValue: userMapperMock,
+                },
+                {
+                    provide: PrismaService,
+                    useValue: {
+                        userRole: { findMany: jest.fn() },
+                        rolePermission: { findMany: jest.fn() },
+                    },
                 },
             ],
         }).compile();

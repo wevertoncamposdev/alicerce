@@ -11,7 +11,6 @@ import RolePermissionsHost from "@modules/roles/components/RolePermissionsHost";
 import RoleUsersHost from "@modules/roles/components/RoleUsersHost";
 
 import { searchRoles, readRole, createRole, updateRole, deleteRole, readRolePermissions, readRoleUsers } from "./provider";
-import { roleColumns } from "../components/columns";
 import type { RoleEntity, ContextItem } from "../types/types";
 
 const formFields = [
@@ -50,12 +49,18 @@ const rolesDetailLayout: DetailLayout<RoleEntity> = {
             <MetaDataView contextItems={contextItems} auditItems={auditItems} />
         </MetaDataSidebar>
     ),
-    bottom: ({ record }) => (
-        <div className="space-y-6">
-            <RolePermissionsSection roleId={record.id} />
-            <RoleUsersSection roleId={record.id} />
-        </div>
-    ),
+    relations: ({ record }) => [
+        {
+            key: "permissions",
+            label: "Permissions",
+            content: <RolePermissionsSection roleId={record.id} />,
+        },
+        {
+            key: "users",
+            label: "Users",
+            content: <RoleUsersSection roleId={record.id} />,
+        },
+    ],
 };
 
 function loadRoleContext(record: RoleEntity): ContextItem[] {

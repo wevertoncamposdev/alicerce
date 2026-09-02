@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { setSessionCookies } from "@lib/session";
-import { loginWithCredentials } from "@/features/auth/services/login.service";
+import { loginWithCredentials } from "@/lib/auth-login";
 
 /**
  * POST /api/auth/login

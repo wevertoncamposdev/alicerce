@@ -18,7 +18,7 @@ _template/
 
 ## Como usar
 
-1. **Copie esta estrutura** para `frontend/features/[nova-feature]/`.
+1. **Copie esta estrutura** para `src/modules/[novo-modulo]/`.
 2. **Renomeie ou crie** arquivos conforme necessário dentro de cada diretório.
 3. **Implemente os padrões** descritos abaixo.
 4. **Siga as convenções** do projeto antes de criar um PR.
@@ -195,9 +195,9 @@ Usar shells padrão (`DetailShell`, `PainelSearchShell`, `SideShell`) para consi
 
 Veja os módulos existentes:
 
-- `features/users/` - Exemplo completo de CRUD com usuários
-- `features/roles/` - Exemplo com relações (Role-User, Role-Permission)
-- `features/tenants/` - Exemplo com contexto de tenant
+- `src/modules/users/` - Exemplo completo de CRUD com usuários
+- `src/modules/roles/` - Exemplo com relações (Role-User, Role-Permission)
+- `src/modules/tenants/` - Exemplo com contexto de tenant
 
 ## Troubleshooting
 
