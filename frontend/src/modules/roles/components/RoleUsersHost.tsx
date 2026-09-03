@@ -9,11 +9,13 @@ import { useToast } from "@components/ui/toast";
 import useApiError from "@/hooks/useApiError";
 import { createRelationHost } from "@/lib/registry/relation-host";
 import type { ColumnDef } from "@tanstack/react-table";
+import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 
 export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: UserEntity[] }) {
     const { currentTenantId } = useAuth();
     const toast = useToast();
     const formatError = useApiError();
+    const { setStatus } = useAutoSaveStatus();
 
     const columns = React.useMemo<ColumnDef<UserEntity>[]>(
         () => [
@@ -37,27 +39,33 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
                     return;
                 }
 
+                setStatus("saving");
                 try {
                     await roleService.attachRoleUser({ roleId, tenantId: currentTenantId, userId: item.id });
+                    setStatus("saved");
                     toast.show({ title: "Usuário associado" });
                 } catch (err) {
                     console.error("failed to attach user", err);
+                    setStatus("error", "Falha ao associar o usuário.");
                     toast.show({ title: "Falha ao associar usuário", description: formatError(err) });
                     throw err;
                 }
             },
             onDetach: async (userId: string) => {
-                if (!confirm("Remover usuário deste role?")) return;
+                if (!window.confirm("Remover usuário deste role?")) return;
                 if (!currentTenantId) {
                     toast.show({ title: "Tenant indisponível", description: "Recarregue a página e tente novamente." });
                     return;
                 }
 
+                setStatus("saving");
                 try {
                     await roleService.detachRoleUser({ roleId, tenantId: currentTenantId, userId });
+                    setStatus("saved");
                     toast.show({ title: "Usuário removido" });
                 } catch (err) {
                     console.error("failed to detach user", err);
+                    setStatus("error", "Falha ao remover o usuário.");
                     toast.show({ title: "Falha ao remover usuário", description: formatError(err) });
                     throw err;
                 }

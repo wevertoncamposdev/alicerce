@@ -8,11 +8,13 @@ import RelationPicker from "@/components/RelationPicker/RelationPicker";
 import { useToast } from "@components/ui/toast";
 import useApiError from "@/hooks/useApiError";
 import { createRelationHost } from "@/lib/registry/relation-host";
+import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 
 export function UserRolesHost({ userId, initial }: { userId: string; initial: RoleEntity[] }) {
     const { currentTenantId } = useAuth();
     const toast = useToast();
     const formatError = useApiError();
+    const { setStatus } = useAutoSaveStatus();
 
     const columns = React.useMemo<ColumnDef<RoleEntity>[]>(
         () => [
@@ -36,27 +38,33 @@ export function UserRolesHost({ userId, initial }: { userId: string; initial: Ro
                     return;
                 }
 
+                setStatus("saving");
                 try {
                     await roleService.attachRoleUser({ roleId: item.id, tenantId: currentTenantId, userId });
+                    setStatus("saved");
                     toast.show({ title: "Role associada" });
                 } catch (err) {
                     console.error("failed to attach role to user", err);
+                    setStatus("error", "Falha ao associar a role.");
                     toast.show({ title: "Falha ao associar role", description: formatError(err) });
                     throw err;
                 }
             },
             onDetach: async (roleId: string) => {
-                if (!confirm("Remover role do usuário?")) return;
+                if (!window.confirm("Remover role do usuário?")) return;
                 if (!currentTenantId) {
                     toast.show({ title: "Tenant indisponível", description: "Recarregue a página e tente novamente." });
                     return;
                 }
 
+                setStatus("saving");
                 try {
                     await roleService.detachRoleUser({ roleId, tenantId: currentTenantId, userId });
+                    setStatus("saved");
                     toast.show({ title: "Role removida" });
                 } catch (err) {
                     console.error("failed to detach role from user", err);
+                    setStatus("error", "Falha ao remover a role.");
                     toast.show({ title: "Falha ao remover role", description: formatError(err) });
                     throw err;
                 }

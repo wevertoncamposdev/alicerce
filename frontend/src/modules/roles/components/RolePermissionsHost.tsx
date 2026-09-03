@@ -8,11 +8,13 @@ import RelationPicker from "@/components/RelationPicker/RelationPicker";
 import { useToast } from "@components/ui/toast";
 import useApiError from "@/hooks/useApiError";
 import { createRelationHost } from "@/lib/registry/relation-host";
+import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 
 export function RolePermissionsHost({ roleId, initial }: { roleId: string; initial: PermissionEntity[] }) {
     const { currentTenantId } = useAuth();
     const toast = useToast();
     const formatError = useApiError();
+    const { setStatus } = useAutoSaveStatus();
 
     const columns = React.useMemo<ColumnDef<PermissionEntity>[]>(
         () => [
@@ -31,22 +33,38 @@ export function RolePermissionsHost({ roleId, initial }: { roleId: string; initi
             idAccessor: (p) => p.id,
             rowLink: (p) => `/permissions/${p.id}`,
             onAttach: async (item: any) => {
+                if (!currentTenantId) {
+                    toast.show({ title: "Tenant indisponível", description: "Recarregue a página e tente novamente." });
+                    return;
+                }
+
+                setStatus("saving");
                 try {
-                    await roleService.attachRolePermission({ roleId, tenantId: currentTenantId ?? "", permissionId: item.id });
+                    await roleService.attachRolePermission({ roleId, tenantId: currentTenantId, permissionId: item.id });
+                    setStatus("saved");
                     toast.show({ title: "Permissão associada" });
                 } catch (err) {
                     console.error("failed to attach permission", err);
+                    setStatus("error", "Falha ao associar a permissão.");
                     toast.show({ title: "Falha ao associar permissão", description: formatError(err) });
                     throw err;
                 }
             },
             onDetach: async (permissionId: string) => {
-                if (!confirm("Remover permissão deste role?")) return;
+                if (!window.confirm("Remover permissão deste role?")) return;
+                if (!currentTenantId) {
+                    toast.show({ title: "Tenant indisponível", description: "Recarregue a página e tente novamente." });
+                    return;
+                }
+
+                setStatus("saving");
                 try {
-                    await roleService.detachRolePermission({ roleId, tenantId: currentTenantId ?? "", permissionId });
+                    await roleService.detachRolePermission({ roleId, tenantId: currentTenantId, permissionId });
+                    setStatus("saved");
                     toast.show({ title: "Permissão removida" });
                 } catch (err) {
                     console.error("failed to detach permission", err);
+                    setStatus("error", "Falha ao remover a permissão.");
                     toast.show({ title: "Falha ao remover permissão", description: formatError(err) });
                     throw err;
                 }

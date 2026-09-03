@@ -43,30 +43,30 @@ export default function RelationPicker({
         async function load() {
             setLoading(true);
             try {
-                const body = {
-                    searchText: term || undefined,
-                    pagination: {
-                        pageIndex: page,
-                        pageSize: limit,
-                    },
-                    sort: [{ field: kind === "users" ? "email" : "name", direction: "asc" }],
-                    filters: {},
-                };
+                const listPath = tenantId ? `${modelPath}?tenantId=${tenantId}` : modelPath;
 
-                const response = await apiClient.post<{ items?: Entity[]; total?: number; page?: number; limit?: number }>(
-                    modelPath,
-                    body,
-                );
+                const response = await apiClient.get<Array<Entity> | { items?: Entity[]; total?: number; page?: number; limit?: number }>(listPath);
 
                 if (!mounted) return;
 
-                const nextItems = response.items ?? [];
-                if (page === 0) setItems(nextItems);
-                else setItems((s) => [...s, ...nextItems]);
+                const rawItems = Array.isArray(response) ? response : response.items ?? [];
+                const filteredItems = term
+                    ? rawItems.filter((it) => {
+                        const label = (it.name ?? it.email ?? it.resource ?? "").toLowerCase();
+                        return label.includes(term.toLowerCase());
+                    })
+                    : rawItems;
 
-                setHasMore((nextItems.length ?? 0) === limit);
+                if (page === 0) setItems(filteredItems);
+                else setItems((s) => [...s, ...filteredItems]);
+
+                setHasMore(filteredItems.length === limit && rawItems.length >= limit);
             } catch (err) {
                 console.error("RelationPicker load error", err);
+                if (mounted) {
+                    setItems([]);
+                    setHasMore(false);
+                }
             } finally {
                 if (mounted) setLoading(false);
             }
@@ -75,7 +75,7 @@ export default function RelationPicker({
         return () => {
             mounted = false;
         };
-    }, [kind, modelPath, term, page]);
+    }, [kind, modelPath, tenantId, term, page]);
 
     const loadMore = () => {
         if (!hasMore || loading) return;

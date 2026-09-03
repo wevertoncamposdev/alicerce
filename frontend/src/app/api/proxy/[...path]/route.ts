@@ -117,4 +117,5 @@ export {
     handler as PATCH,
     handler as PUT,
     handler as DELETE,
+    handler as SEARCH,
 };

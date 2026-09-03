@@ -1,6 +1,6 @@
 // lib/api-client.ts
 
-type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "SEARCH";
 
 type ApiClientOptions = {
     method?: HttpMethod;
@@ -82,6 +82,9 @@ export const apiClient = {
 
     post: <T>(path: string, body?: unknown, headers?: Record<string, string>) =>
         request<T>(path, { method: "POST", body, headers }),
+
+    search: <T>(path: string, body?: unknown, headers?: Record<string, string>) =>
+        request<T>(path, { method: "SEARCH", body, headers }),
 
     put: <T>(path: string, body?: unknown, headers?: Record<string, string>) =>
         request<T>(path, { method: "PUT", body, headers }),
