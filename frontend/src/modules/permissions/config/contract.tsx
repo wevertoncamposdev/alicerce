@@ -14,7 +14,13 @@ import PermissionRolesHost from "@modules/permissions/components/PermissionRoles
 
 const formFields = [
     { name: "name" as const, label: "Nome", type: "text" as const, required: true },
-    { name: "type" as const, label: "Tipo", type: "text" as const },
+    {
+        name: "type" as const,
+        label: "Tipo",
+        type: "select" as const,
+        required: true,
+        options: ["READ", "WRITE", "DELETE"],
+    },
     { name: "resource" as const, label: "Recurso", type: "text" as const },
 ];
 

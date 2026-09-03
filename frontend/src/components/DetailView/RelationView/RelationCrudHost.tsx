@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { Button } from "@components/ui/button";
@@ -14,6 +15,7 @@ export type RelationCrudHostProps<T> = {
     create?: (payload: any) => Promise<T>;
     attach?: (payload: any) => Promise<void>;
     idAccessor?: (item: T) => string;
+    rowLink?: (item: T) => string | undefined;
 };
 
 export function RelationCrudHost<T extends Record<string, any>>({
@@ -24,9 +26,14 @@ export function RelationCrudHost<T extends Record<string, any>>({
     attach,
     create,
     idAccessor = (i: T) => (i.id as string) ?? "",
+    rowLink,
 }: RelationCrudHostProps<T>) {
     const [items, setItems] = React.useState<T[]>(initialData);
     const [loadingIds, setLoadingIds] = React.useState<Record<string, boolean>>({});
+
+    React.useEffect(() => {
+        setItems(initialData);
+    }, [initialData]);
 
     React.useEffect(() => {
         let mounted = true;
@@ -79,20 +86,37 @@ export function RelationCrudHost<T extends Record<string, any>>({
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id}>
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                                    ))}
-                                    <TableCell>
-                                        {detach ? (
-                                            <Button variant="ghost" size="icon" onClick={() => handleDetach(idAccessor(row.original))}>
-                                                <Trash2 className="size-3.5 text-destructive" />
-                                            </Button>
-                                        ) : null}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                            {table.getRowModel().rows.map((row) => {
+                                const rowPath = rowLink?.(row.original);
+
+                                return (
+                                    <TableRow key={row.id}>
+                                        {row.getVisibleCells().map((cell) => {
+                                            const rendered = flexRender(cell.column.columnDef.cell, cell.getContext());
+                                            const isFirstCell = cell.column.getIndex() === 0;
+
+                                            if (rowPath && isFirstCell) {
+                                                return (
+                                                    <TableCell key={cell.id}>
+                                                        <Link href={rowPath} className="font-medium text-foreground hover:text-primary underline-offset-4 hover:underline">
+                                                            {rendered}
+                                                        </Link>
+                                                    </TableCell>
+                                                );
+                                            }
+
+                                            return <TableCell key={cell.id}>{rendered}</TableCell>;
+                                        })}
+                                        <TableCell>
+                                            {detach ? (
+                                                <Button variant="ghost" size="icon" onClick={() => handleDetach(idAccessor(row.original))}>
+                                                    <Trash2 className="size-3.5 text-destructive" />
+                                                </Button>
+                                            ) : null}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 </div>

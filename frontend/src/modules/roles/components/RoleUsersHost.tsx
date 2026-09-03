@@ -30,6 +30,7 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
             columns,
             initialData: initial,
             idAccessor: (u) => u.id,
+            rowLink: (u) => `/users/${u.id}`,
             onAttach: async (item: any) => {
                 try {
                     await roleService.attachRoleUser({ roleId, tenantId: currentTenantId ?? "", userId: item.id });

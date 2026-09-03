@@ -5,7 +5,7 @@ import { RoleRepository } from './persistence/role.repository';
 import { PrismaService } from '@core/prisma/prisma.service';
 
 const prismaMock: any = {
-    role: { findUnique: jest.fn() },
+    role: { findUnique: jest.fn(), create: jest.fn() },
     permission: { findUnique: jest.fn() },
     user: { findUnique: jest.fn() },
     rolePermission: { upsert: jest.fn(), deleteMany: jest.fn(), findMany: jest.fn() },
@@ -74,6 +74,22 @@ describe('RolesService', () => {
         await expect(service.attachUser('role-1', 't1', 'user-404')).rejects.toBeInstanceOf(NotFoundException);
     });
 
+    it('create: should enforce tenantId from the current tenant context instead of the body payload', async () => {
+        prismaMock.role.create.mockResolvedValueOnce({ id: 'role-1', tenantId: 'tenant-1' });
+
+        await service.create({ name: 'Admin', type: 'SYSTEM', description: 'Admin role' }, 'tenant-1');
+
+        expect(prismaMock.role.create).toHaveBeenCalledWith({
+            data: {
+                tenantId: 'tenant-1',
+                name: 'Admin',
+                type: 'SYSTEM',
+                description: 'Admin role',
+                status: 'ACTIVE',
+            },
+        });
+    });
+
     it('search: should include tenantId in where clause to prevent cross-tenant queries', async () => {
         roleRepositoryMock.search.mockResolvedValueOnce([{ id: 'r1', tenantId: 'tenant-1' }]);
         roleRepositoryMock.count.mockResolvedValueOnce(1);
@@ -88,5 +104,73 @@ describe('RolesService', () => {
             0,
             20,
         );
+    });
+
+    it('findUsersOfRole: should include detailed user fields required by the detail UI', async () => {
+        prismaMock.userRole.findMany.mockResolvedValueOnce([
+            {
+                user: {
+                    id: 'u-1',
+                    email: 'user@example.com',
+                    tenantId: 'tenant-1',
+                    status: 'ACTIVE',
+                    createdAt: '2026-01-01T00:00:00.000Z',
+                },
+            },
+        ]);
+
+        const result = await service.findUsersOfRole('role-1', 'tenant-1');
+
+        expect(prismaMock.userRole.findMany).toHaveBeenCalledWith({
+            where: { roleId: 'role-1', tenantId: 'tenant-1' },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        tenantId: true,
+                        status: true,
+                        createdAt: true,
+                    },
+                },
+            },
+        });
+        expect(result[0].user.email).toBe('user@example.com');
+    });
+
+    it('findPermissionsOfRole: should include detailed permission fields required by the detail UI', async () => {
+        prismaMock.rolePermission.findMany.mockResolvedValueOnce([
+            {
+                permission: {
+                    id: 'p-1',
+                    name: 'read:users',
+                    type: 'READ',
+                    resource: 'users',
+                    description: 'Read users',
+                    tenantId: 'tenant-1',
+                    createdAt: '2026-01-01T00:00:00.000Z',
+                },
+            },
+        ]);
+
+        const result = await service.findPermissionsOfRole('role-1', 'tenant-1');
+
+        expect(prismaMock.rolePermission.findMany).toHaveBeenCalledWith({
+            where: { roleId: 'role-1', tenantId: 'tenant-1' },
+            include: {
+                permission: {
+                    select: {
+                        id: true,
+                        name: true,
+                        type: true,
+                        resource: true,
+                        description: true,
+                        tenantId: true,
+                        createdAt: true,
+                    },
+                },
+            },
+        });
+        expect(result[0].permission.name).toBe('read:users');
     });
 });

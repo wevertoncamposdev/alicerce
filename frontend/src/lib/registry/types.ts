@@ -15,8 +15,9 @@ export type FormFieldConfig<T> = {
     name: keyof T & string;
     label: string;
     placeholder?: string;
-    type: "text" | "url" | "textarea";
+    type: "text" | "email" | "password" | "url" | "number" | "textarea" | "select";
     required?: boolean;
+    options?: Array<string | { label: string; value: string }>;
 };
 
 export type DetailContext<T> = {

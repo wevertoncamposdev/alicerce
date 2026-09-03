@@ -1,10 +1,12 @@
 // components/type-view/list-view/FavoritesListView.tsx
 "use client";
 
+import { useIntl } from "react-intl";
 import { ListView } from "@components/TypeView/ListView/ListView";
-import { roleColumns } from "@modules/roles/components/columns"
+import { buildRoleColumns } from "@modules/roles/components/columns";
 import type { RoleEntity } from "@modules/roles/types/types";
 
 export function RolesListView({ data }: { data: RoleEntity[] }) {
-    return <ListView data={data} columns={roleColumns} detail={"/roles"} />;
+    const { formatMessage } = useIntl();
+    return <ListView data={data} columns={buildRoleColumns(formatMessage)} detail="/roles" />;
 }

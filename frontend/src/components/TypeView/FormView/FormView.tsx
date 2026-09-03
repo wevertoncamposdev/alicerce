@@ -40,6 +40,69 @@ export function FormView<T extends object>(props: FormViewProps<T>) {
     );
 }
 
+function renderFieldInput<T extends object>(
+    field: FormFieldConfig<T>,
+    value?: string,
+    defaultValue?: string,
+    onChange?: (value: string) => void,
+    onBlur?: () => void,
+) {
+    const sharedProps = {
+        id: field.name,
+        name: field.name,
+        placeholder: field.placeholder,
+        required: field.required,
+        variant: "inline-detail" as const,
+        className: "flex-1 min-w-0",
+        value,
+        defaultValue,
+        onChange: onChange
+            ? (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(event.target.value)
+            : undefined,
+        onBlur,
+    };
+
+    if (field.type === "textarea") {
+        return (
+            <textarea
+                {...sharedProps}
+                rows={4}
+                className="w-full min-w-0 rounded-md border border-border/70 bg-transparent px-2 py-2 text-sm shadow-none outline-none focus:border-foreground"
+            />
+        );
+    }
+
+    if (field.type === "select") {
+        const currentValue = value ?? defaultValue ?? "";
+
+        return (
+            <select
+                id={field.name}
+                name={field.name}
+                required={field.required}
+                value={currentValue}
+                defaultValue={currentValue}
+                onChange={(event) => onChange?.(event.target.value)}
+                onBlur={onBlur}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+                <option value="">Selecione...</option>
+                {(field.options ?? []).map((option) => {
+                    const optionValue = typeof option === "string" ? option : option.value;
+                    const optionLabel = typeof option === "string" ? option : option.label;
+                    return (
+                        <option key={optionValue} value={optionValue}>
+                            {optionLabel}
+                        </option>
+                    );
+                })}
+            </select>
+        );
+    }
+
+    return <Input {...sharedProps} type={field.type ?? "text"} />;
+}
+
 function CreateFormView<T extends object>({
     fields,
     action,
@@ -51,19 +114,12 @@ function CreateFormView<T extends object>({
 
     return (
         <form action={formAction} className="flex flex-col gap-2 mt-4">
-
             {fields.map((field) => (
                 <div key={field.name} className="flex flex-col gap-1">
                     <Label htmlFor={field.name} className="text-sm font-medium text-gray-700">
                         {field.label}
                     </Label>
-                    <Input
-                        id={field.name}
-                        name={field.name}
-                        placeholder={field.placeholder}
-                        variant="inline-detail"
-                        className="flex-1 min-w-0"
-                    />
+                    {renderFieldInput(field, undefined, "")}
                 </div>
             ))}
             <Button type="submit" disabled={isPending} variant="save" size="sm">
@@ -120,14 +176,15 @@ function EditFormView<T extends object>({
         <div className="w-full">
             {fields.map((field) => (
                 <div key={field.name} className="space-y-1.5">
-                    <Input
-                        id={field.name}
-                        name={field.name}
-                        variant="inline-detail"
-                        value={(values[field.name] as string) ?? ""}
-                        onChange={(e) => handleChange(field.name, e.target.value)}
-                        onBlur={commitField}
-                    />
+                    {renderFieldInput(
+                        field,
+                        String((values[field.name] as string | number | undefined) ?? ""),
+                        undefined,
+                        (value) => {
+                            handleChange(field.name, value);
+                        },
+                        commitField,
+                    )}
                 </div>
             ))}
         </div>

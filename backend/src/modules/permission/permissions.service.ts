@@ -26,10 +26,16 @@ export class PermissionsService {
     }
 
 
-    async create(dto: CreatePermissionDto) {
+    async create(dto: CreatePermissionDto, tenantId?: string) {
+        const effectiveTenantId = tenantId ?? dto.tenantId;
+
+        if (!effectiveTenantId) {
+            throw new Error('TenantId is required to create a permission');
+        }
+
         return this.prisma.permission.create({
             data: {
-                tenantId: dto.tenantId,
+                tenantId: effectiveTenantId,
                 name: dto.name,
                 type: dto.type,
                 resource: dto.resource,

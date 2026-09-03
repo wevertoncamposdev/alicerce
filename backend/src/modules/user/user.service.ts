@@ -39,7 +39,7 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto, tenantId: string): Promise<UserResponseDto> {
     try {
-      const { personId, ...rest } = createUserDto;
+      const { personId, tenantId: _tenantId, ...rest } = createUserDto;
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
       const user = await this.userRepository.create({
         ...rest,

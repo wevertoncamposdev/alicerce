@@ -6,7 +6,6 @@ import {
     Param,
     Patch,
     Post,
-    Query,
     Search,
     UseGuards,
 } from '@nestjs/common';
@@ -34,7 +33,7 @@ export class RolesController {
     @Get()
     @Roles('ADMIN')
     @Permissions('role.read')
-    findAll(@Query('tenantId') tenantId: string) {
+    findAll(@TenantId() tenantId: string) {
         return this.rolesService.findAll(tenantId);
     }
 
@@ -48,8 +47,8 @@ export class RolesController {
     @Post()
     @Roles('ADMIN')
     @Permissions('role.create')
-    create(@Body() dto: CreateRoleDto) {
-        return this.rolesService.create(dto);
+    create(@Body() dto: CreateRoleDto, @TenantId() tenantId: string) {
+        return this.rolesService.create(dto, tenantId);
     }
 
     @Patch(':id')
@@ -69,8 +68,8 @@ export class RolesController {
     @Post(':id/users')
     @Roles('ADMIN')
     @Permissions('role.assign')
-    attachUser(@Param('id') id: string, @Body() dto: AttachRoleUserDto) {
-        return this.rolesService.attachUser(id, dto.tenantId, dto.userId);
+    attachUser(@Param('id') id: string, @Body() dto: AttachRoleUserDto, @TenantId() tenantId: string) {
+        return this.rolesService.attachUser(id, tenantId, dto.userId);
     }
 
     @Delete(':id/users/:userId')
@@ -79,7 +78,7 @@ export class RolesController {
     detachUser(
         @Param('id') id: string,
         @Param('userId') userId: string,
-        @Query('tenantId') tenantId: string,
+        @TenantId() tenantId: string,
     ) {
         return this.rolesService.detachUser(id, tenantId, userId);
     }
@@ -87,8 +86,8 @@ export class RolesController {
     @Post(':id/permissions')
     @Roles('ADMIN')
     @Permissions('role.assign')
-    attachPermission(@Param('id') id: string, @Body() dto: AttachRolePermissionDto) {
-        return this.rolesService.attachPermission(id, dto.tenantId, dto.permissionId, dto.resource);
+    attachPermission(@Param('id') id: string, @Body() dto: AttachRolePermissionDto, @TenantId() tenantId: string) {
+        return this.rolesService.attachPermission(id, tenantId, dto.permissionId, dto.resource);
     }
 
     @Delete(':id/permissions/:permissionId')
@@ -97,7 +96,7 @@ export class RolesController {
     detachPermission(
         @Param('id') id: string,
         @Param('permissionId') permissionId: string,
-        @Query('tenantId') tenantId: string,
+        @TenantId() tenantId: string,
     ) {
         return this.rolesService.detachPermission(id, tenantId, permissionId);
     }
@@ -117,7 +116,7 @@ export class RolesController {
     @Permissions('role.read')
     @ApiOperation({ summary: 'List permissions of a role' })
     @ApiResponse({ status: 200, description: 'List of permissions' })
-    listPermissions(@Param('id') id: string, @Query('tenantId') tenantId: string) {
+    listPermissions(@Param('id') id: string, @TenantId() tenantId: string) {
         return this.rolesService.findPermissionsOfRole(id, tenantId);
     }
 
@@ -126,7 +125,7 @@ export class RolesController {
     @Permissions('role.read')
     @ApiOperation({ summary: 'List users of a role' })
     @ApiResponse({ status: 200, description: 'List of users' })
-    listUsers(@Param('id') id: string, @Query('tenantId') tenantId: string) {
+    listUsers(@Param('id') id: string, @TenantId() tenantId: string) {
         return this.rolesService.findUsersOfRole(id, tenantId);
     }
 }

@@ -29,6 +29,7 @@ export function RolePermissionsHost({ roleId, initial }: { roleId: string; initi
             columns,
             initialData: initial,
             idAccessor: (p) => p.id,
+            rowLink: (p) => `/permissions/${p.id}`,
             onAttach: async (item: any) => {
                 try {
                     await roleService.attachRolePermission({ roleId, tenantId: currentTenantId ?? "", permissionId: item.id });

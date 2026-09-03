@@ -15,8 +15,8 @@ import type { UserEntity, ContextItem } from "../types/types";
 import UsersListView from "../components/UsersListView";
 
 const formFields = [
-    { name: "email" as const, label: "E-mail", type: "text" as const, required: true },
-    { name: "status" as const, label: "Status", type: "text" as const, required: true }
+    { name: "email" as const, label: "E-mail", type: "email" as const, required: true },
+    { name: "password" as const, label: "Senha", type: "password" as const, required: true },
 ];
 
 const { parseListState, serializeListState } = createListQueryState();

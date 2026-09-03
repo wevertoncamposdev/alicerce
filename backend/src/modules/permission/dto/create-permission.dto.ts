@@ -9,9 +9,10 @@ import { PermissionType } from '@core/prisma/generated/enums';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreatePermissionDto {
-    @ApiProperty({ format: 'uuid' })
+    @ApiPropertyOptional({ format: 'uuid' })
+    @IsOptional()
     @IsUUID()
-    tenantId!: string;
+    tenantId?: string;
 
     @ApiProperty({ maxLength: 100 })
     @IsString()

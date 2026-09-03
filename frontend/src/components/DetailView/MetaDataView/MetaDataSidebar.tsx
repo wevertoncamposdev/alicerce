@@ -1,38 +1,29 @@
 'use client';
 
 import * as React from "react";
-import { ChevronLeft } from "lucide-react";
-import { Button } from "@components/ui/button";
-import {
-    Drawer,
-    DrawerContent,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerTrigger,
-} from "@components/ui/drawer";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function MetaDataSidebar({ children }: { children: React.ReactNode }) {
-    return (
-        <Drawer direction="right">
-            <DrawerTrigger asChild>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    aria-label="Abrir painel de metadados"
-                    className="fixed right-4 top-1 z-10 h-8 w-8 rounded-full"
-                >
-                    <ChevronLeft className="h-4 w-4" />
-                </Button>
-            </DrawerTrigger>
+    const [open, setOpen] = React.useState(true);
 
-            <DrawerContent className="h-full w-full max-w-sm ml-auto">
-                <DrawerHeader>
-                    <DrawerTitle>Metadados</DrawerTitle>
-                </DrawerHeader>
-                <div className="px-4 pb-4 overflow-y-auto">
-                    {children}
-                </div>
-            </DrawerContent>
-        </Drawer>
+    return (
+        <div className="rounded-xl border border-border/60 bg-background/80 shadow-sm transition-all duration-200">
+            <div className="flex items-center justify-between border-b border-border/60 px-3 py-2">
+                <h3 className="text-sm font-semibold text-foreground">Metadados</h3>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={open ? "Ocultar metadados" : "Mostrar metadados"}
+                    onClick={() => setOpen((value) => !value)}
+                    className="h-7 w-7 rounded-full"
+                >
+                    {open ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
+                </Button>
+            </div>
+
+            {open ? <div className="space-y-3 p-4">{children}</div> : null}
+        </div>
     );
 }

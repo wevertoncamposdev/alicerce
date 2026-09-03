@@ -55,8 +55,13 @@ export function DetailView<T>({
                     {relationTabs.length > 0 ? <RelationShell tabs={relationTabs} /> : null}
                     {bottomSlot}
                 </div>
+
+                {sideSlot ? (
+                    <aside className="w-full lg:w-[360px] shrink-0">
+                        {sideSlot}
+                    </aside>
+                ) : null}
             </div>
-            {sideSlot}
         </DetailShell>
     );
 }

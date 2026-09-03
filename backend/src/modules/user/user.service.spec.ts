@@ -99,7 +99,34 @@ describe('UsersService', () => {
             password: 'hashed-password',
             tenant: { connect: { id: 'adf4f488-faa3-4fca-946e-522f7c2d4976' } },
             person: undefined,
-            tenantId: 'adf4f488-faa3-4fca-946e-522f7c2d4976',
+        });
+    });
+
+    it('should ignore tenantId from the body and use only the authenticated tenant context on create', async () => {
+        const repositoryResult = {
+            id: 'user-id',
+            email: 'john@example.com',
+            tenantId: 'tenant-ctx',
+            password: 'hashed-password',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            deletedAt: null,
+        };
+
+        repository.create.mockResolvedValueOnce(repositoryResult as never);
+        userMapper.mapToResponseDto.mockReturnValueOnce({ id: 'user-id', email: 'john@example.com', isAdult: false } as never);
+
+        await service.create({
+            email: 'john@example.com',
+            tenantId: 'malicious-tenant',
+            password: '123456',
+        }, 'tenant-ctx');
+
+        expect(repository.create).toHaveBeenCalledWith({
+            email: 'john@example.com',
+            password: 'hashed-password',
+            tenant: { connect: { id: 'tenant-ctx' } },
+            person: undefined,
         });
     });
 

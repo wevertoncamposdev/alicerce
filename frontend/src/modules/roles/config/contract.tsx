@@ -15,7 +15,13 @@ import type { RoleEntity, ContextItem } from "../types/types";
 
 const formFields = [
     { name: "name" as const, label: "Nome", type: "text" as const, required: true },
-    { name: "type" as const, label: "Tipo", type: "text" as const },
+    {
+        name: "type" as const,
+        label: "Tipo",
+        type: "select" as const,
+        required: true,
+        options: ["ADMIN", "USER", "GUEST"],
+    },
     { name: "description" as const, label: "Descrição", type: "textarea" as const },
 ];
 
@@ -51,14 +57,14 @@ const rolesDetailLayout: DetailLayout<RoleEntity> = {
     ),
     relations: ({ record }) => [
         {
-            key: "permissions",
-            label: "Permissions",
-            content: <RolePermissionsSection roleId={record.id} />,
-        },
-        {
             key: "users",
             label: "Users",
             content: <RoleUsersSection roleId={record.id} />,
+        },
+        {
+            key: "permissions",
+            label: "Permissions",
+            content: <RolePermissionsSection roleId={record.id} />,
         },
     ],
 };

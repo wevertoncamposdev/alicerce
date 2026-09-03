@@ -9,6 +9,7 @@ export type RelationHostFactoryConfig<T extends Record<string, any>> = {
     columns: ColumnDef<T>[];
     initialData: T[];
     idAccessor?: (item: T) => string;
+    rowLink?: (item: T) => string | undefined;
     attachLabel?: string;
     onAttach?: (item: any) => Promise<void> | void;
     onDetach?: (id: string) => Promise<void> | void;
@@ -21,12 +22,34 @@ export type RelationHostFactoryConfig<T extends Record<string, any>> = {
 export function createRelationHost<T extends Record<string, any>>(config: RelationHostFactoryConfig<T>) {
     return function RelationHostWrapper(props: { initial?: T[] }) {
         const [pickerOpen, setPickerOpen] = React.useState(false);
-        const mergedInitial = props.initial ?? config.initialData;
+        const [items, setItems] = React.useState<T[]>(props.initial ?? config.initialData);
+        const idAccessor = config.idAccessor ?? ((it) => String((it as any).id ?? ""));
+
+        React.useEffect(() => {
+            setItems(props.initial ?? config.initialData);
+        }, [config.initialData, props.initial]);
 
         const handleSelect = async (item: any) => {
-            if (config.onAttach) {
-                await config.onAttach(item);
+            const itemId = idAccessor(item);
+            const previousItems = items;
+
+            try {
+                if (config.onAttach) {
+                    await config.onAttach(item);
+                }
+
+                setItems((current) => {
+                    if (!itemId || current.some((entry) => idAccessor(entry) === itemId)) {
+                        return current;
+                    }
+                    return [...current, item];
+                });
+            } catch (err) {
+                console.error("[relation-host] attach failed", err);
+                setItems(previousItems);
+                throw err;
             }
+
             setPickerOpen(false);
         };
 
@@ -43,9 +66,10 @@ export function createRelationHost<T extends Record<string, any>>(config: Relati
 
                 <RelationCrudHost<T>
                     columns={config.columns}
-                    initialData={mergedInitial}
+                    initialData={items}
                     detach={config.onDetach ? async (id: string) => { await config.onDetach?.(id); } : undefined}
-                    idAccessor={config.idAccessor ?? ((it) => String((it as any).id ?? ""))}
+                    idAccessor={idAccessor}
+                    rowLink={config.rowLink}
                 />
 
                 {pickerOpen && config.renderPicker ? (

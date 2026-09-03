@@ -22,6 +22,8 @@ export default function RelationPicker({
     const limit = 20;
     const [hasMore, setHasMore] = React.useState(true);
 
+    const modelPath = kind === "users" ? "user" : kind;
+
     // debounce search term
     const [term, setTerm] = React.useState("");
     React.useEffect(() => {
@@ -41,20 +43,28 @@ export default function RelationPicker({
         async function load() {
             setLoading(true);
             try {
-                const params = new URLSearchParams();
-                if (tenantId) params.set("tenantId", tenantId);
-                if (term) params.set("q", term);
-                params.set("page", String(page));
-                params.set("limit", String(limit));
+                const body = {
+                    searchText: term || undefined,
+                    pagination: {
+                        pageIndex: page,
+                        pageSize: limit,
+                    },
+                    sort: [{ field: kind === "users" ? "email" : "name", direction: "asc" }],
+                    filters: {},
+                };
 
-                const url = `${kind}?${params.toString()}`;
-                const data = await apiClient.get<Entity[]>(url);
+                const response = await apiClient.post<{ items?: Entity[]; total?: number; page?: number; limit?: number }>(
+                    modelPath,
+                    body,
+                );
 
                 if (!mounted) return;
-                if (page === 0) setItems(data ?? []);
-                else setItems((s) => [...s, ...(data ?? [])]);
 
-                setHasMore((data ?? []).length === limit);
+                const nextItems = response.items ?? [];
+                if (page === 0) setItems(nextItems);
+                else setItems((s) => [...s, ...nextItems]);
+
+                setHasMore((nextItems.length ?? 0) === limit);
             } catch (err) {
                 console.error("RelationPicker load error", err);
             } finally {
@@ -65,7 +75,7 @@ export default function RelationPicker({
         return () => {
             mounted = false;
         };
-    }, [kind, tenantId, term, page]);
+    }, [kind, modelPath, term, page]);
 
     const loadMore = () => {
         if (!hasMore || loading) return;
