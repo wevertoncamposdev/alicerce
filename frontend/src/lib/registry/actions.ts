@@ -4,6 +4,34 @@ import { createDataProvider } from "@lib/data-provider";
 import { getModule } from "@lib/registry";
 type ActionState = { ok: boolean; message?: string };
 
+function resolveActionErrorMessage(error: unknown): string {
+    if (typeof error === "string") {
+        return error;
+    }
+
+    if (error instanceof Error) {
+        return error.message;
+    }
+
+    if (error && typeof error === "object") {
+        const maybeMessage = (error as { message?: unknown }).message;
+        if (typeof maybeMessage === "string") {
+            return maybeMessage;
+        }
+
+        if (Array.isArray(maybeMessage)) {
+            return maybeMessage.filter((item): item is string => typeof item === "string").join("; ");
+        }
+
+        const maybeData = (error as { data?: { message?: unknown } }).data;
+        if (maybeData && typeof maybeData.message === "string") {
+            return maybeData.message;
+        }
+    }
+
+    return "Não foi possível criar o registro.";
+}
+
 export async function createRecordFormAction(
     model: string,
     fieldNames: string[],
@@ -26,7 +54,7 @@ export async function createRecordFormAction(
         return { ok: true, message: "Criado com sucesso." };
     } catch (err) {
         console.error("[createRecordFormAction]", err);
-        return { ok: false, message: "Não foi possível criar o registro." };
+        return { ok: false, message: resolveActionErrorMessage(err) };
     }
 }
 

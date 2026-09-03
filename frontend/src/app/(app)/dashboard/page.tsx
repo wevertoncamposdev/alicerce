@@ -1,6 +1,6 @@
 import { AppTopbar } from "@/components/Layout/AppTopbar";
 import { apiServer, ApiServerError } from "@/lib/api-server";
-import { getCurrentUser } from "@/lib/auth-server";
+import { getCurrentUser, hasRole } from "@/lib/auth-server";
 import { searchPermissions } from "@/modules/permissions/config/provider";
 import { searchRoles } from "@/modules/roles/config/provider";
 import { searchUsers } from "@/modules/users/config/provider";
@@ -32,6 +32,7 @@ type DashboardAuditEntry = {
 export default async function MainPage() {
   const currentUser = await getCurrentUser();
   const tenantId = currentUser?.tenantId;
+  const isAdmin = !!currentUser && hasRole(currentUser, "ADMIN");
 
   let error: string | null = null;
   let users = 0;
@@ -40,19 +41,35 @@ export default async function MainPage() {
   let entries = 0;
 
   try {
-    const [usersResult, rolesResult, permissionsResult] = await Promise.all([
+    const [usersResult, rolesResult, permissionsResult, auditResult] = await Promise.allSettled([
       searchUsers({ pagination: { pageIndex: 0, pageSize: 1 } }),
-      searchRoles({ pagination: { pageIndex: 0, pageSize: 1 } }),
-      searchPermissions({ pagination: { pageIndex: 0, pageSize: 1 } }),
+      isAdmin ? searchRoles({ pagination: { pageIndex: 0, pageSize: 1 } }) : Promise.resolve({ pagination: { total: 0 } }),
+      isAdmin ? searchPermissions({ pagination: { pageIndex: 0, pageSize: 1 } }) : Promise.resolve({ pagination: { total: 0 } }),
+      tenantId ? apiServer.get<DashboardAuditEntry[]>(`tenant/${tenantId}/audit`) : Promise.resolve([]),
     ]);
 
-    users = usersResult.pagination.total;
-    roles = rolesResult.pagination.total;
-    permissions = permissionsResult.pagination.total;
+    if (usersResult.status === "fulfilled") {
+      users = usersResult.value.pagination.total;
+    } else if (usersResult.reason instanceof ApiServerError && usersResult.reason.status !== 403) {
+      throw usersResult.reason;
+    }
 
-    if (tenantId) {
-      const auditResult = await apiServer.get<DashboardAuditEntry[]>(`tenant/${tenantId}/audit`);
-      entries = auditResult.length;
+    if (rolesResult.status === "fulfilled") {
+      roles = rolesResult.value.pagination.total;
+    } else if (rolesResult.reason instanceof ApiServerError && rolesResult.reason.status !== 403) {
+      throw rolesResult.reason;
+    }
+
+    if (permissionsResult.status === "fulfilled") {
+      permissions = permissionsResult.value.pagination.total;
+    } else if (permissionsResult.reason instanceof ApiServerError && permissionsResult.reason.status !== 403) {
+      throw permissionsResult.reason;
+    }
+
+    if (auditResult.status === "fulfilled") {
+      entries = auditResult.value.length;
+    } else if (auditResult.reason instanceof ApiServerError && auditResult.reason.status !== 403) {
+      throw auditResult.reason;
     }
   } catch (err) {
     error = err instanceof ApiServerError ? err.message : err instanceof Error ? err.message : "Falha ao carregar dashboard.";

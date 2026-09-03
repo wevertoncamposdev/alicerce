@@ -40,15 +40,13 @@ export class RolesService {
     }
 
     async create(dto: CreateRoleDto, tenantId?: string) {
-        const effectiveTenantId = tenantId ?? dto.tenantId;
-
-        if (!effectiveTenantId) {
+        if (!tenantId) {
             throw new Error('TenantId is required to create a role');
         }
 
         return this.prisma.role.create({
             data: {
-                tenantId: effectiveTenantId,
+                tenantId,
                 name: dto.name,
                 type: dto.type,
                 description: dto.description,

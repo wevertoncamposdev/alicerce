@@ -2,18 +2,12 @@ import {
     IsEnum,
     IsOptional,
     IsString,
-    IsUUID,
     MaxLength,
 } from 'class-validator';
 import { PermissionType } from '@core/prisma/generated/enums';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreatePermissionDto {
-    @ApiPropertyOptional({ format: 'uuid' })
-    @IsOptional()
-    @IsUUID()
-    tenantId?: string;
-
     @ApiProperty({ maxLength: 100 })
     @IsString()
     @MaxLength(100)
