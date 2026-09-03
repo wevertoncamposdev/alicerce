@@ -32,8 +32,13 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
             idAccessor: (u) => u.id,
             rowLink: (u) => `/users/${u.id}`,
             onAttach: async (item: any) => {
+                if (!currentTenantId) {
+                    toast.show({ title: "Tenant indisponível", description: "Recarregue a página e tente novamente." });
+                    return;
+                }
+
                 try {
-                    await roleService.attachRoleUser({ roleId, tenantId: currentTenantId ?? "", userId: item.id });
+                    await roleService.attachRoleUser({ roleId, tenantId: currentTenantId, userId: item.id });
                     toast.show({ title: "Usuário associado" });
                 } catch (err) {
                     console.error("failed to attach user", err);
@@ -43,8 +48,13 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
             },
             onDetach: async (userId: string) => {
                 if (!confirm("Remover usuário deste role?")) return;
+                if (!currentTenantId) {
+                    toast.show({ title: "Tenant indisponível", description: "Recarregue a página e tente novamente." });
+                    return;
+                }
+
                 try {
-                    await roleService.detachRoleUser({ roleId, tenantId: currentTenantId ?? "", userId });
+                    await roleService.detachRoleUser({ roleId, tenantId: currentTenantId, userId });
                     toast.show({ title: "Usuário removido" });
                 } catch (err) {
                     console.error("failed to detach user", err);

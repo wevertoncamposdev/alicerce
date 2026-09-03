@@ -144,12 +144,17 @@ function EditFormView<T extends object>({
     const [values, setValues] = React.useState<T>(initialValues);
     const { setStatus } = useAutoSaveStatus();
 
-    const editableKeys = React.useMemo(() => fields.map((f) => f.name), [fields]);
+    const editableKeys = React.useMemo(
+        () => fields.filter((field) => !field.createOnly).map((field) => field.name),
+        [fields],
+    );
 
     function pickEditableFields(source: T): Partial<T> {
         const result: Partial<T> = {};
         for (const key of editableKeys) {
-            result[key] = source[key];
+            if (key in source) {
+                result[key] = source[key];
+            }
         }
         return result;
     }

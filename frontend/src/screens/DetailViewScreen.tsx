@@ -6,6 +6,8 @@ import { DetailView } from "@/components/DetailView/DetailView";
 import { AppTopbar } from "@/components/Layout/AppTopbar";
 import { AutoSaveStatusProvider } from "@/contexts/autosave-status-context";
 import { AutoSaveIndicator } from "@/components/Layout/AutoSaveIndicator";
+import { MetaDataSidebar } from "@/components/DetailView/MetaDataView/MetaDataSidebar";
+import { MetaDataView } from "@/components/DetailView/MetaDataView";
 import type { AuditFeedItem, ContextItem } from "@/components/DetailView/MetaDataView/types";
 
 export async function DetailViewScreen({ moduleName, id }: { moduleName: string; id: string }) {
@@ -21,7 +23,15 @@ export async function DetailViewScreen({ moduleName, id }: { moduleName: string;
 
     return (
         <AutoSaveStatusProvider>
-            <AppTopbar title={record?.title ?? ""} autosave={<AutoSaveIndicator />} />
+            <AppTopbar
+                title={record?.title ?? ""}
+                autosave={<AutoSaveIndicator />}
+                actions={
+                    <MetaDataSidebar>
+                        <MetaDataView contextItems={contextItems} auditItems={auditItems} />
+                    </MetaDataSidebar>
+                }
+            />
             <div className="px-4 py-2">
                 <DetailView
                     moduleDefinition={mod}
@@ -40,6 +50,12 @@ async function resolveContextItems(mod: ReturnType<typeof getModule>, record: un
     return mod.detailConfig.loadContext(record);
 }
 
+function normalizeAuditEntityName(moduleName: string) {
+    const trimmed = moduleName.trim();
+    if (!trimmed) return trimmed;
+    return trimmed.endsWith("s") ? trimmed.slice(0, -1) : trimmed;
+}
+
 async function resolveAuditItems(
     mod: ReturnType<typeof getModule>,
     moduleName: string,
@@ -47,7 +63,8 @@ async function resolveAuditItems(
 ): Promise<AuditFeedItem[]> {
     if (!mod.detailConfig?.auditEnabled) return [];
 
-    const trail = await getEntityAuditTrail(moduleName, id);
+    const entityName = normalizeAuditEntityName(moduleName);
+    const trail = await getEntityAuditTrail(entityName, id);
 
     return trail.map((entry) => ({
         id: entry.id,

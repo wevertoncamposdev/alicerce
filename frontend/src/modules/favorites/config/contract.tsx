@@ -13,8 +13,6 @@ import type { ContextItem } from "@/components/DetailView/MetaDataView/types";
 
 import { FormView } from "@/components/TypeView/FormView/FormView";
 import { CardsView } from "@/components/TypeView/CardsView/CardsView";
-import { MetaDataView } from "@/components/DetailView/MetaDataView";
-import { MetaDataSidebar } from "@/components/DetailView/MetaDataView/MetaDataSidebar";
 import { RelationTablePanel } from "@/components/DetailView/RelationView/RelationTablePanel";
 import { FavoritesGraphView } from "@modules/favorites/components/FavoritesGraphView";
 import { FavoritesListView } from "@modules/favorites/components/FavoritesListView";
@@ -64,11 +62,6 @@ const favoritesDetailLayout: DetailLayout<FavoriteEntity> = {
             fields={formFields}
             initialValues={record}
         />
-    ),
-    side: ({ contextItems, auditItems }) => (
-        <MetaDataSidebar>
-            <MetaDataView contextItems={contextItems} auditItems={auditItems} />
-        </MetaDataSidebar>
     ),
     bottom: ({ record }) => <FavoritesNotesSection favoriteId={record.id} />,
 };

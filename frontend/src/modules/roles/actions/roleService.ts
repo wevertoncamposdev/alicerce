@@ -46,6 +46,10 @@ export async function removeRole(params: RemoveRoleParams): Promise<null> {
 }
 
 export async function attachRoleUser(params: AttachRoleUserParams): Promise<null> {
+    if (!params.tenantId) {
+        throw new Error('TenantId is required to attach a role to a user');
+    }
+
     return apiClient.post<null>(`roles/${params.roleId}/users`, {
         tenantId: params.tenantId,
         userId: params.userId,
@@ -53,6 +57,10 @@ export async function attachRoleUser(params: AttachRoleUserParams): Promise<null
 }
 
 export async function attachRolePermission(params: AttachRolePermissionParams): Promise<null> {
+    if (!params.tenantId) {
+        throw new Error('TenantId is required to attach a permission to a role');
+    }
+
     return apiClient.post<null>(`roles/${params.roleId}/permissions`, {
         tenantId: params.tenantId,
         permissionId: params.permissionId,

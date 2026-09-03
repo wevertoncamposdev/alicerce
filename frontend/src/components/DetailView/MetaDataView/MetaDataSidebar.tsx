@@ -1,29 +1,55 @@
 'use client';
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+    Drawer,
+    DrawerContent,
+    DrawerDescription,
+    DrawerHeader,
+    DrawerTitle,
+    DrawerTrigger,
+} from "@/components/ui/drawer";
 
 export function MetaDataSidebar({ children }: { children: React.ReactNode }) {
-    const [open, setOpen] = React.useState(true);
+    const [open, setOpen] = React.useState(false);
 
     return (
-        <div className="rounded-xl border border-border/60 bg-background/80 shadow-sm transition-all duration-200">
-            <div className="flex items-center justify-between border-b border-border/60 px-3 py-2">
-                <h3 className="text-sm font-semibold text-foreground">Metadados</h3>
+        <Drawer open={open} onOpenChange={setOpen} direction="right">
+            <DrawerTrigger asChild>
                 <Button
                     type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label={open ? "Ocultar metadados" : "Mostrar metadados"}
-                    onClick={() => setOpen((value) => !value)}
-                    className="h-7 w-7 rounded-full"
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-between"
+                    aria-label="Abrir metadados"
                 >
-                    {open ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
+                    <span>Metadados</span>
+                    <ChevronRight className="size-4" />
                 </Button>
-            </div>
+            </DrawerTrigger>
 
-            {open ? <div className="space-y-3 p-4">{children}</div> : null}
-        </div>
+            <DrawerContent className="sm:max-w-md">
+                <DrawerHeader className="flex items-center justify-between gap-2">
+                    <div className="space-y-1">
+                        <DrawerTitle>Metadados</DrawerTitle>
+                        <DrawerDescription>Contexto e auditoria do registro.</DrawerDescription>
+                    </div>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        aria-label="Fechar metadados"
+                        onClick={() => setOpen(false)}
+                    >
+                        <X className="size-4" />
+                    </Button>
+                </DrawerHeader>
+
+                <div className="max-h-[80vh] overflow-y-auto px-4 pb-4">{children}</div>
+            </DrawerContent>
+        </Drawer>
     );
 }

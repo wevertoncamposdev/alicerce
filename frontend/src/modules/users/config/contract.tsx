@@ -5,8 +5,6 @@ import { createRecordFormAction } from "@lib/registry/actions";
 
 import { ListView } from "@components/TypeView/ListView/ListView";
 import { FormView } from "@components/TypeView/FormView/FormView";
-import { MetaDataView } from "@components/DetailView/MetaDataView";
-import { MetaDataSidebar } from "@components/DetailView/MetaDataView/MetaDataSidebar";
 import UserRolesHost from "@modules/users/components/UserRolesHost";
 import { UserPermissionsHost } from "@modules/users/components/UserPermissionsHost";
 
@@ -16,7 +14,30 @@ import UsersListView from "../components/UsersListView";
 
 const formFields = [
     { name: "email" as const, label: "E-mail", type: "email" as const, required: true },
-    { name: "password" as const, label: "Senha", type: "password" as const, required: true },
+    {
+        name: "password" as const,
+        label: "Senha",
+        type: "password" as const,
+        required: true,
+        createOnly: true,
+    }
+];
+
+const formFieldsEdit = [
+    { name: "email" as const, label: "E-mail", type: "email" as const, required: true },
+    {
+        name: "password" as const,
+        label: "Senha",
+        type: "password" as const,
+        required: true,
+        createOnly: true,
+    },
+    {
+        name: "status" as const,
+        label: "Status",
+        type: "select" as const,
+        options: ["ACTIVE", "INACTIVE", "SUSPENDED", "ARCHIVED"],
+    },
 ];
 
 const { parseListState, serializeListState } = createListQueryState();
@@ -44,14 +65,9 @@ const usersDetailLayout: DetailLayout<UserEntity> = {
             mode="edit"
             model="users"
             recordId={record.id}
-            fields={formFields}
+            fields={formFieldsEdit}
             initialValues={record}
         />
-    ),
-    side: ({ contextItems, auditItems }) => (
-        <MetaDataSidebar>
-            <MetaDataView contextItems={contextItems} auditItems={auditItems} />
-        </MetaDataSidebar>
     ),
     relations: ({ record }) => [
         { key: "roles", label: "Roles", content: <UserRolesSection userId={record.id} /> },

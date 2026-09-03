@@ -17,6 +17,7 @@ export type FormFieldConfig<T> = {
     placeholder?: string;
     type: "text" | "email" | "password" | "url" | "number" | "textarea" | "select";
     required?: boolean;
+    createOnly?: boolean;
     options?: Array<string | { label: string; value: string }>;
 };
 

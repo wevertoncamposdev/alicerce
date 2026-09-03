@@ -27,4 +27,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsUUID()
   personId?: string;
+
+  @IsOptional()
+  @IsString()
+  status?: 'ACTIVE' | 'INACTIVE';
 }

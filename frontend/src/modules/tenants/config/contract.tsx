@@ -5,8 +5,6 @@ import { createRecordFormAction } from "@lib/registry/actions";
 
 import { ListView } from "@components/TypeView/ListView/ListView";
 import { FormView } from "@components/TypeView/FormView/FormView";
-import { MetaDataView } from "@components/DetailView/MetaDataView";
-import { MetaDataSidebar } from "@components/DetailView/MetaDataView/MetaDataSidebar";
 import { TenantsListView } from "@modules/tenants/components/TenantsListView";
 import { TenantUsersHost } from "@modules/tenants/components/TenantUsersHost";
 import { TenantRolesHost } from "@modules/tenants/components/TenantRolesHost";
@@ -50,11 +48,6 @@ const tenantsDetailLayout: DetailLayout<TenantEntity> = {
             fields={formFields}
             initialValues={record}
         />
-    ),
-    side: ({ contextItems, auditItems }) => (
-        <MetaDataSidebar>
-            <MetaDataView contextItems={contextItems} auditItems={auditItems} />
-        </MetaDataSidebar>
     ),
     relations: ({ record }) => [
         { key: "users", label: "Users", content: <TenantUsersSection tenantId={record.id} /> },

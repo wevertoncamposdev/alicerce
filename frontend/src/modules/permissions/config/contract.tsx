@@ -5,8 +5,6 @@ import { createRecordFormAction } from "@lib/registry/actions";
 
 import { PermissionsListView } from "@modules/permissions/components/PermissionsListView";
 import { FormView } from "@components/TypeView/FormView/FormView";
-import { MetaDataView } from "@components/DetailView/MetaDataView";
-import { MetaDataSidebar } from "@components/DetailView/MetaDataView/MetaDataSidebar";
 
 import { searchPermissions, readPermission, createPermission, updatePermission, deletePermission, readPermissionRoles } from "./provider";
 import type { PermissionEntity, ContextItem } from "../types/types";
@@ -48,11 +46,6 @@ const permissionsDetailLayout: DetailLayout<PermissionEntity> = {
             fields={formFields}
             initialValues={record}
         />
-    ),
-    side: ({ contextItems, auditItems }) => (
-        <MetaDataSidebar>
-            <MetaDataView contextItems={contextItems} auditItems={auditItems} />
-        </MetaDataSidebar>
     ),
     relations: ({ record }) => [
         { key: "roles", label: "Roles", content: <PermissionRolesSection permissionId={record.id} /> },
