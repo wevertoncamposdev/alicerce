@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@core/prisma/generated/client';
 import { TenantService } from './tenant.service';
 import { TenantBusinessRules } from './domain/rules/tenant-business-rules';
@@ -67,5 +67,42 @@ describe('TenantService', () => {
     };
 
     await expect(service.create(dto)).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  const ownTenantId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+  const otherTenantId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+
+  it('findOne: should throw NotFoundException when requesting another tenant by id', async () => {
+    await expect(
+      service.findOne(otherTenantId, ownTenantId),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(repository.findById).not.toHaveBeenCalled();
+  });
+
+  it('findOne: should return the tenant when requesting its own id', async () => {
+    repository.findById.mockResolvedValueOnce({ id: ownTenantId } as never);
+
+    const result = await service.findOne(ownTenantId, ownTenantId);
+
+    expect(result).toEqual({ id: ownTenantId });
+  });
+
+  it('update: should throw NotFoundException when targeting another tenant by id', async () => {
+    await expect(
+      service.update(otherTenantId, {}, ownTenantId),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(repository.updateById).not.toHaveBeenCalled();
+  });
+
+  it('findUsersOfTenant: should throw NotFoundException when requesting another tenant', async () => {
+    await expect(
+      service.findUsersOfTenant(otherTenantId, ownTenantId),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('findRolesOfTenant: should throw NotFoundException when requesting another tenant', async () => {
+    await expect(
+      service.findRolesOfTenant(otherTenantId, ownTenantId),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 });

@@ -59,6 +59,9 @@ async function main() {
     { tenantId: tenant.id, name: 'favorite.read', type: 'READ', resource: 'favorites', description: 'Consultar favoritos' },
     { tenantId: tenant.id, name: 'favorite.update', type: 'WRITE', resource: 'favorites', description: 'Atualizar favoritos' },
     { tenantId: tenant.id, name: 'favorite.delete', type: 'DELETE', resource: 'favorites', description: 'Remover favoritos' },
+    { tenantId: tenant.id, name: 'tenant.read', type: 'READ', resource: 'tenants', description: 'Consultar o próprio tenant' },
+    { tenantId: tenant.id, name: 'tenant.update', type: 'WRITE', resource: 'tenants', description: 'Atualizar o próprio tenant' },
+    { tenantId: tenant.id, name: 'tenant.manage', type: 'WRITE', resource: 'tenants', description: 'Buscar/remover qualquer tenant (reservado ao módulo management, Fase 7)' },
   ];
 
   await prisma.permission.createMany({
@@ -66,7 +69,12 @@ async function main() {
     skipDuplicates: true,
   });
 
-  const allPermissions = await prisma.permission.findMany({ where: { tenantId: tenant.id } });
+  // tenant.manage é cross-tenant (busca/remoção de qualquer tenant) e fica
+  // reservado ao futuro módulo `management` (Fase 7) — o ADMIN do tenant não
+  // o recebe automaticamente, mesmo ganhando todas as outras permissões.
+  const allPermissions = await prisma.permission.findMany({
+    where: { tenantId: tenant.id, name: { not: 'tenant.manage' } },
+  });
   for (const permission of allPermissions) {
     const exists = await prisma.rolePermission.findFirst({
       where: {

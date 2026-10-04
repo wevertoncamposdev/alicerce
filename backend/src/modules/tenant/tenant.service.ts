@@ -51,8 +51,19 @@ export class TenantService {
     }
   }
 
-  async findOne(id: string) {
+  private assertOwnTenant(id: string, requestTenantId: string) {
+    if (id !== requestTenantId) {
+      throw new NotFoundException({
+        message: 'Tenant não encontrado',
+        code: TenantErrorCode.NOT_FOUND,
+        details: { id },
+      });
+    }
+  }
+
+  async findOne(id: string, requestTenantId: string) {
     this.tenantBusinessRules.validateTenantId(id);
+    this.assertOwnTenant(id, requestTenantId);
 
     try {
       const tenant = await this.tenantRepository.findById(id);
@@ -71,8 +82,13 @@ export class TenantService {
     }
   }
 
-  async update(id: string, updateTenantDto: UpdateTenantDto) {
+  async update(
+    id: string,
+    updateTenantDto: UpdateTenantDto,
+    requestTenantId: string,
+  ) {
     this.tenantBusinessRules.validateTenantId(id);
+    this.assertOwnTenant(id, requestTenantId);
 
     try {
       const {
@@ -137,14 +153,18 @@ export class TenantService {
     return { items, total, page, limit };
   }
 
-  async findUsersOfTenant(tenantId: string) {
+  async findUsersOfTenant(tenantId: string, requestTenantId: string) {
+    this.assertOwnTenant(tenantId, requestTenantId);
+
     return this.prisma.user.findMany({
       where: { tenantId, deletedAt: null },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async findRolesOfTenant(tenantId: string) {
+  async findRolesOfTenant(tenantId: string, requestTenantId: string) {
+    this.assertOwnTenant(tenantId, requestTenantId);
+
     return this.prisma.role.findMany({
       where: { tenantId, deletedAt: null },
       orderBy: { createdAt: 'desc' },
