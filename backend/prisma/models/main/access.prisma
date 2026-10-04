@@ -22,7 +22,6 @@ model User {
     refreshTokens   RefreshToken[]
     favoriteNotes   FavoriteNote[]
 
-    @@unique([tenantId, email])
     @@map("users")
 }
 
