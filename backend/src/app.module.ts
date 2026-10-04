@@ -7,7 +7,11 @@ import {
 
 import * as path from 'path';
 import * as fs from 'fs';
-import { I18nModule, HeaderResolver, AcceptLanguageResolver } from 'nestjs-i18n';
+import {
+  I18nModule,
+  HeaderResolver,
+  AcceptLanguageResolver,
+} from 'nestjs-i18n';
 
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from '@src/app.controller';
@@ -47,7 +51,7 @@ import { PermissionModule } from '@modules/permission/permission.module';
           ? path.join(__dirname, '/i18n/')
           : path.join(__dirname, '../i18n/'),
         watch: true,
-      }
+      },
     }),
   ],
   controllers: [AppController],
@@ -61,9 +65,11 @@ import { PermissionModule } from '@modules/permission/permission.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(TenantMiddleware).forRoutes(
-      { path: 'tenant/:tenantId', method: RequestMethod.ALL },
-      { path: 'tenant/:tenantId/*path', method: RequestMethod.ALL },
-    );
+    consumer
+      .apply(TenantMiddleware)
+      .forRoutes(
+        { path: 'tenant/:tenantId', method: RequestMethod.ALL },
+        { path: 'tenant/:tenantId/*path', method: RequestMethod.ALL },
+      );
   }
 }

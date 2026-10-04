@@ -18,19 +18,17 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 // Provider injetável pelo container do Nest
 @Injectable()
 export class AuthGuard implements CanActivate {
-
   // Injeção de dependências:
   // - jwtService: valida token
   // - reflector: lê metadata da rota/classe
   constructor(
     private readonly jwtService: JwtService,
     private readonly reflector: Reflector,
-  ) { }
+  ) {}
 
   // Método obrigatório da interface CanActivate
   // Retorna Promise<boolean> porque há operação assíncrona (verifyAsync)
   async canActivate(context: ExecutionContext): Promise<boolean> {
-
     // Lê metadata isPublic no método e na classe.
     // Precedência: primeiro handler (método), depois classe (controller).
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [

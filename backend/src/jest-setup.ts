@@ -1,4 +1,3 @@
-/* eslint-disable */
 jest.mock('@core/prisma/prisma.service', () => ({
   PrismaService: jest.fn().mockImplementation(() => ({
     user: {

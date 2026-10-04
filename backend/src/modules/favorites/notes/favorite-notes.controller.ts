@@ -10,28 +10,31 @@ import { CreateFavoriteNoteDto } from './dto/create-favorite-note.dto';
 @ApiBearerAuth()
 @Controller('favorites/:favoriteId/notes')
 export class FavoriteNotesController {
-    constructor(private readonly notesService: FavoriteNotesService) { }
+  constructor(private readonly notesService: FavoriteNotesService) {}
 
-    @Get()
-    @ApiOperation({ summary: 'Listar notas de um favorito' })
-    findAll(@Param('favoriteId') favoriteId: string, @TenantId() tenantId: string) {
-        return this.notesService.findAll(favoriteId, tenantId);
-    }
+  @Get()
+  @ApiOperation({ summary: 'Listar notas de um favorito' })
+  findAll(
+    @Param('favoriteId') favoriteId: string,
+    @TenantId() tenantId: string,
+  ) {
+    return this.notesService.findAll(favoriteId, tenantId);
+  }
 
-    @Post()
-    @ApiOperation({ summary: 'Criar nota em um favorito' })
-    create(
-        @Param('favoriteId') favoriteId: string,
-        @Body() dto: CreateFavoriteNoteDto,
-        @TenantId() tenantId: string,
-        @CurrentUserId() userSub: string,
-    ) {
-        return this.notesService.create(favoriteId, dto, tenantId, userSub);
-    }
+  @Post()
+  @ApiOperation({ summary: 'Criar nota em um favorito' })
+  create(
+    @Param('favoriteId') favoriteId: string,
+    @Body() dto: CreateFavoriteNoteDto,
+    @TenantId() tenantId: string,
+    @CurrentUserId() userSub: string,
+  ) {
+    return this.notesService.create(favoriteId, dto, tenantId, userSub);
+  }
 
-    @Delete(':id')
-    @ApiOperation({ summary: 'Remover nota' })
-    remove(@Param('id') id: string, @TenantId() tenantId: string) {
-        return this.notesService.remove(id, tenantId);
-    }
+  @Delete(':id')
+  @ApiOperation({ summary: 'Remover nota' })
+  remove(@Param('id') id: string, @TenantId() tenantId: string) {
+    return this.notesService.remove(id, tenantId);
+  }
 }

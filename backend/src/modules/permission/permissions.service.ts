@@ -7,103 +7,115 @@ import { Prisma } from '@core/prisma/generated/client';
 
 @Injectable()
 export class PermissionsService {
-    constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-    async findOne(id: string) {
-        const permission = await this.prisma.permission.findUnique({ where: { id } });
-        if (!permission || permission.deletedAt) throw new NotFoundException('Permission nao encontrada');
-        return permission;
+  async findOne(id: string) {
+    const permission = await this.prisma.permission.findUnique({
+      where: { id },
+    });
+    if (!permission || permission.deletedAt)
+      throw new NotFoundException('Permission nao encontrada');
+    return permission;
+  }
+
+  async findAll(tenantId: string) {
+    return this.prisma.permission.findMany({
+      where: {
+        tenantId,
+        deletedAt: null,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async create(dto: CreatePermissionDto, tenantId?: string) {
+    if (!tenantId) {
+      throw new Error('TenantId is required to create a permission');
     }
 
-    async findAll(tenantId: string) {
-        return this.prisma.permission.findMany({
-            where: {
-                tenantId,
-                deletedAt: null,
-            },
-            orderBy: { createdAt: 'desc' },
-        });
+    return this.prisma.permission.create({
+      data: {
+        tenantId,
+        name: dto.name,
+        type: dto.type,
+        resource: dto.resource,
+        description: dto.description,
+      },
+    });
+  }
+
+  async update(id: string, dto: UpdatePermissionDto) {
+    const existing = await this.prisma.permission.findUnique({ where: { id } });
+
+    if (!existing || existing.deletedAt) {
+      throw new NotFoundException('Permissao nao encontrada');
     }
 
+    return this.prisma.permission.update({
+      where: { id },
+      data: {
+        name: dto.name,
+        type: dto.type,
+        resource: dto.resource,
+        description: dto.description,
+      },
+    });
+  }
 
-    async create(dto: CreatePermissionDto, tenantId?: string) {
-        if (!tenantId) {
-            throw new Error('TenantId is required to create a permission');
-        }
+  async remove(id: string) {
+    const existing = await this.prisma.permission.findUnique({ where: { id } });
 
-        return this.prisma.permission.create({
-            data: {
-                tenantId,
-                name: dto.name,
-                type: dto.type,
-                resource: dto.resource,
-                description: dto.description,
-            },
-        });
+    if (!existing || existing.deletedAt) {
+      throw new NotFoundException('Permissao nao encontrada');
     }
 
-    async update(id: string, dto: UpdatePermissionDto) {
-        const existing = await this.prisma.permission.findUnique({ where: { id } });
+    return this.prisma.permission.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+  }
 
-        if (!existing || existing.deletedAt) {
-            throw new NotFoundException('Permissao nao encontrada');
-        }
+  async search(query: SearchPermissionDto, tenantId?: string) {
+    const page =
+      query.pagination?.pageIndex !== undefined
+        ? query.pagination.pageIndex + 1
+        : 1;
+    const limit = query.pagination?.pageSize ?? 20;
 
-        return this.prisma.permission.update({
-            where: { id },
-            data: {
-                name: dto.name,
-                type: dto.type,
-                resource: dto.resource,
-                description: dto.description,
-            },
-        });
-    }
+    const where: Prisma.PermissionWhereInput = {
+      tenantId: tenantId ?? undefined,
+      deletedAt: null,
+      ...(query.searchText
+        ? {
+            OR: [
+              { name: { contains: query.searchText, mode: 'insensitive' } },
+              { resource: { contains: query.searchText, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
 
-    async remove(id: string) {
-        const existing = await this.prisma.permission.findUnique({ where: { id } });
+    const [items, total] = await Promise.all([
+      this.prisma.permission.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.permission.count({ where }),
+    ]);
 
-        if (!existing || existing.deletedAt) {
-            throw new NotFoundException('Permissao nao encontrada');
-        }
+    return { items, total, page, limit };
+  }
 
-        return this.prisma.permission.update({
-            where: { id },
-            data: {
-                deletedAt: new Date(),
-            },
-        });
-    }
+  //Roles
 
-    async search(query: SearchPermissionDto, tenantId?: string) {
-        const page = query.pagination?.pageIndex !== undefined ? query.pagination.pageIndex + 1 : 1;
-        const limit = query.pagination?.pageSize ?? 20;
-
-        const where: Prisma.PermissionWhereInput = {
-            tenantId: tenantId ?? undefined,
-            deletedAt: null,
-            ...(query.searchText ? {
-                OR: [
-                    { name: { contains: query.searchText, mode: 'insensitive' } },
-                    { resource: { contains: query.searchText, mode: 'insensitive' } },
-                ],
-            } : {}),
-        };
-
-        const [items, total] = await Promise.all([
-            this.prisma.permission.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: 'desc' } }),
-            this.prisma.permission.count({ where }),
-        ]);
-
-        return { items, total, page, limit };
-    }
-
-    //Roles
-
-    async findRolesOfPermission(permissionId: string, tenantId: string) {
-        return this.prisma.rolePermission.findMany({
-            where: { permissionId, tenantId },
-            include: { role: { select: { id: true, name: true, type: true } } },
-        });
-    }
+  async findRolesOfPermission(permissionId: string, tenantId: string) {
+    return this.prisma.rolePermission.findMany({
+      where: { permissionId, tenantId },
+      include: { role: { select: { id: true, name: true, type: true } } },
+    });
+  }
 }

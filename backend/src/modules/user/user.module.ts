@@ -23,8 +23,7 @@ import { RoleModule } from '../role/role.module';
     UserBusinessRules,
     UserRepository,
     UserErrorMapper,
-
   ],
   exports: [UsersService],
 })
-export class UsersModule { }
+export class UsersModule {}

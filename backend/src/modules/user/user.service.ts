@@ -24,9 +24,6 @@ import { UserErrorCode } from './domain/errors/user-error-codes';
 import { UserRepository } from './persistence/repository/user.repository';
 import { TenantId } from '@src/core/common/decorators/tenant-id.decorator';
 
-
-
-
 @Injectable()
 export class UsersService {
   constructor(
@@ -35,9 +32,12 @@ export class UsersService {
     private readonly userBusinessRules: UserBusinessRules,
     private readonly userErrorMapper: UserErrorMapper,
     private readonly prisma: PrismaService,
-  ) { }
+  ) {}
 
-  async create(createUserDto: CreateUserDto, tenantId: string): Promise<UserResponseDto> {
+  async create(
+    createUserDto: CreateUserDto,
+    tenantId: string,
+  ): Promise<UserResponseDto> {
     try {
       const { personId, tenantId: _tenantId, ...rest } = createUserDto;
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -49,8 +49,8 @@ export class UsersService {
         },
         person: personId
           ? {
-            connect: { id: personId },
-          }
+              connect: { id: personId },
+            }
           : undefined,
       });
 
@@ -153,13 +153,18 @@ export class UsersService {
   }
 
   async search(query: SearchUsersDto, tenantId: string) {
-    const page = query.pagination?.pageIndex !== undefined ? query.pagination.pageIndex + 1 : 1;
+    const page =
+      query.pagination?.pageIndex !== undefined
+        ? query.pagination.pageIndex + 1
+        : 1;
     const limit = query.pagination?.pageSize ?? 20;
 
     const where: Prisma.UserWhereInput = {
       tenantId,
       deletedAt: null,
-      ...(query.searchText ? { email: { contains: query.searchText, mode: 'insensitive' } } : {}),
+      ...(query.searchText
+        ? { email: { contains: query.searchText, mode: 'insensitive' } }
+        : {}),
     };
 
     const [items, total] = await Promise.all([

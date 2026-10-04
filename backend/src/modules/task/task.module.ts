@@ -5,9 +5,9 @@ import { PrismaModule } from '../../core/prisma/prisma.module';
 import { AuthModule } from '../../core/auth/auth.module';
 
 @Module({
-    imports: [PrismaModule, AuthModule],
-    controllers: [TaskController],
-    providers: [TaskService],
-    exports: [TaskService],
+  imports: [PrismaModule, AuthModule],
+  controllers: [TaskController],
+  providers: [TaskService],
+  exports: [TaskService],
 })
-export class TaskModule { }
+export class TaskModule {}

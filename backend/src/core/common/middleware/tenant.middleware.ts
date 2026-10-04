@@ -1,10 +1,15 @@
-import { Injectable, NestMiddleware, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NestMiddleware,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class TenantMiddleware implements NestMiddleware {
-  constructor(private readonly jwtService: JwtService) { }
+  constructor(private readonly jwtService: JwtService) {}
 
   use(req: Request, res: Response, next: NextFunction) {
     // Preflight CORS requests should bypass tenant validation.
@@ -14,7 +19,8 @@ export class TenantMiddleware implements NestMiddleware {
     }
 
     // 1. Extrai tenantId da rota
-    const tenantIdFromRoute = (req as any).params?.tenantId as string | undefined;
+    const tenantIdFromRoute = (req as any).params?.tenantId as
+      string | undefined;
     // 2. Extrai tenantId do header (opcional)
     const tenantIdFromHeader = req.headers['x-tenant-id'] as string | undefined;
     // 3. Extrai tenantId do JWT (se existir)
@@ -35,7 +41,11 @@ export class TenantMiddleware implements NestMiddleware {
       throw new UnauthorizedException('TenantId não informado');
     }
     // 5. Se rota e JWT existirem, comparar
-    if (tenantIdFromRoute && tenantIdFromJwt && tenantIdFromRoute !== tenantIdFromJwt) {
+    if (
+      tenantIdFromRoute &&
+      tenantIdFromJwt &&
+      tenantIdFromRoute !== tenantIdFromJwt
+    ) {
       throw new ForbiddenException('TenantId da rota e do token não conferem');
     }
     // 6. Injeta no request

@@ -45,7 +45,8 @@ export class CreateTenantDto {
   registrationNumber!: string;
 
   @ApiProperty({
-    description: 'Identificador público único usado em rotas, URLs ou subdomínios',
+    description:
+      'Identificador público único usado em rotas, URLs ou subdomínios',
     example: 'associacao-maravilhosa',
   })
   @IsString()

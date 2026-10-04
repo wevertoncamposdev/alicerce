@@ -12,9 +12,16 @@ interface RegisterAuditInput {
 
 @Injectable()
 export class AuditService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async register({ tenantId, userId, action, entity, entityId, payload }: RegisterAuditInput) {
+  async register({
+    tenantId,
+    userId,
+    action,
+    entity,
+    entityId,
+    payload,
+  }: RegisterAuditInput) {
     if (!tenantId || !userId) {
       return;
     }
@@ -33,7 +40,10 @@ export class AuditService {
     });
   }
 
-  async findAll(tenantId: string, filters?: { entity?: string; entityId?: string }) {
+  async findAll(
+    tenantId: string,
+    filters?: { entity?: string; entityId?: string },
+  ) {
     const response = await this.prisma.audit.findMany({
       where: {
         tenantId,

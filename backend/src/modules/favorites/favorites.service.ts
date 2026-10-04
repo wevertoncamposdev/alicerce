@@ -7,12 +7,9 @@ import { TenantId } from '@src/core/common/decorators/tenant-id.decorator';
 
 @Injectable()
 export class FavoritesService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateFavoriteDto, tenantId: string, userSub: string) {
-
     const existingFavorite = await this.prisma.favorite.findFirst({
       where: {
         url: dto.url,
@@ -59,20 +56,33 @@ export class FavoritesService {
         },
         tenant: {
           select: { id: true, legalName: true },
-        }
+        },
       },
     });
-    if (!favorite || favorite.tenantId !== tenantId || favorite.userId !== userSub) {
+    if (
+      !favorite ||
+      favorite.tenantId !== tenantId ||
+      favorite.userId !== userSub
+    ) {
       throw new Error('Favorite not found or access denied');
     }
     return favorite;
   }
 
-  async update(id: string, dto: UpdateFavoriteDto, tenantId: string, userSub: string) {
+  async update(
+    id: string,
+    dto: UpdateFavoriteDto,
+    tenantId: string,
+    userSub: string,
+  ) {
     const favorite = await this.prisma.favorite.findUnique({
       where: { id },
     });
-    if (!favorite || favorite.tenantId !== tenantId || favorite.userId !== userSub) {
+    if (
+      !favorite ||
+      favorite.tenantId !== tenantId ||
+      favorite.userId !== userSub
+    ) {
       throw new Error('Favorite not found or access denied');
     }
 
@@ -88,17 +98,23 @@ export class FavoritesService {
     const favorite = await this.prisma.favorite.findUnique({
       where: { id },
     });
-    if (!favorite || favorite.tenantId !== tenantId || favorite.userId !== userSub) {
+    if (
+      !favorite ||
+      favorite.tenantId !== tenantId ||
+      favorite.userId !== userSub
+    ) {
       throw new Error('Favorite not found or access denied');
     }
     return this.prisma.favorite.delete({
       where: { id },
     });
-
   }
 
   async search(query: SearchFavoritesDto, tenantId: string, userSub: string) {
-    const page = query.pagination?.pageIndex !== undefined ? query.pagination.pageIndex + 1 : 1;
+    const page =
+      query.pagination?.pageIndex !== undefined
+        ? query.pagination.pageIndex + 1
+        : 1;
     const limit = query.pagination?.pageSize ?? 20;
 
     const where = {
@@ -106,11 +122,21 @@ export class FavoritesService {
       userId: userSub,
       ...(query.searchText
         ? {
-          OR: [
-            { title: { contains: query.searchText, mode: "insensitive" as const } },
-            { url: { contains: query.searchText, mode: "insensitive" as const } },
-          ],
-        }
+            OR: [
+              {
+                title: {
+                  contains: query.searchText,
+                  mode: 'insensitive' as const,
+                },
+              },
+              {
+                url: {
+                  contains: query.searchText,
+                  mode: 'insensitive' as const,
+                },
+              },
+            ],
+          }
         : {}),
     };
 
@@ -125,6 +151,4 @@ export class FavoritesService {
 
     return { items, total, page, limit };
   }
-
-
 }

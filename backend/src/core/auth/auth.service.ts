@@ -47,7 +47,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly i18n: I18nService,
-  ) { }
+  ) {}
 
   private mapPermissionType(permissionName: string): PermissionType {
     if (permissionName.endsWith('.read')) {
@@ -117,7 +117,9 @@ export class AuthService {
     });
   }
 
-  private mapAuthUserContext(user: NonNullable<Awaited<ReturnType<AuthService['getAuthUserById']>>>) {
+  private mapAuthUserContext(
+    user: NonNullable<Awaited<ReturnType<AuthService['getAuthUserById']>>>,
+  ) {
     const roleNames = Array.from(
       new Set(user.roles.map((item) => item.role.type)),
     );
@@ -220,9 +222,7 @@ export class AuthService {
         where: { familyId: storedToken.familyId },
         data: { revokedAt: new Date() },
       });
-      throw new UnauthorizedException(
-        'Sessão inválida. Faça login novamente.',
-      );
+      throw new UnauthorizedException('Sessão inválida. Faça login novamente.');
     }
 
     // Revoga o token atual antes de emitir o próximo
@@ -399,7 +399,11 @@ export class AuthService {
     const familyId = crypto.randomUUID();
     const [access_token, refresh_token] = await Promise.all([
       this.signToken(mappedUser),
-      this.createRefreshToken({ userId: user.id, tenantId: user.tenantId, familyId }),
+      this.createRefreshToken({
+        userId: user.id,
+        tenantId: user.tenantId,
+        familyId,
+      }),
     ]);
 
     return {
@@ -424,12 +428,18 @@ export class AuthService {
       throw new UnauthorizedException(message);
     }
 
-    const isPasswordValid = await bcrypt.compare(signInDto.password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      signInDto.password,
+      user.password,
+    );
 
     if (!isPasswordValid) {
-      const message = await this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
-        lang: 'pt-BR',
-      });
+      const message = await this.i18n.translate(
+        'messages.USER.INVALID_CREDENTIALS',
+        {
+          lang: 'pt-BR',
+        },
+      );
       throw new UnauthorizedException(message);
     }
 
@@ -437,7 +447,11 @@ export class AuthService {
     const familyId = crypto.randomUUID();
     const [access_token, refresh_token] = await Promise.all([
       this.signToken(mappedUser),
-      this.createRefreshToken({ userId: user.id, tenantId: user.tenantId, familyId }),
+      this.createRefreshToken({
+        userId: user.id,
+        tenantId: user.tenantId,
+        familyId,
+      }),
     ]);
 
     return {

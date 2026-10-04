@@ -16,7 +16,7 @@ export class TenantService {
     private readonly tenantBusinessRules: TenantBusinessRules,
     private readonly tenantErrorMapper: TenantErrorMapper,
     private readonly prisma: PrismaService,
-  ) { }
+  ) {}
 
   async create(createTenantDto: CreateTenantDto) {
     try {
@@ -113,17 +113,20 @@ export class TenantService {
   }
 
   async search(query: SearchTenantsDto) {
-    const page = query.pagination?.pageIndex !== undefined ? query.pagination.pageIndex + 1 : 1;
+    const page =
+      query.pagination?.pageIndex !== undefined
+        ? query.pagination.pageIndex + 1
+        : 1;
     const limit = query.pagination?.pageSize ?? 20;
 
     const where: Prisma.TenantWhereInput = query.searchText
       ? {
-        OR: [
-          { legalName: { contains: query.searchText, mode: 'insensitive' } },
-          { tradeName: { contains: query.searchText, mode: 'insensitive' } },
-          { slug: { contains: query.searchText, mode: 'insensitive' } },
-        ],
-      }
+          OR: [
+            { legalName: { contains: query.searchText, mode: 'insensitive' } },
+            { tradeName: { contains: query.searchText, mode: 'insensitive' } },
+            { slug: { contains: query.searchText, mode: 'insensitive' } },
+          ],
+        }
       : {};
 
     const [items, total] = await Promise.all([

@@ -13,7 +13,10 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         { provide: PrismaService, useValue: {} },
-        { provide: JwtService, useValue: { signAsync: jest.fn().mockResolvedValue('token') } },
+        {
+          provide: JwtService,
+          useValue: { signAsync: jest.fn().mockResolvedValue('token') },
+        },
         { provide: ConfigService, useValue: {} },
         { provide: I18nService, useValue: {} },
       ],

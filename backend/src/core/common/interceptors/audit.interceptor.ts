@@ -1,10 +1,15 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
 import { AuditService } from '@modules/audit/audit.service';
 
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
-  constructor(private readonly auditService: AuditService) { }
+  constructor(private readonly auditService: AuditService) {}
 
   private sanitizePayload(payload: unknown) {
     if (!payload || typeof payload !== 'object') {
@@ -36,12 +41,18 @@ export class AuditInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap((result) => {
         // Só audita ações relevantes (CRUD, login, onboarding, etc.)
-        if (!['POST', 'PATCH', 'DELETE'].includes(method) && !url.includes('login')) {
+        if (
+          !['POST', 'PATCH', 'DELETE'].includes(method) &&
+          !url.includes('login')
+        ) {
           return;
         }
 
         const resolvedTenantId =
-          tenantId ?? user?.tenantId ?? result?.tenant?.id ?? result?.user?.tenantId;
+          tenantId ??
+          user?.tenantId ??
+          result?.tenant?.id ??
+          result?.user?.tenantId;
         const resolvedUserId = user?.id ?? user?.sub ?? result?.user?.id;
 
         // Extrai o nome do recurso da URL, ignorando prefixo /api e,

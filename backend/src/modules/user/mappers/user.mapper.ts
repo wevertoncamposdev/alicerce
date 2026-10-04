@@ -5,7 +5,7 @@ import { UserValidator } from '../validators/user.validator';
 
 @Injectable()
 export class UserMapper {
-  constructor(private validator: UserValidator) { }
+  constructor(private validator: UserValidator) {}
 
   mapToResponseDto(user: any): UserResponseDto {
     return {

@@ -9,145 +9,158 @@ import { UserRepository } from './persistence/repository/user.repository';
 import { PrismaService } from '@core/prisma/prisma.service';
 
 jest.mock('bcrypt', () => ({
-    hash: jest.fn().mockResolvedValue('hashed-password'),
+  hash: jest.fn().mockResolvedValue('hashed-password'),
 }));
 
 describe('UsersService', () => {
-    let service: UsersService;
-    let repository: jest.Mocked<UserRepository>;
-    let userMapper: jest.Mocked<UserMapper>;
+  let service: UsersService;
+  let repository: jest.Mocked<UserRepository>;
+  let userMapper: jest.Mocked<UserMapper>;
 
-    const repositoryMock = {
-        create: jest.fn(),
-        findManyActive: jest.fn(),
-        findById: jest.fn(),
-        findByEmail: jest.fn(),
-        updateById: jest.fn(),
-        softDeleteById: jest.fn(),
-        countActive: jest.fn(),
-        findManyWithBirthDate: jest.fn(),
+  const repositoryMock = {
+    create: jest.fn(),
+    findManyActive: jest.fn(),
+    findById: jest.fn(),
+    findByEmail: jest.fn(),
+    updateById: jest.fn(),
+    softDeleteById: jest.fn(),
+    countActive: jest.fn(),
+    findManyWithBirthDate: jest.fn(),
+  };
+
+  const userMapperMock = {
+    mapToResponseDto: jest.fn(),
+    mapToResponseDtoArray: jest.fn(),
+  };
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        UsersService,
+        UserBusinessRules,
+        UserErrorMapper,
+        {
+          provide: UserRepository,
+          useValue: repositoryMock,
+        },
+        {
+          provide: UserMapper,
+          useValue: userMapperMock,
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            userRole: { findMany: jest.fn() },
+            rolePermission: { findMany: jest.fn() },
+          },
+        },
+      ],
+    }).compile();
+
+    service = module.get<UsersService>(UsersService);
+    repository = module.get(UserRepository);
+    userMapper = module.get(UserMapper);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+
+  it('should hash password, persist user and map response', async () => {
+    const repositoryResult = {
+      id: 'user-id',
+      email: 'john@example.com',
+      tenantId: 'adf4f488-faa3-4fca-946e-522f7c2d4976',
+      password: 'hashed-password',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null,
+    };
+    const mappedResult = {
+      id: 'user-id',
+      email: 'john@example.com',
+      isAdult: false,
     };
 
-    const userMapperMock = {
-        mapToResponseDto: jest.fn(),
-        mapToResponseDtoArray: jest.fn(),
+    repository.create.mockResolvedValueOnce(repositoryResult as never);
+    userMapper.mapToResponseDto.mockReturnValueOnce(mappedResult as never);
+
+    const result = await service.create(
+      {
+        email: 'john@example.com',
+        tenantId: 'adf4f488-faa3-4fca-946e-522f7c2d4976',
+        password: '123456',
+      },
+      'adf4f488-faa3-4fca-946e-522f7c2d4976',
+    );
+
+    expect(result).toEqual(mappedResult);
+    expect(repository.create).toHaveBeenCalledWith({
+      email: 'john@example.com',
+      password: 'hashed-password',
+      tenant: { connect: { id: 'adf4f488-faa3-4fca-946e-522f7c2d4976' } },
+      person: undefined,
+    });
+  });
+
+  it('should ignore tenantId from the body and use only the authenticated tenant context on create', async () => {
+    const repositoryResult = {
+      id: 'user-id',
+      email: 'john@example.com',
+      tenantId: 'tenant-ctx',
+      password: 'hashed-password',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null,
     };
 
-    beforeEach(async () => {
-        jest.clearAllMocks();
+    repository.create.mockResolvedValueOnce(repositoryResult as never);
+    userMapper.mapToResponseDto.mockReturnValueOnce({
+      id: 'user-id',
+      email: 'john@example.com',
+      isAdult: false,
+    } as never);
 
-        const module: TestingModule = await Test.createTestingModule({
-            providers: [
-                UsersService,
-                UserBusinessRules,
-                UserErrorMapper,
-                {
-                    provide: UserRepository,
-                    useValue: repositoryMock,
-                },
-                {
-                    provide: UserMapper,
-                    useValue: userMapperMock,
-                },
-                {
-                    provide: PrismaService,
-                    useValue: {
-                        userRole: { findMany: jest.fn() },
-                        rolePermission: { findMany: jest.fn() },
-                    },
-                },
-            ],
-        }).compile();
+    await service.create(
+      {
+        email: 'john@example.com',
+        tenantId: 'malicious-tenant',
+        password: '123456',
+      },
+      'tenant-ctx',
+    );
 
-        service = module.get<UsersService>(UsersService);
-        repository = module.get(UserRepository);
-        userMapper = module.get(UserMapper);
+    expect(repository.create).toHaveBeenCalledWith({
+      email: 'john@example.com',
+      password: 'hashed-password',
+      tenant: { connect: { id: 'tenant-ctx' } },
+      person: undefined,
+    });
+  });
+
+  it('should map prisma P2002 to conflict exception on create', async () => {
+    const prismaError = Object.create(
+      Prisma.PrismaClientKnownRequestError.prototype,
+    ) as Prisma.PrismaClientKnownRequestError;
+
+    Object.assign(prismaError, {
+      code: 'P2002',
+      meta: { target: ['email'] },
     });
 
-    it('should be defined', () => {
-        expect(service).toBeDefined();
-    });
+    repository.create.mockRejectedValueOnce(prismaError);
 
-    it('should hash password, persist user and map response', async () => {
-        const repositoryResult = {
-            id: 'user-id',
-            email: 'john@example.com',
-            tenantId: 'adf4f488-faa3-4fca-946e-522f7c2d4976',
-            password: 'hashed-password',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            deletedAt: null,
-        };
-        const mappedResult = {
-            id: 'user-id',
-            email: 'john@example.com',
-            isAdult: false,
-        };
-
-        repository.create.mockResolvedValueOnce(repositoryResult as never);
-        userMapper.mapToResponseDto.mockReturnValueOnce(mappedResult as never);
-
-        const result = await service.create({
-            email: 'john@example.com',
-            tenantId: 'adf4f488-faa3-4fca-946e-522f7c2d4976',
-            password: '123456',
-        }, 'adf4f488-faa3-4fca-946e-522f7c2d4976');
-
-        expect(result).toEqual(mappedResult);
-        expect(repository.create).toHaveBeenCalledWith({
-            email: 'john@example.com',
-            password: 'hashed-password',
-            tenant: { connect: { id: 'adf4f488-faa3-4fca-946e-522f7c2d4976' } },
-            person: undefined,
-        });
-    });
-
-    it('should ignore tenantId from the body and use only the authenticated tenant context on create', async () => {
-        const repositoryResult = {
-            id: 'user-id',
-            email: 'john@example.com',
-            tenantId: 'tenant-ctx',
-            password: 'hashed-password',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            deletedAt: null,
-        };
-
-        repository.create.mockResolvedValueOnce(repositoryResult as never);
-        userMapper.mapToResponseDto.mockReturnValueOnce({ id: 'user-id', email: 'john@example.com', isAdult: false } as never);
-
-        await service.create({
-            email: 'john@example.com',
-            tenantId: 'malicious-tenant',
-            password: '123456',
-        }, 'tenant-ctx');
-
-        expect(repository.create).toHaveBeenCalledWith({
-            email: 'john@example.com',
-            password: 'hashed-password',
-            tenant: { connect: { id: 'tenant-ctx' } },
-            person: undefined,
-        });
-    });
-
-    it('should map prisma P2002 to conflict exception on create', async () => {
-        const prismaError = Object.create(
-            Prisma.PrismaClientKnownRequestError.prototype,
-        ) as Prisma.PrismaClientKnownRequestError;
-
-        Object.assign(prismaError, {
-            code: 'P2002',
-            meta: { target: ['email'] },
-        });
-
-        repository.create.mockRejectedValueOnce(prismaError);
-
-        await expect(
-            service.create({
-                email: 'john@example.com',
-                tenantId: 'adf4f488-faa3-4fca-946e-522f7c2d4976',
-                password: '123456',
-            }, 'adf4f488-faa3-4fca-946e-522f7c2d4976'),
-        ).rejects.toBeInstanceOf(ConflictException);
-    });
+    await expect(
+      service.create(
+        {
+          email: 'john@example.com',
+          tenantId: 'adf4f488-faa3-4fca-946e-522f7c2d4976',
+          password: '123456',
+        },
+        'adf4f488-faa3-4fca-946e-522f7c2d4976',
+      ),
+    ).rejects.toBeInstanceOf(ConflictException);
+  });
 });

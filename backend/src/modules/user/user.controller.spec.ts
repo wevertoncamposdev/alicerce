@@ -80,7 +80,6 @@ describe('UsersController', () => {
     });
   });
 
-
   describe('GET /users/:id', () => {
     it('should call findOne on service with correct id', async () => {
       const id = 'adf4f488-faa3-4fca-946e-522f7c2d4976';

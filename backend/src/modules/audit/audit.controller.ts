@@ -7,7 +7,7 @@ import { TenantScopeGuard } from '@core/common/guards/tenant-scope.guard';
 @Controller('tenant/:tenantId/audit')
 @UseGuards(TenantScopeGuard)
 export class AuditController {
-  constructor(private readonly auditService: AuditService) { }
+  constructor(private readonly auditService: AuditService) {}
 
   @Get()
   async findAll(

@@ -4,68 +4,73 @@ import { Prisma } from '@core/prisma/generated/client';
 
 @Injectable()
 export class UserRepository {
-    constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-    create(data: Prisma.UserCreateInput) {
-        return this.prisma.user.create({ data });
-    }
+  create(data: Prisma.UserCreateInput) {
+    return this.prisma.user.create({ data });
+  }
 
-    findManyActive(tenantId?: string) {
-        return this.prisma.user.findMany({
-            where: {
-                deletedAt: null,
-                ...(tenantId ? { tenantId } : {}),
-            },
-        });
-    }
+  findManyActive(tenantId?: string) {
+    return this.prisma.user.findMany({
+      where: {
+        deletedAt: null,
+        ...(tenantId ? { tenantId } : {}),
+      },
+    });
+  }
 
-    findById(id: string) {
-        return this.prisma.user.findUnique({ where: { id } });
-    }
+  findById(id: string) {
+    return this.prisma.user.findUnique({ where: { id } });
+  }
 
-    findByEmail(email: string) {
-        return this.prisma.user.findUnique({ where: { email } });
-    }
+  findByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
+  }
 
-    updateById(id: string, data: Prisma.UserUpdateInput) {
-        return this.prisma.user.update({
-            where: { id },
-            data,
-        });
-    }
+  updateById(id: string, data: Prisma.UserUpdateInput) {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
+  }
 
-    softDeleteById(id: string) {
-        return this.prisma.user.update({
-            where: { id },
-            data: {
-                deletedAt: new Date(),
-                status: 'INACTIVE',
-            },
-        });
-    }
+  softDeleteById(id: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        status: 'INACTIVE',
+      },
+    });
+  }
 
-    countActive() {
-        return this.prisma.user.count({
-            where: {
-                status: 'ACTIVE',
-                deletedAt: null,
-            },
-        });
-    }
+  countActive() {
+    return this.prisma.user.count({
+      where: {
+        status: 'ACTIVE',
+        deletedAt: null,
+      },
+    });
+  }
 
-    findManyWithBirthDate() {
-        return this.prisma.user.findMany({
-            where: {
-                deletedAt: null,
-            },
-        });
-    }
+  findManyWithBirthDate() {
+    return this.prisma.user.findMany({
+      where: {
+        deletedAt: null,
+      },
+    });
+  }
 
-    search(where: Prisma.UserWhereInput, skip: number, take: number) {
-        return this.prisma.user.findMany({ where, skip, take, orderBy: { createdAt: 'desc' } });
-    }
+  search(where: Prisma.UserWhereInput, skip: number, take: number) {
+    return this.prisma.user.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 
-    count(where: Prisma.UserWhereInput) {
-        return this.prisma.user.count({ where });
-    }
+  count(where: Prisma.UserWhereInput) {
+    return this.prisma.user.count({ where });
+  }
 }

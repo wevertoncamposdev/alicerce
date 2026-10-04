@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  ForbiddenException,
+} from '@nestjs/common';
 
 @Injectable()
 export class TenantScopeGuard implements CanActivate {
@@ -14,7 +19,11 @@ export class TenantScopeGuard implements CanActivate {
     }
 
     // Se a rota exige tenantId, ele deve bater com o contexto (header/jwt/middleware).
-    if (paramTenantId && resolvedTenantId && paramTenantId !== resolvedTenantId) {
+    if (
+      paramTenantId &&
+      resolvedTenantId &&
+      paramTenantId !== resolvedTenantId
+    ) {
       throw new ForbiddenException('Acesso negado ao tenant');
     }
 

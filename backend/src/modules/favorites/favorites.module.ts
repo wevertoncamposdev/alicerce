@@ -8,4 +8,4 @@ import { FavoriteNotesService } from './notes/favorite-notes.service';
   controllers: [FavoritesController, FavoriteNotesController],
   providers: [FavoritesService, FavoriteNotesService],
 })
-export class FavoritesModule { }
+export class FavoritesModule {}

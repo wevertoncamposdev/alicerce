@@ -64,7 +64,7 @@ describe('TenantService', () => {
       slug: 'associacao-maravilhosa',
       category: 'ASSOCIATION',
       primaryServiceArea: 'OTHER',
-    } as CreateTenantDto;
+    };
 
     await expect(service.create(dto)).rejects.toBeInstanceOf(ConflictException);
   });
