@@ -5,7 +5,7 @@ import { RoleRepository } from './persistence/role.repository';
 import { PrismaService } from '@core/prisma/prisma.service';
 
 const prismaMock: any = {
-  role: { findUnique: jest.fn(), create: jest.fn() },
+  role: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
   permission: { findUnique: jest.fn() },
   user: { findUnique: jest.fn() },
   rolePermission: {
@@ -157,6 +157,59 @@ describe('RolesService', () => {
       0,
       20,
     );
+  });
+
+  it('findOne: should return the role when it belongs to the requesting tenant', async () => {
+    prismaMock.role.findUnique.mockResolvedValueOnce({
+      id: 'role-1',
+      tenantId: 'tenant-1',
+      deletedAt: null,
+    });
+
+    const result = await service.findOne('role-1', 'tenant-1');
+
+    expect(result).toEqual({
+      id: 'role-1',
+      tenantId: 'tenant-1',
+      deletedAt: null,
+    });
+  });
+
+  it('findOne: should throw NotFoundException when the role belongs to another tenant', async () => {
+    prismaMock.role.findUnique.mockResolvedValueOnce({
+      id: 'role-1',
+      tenantId: 'tenant-2',
+      deletedAt: null,
+    });
+
+    await expect(
+      service.findOne('role-1', 'tenant-1'),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('update: should throw NotFoundException when the role belongs to another tenant', async () => {
+    prismaMock.role.findUnique.mockResolvedValueOnce({
+      id: 'role-1',
+      tenantId: 'tenant-2',
+      deletedAt: null,
+    });
+
+    await expect(
+      service.update('role-1', { name: 'Hacked' }, 'tenant-1'),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(prismaMock.role.update).not.toHaveBeenCalled();
+  });
+
+  it('remove: should throw NotFoundException when the role belongs to another tenant', async () => {
+    prismaMock.role.findUnique.mockResolvedValueOnce({
+      id: 'role-1',
+      tenantId: 'tenant-2',
+      deletedAt: null,
+    });
+
+    await expect(
+      service.remove('role-1', 'tenant-1'),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('findUsersOfRole: should include detailed user fields required by the detail UI', async () => {

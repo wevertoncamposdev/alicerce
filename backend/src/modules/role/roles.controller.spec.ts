@@ -46,6 +46,24 @@ describe('RolesController', () => {
     );
   });
 
+  it('should pass the request tenant context through to findOne/update/remove', async () => {
+    service.findOne.mockResolvedValueOnce({ id: 'role-1' } as never);
+    service.update.mockResolvedValueOnce({ id: 'role-1' } as never);
+    service.remove.mockResolvedValueOnce({ id: 'role-1' } as never);
+
+    await controller.findOne('role-1', 'tenant-safe');
+    await controller.update('role-1', { name: 'Admin' }, 'tenant-safe');
+    await controller.remove('role-1', 'tenant-safe');
+
+    expect(service.findOne).toHaveBeenCalledWith('role-1', 'tenant-safe');
+    expect(service.update).toHaveBeenCalledWith(
+      'role-1',
+      { name: 'Admin' },
+      'tenant-safe',
+    );
+    expect(service.remove).toHaveBeenCalledWith('role-1', 'tenant-safe');
+  });
+
   it('should use request tenant context when listing users of a role', async () => {
     service.findUsersOfRole.mockResolvedValueOnce([] as never);
 

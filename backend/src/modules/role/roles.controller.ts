@@ -39,8 +39,8 @@ export class RolesController {
   @Get(':id')
   @Roles('ADMIN')
   @Permissions('role.read')
-  findOne(@Param('id') id: string) {
-    return this.rolesService.findOne(id);
+  findOne(@Param('id') id: string, @TenantId() tenantId: string) {
+    return this.rolesService.findOne(id, tenantId);
   }
 
   @Post()
@@ -53,15 +53,19 @@ export class RolesController {
   @Patch(':id')
   @Roles('ADMIN')
   @Permissions('role.update')
-  update(@Param('id') id: string, @Body() dto: UpdateRoleDto) {
-    return this.rolesService.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateRoleDto,
+    @TenantId() tenantId: string,
+  ) {
+    return this.rolesService.update(id, dto, tenantId);
   }
 
   @Delete(':id')
   @Roles('ADMIN')
   @Permissions('role.delete')
-  remove(@Param('id') id: string) {
-    return this.rolesService.remove(id);
+  remove(@Param('id') id: string, @TenantId() tenantId: string) {
+    return this.rolesService.remove(id, tenantId);
   }
 
   @Post(':id/users')

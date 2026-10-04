@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateFavoriteDto } from './dto/create-favorite.dto';
 import { UpdateFavoriteDto } from './dto/update-favorite.dto';
 import { PrismaService } from '@src/core/prisma/prisma.service';
@@ -64,7 +64,7 @@ export class FavoritesService {
       favorite.tenantId !== tenantId ||
       favorite.userId !== userSub
     ) {
-      throw new Error('Favorite not found or access denied');
+      throw new NotFoundException('Favorite not found or access denied');
     }
     return favorite;
   }
@@ -83,7 +83,7 @@ export class FavoritesService {
       favorite.tenantId !== tenantId ||
       favorite.userId !== userSub
     ) {
-      throw new Error('Favorite not found or access denied');
+      throw new NotFoundException('Favorite not found or access denied');
     }
 
     return this.prisma.favorite.update({
@@ -103,7 +103,7 @@ export class FavoritesService {
       favorite.tenantId !== tenantId ||
       favorite.userId !== userSub
     ) {
-      throw new Error('Favorite not found or access denied');
+      throw new NotFoundException('Favorite not found or access denied');
     }
     return this.prisma.favorite.delete({
       where: { id },

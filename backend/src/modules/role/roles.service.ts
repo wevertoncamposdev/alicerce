@@ -13,9 +13,9 @@ export class RolesService {
     private readonly roleRepository: RoleRepository,
   ) {}
 
-  async findOne(id: string) {
+  async findOne(id: string, tenantId: string) {
     const role = await this.prisma.role.findUnique({ where: { id } });
-    if (!role || role.deletedAt)
+    if (!role || role.deletedAt || role.tenantId !== tenantId)
       throw new NotFoundException('Role nao encontrada');
     return role;
   }
@@ -54,10 +54,10 @@ export class RolesService {
     });
   }
 
-  async update(id: string, dto: UpdateRoleDto) {
+  async update(id: string, dto: UpdateRoleDto, tenantId: string) {
     const existing = await this.prisma.role.findUnique({ where: { id } });
 
-    if (!existing || existing.deletedAt) {
+    if (!existing || existing.deletedAt || existing.tenantId !== tenantId) {
       throw new NotFoundException('Role nao encontrada');
     }
 
@@ -71,10 +71,10 @@ export class RolesService {
     });
   }
 
-  async remove(id: string) {
+  async remove(id: string, tenantId: string) {
     const existing = await this.prisma.role.findUnique({ where: { id } });
 
-    if (!existing || existing.deletedAt) {
+    if (!existing || existing.deletedAt || existing.tenantId !== tenantId) {
       throw new NotFoundException('Role nao encontrada');
     }
 
