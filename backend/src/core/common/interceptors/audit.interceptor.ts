@@ -63,12 +63,22 @@ export class AuditInterceptor implements NestInterceptor {
         const resourceMatch = url.match(/^\/api\/(?:tenant\/[^/]+\/)?([^/?]+)/);
         const resource = resourceMatch?.[1] ?? url;
 
+        // O frontend consulta a trilha de auditoria pelo nome singular do
+        // módulo (normalizeAuditEntityName em
+        // frontend/src/screens/DetailViewScreen.tsx). Como as rotas usam o
+        // nome do recurso ora no plural ("favorites", "roles"), ora já
+        // singular ("user", "tenant"), normalizamos aqui também para que o
+        // nome gravado sempre bata com o nome consultado.
+        const entity = resource.endsWith('s')
+          ? resource.slice(0, -1)
+          : resource;
+
         void this.auditService
           .register({
             tenantId: resolvedTenantId,
             userId: resolvedUserId,
             action: method,
-            entity: resource,
+            entity,
             entityId: routeId ?? (result?.id as string | undefined),
             payload: this.sanitizePayload(body),
           })
