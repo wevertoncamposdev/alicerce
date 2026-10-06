@@ -283,14 +283,14 @@ Cada fase só começa quando a anterior passou no checkpoint. Marque `[x]` ao co
 
 - [ ] Refresh no `proxy.ts`: ler JWT `exp`, renovar antes de expirar, gravar cookies no request e no response; cookie de refresh com `path=/`; `session_token` com validade do refresh (quem expira é o JWT)
 - [ ] Corrigir `/api/auth/login` e `/api/auth/refresh` do Next: o Nest envia o refresh só por `Set-Cookie` (ler com `headers.getSetCookie()`)
-- [ ] Janela de tolerância (alguns segundos) na detecção de reuso de refresh token, para requisições paralelas
-- [ ] `RolesService.findOne/update/remove` filtrando por `tenantId`
-- [ ] `TenantController`: guard de permissão; `SEARCH` e `DELETE` só para `management`
-- [ ] `TenantMiddleware` reescrito com tipos Fastify e testado contra token de outro tenant
-- [ ] Remover `JWT_SECRET` real do `.env.example`; trocar o segredo
-- [ ] Decidir unicidade de `User.email` (global ou por tenant) e alinhar o schema
-- [ ] `FavoritesService`: `NotFoundException` em vez de `Error`
-- [ ] Auditoria: nome da entidade consistente entre interceptor e frontend
+- [x] Janela de tolerância (alguns segundos) na detecção de reuso de refresh token, para requisições paralelas
+- [x] `RolesService.findOne/update/remove` filtrando por `tenantId`
+- [x] `TenantController`: guard de permissão; `SEARCH` e `DELETE` só para `management`
+- [x] `TenantMiddleware` reescrito com tipos Fastify e testado contra token de outro tenant
+- [x] Remover `JWT_SECRET` real do `.env.example`; trocar o segredo
+- [x] Decidir unicidade de `User.email` (global ou por tenant) e alinhar o schema
+- [x] `FavoritesService`: `NotFoundException` em vez de `Error`
+- [x] Auditoria: nome da entidade consistente entre interceptor e frontend
 - [ ] Testes e2e: login → expirar token → navegar; acesso cruzado entre tenants retorna 403/404
 
 ### Fase 1 — Ferramentas

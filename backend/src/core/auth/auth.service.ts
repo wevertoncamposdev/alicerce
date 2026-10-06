@@ -40,6 +40,12 @@ export interface AuthSessionResponse {
 // Duração do refresh token: 7 dias em ms
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
+// Janela de tolerância para reuso de refresh token já revogado: cobre
+// requisições paralelas (duas abas, retry de rede) que chegam quase juntas
+// e tentam rotacionar o mesmo token. Fora dessa janela, reuso é tratado
+// como roubo de token.
+const REFRESH_TOKEN_REUSE_GRACE_MS = 10 * 1000;
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -214,22 +220,35 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token inválido ou expirado');
     }
 
-    // ⚠️  Reuso detectado: token já foi revogado mas alguém está tentando usá-lo.
-    // Isso indica que o token pode ter sido roubado. A decisão mais segura
-    // é revogar toda a família — forçando novo login para todos.
     if (storedToken.revokedAt !== null) {
-      await this.prisma.refreshToken.updateMany({
-        where: { familyId: storedToken.familyId },
+      const revokedWithinGraceWindow =
+        Date.now() - storedToken.revokedAt.getTime() <
+        REFRESH_TOKEN_REUSE_GRACE_MS;
+
+      // Dentro da janela de tolerância: provável corrida de requisições
+      // paralelas que rotacionaram o mesmo token quase ao mesmo tempo (não é
+      // reuso malicioso). Deixa passar e emite um novo par normalmente,
+      // sem punir a família nem revogar de novo o token já revogado.
+      if (!revokedWithinGraceWindow) {
+        // ⚠️  Reuso fora da janela de tolerância: o token já tinha sido
+        // revogado há tempo e alguém está tentando usá-lo de novo. Isso
+        // indica que o token pode ter sido roubado. A decisão mais segura
+        // é revogar toda a família — forçando novo login para todos.
+        await this.prisma.refreshToken.updateMany({
+          where: { familyId: storedToken.familyId },
+          data: { revokedAt: new Date() },
+        });
+        throw new UnauthorizedException(
+          'Sessão inválida. Faça login novamente.',
+        );
+      }
+    } else {
+      // Revoga o token atual antes de emitir o próximo
+      await this.prisma.refreshToken.update({
+        where: { id: storedToken.id },
         data: { revokedAt: new Date() },
       });
-      throw new UnauthorizedException('Sessão inválida. Faça login novamente.');
     }
-
-    // Revoga o token atual antes de emitir o próximo
-    await this.prisma.refreshToken.update({
-      where: { id: storedToken.id },
-      data: { revokedAt: new Date() },
-    });
 
     const user = await this.getAuthUserById(storedToken.userId);
     if (!user) {
