@@ -4,10 +4,13 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  private readonly logger = new Logger('ExceptionsFilter');
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
@@ -17,6 +20,24 @@ export class AllExceptionsFilter implements ExceptionFilter {
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
+
+    // Sem isto, uma exceção que não é HttpException (bug real de código)
+    // vira só "Erro interno do servidor" na resposta e não deixa nenhum
+    // rastro no log — o único jeito de descobrir o que quebrou seria
+    // reproduzir manualmente. Erros de negócio (HttpException) logam em
+    // nível `warn` (esperados, não indicam bug); o resto loga em `error`
+    // com stack trace.
+    const method = request?.method ?? '-';
+    const url = request?.url ?? '-';
+    if (exception instanceof HttpException) {
+      this.logger.warn(`${method} ${url} ${status} - ${exception.message}`);
+    } else {
+      const stack = exception instanceof Error ? exception.stack : undefined;
+      this.logger.error(
+        `${method} ${url} ${status} - erro não tratado`,
+        stack,
+      );
+    }
 
     const responseData =
       exception instanceof HttpException

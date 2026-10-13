@@ -10,8 +10,6 @@ import { ValidationPipe } from '@nestjs/common/pipes/validation.pipe';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { AllExceptionsFilter } from '@core/common/filters/all-exceptions.filter';
-import { AuditInterceptor } from '@core/common/interceptors/audit.interceptor';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -69,9 +67,10 @@ async function bootstrap() {
   });
 
   app.setGlobalPrefix('api');
-  app.useGlobalFilters(new AllExceptionsFilter());
-  app.useGlobalInterceptors(app.get(AuditInterceptor));
 
+  // AllExceptionsFilter, LoggingInterceptor e AuditInterceptor são
+  // registrados como APP_FILTER/APP_INTERCEPTOR em app.module.ts — não aqui
+  // — para todo comportamento "global" do app ficar visível num só lugar.
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

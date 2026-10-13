@@ -86,3 +86,30 @@ export async function getSessionTenantId(): Promise<string> {
 
     return cookieStore.get(TENANT_COOKIE)?.value ?? "";
 }
+
+/**
+ * O Nest nunca manda o refresh token no corpo JSON das respostas de
+ * login/registro/refresh (ver `AuthController` — ele sempre desestrutura
+ * `refresh_token` fora do payload público) — só via header `Set-Cookie`.
+ * `payload.refresh_token` portanto é sempre `undefined`; é preciso ler o
+ * valor do próprio header de resposta do `fetch` para o Nest.
+ */
+export function extractSetCookieValue(
+    setCookieHeaders: string[],
+    cookieName: string,
+): string | null {
+    for (const header of setCookieHeaders) {
+        const [pair] = header.split(";");
+        const separatorIndex = pair.indexOf("=");
+        if (separatorIndex === -1) continue;
+
+        const name = pair.slice(0, separatorIndex).trim();
+        const value = pair.slice(separatorIndex + 1).trim();
+
+        if (name === cookieName) {
+            return decodeURIComponent(value);
+        }
+    }
+
+    return null;
+}

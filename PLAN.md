@@ -187,7 +187,7 @@ outra coisa, inclusive antes de acabamento visual.
   `npm run test:e2e` — mesma lacuna já registrada no bloco P6. Vale um item futuro
   dedicado para corrigir esse teste e então ligar `test:e2e` no CI.
 
-### Checkpoint desta rodada
+### Checkpoint desta rodada (P1)
 
 `npx tsc --noEmit` (só os 3 erros pré-existentes, já documentados no P0, sem relação
 com este trabalho), `npm test` (59/59), `npx jest --config ./test/jest-e2e.json
@@ -196,26 +196,84 @@ user-tenant-isolation` (5/5), `npm run build` — todos limpos nos dois módulos
 
 ---
 
-## P2 — Consistência de auditoria e sessão
+## P2 — Consistência de auditoria e sessão — quase todo feito em 2026-10-13
 
-- [ ] **Dois registros de "interceptor global" em lugares diferentes.**
-  `AuditInterceptor` é registrado via `app.useGlobalInterceptors()` em `main.ts`;
-  `LoggingInterceptor` via `APP_INTERCEPTOR` em `app.module.ts`; `AuthGuard` via
-  `APP_GUARD` em `auth.module.ts`. Comportamento "global" fica espalhado em 3 arquivos.
-  Centralizar em `app.module.ts` para ficar visível num só lugar.
-- [ ] **Erros somem do log.** `AllExceptionsFilter` (`all-exceptions.filter.ts`) nunca
-  loga a exceção original antes de normalizar a resposta. `LoggingInterceptor` só usa
-  `tap()` (sucesso), nunca `catchError()` — uma requisição que estoura 500 não deixa
-  rastro nenhum no log atual. Corrigir os dois.
-- [ ] **Auditoria sem before/after real.** `AuditInterceptor` sempre grava
-  `type: 'DATA_CHANGE'` (os outros valores do enum `AuditType` nunca são usados),
-  `before` é sempre `null`, `after` é o body da requisição sanitizado (não o estado
-  realmente persistido). Já é item da Fase 6 do `AGENTS.md` — ao implementar, buscar o
-  estado anterior antes da mutação e o estado salvo depois, não o payload da request.
-- [ ] **Refresh de sessão no `proxy.ts` do Next.** Pendente desde a Fase 0 do
-  `AGENTS.md`: ler o `exp` do JWT, renovar antes de expirar, gravar cookies no
-  request e na response; `/api/auth/login` e `/api/auth/refresh` do Next devem ler o
-  refresh via `headers.getSetCookie()` (o Nest só manda por `Set-Cookie`).
+- [x] **Dois registros de "interceptor global" em lugares diferentes.**
+  `AllExceptionsFilter` e `AuditInterceptor` saíram do registro imperativo em
+  `main.ts` (`app.useGlobalFilters`/`app.useGlobalInterceptors`) e passaram a ser
+  `APP_FILTER`/`APP_INTERCEPTOR` em `app.module.ts`, ao lado do `LoggingInterceptor`
+  que já estava lá. Todo comportamento "global" do HTTP (exceto `AuthGuard`, que é
+  `APP_GUARD` dentro do próprio `AuthModule` — faz sentido ficar junto da feature que
+  o define) agora se vê num único lugar.
+- [x] **Erros somem do log.** `AllExceptionsFilter` agora loga toda exceção antes de
+  responder: `HttpException` (erro de negócio esperado) em `warn`, qualquer outra coisa
+  (bug real) em `error` com stack trace. `LoggingInterceptor` ganhou `catchError()` ao
+  lado do `tap()` que já existia — antes só sucesso gerava linha de log, agora erro
+  também, com o status code certo (da `HttpException` ou 500). Specs novos para os
+  dois (`all-exceptions.filter.spec.ts`, `logging.interceptor.spec.ts` — nenhum
+  existia antes).
+- [x] **Auditoria: "after", "type" e "before" real — tudo corrigido.**
+  `AuditInterceptor` registrava `payload: body` (o que o cliente mandou) como
+  "after" — agora registra o `result` do handler (o que foi efetivamente
+  persistido/retornado). `type` era sempre `'DATA_CHANGE'` fixo — agora
+  `resolveAuditType()` resolve `LOGIN`/`LOGOUT` pela URL de auth e
+  `PERMISSION_CHANGE` para attach/detach de role (`/roles/:id/users`,
+  `/roles/:id/permissions`), mantendo `DATA_CHANGE` só para CRUD comum.
+  **"Before" real implementado** (decisão do usuário: dispatch dinâmico no
+  interceptor, não Prisma Client Extension) — antes de chamar `next.handle()`,
+  `captureBeforeState()` busca a entidade via
+  `(this.prisma as any)[entity].findUnique({ where: { id: entityId } })`, usando o
+  mesmo `entity`/`entityId` que o interceptor já calculava; não faz nada para
+  `POST` (create não tem "antes") nem quando o nome do recurso não bate com um
+  delegate real do Prisma (ex. `audit`); qualquer erro de leitura cai em try/catch e
+  não derruba a requisição principal. `AuditService.register` ganhou os parâmetros
+  `type`/`before`. `audit.interceptor.spec.ts` (13 casos, não existia nenhum antes
+  desta rodada) cobre "after"=resultado persistido, as 4 variações de `type`, e 5
+  cenários de "before" (captura real, não busca em POST, sem delegate, erro de
+  leitura não derruba o request, erro do handler em si ainda propaga normalmente).
+  **Validado contra Postgres real** (ver nota sobre processo parado, abaixo): um
+  `PATCH` de usuário real gravou um registro de auditoria com `before` e `after`
+  completos (senha redigida nos dois), lado a lado com um registro antigo (da
+  mesma sessão, antes da correção) que ainda mostrava `before: null` — a diferença
+  de comportamento fica visível no próprio banco.
+- [x] **Refresh de sessão — bug real encontrado e corrigido, validado de ponta a
+  ponta contra o Postgres local + servidores reais.** O Nest nunca manda
+  `refresh_token` no corpo JSON de `/auth/login`, `/auth/register`, `/auth/refresh`
+  (só via `Set-Cookie` — `AuthController` sempre desestrutura `refresh_token` fora do
+  payload público antes de responder). `loginWithCredentials` (`lib/auth-login.ts`),
+  `api/auth/refresh/route.ts` e `api/auth/register/route.ts` liam
+  `payload.refresh_token` do corpo — sempre `undefined`, então todo login/registro/
+  refresh gravava o cookie `refresh_token` com um valor inválido. Corrigido com
+  `extractSetCookieValue()` (novo, em `lib/session.ts`), que lê o valor certo do
+  header `Set-Cookie` da resposta do Nest, como o `AGENTS.md` já pedia
+  (`headers.getSetCookie()`). De bônus, `api/auth/refresh/route.ts` também mandava
+  `Content-Type: application/json` sem nenhum body nessa chamada — o Nest rejeitava
+  com 400 antes de processar o refresh, quebrando o fluxo inteiro; removido. Validado
+  rodando os dois servidores reais (backend com Postgres local, frontend) e fazendo
+  login → refresh → requisição autenticada via `curl` com cookie jar — os três passos
+  funcionam e o `refresh_token` rotaciona corretamente a cada chamada.
+  **A parte de "ler o `exp` do JWT e renovar antes de expirar" (proativo, não só
+  reativo a 401) não foi implementada** — também é uma decisão em aberto (ver seção
+  final): hoje não existe `middleware.ts` no projeto, e é aí que esse refresh
+  proativo precisaria rodar para valer para todas as rotas.
+
+### Checkpoint desta rodada (P2)
+
+Backend: `tsc --noEmit` (só os 3 erros pré-existentes já conhecidos), `npm test`
+(77/77), `npm run build`. Frontend: `tsc --noEmit` limpo, `npm run build` limpo, e
+verificação end-to-end real (backend + frontend rodando, Postgres local) do fluxo de
+login/refresh/requisição autenticada via `curl`.
+
+**Achado durante a verificação, vale saber:** a porta 5000 tinha um processo `node
+dist/src/main` de pé desde bem antes desta sessão (não é `--watch`, não recarrega
+sozinho) — a primeira tentativa de validar o "before" da auditoria bateu nesse
+processo parado e pareceu não ter funcionado. Confirmado comparando os dois registros
+de auditoria lado a lado no banco (um antigo, do processo parado, com `before: null`;
+um novo, de uma instância isolada que subi numa porta separada sem tocar na
+existente, com `before` completo). Esse processo antigo em 5000 **não foi encerrado**
+— se for seu, ele vai continuar servindo código de antes de hoje até você reiniciá-lo
+manualmente (`npm run build && npm run start:dev` ou similar) para pegar tudo que foi
+corrigido em P0/P1/P2.
 
 ---
 
@@ -321,6 +379,18 @@ visual anterior — é isso que fica exposto primeiro para quem olha o produto.
 - [ ] Implementar os testes de frontend que o `frontend/README.md` promete (auth,
   tenant scope, guards RBAC) — ou formalizar que eles ficam para depois da Fase 5/6 e
   ajustar a documentação enquanto isso (ver item correspondente em P3).
+
+---
+
+## Decisões já tomadas pelo usuário (registradas para não perguntar de novo)
+
+- **Captura do "before" na auditoria**: dispatch dinâmico no interceptor (não Prisma
+  Client Extension) — implementado no P2, ver detalhes lá.
+- **Refresh proativo de sessão** (ler `exp` do JWT antes de expirar, em vez de só
+  reagir a 401): manter o modelo reativo atual por ora. Não existe `middleware.ts`
+  neste projeto — criar um só para isso passaria a rodar em toda requisição da
+  aplicação, não só nas de API, então essa decisão fica para quando o projeto tratar
+  performance/edge runtime como tema próprio, não de passagem dentro do P2.
 
 ---
 

@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { getRefreshToken, setSessionCookies } from "@lib/session";
+import {
+    getRefreshToken,
+    setSessionCookies,
+    extractSetCookieValue,
+    REFRESH_COOKIE,
+} from "@lib/session";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL ?? "http://localhost:5000/api";
 
@@ -26,7 +31,10 @@ export async function POST() {
     const upstreamResponse = await fetch(`${INTERNAL_API_URL}/auth/refresh`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
+            // Sem corpo nesta chamada — só o cookie importa. Mandar
+            // Content-Type: application/json sem body faz o Nest rejeitar
+            // com 400 ("Body cannot be empty...") antes de sequer chegar
+            // no controller.
             // Passamos o cookie de refresh via header nesta chamada servidor-a-servidor.
             // O Nest espera o cookie refresh_token para processar a renovação.
             "Cookie": `refresh_token=${refreshToken}`,
@@ -42,10 +50,23 @@ export async function POST() {
 
     const payload = await upstreamResponse.json();
 
+    // O Nest manda o refresh token novo só via Set-Cookie, nunca no corpo —
+    // payload.refresh_token não existe (ver extractSetCookieValue).
+    const newRefreshToken = extractSetCookieValue(
+        upstreamResponse.headers.getSetCookie(),
+        REFRESH_COOKIE,
+    );
+    if (!newRefreshToken) {
+        return NextResponse.json(
+            { error: "Falha ao obter o novo refresh token" },
+            { status: 401 },
+        );
+    }
+
     // Persiste o novo par de tokens nos cookies
     await setSessionCookies({
         accessToken: payload.access_token,
-        refreshToken: payload.refresh_token,
+        refreshToken: newRefreshToken,
         tenantId: payload.tenant.id,
     });
 

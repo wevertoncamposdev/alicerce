@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/prisma/prisma.service';
+import { AuditType } from '@core/prisma/generated/enums';
 
 interface RegisterAuditInput {
   tenantId?: string;
   userId?: string;
+  type?: AuditType;
   action: string;
   entity: string;
   entityId?: string;
+  before?: unknown;
   payload?: unknown;
 }
 
@@ -17,9 +20,11 @@ export class AuditService {
   async register({
     tenantId,
     userId,
+    type,
     action,
     entity,
     entityId,
+    before,
     payload,
   }: RegisterAuditInput) {
     if (!tenantId || !userId) {
@@ -30,11 +35,11 @@ export class AuditService {
       data: {
         tenantId,
         userId,
-        type: 'DATA_CHANGE',
+        type: type ?? 'DATA_CHANGE',
         action,
         entity,
         entityId,
-        before: null,
+        before: before !== undefined ? JSON.stringify(before) : null,
         after: JSON.stringify(payload),
       },
     });

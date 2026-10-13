@@ -16,8 +16,10 @@ import {
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from '@src/app.controller';
 import { AppService } from '@src/app.service';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from '@core/common/interceptors/logging.interceptor';
+import { AuditInterceptor } from '@core/common/interceptors/audit.interceptor';
+import { AllExceptionsFilter } from '@core/common/filters/all-exceptions.filter';
 
 import { PrismaModule } from '@core/prisma/prisma.module';
 import { AuthModule } from '@core/auth/auth.module';
@@ -58,8 +60,16 @@ import { PermissionModule } from '@modules/permission/permission.module';
   providers: [
     AppService,
     {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
+    {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
     },
   ],
 })

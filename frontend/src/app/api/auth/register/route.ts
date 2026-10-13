@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { setSessionCookies } from "@lib/session";
+import { setSessionCookies, extractSetCookieValue, REFRESH_COOKIE } from "@lib/session";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL ?? "http://localhost:5000/api";
 
@@ -19,9 +19,22 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(payload, { status: upstreamResponse.status });
     }
 
+    // O Nest manda o refresh token só via Set-Cookie, nunca no corpo —
+    // payload.refresh_token não existe (ver extractSetCookieValue).
+    const refreshToken = extractSetCookieValue(
+        upstreamResponse.headers.getSetCookie(),
+        REFRESH_COOKIE,
+    );
+    if (!refreshToken) {
+        return NextResponse.json(
+            { message: "Falha ao obter o refresh token da sessão." },
+            { status: 500 },
+        );
+    }
+
     await setSessionCookies({
         accessToken: payload.access_token,
-        refreshToken: payload.refresh_token,
+        refreshToken,
         tenantId: payload.tenant.id,
     });
 
