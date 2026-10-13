@@ -11,12 +11,15 @@ import * as crypto from 'crypto';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { SignUpPublicDto } from './dto/sign-up-public.dto';
 import {
-  PermissionType,
   RoleType,
   TenantCategory,
   TenantServiceArea,
 } from '@core/prisma/generated/enums';
 import { I18nService } from 'nestjs-i18n';
+import {
+  PERMISSION_CATALOG,
+  TENANT_ADMIN_PERMISSION_NAMES,
+} from '@core/authorization/permission-catalog';
 
 export interface AuthUserContext {
   id: string;
@@ -54,18 +57,6 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly i18n: I18nService,
   ) {}
-
-  private mapPermissionType(permissionName: string): PermissionType {
-    if (permissionName.endsWith('.read')) {
-      return 'READ';
-    }
-
-    if (permissionName.endsWith('.delete')) {
-      return 'DELETE';
-    }
-
-    return 'WRITE';
-  }
 
   private buildRegistrationNumber(tenantSlug: string) {
     const normalized = tenantSlug
@@ -317,29 +308,6 @@ export class AuthService {
       throw new ConflictException('Ja existe tenant com este slug');
     }
 
-    const basePermissions = [
-      'user.create',
-      'user.read',
-      'user.update',
-      'user.delete',
-      'role.create',
-      'role.read',
-      'role.update',
-      'role.delete',
-      'role.assign',
-      'permission.create',
-      'permission.read',
-      'permission.update',
-      'permission.delete',
-      'audit.read',
-      'tenant.read',
-      'tenant.update',
-      'task.create',
-      'task.read',
-      'task.update',
-      'task.delete',
-    ];
-
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
     const created = await this.prisma.$transaction(async (tx) => {
@@ -366,16 +334,21 @@ export class AuthService {
       });
 
       await tx.permission.createMany({
-        data: basePermissions.map((name) => ({
+        data: PERMISSION_CATALOG.map((permission) => ({
           tenantId: tenant.id,
-          name,
-          type: this.mapPermissionType(name),
+          name: permission.name,
+          type: permission.type,
+          resource: permission.resource,
+          description: permission.description,
         })),
         skipDuplicates: true,
       });
 
       const permissions = await tx.permission.findMany({
-        where: { tenantId: tenant.id, name: { in: basePermissions } },
+        where: {
+          tenantId: tenant.id,
+          name: { in: [...TENANT_ADMIN_PERMISSION_NAMES] },
+        },
       });
 
       await tx.rolePermission.createMany({

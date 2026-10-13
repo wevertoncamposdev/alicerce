@@ -10,5 +10,10 @@ model RefreshToken {
 
     user User @relation(fields: [userId], references: [id])
 
+    // familyId é consultado em toda rotação/revogação de refresh token
+    // (AuthService.refreshTokens/revokeRefreshToken fazem updateMany por
+    // familyId); userId é usado para revogar todas as sessões de um usuário.
+    @@index([familyId])
+    @@index([userId])
     @@map("refresh_tokens")
 }

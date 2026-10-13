@@ -13,6 +13,9 @@ import {
 } from '@nestjs/common';
 import { SearchFavoritesDto } from './dto/search-favorite.dto';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
+import { Roles } from '@core/common/decorators/roles.decorator';
+import { Permissions } from '@core/common/decorators/permissions.decorator';
+import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 import { FavoritesService } from './favorites.service';
 import { CreateFavoriteDto } from './dto/create-favorite.dto';
 import { UpdateFavoriteDto } from './dto/update-favorite.dto';
@@ -27,10 +30,13 @@ import { CurrentUserId } from '@core/common/decorators/current-user-id.decorator
 @ApiTags('favorites')
 @ApiBearerAuth()
 @Controller('favorites')
+@UseGuards(RolesPermissionsGuard)
 export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
   @Post()
+  @Roles('ADMIN', 'USER')
+  @Permissions('favorite.create')
   @ApiOperation({ summary: 'Criar favorito' })
   @ApiResponse({ status: 201, description: 'Favorito criado com sucesso.' })
   create(
@@ -42,6 +48,8 @@ export class FavoritesController {
   }
 
   @Get()
+  @Roles('ADMIN', 'USER')
+  @Permissions('favorite.read')
   @ApiOperation({ summary: 'Listar favoritos' })
   @ApiResponse({
     status: 200,
@@ -52,6 +60,8 @@ export class FavoritesController {
   }
 
   @Get(':id')
+  @Roles('ADMIN', 'USER')
+  @Permissions('favorite.read')
   @ApiOperation({ summary: 'Obter favorito por ID' })
   @ApiResponse({ status: 200, description: 'Favorito retornado com sucesso.' })
   findOne(
@@ -63,6 +73,8 @@ export class FavoritesController {
   }
 
   @Patch(':id')
+  @Roles('ADMIN', 'USER')
+  @Permissions('favorite.update')
   @ApiOperation({ summary: 'Atualizar favorito' })
   @ApiResponse({ status: 200, description: 'Favorito atualizado com sucesso.' })
   update(
@@ -80,6 +92,8 @@ export class FavoritesController {
   }
 
   @Delete(':id')
+  @Roles('ADMIN', 'USER')
+  @Permissions('favorite.delete')
   @ApiOperation({ summary: 'Remover favorito' })
   @ApiResponse({ status: 200, description: 'Favorito removido com sucesso.' })
   remove(
@@ -91,6 +105,8 @@ export class FavoritesController {
   }
 
   @Search()
+  @Roles('ADMIN', 'USER')
+  @Permissions('favorite.read')
   @ApiOperation({ summary: 'Buscar favoritos' })
   @ApiResponse({
     status: 200,

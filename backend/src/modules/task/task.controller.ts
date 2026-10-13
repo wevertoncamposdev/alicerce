@@ -13,14 +13,21 @@ import {
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './create-task.dto';
 import { UpdateTaskDto } from './update-task.dto';
-import { AuthGuard } from '../../core/auth/auth.guard';
+import { Roles } from '@core/common/decorators/roles.decorator';
+import { Permissions } from '@core/common/decorators/permissions.decorator';
+import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 
+// tenantId vem do param da rota, mas é confiável: TenantMiddleware (ver
+// app.module.ts) já intercepta toda rota `tenant/:tenantId/*path` e rejeita
+// qualquer valor que não bata com o tenantId do JWT antes de chegar aqui.
 @Controller('tenant/:tenantId/task')
-@UseGuards(AuthGuard)
+@UseGuards(RolesPermissionsGuard)
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Post()
+  @Roles('ADMIN', 'USER')
+  @Permissions('task.create')
   create(
     @Param('tenantId') tenantId: string,
     @Request() req,
@@ -30,6 +37,8 @@ export class TaskController {
   }
 
   @Get()
+  @Roles('ADMIN', 'USER')
+  @Permissions('task.read')
   findAll(
     @Param('tenantId') tenantId: string,
     @Query('status') status?: string,
@@ -44,6 +53,8 @@ export class TaskController {
   }
 
   @Get('user/:userId')
+  @Roles('ADMIN', 'USER')
+  @Permissions('task.read')
   getByUser(
     @Param('tenantId') tenantId: string,
     @Param('userId') userId: string,
@@ -52,11 +63,15 @@ export class TaskController {
   }
 
   @Get(':id')
+  @Roles('ADMIN', 'USER')
+  @Permissions('task.read')
   findOne(@Param('tenantId') tenantId: string, @Param('id') id: string) {
     return this.taskService.findOne(tenantId, id);
   }
 
   @Patch(':id')
+  @Roles('ADMIN', 'USER')
+  @Permissions('task.update')
   update(
     @Param('tenantId') tenantId: string,
     @Param('id') id: string,
@@ -66,6 +81,8 @@ export class TaskController {
   }
 
   @Delete(':id')
+  @Roles('ADMIN', 'USER')
+  @Permissions('task.delete')
   remove(@Param('tenantId') tenantId: string, @Param('id') id: string) {
     return this.taskService.remove(tenantId, id);
   }

@@ -60,10 +60,19 @@ export class UsersService {
     }
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto, tenantId: string) {
     this.userBusinessRules.validateUserId(id);
 
     try {
+      const existing = await this.userRepository.findById(id);
+      if (!existing || existing.tenantId !== tenantId) {
+        throw new NotFoundException({
+          message: 'Usuario nao encontrado',
+          code: UserErrorCode.NOT_FOUND,
+          details: { id },
+        });
+      }
+
       const { personId, password, ...rest } = updateUserDto;
       const data: Prisma.UserUpdateInput = { ...rest };
 
@@ -83,17 +92,26 @@ export class UsersService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, tenantId: string) {
     this.userBusinessRules.validateUserId(id);
 
     try {
+      const existing = await this.userRepository.findById(id);
+      if (!existing || existing.tenantId !== tenantId) {
+        throw new NotFoundException({
+          message: 'Usuario nao encontrado',
+          code: UserErrorCode.NOT_FOUND,
+          details: { id },
+        });
+      }
+
       return await this.userRepository.softDeleteById(id);
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'remove');
     }
   }
 
-  async findAll(tenantId?: string) {
+  async findAll(tenantId: string) {
     try {
       const users = await this.userRepository.findManyActive(tenantId);
       return users;
@@ -102,13 +120,13 @@ export class UsersService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, tenantId: string) {
     this.userBusinessRules.validateUserId(id);
 
     try {
       const user = await this.userRepository.findById(id);
 
-      if (!user) {
+      if (!user || user.tenantId !== tenantId) {
         throw new NotFoundException({
           message: 'Usuario nao encontrado',
           code: UserErrorCode.NOT_FOUND,
@@ -130,7 +148,7 @@ export class UsersService {
     }
   }
 
-  async findAllWithValidation(tenantId?: string): Promise<UserResponseDto[]> {
+  async findAllWithValidation(tenantId: string): Promise<UserResponseDto[]> {
     try {
       const users = await this.userRepository.findManyActive(tenantId);
       return this.userMapper.mapToResponseDtoArray(users);
@@ -139,8 +157,11 @@ export class UsersService {
     }
   }
 
-  async getAdultUserStats(search: string): Promise<UserResponseDto[]> {
-    const users = await this.findAllWithValidation();
+  async getAdultUserStats(
+    search: string,
+    tenantId: string,
+  ): Promise<UserResponseDto[]> {
+    const users = await this.findAllWithValidation(tenantId);
     return this.userBusinessRules.filterUsersBySearch(users, search);
   }
 

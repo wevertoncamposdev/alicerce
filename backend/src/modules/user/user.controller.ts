@@ -7,7 +7,6 @@ import {
   Search,
   Param,
   Delete,
-  Query,
   ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
@@ -49,15 +48,18 @@ export class UsersController {
   @Get()
   @Roles('ADMIN', 'USER')
   @Permissions('user.read')
-  findAll(@Query('tenantId') tenantId?: string): Promise<UserResponseDto[]> {
+  findAll(@TenantId() tenantId: string): Promise<UserResponseDto[]> {
     return this.usersService.findAllWithValidation(tenantId);
   }
 
   @Get(':id')
   @Roles('ADMIN', 'USER')
   @Permissions('user.read')
-  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.usersService.findOne(id);
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
+    return this.usersService.findOne(id, tenantId);
   }
 
   @Patch(':id')
@@ -66,15 +68,19 @@ export class UsersController {
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateUserDto: UpdateUserDto,
+    @TenantId() tenantId: string,
   ) {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(id, updateUserDto, tenantId);
   }
 
   @Delete(':id')
   @Roles('ADMIN')
   @Permissions('user.delete')
-  remove(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.usersService.remove(id);
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
+    return this.usersService.remove(id, tenantId);
   }
 
   @Search()
@@ -89,7 +95,7 @@ export class UsersController {
   @Permissions('user.read')
   @ApiOperation({ summary: 'List roles of a user' })
   @ApiResponse({ status: 200, description: 'List of roles' })
-  listRoles(@Param('id') id: string, @Query('tenantId') tenantId: string) {
+  listRoles(@Param('id') id: string, @TenantId() tenantId: string) {
     return this.rolesService.findRolesOfUser(id, tenantId);
   }
 
@@ -101,10 +107,7 @@ export class UsersController {
     status: 200,
     description: 'List of effective permissions inherited from the user roles',
   })
-  listPermissions(
-    @Param('id') id: string,
-    @Query('tenantId') tenantId: string,
-  ) {
+  listPermissions(@Param('id') id: string, @TenantId() tenantId: string) {
     return this.usersService.findPermissionsOfUser(id, tenantId);
   }
 }

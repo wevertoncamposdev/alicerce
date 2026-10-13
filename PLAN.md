@@ -125,36 +125,74 @@ nos dois projetos depois da mudança.
 
 ---
 
-## P1 — Segurança / isolamento de tenant (bloqueadores)
+## P1 — Segurança / isolamento de tenant (bloqueadores) — ✅ feito em 2026-10-13
 
 Estes itens podem estar expondo dados entre tenants hoje. Tratar antes de qualquer
 outra coisa, inclusive antes de acabamento visual.
 
-- [ ] **Vazamento de listagem de usuários entre tenants.** `backend/src/modules/user/user.controller.ts`:
-  `findAll()` e as listagens de roles/permissions do usuário leem `tenantId` de
-  `@Query('tenantId')` (o cliente manda) em vez de `@TenantId()` (contexto do JWT).
-  Se o parâmetro for omitido, `UserRepository.findManyActive` (`user.repository.ts`)
-  devolve usuários de **todos** os tenants. Viola `AGENTS.md` §3.2.1. Corrigir para
-  `@TenantId()`, igual ao resto da API.
-- [ ] **Leitura cruzada de usuário por UUID.** `UsersController.findOne(:id)` →
-  `UserService.findOne` → `UserRepository.findById` não valida tenant nenhum — qualquer
-  usuário autenticado com `user.read` lê o usuário de **outro tenant** pelo UUID, sem
-  403/404. Adicionar o mesmo padrão de `assertOwnTenant` que `TenantService` já usa.
-- [ ] **Módulos sem guard de permissão.** `FavoritesController`, `FavoriteNotesController`,
-  `TaskController`, `AuditController` não têm `RolesPermissionsGuard`/`@Permissions` —
-  hoje qualquer usuário autenticado (de qualquer role) pode usá-los. Adicionar guard +
-  decorators consistentes com `UsersController`/`RolesController`.
-- [ ] **Catálogo de permissões duplicado e divergente.** `backend/prisma/seed.ts` e
-  `AuthService.signUpPublic` (`auth.service.ts`) hardcodam duas listas de permissões
-  diferentes. Extrair uma fonte única (ex. `core/authorization/permission-catalog.ts`)
-  consumida por ambos — é o item 3.2.5 do `AGENTS.md`, ainda não feito.
-- [ ] **Faltam índices em tabelas tenant-scoped.** `Role`, `Permission`, `UserRole`,
-  `RolePermission`, `Audit` não têm `@@index([tenantId])`; `RefreshToken` não tem índice
-  em `familyId`/`userId` (usado em toda rotação de refresh). Adicionar via migration.
-- [ ] **Sem teste e2e de isolamento cross-tenant.** Escrever o teste já listado como
-  pendente na Fase 0 do `AGENTS.md`: login → acessar recurso de outro tenant → esperar
-  403/404. Deve cobrir especificamente os dois bugs de `user.controller.ts` acima depois
-  de corrigidos, para não regredir.
+- [x] **Vazamento de listagem de usuários entre tenants.** `UsersController.findAll`,
+  `listRoles` e `listPermissions` agora usam `@TenantId()` em vez de
+  `@Query('tenantId')`. `UserRepository.findManyActive` deixou de aceitar `tenantId`
+  opcional — agora é obrigatório em toda a cadeia (`UsersController` →
+  `UsersService.findAll/findAllWithValidation/getAdultUserStats` → repository),
+  fechando a brecha na raiz, não só no controller.
+- [x] **Leitura cruzada de usuário por UUID — e também update/remove, achado durante
+  a correção.** `UsersService.findOne` já estava sem checar tenant, mas ao revisar o
+  arquivo o mesmo problema apareceu em `update` e `remove` (não listados originalmente
+  aqui) — nenhum dos dois verificava se o usuário pertencia ao tenant de quem fez a
+  requisição antes de gravar/apagar. Os três agora seguem o mesmo padrão já usado em
+  `RolesService.findOne/update/remove`: buscar por id, comparar `tenantId`, lançar
+  `NotFoundException` (404, não 403 — não revela a existência do registro a outro
+  tenant) antes de qualquer mutação.
+- [x] **Módulos sem guard de permissão.** `RolesPermissionsGuard` + `@Roles`/`@Permissions`
+  adicionados a `FavoritesController` (`favorite.*`), `FavoriteNotesController`
+  (reaproveita `favorite.read`/`favorite.update`, é uma Feature do módulo favorites),
+  `TaskController` (`task.*`, e removida a duplicação com `AuthGuard` já global) e
+  `AuditController` (`audit.read`, `@Roles('ADMIN')` apenas). Confirmado que
+  `TaskController`/`AuditController` já eram protegidos contra forjar `tenantId` na
+  rota pelo `TenantMiddleware` (cobre `tenant/:tenantId/*path` em `app.module.ts`) — o
+  que faltava de fato era só a trava de role/permission, não o tenant em si.
+- [x] **Catálogo de permissões duplicado e divergente.** Criado
+  `backend/src/core/authorization/permission-catalog.ts` — `PERMISSION_CATALOG` (25
+  permissões, união das duas listas antigas) + `TENANT_ADMIN_PERMISSION_NAMES`
+  (tudo exceto `tenant.manage`, que continua reservado ao futuro módulo
+  `management`). `prisma/seed.ts` e `AuthService.signUpPublic` agora consomem as duas
+  constantes em vez de listas hardcoded — `signUpPublic` ganhou `favorite.*` que não
+  tinha antes, `seed.ts` ganhou `task.*`/`audit.read` que não tinha antes. Validado
+  rodando o seed de verdade contra o Postgres local: o role ADMIN do tenant semeado
+  passou a ter as 24 permissões esperadas (todas exceto `tenant.manage`).
+- [x] **Faltam índices em tabelas tenant-scoped.** Adicionado `@@index([tenantId])` em
+  `Role`, `UserRole`, `RolePermission`; `@@index([familyId])` + `@@index([userId])` em
+  `RefreshToken`. Para `Audit`, em vez de um índice genérico, dois compostos que batem
+  com as consultas reais de `AuditService.findAll`: `@@index([tenantId, createdAt])`
+  (trilha geral do tenant, mais recente primeiro) e
+  `@@index([tenantId, entity, entityId])` (aba de auditoria do DetailView, que filtra
+  por entidade). `Permission` **não** ganhou índice novo — seu `@@unique([tenantId, name, resource])`
+  já começa por `tenantId` e serve de índice sozinho; um `@@index([tenantId])` separado
+  seria redundante (comentário deixado no schema explicando o motivo). Migration
+  `20261013220015_add_tenant_scoped_indexes` gerada e aplicada contra o Postgres local.
+- [x] **Teste e2e de isolamento cross-tenant.** `backend/test/user-tenant-isolation.e2e-spec.ts`
+  (novo) — módulo `UsersModule` isolado com `PrismaService` mockado em memória,
+  `RolesPermissionsGuard` sobrescrito para focar só no isolamento de tenant (RBAC já
+  tem teste próprio). Cobre exatamente os dois bugs corrigidos: `GET /user` só lista o
+  próprio tenant; `GET/PATCH/DELETE /user/:id` retornam 404 para usuário de outro
+  tenant, e `PATCH`/`DELETE` confirmadamente **não** tocam o registro (dados
+  inalterados após a tentativa). 5/5 passando.
+  **Achado colateral, não corrigido aqui:** `test/roles.attach-detach.e2e-spec.ts`
+  (pré-existente) está com 4/4 testes falhando — confirmado via `git stash` que a
+  falha já existia antes de qualquer mudança desta rodada. Causa provável: o teste só
+  sobrescreve `RolesPermissionsGuard`, mas `RoleModule` também carrega o `AuthGuard`
+  global (via `AuthModule`), que bloqueia a requisição antes de chegar lá. Ninguém
+  notou porque o CI (`.github/workflows/ci.yml`) só roda `npm test` (unit), nunca
+  `npm run test:e2e` — mesma lacuna já registrada no bloco P6. Vale um item futuro
+  dedicado para corrigir esse teste e então ligar `test:e2e` no CI.
+
+### Checkpoint desta rodada
+
+`npx tsc --noEmit` (só os 3 erros pré-existentes, já documentados no P0, sem relação
+com este trabalho), `npm test` (59/59), `npx jest --config ./test/jest-e2e.json
+user-tenant-isolation` (5/5), `npm run build` — todos limpos nos dois módulos tocados
+(backend apenas; esta rodada não exigiu nenhuma mudança no frontend).
 
 ---
 
@@ -262,6 +300,14 @@ visual anterior — é isso que fica exposto primeiro para quem olha o produto.
 - [ ] CI (`.github/workflows/ci.yml`): hoje só roda `test` do backend + `build` do
   frontend + export do OpenAPI. Adicionar lint (`eslint`) e `tsc --noEmit` nos dois
   projetos, e um job de e2e com Postgres em service container.
+- [ ] **Corrigir `backend/test/roles.attach-detach.e2e-spec.ts` (pré-existente, 4/4
+  falhando — achado ao rodar `npm run test:e2e` durante o P1).** Só sobrescreve
+  `RolesPermissionsGuard`; o `AuthGuard` global (via `AuthModule`, carregado
+  transitivamente por `RoleModule`) bloqueia a requisição antes — provável que falte
+  `.overrideGuard(AuthGuard).useValue({ canActivate: () => true })` no setup do teste,
+  igual ao `user-tenant-isolation.e2e-spec.ts` novo faz implicitamente ao não importar
+  `AuthModule`. Confirmado via `git stash` que a falha já existia antes do P1, não é
+  regressão. Corrigir isso é pré-requisito para ligar `test:e2e` no CI (item acima).
 - [ ] **`npm audit` (ou Dependabot com alertas de segurança) no CI.** O levantamento do
   bloco P0 foi manual — adicionar um job que rode `npm audit` nos dois projetos (ou
   habilitar os alertas de segurança do Dependabot) para a próxima leva de

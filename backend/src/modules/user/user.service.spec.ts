@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@core/prisma/generated/client';
 import { UsersService } from './user.service';
 import { UserMapper } from './mappers/user.mapper';
@@ -162,5 +162,55 @@ describe('UsersService', () => {
         'adf4f488-faa3-4fca-946e-522f7c2d4976',
       ),
     ).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  describe('tenant isolation', () => {
+    const ownTenantId = 'tenant-own';
+    const otherTenantId = 'tenant-other';
+    const userId = 'adf4f488-faa3-4fca-946e-522f7c2d4976';
+    const userFromOtherTenant = {
+      id: userId,
+      email: 'victim@example.com',
+      tenantId: otherTenantId,
+      password: 'hashed-password',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null,
+    };
+
+    it('findOne: should throw NotFoundException when the user belongs to another tenant', async () => {
+      repository.findById.mockResolvedValueOnce(userFromOtherTenant as never);
+
+      await expect(
+        service.findOne(userId, ownTenantId),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('update: should throw NotFoundException and never touch the row when the user belongs to another tenant', async () => {
+      repository.findById.mockResolvedValueOnce(userFromOtherTenant as never);
+
+      await expect(
+        service.update(userId, { email: 'new@example.com' }, ownTenantId),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(repository.updateById).not.toHaveBeenCalled();
+    });
+
+    it('remove: should throw NotFoundException and never touch the row when the user belongs to another tenant', async () => {
+      repository.findById.mockResolvedValueOnce(userFromOtherTenant as never);
+
+      await expect(
+        service.remove(userId, ownTenantId),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(repository.softDeleteById).not.toHaveBeenCalled();
+    });
+
+    it('findAllWithValidation: should scope the repository query to the given tenant', async () => {
+      repository.findManyActive.mockResolvedValueOnce([] as never);
+      userMapper.mapToResponseDtoArray.mockReturnValueOnce([] as never);
+
+      await service.findAllWithValidation(ownTenantId);
+
+      expect(repository.findManyActive).toHaveBeenCalledWith(ownTenantId);
+    });
   });
 });
