@@ -18,22 +18,17 @@
 
 ## Documentos que podem estar desatualizados — não confiar sem reconferir no código
 
-Este repositório acumulou alguns documentos que descrevem um estado que já mudou.
-Antes de agir com base neles, confirme contra o código atual:
+`backend/issues.md`, a seção de testes do `frontend/README.md`, o
+`frontend/src/modules/roles/README.md` e o "Estado atual" do
+`frontend/src/modules/develop/*` estavam todos desatualizados — corrigidos/aposentados
+no P3 do `PLAN.md` (2026-10-13). Ainda vale desconfiar de:
 
-- `backend/issues.md` — parado em 07/07/2026, anterior à leva de correções de
-  segurança de outubro (`f8c8a18`, `32afedb`, `714dfa0`, `024c2ea`, `859639a`, `97cbbad`).
-- Seção de testes do `frontend/README.md` — descreve `frontend/tests/` e `npm test`
-  que não existem no repo atual (frontend não tem nenhuma dependência de teste).
-- `frontend/src/modules/roles/README.md` — cópia não editada do `_template/README.md`.
-- "Estado atual / pendências" dentro de `frontend/src/modules/develop/*` — tem itens
-  já resolvidos listados como pendentes (ex.: `@Get(':id')` em Role/Permission).
 - `plan/*.md` (gitignored) datados de antes de 2026-07-15 — anteriores ao rewrite do
   frontend para `frontend/src/**` (commit `b28989d`); os arquivos mais novos em
   `plan/` (posteriores a essa data) ainda são relevantes.
 
-Se um desses documentos contradiz o código, o código manda. Corrija ou aposente o
-documento como parte da tarefa (isso já está no backlog de `PLAN.md`, bloco P2).
+Se outro documento contradiz o código, o código manda — corrija ou aposente o
+documento como parte da tarefa, e adicione aqui se for um padrão recorrente.
 
 ## Método de trabalho nesta base
 

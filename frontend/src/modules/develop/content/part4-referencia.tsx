@@ -50,25 +50,31 @@ export function EstadoAtualSection() {
     return (
         <DocSection id="estado-atual" kicker="Referência" title="Estado atual do repositório (pendências)">
             <DocP>
-                Snapshot das pendências conhecidas no fechamento da v1.0 — útil para não reintroduzir os
-                mesmos bugs em módulos novos e para saber onde tocar com cuidado extra.
+                Revisado em 2026-10-13 contra o código real (a lista anterior, do fechamento da v1.0,
+                estava com a maioria dos itens já resolvidos e não refletia mais a realidade). O backlog
+                tático completo e priorizado vive em <code>PLAN.md</code>, na raiz do repositório — esta
+                seção é só um resumo rápido do que ainda falta tocar neste motor de UI especificamente.
             </DocP>
             <DocCode label="pendências abertas">
-                {`1. RolesController / PermissionsController sem @Get(':id') + findOne no service
-   -> causa raiz das telas de detalhe quebradas de Role e Permission
-2. readRolePermissions / readRoleUsers não enviam tenantId
-   -> risco de vazamento de dado entre tenants
-3. RolePermissionsHost / RoleUsersHost em modules/roles/ ainda importam de
-   @/features/roles/services/roleService (pasta legada) — bloqueia a remoção de features/
-4. Extrair mutações de role para modules/roles/config/client-actions.ts
-5. Construir painel reverso em permissions (GET :id/roles)
-6. Construir módulo audit completo (backend: SearchAuditDto + @Search(); frontend: somente leitura/listagem)
-7. Remover features/ legado e components/shells/ (exceto SideShell, que migra para components/Layout/)`}
+                {`1. Padronizar o backend de audit no mesmo contrato dos outros módulos
+   (SearchAuditDto + @Search()) — hoje funciona via GET com query params,
+   só não segue o padrão formal que roles/users/permissions/tenants seguem.
+2. Remover components/shells/{RelationShell,PainelSearchShell}.tsx (legado) —
+   ainda usados por audit/page.tsx e pelas páginas de auth; migrar esses 3
+   consumidores para os shells atuais antes de apagar.
+3. Views Kanban e Calendar aparecem no ViewSwitcher mas não têm componente
+   implementado — decidir se entram ou se o ícone sai do switcher.`}
             </DocCode>
             <DocCallout type="info">
-                Estas notas refletem o estado do repositório no momento em que esta página foi escrita.
-                Atualize esta seção conforme os itens forem resolvidos — ela deve sempre espelhar a
-                realidade do código, não um plano estático.
+                <code>features/</code> legado foi totalmente removido em 2026-10-13 (os itens antigos #1,
+                #2, #3, #5 desta lista — telas de detalhe de Role/Permission quebradas, tenantId ausente em
+                <code>readRolePermissions</code>/<code>readRoleUsers</code>, import de pasta legada, painel
+                reverso de permissions — já estavam resolvidos; o antigo item #4, &quot;extrair mutações
+                para <code>config/client-actions.ts</code>&quot;, foi resolvido na direção oposta: esse
+                arquivo era um rascunho duplicado sem uso e foi removido —{" "}
+                <code>actions/roleService.ts</code> é o lugar definitivo). Atualize esta seção conforme os
+                itens acima forem resolvidos — ela deve sempre espelhar a realidade do código, não um
+                plano estático.
             </DocCallout>
 
             <DocSubTitle>Licenciamento</DocSubTitle>

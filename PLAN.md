@@ -277,31 +277,76 @@ corrigido em P0/P1/P2.
 
 ---
 
-## P3 — Limpeza de código morto e reconciliação de documentação
+## P3 — Limpeza de código morto e reconciliação de documentação — ✅ feito em 2026-10-13
 
-- [ ] Remover `frontend/src/modules/favorites/actions/actions.ts` e
-  `constants/constants.ts` — órfãos (zero imports), colidem de nome com as funções
-  reais de `config/provider.ts`.
-- [ ] Remover `frontend/src/modules/roles/components/Forms.ts` (arquivo vazio, 0 bytes).
-- [ ] Decidir entre `frontend/src/modules/roles/config/client-actions.ts` e
-  `actions/roleService.ts` — são duplicados byte a byte; só o segundo é importado pelos
-  componentes (`RolePermissionsHost.tsx`, `RoleUsersHost.tsx`). Manter um, apagar o
-  outro, e terminar a migração que o próprio `modules/develop` já descreve como aberta.
-- [ ] Remover `frontend/src/lib/query-state/favorites-query-state.ts` (duplicado morto,
-  substituído pelo genérico `list-query-state.ts`) e
+- [x] Removidos `frontend/src/modules/favorites/actions/actions.ts` e
+  `constants/constants.ts` (órfãos) — e as duas pastas, que ficaram vazias.
+- [x] Removido `frontend/src/modules/roles/components/Forms.ts` (0 bytes).
+- [x] Removido `frontend/src/modules/roles/config/client-actions.ts`.
+  **Achado ao comparar de verdade**: não era byte a byte idêntico a
+  `actions/roleService.ts` como a entrada original deste item supunha —
+  `roleService.ts` (o usado pelos componentes) tinha validações extras de
+  `tenantId` que `client-actions.ts` não tinha. Reforça que era mesmo o rascunho
+  mais antigo/incompleto, não o contrário.
+- [x] Removidos `frontend/src/lib/query-state/favorites-query-state.ts` e o trio
   `frontend/src/components/TypeView/PainelSearchShell/{DynamicFilter.tsx,FilterSelect.tsx,filters.ts}`
-  (nunca conectados a nenhum módulo real).
-- [ ] Rodar `npx knip` no frontend (já é devDependency) para achar o resto do código
-  morto que não foi listado aqui e decidir numa penada o que apagar.
-- [ ] Reescrever `frontend/src/modules/roles/README.md` (hoje é a cópia não editada do
-  `_template/README.md`) para descrever o módulo `roles` de fato.
-- [ ] Corrigir a seção de testes do `frontend/README.md` — hoje descreve
-  `frontend/tests/` e `npm test` que não existem. Ou implementa (ver P6) ou remove a
-  promessa até implementar.
-- [ ] Revisar `backend/issues.md` e o "Estado atual / pendências" de
-  `frontend/src/modules/develop/*` item a item contra o código atual; corrigir o que
-  já foi resolvido e decidir se esses documentos continuam existindo ou são aposentados
-  em favor deste `PLAN.md` como fonte única de status corrente.
+  (confirmado isolado — só se importavam entre si, nada de fora os usava) — e a
+  pasta `PainelSearchShell/`, que ficou vazia.
+- [x] **`npx knip` rodado — achou mais 5 arquivos mortos** que não estavam listados
+  originalmente aqui, todos confirmados sem uso e removidos: `TypeView/TextView/TextView.tsx`
+  (debug — `JSON.stringify` cru, nunca usado em nenhum `listLayout` real),
+  `components/ui/SearchInput.tsx` (órfão isolado do mesmo cluster do item acima),
+  `modules/permissions/components/columns.ts`, `types/async-state.ts`, e **toda a
+  pasta `src/features/auth/`** (3 arquivos — o último resquício da arquitetura
+  pré-rewrite `features/`, que o projeto já tinha migrado para `modules/` desde o
+  commit `b28989d`; a pasta `features/` inteira deixou de existir no repo). `knip`
+  também achou 2 dependências não usadas removidas do `package.json`
+  (`lucide` — sobrava `lucide-react`; `ts-morph` — só usado transitivamente pelo
+  `shadcn` CLI) e 1 dependência usada mas não declarada, adicionada
+  (`@radix-ui/react-toast`, resolvia via `radix-ui` mas não estava explícita).
+  **Decisão consciente de não remover**: `components/ui/item.tsx` e
+  `components/ui/menubar.tsx` (primitivas do shadcn sem uso ainda — fazem parte do
+  design system, não "código morto" custom; `knip` também lista dezenas de
+  "unused exports" nos componentes `ui/*` e vários pares `X|default` — são ruído
+  esperado de barrel files e de componentes de design system com API maior que o
+  uso atual, não itens para apagar).
+- [x] Reescrito `frontend/src/modules/roles/README.md` — descreve a estrutura real
+  do módulo (`contract.tsx`/`provider.ts`/`actions/roleService.ts`, as duas relações
+  N:N, por que só o lado Role é editável), em vez da cópia não editada do
+  `_template/README.md`.
+- [x] Reescrito `frontend/README.md` por completo — não era só a seção de testes que
+  estava desatualizada: rotas `/main/*` (pré-rewrite), "arquitetura por features",
+  link para `SCREENS_UPDATES.md` (não existe), paths antigos de componentes. Agora
+  reflete a estrutura `src/app/(app)/`, `src/modules/`, aponta para `/develop` como
+  guia vivo, e diz honestamente que não há testes automatizados no frontend ainda em
+  vez de prometer `frontend/tests/`.
+- [x] **"Estado atual / pendências" do `frontend/src/modules/develop/part4-referencia.tsx`
+  também revisado** (não estava no checklist original, mas é o mesmo tipo de
+  documento desatualizado — ver próximo item do P3) — 4 dos 7 itens antigos já
+  resolvidos, lista reduzida a 3 itens genuinamente pendentes.
+- [x] **Revisado item a item contra o código atual.** `backend/issues.md`: 4 dos 6
+  milestones que ele descrevia já estavam resolvidos ou tinham sido corrigidos no
+  P1/P2 desta sessão (Tenant Isolation, Audit Hardening/before-after); o próprio
+  "Refresh Token ✅ 3/3 completo" estava **errado** — o P2 achou e corrigiu 2 bugs
+  reais nesse fluxo. Os itens genuinamente pendentes (RLS, cache Redis,
+  observabilidade/correlation-id, auditoria de 401/403, guard global) foram
+  migrados para o novo bloco **P7** abaixo; o arquivo em si foi **aposentado**
+  (substituído por um ponteiro para este `PLAN.md`) — manter duas listas de
+  pendência em paralelo é exatamente o problema que o fez ficar desatualizado.
+  "Estado atual / pendências" do `frontend/src/modules/develop/part4-referencia.tsx`:
+  4 dos 7 itens antigos já estavam resolvidos (inclusive um resolvido na direção
+  oposta à descrita — `client-actions.ts` foi removido, não promovido); corrigido
+  para refletir a realidade, com os 3 itens genuinamente pendentes mantidos lá
+  (são específicos da UI, cabe melhor nesse guia do que neste `PLAN.md`).
+
+### Checkpoint desta rodada (P3)
+
+`npx tsc --noEmit` limpo, `npm run build` limpo, `npx knip` reduzido a só os 2
+primitivos do shadcn sem uso (decisão consciente, não é pendência) e ao
+`server-only` "unlisted" (falso positivo — vem embutido no próprio Next.js, não é
+uma dependência de fato ausente). Smoke manual da rota `/develop` (onde o JSX do
+"Estado atual" foi editado) confirmando que ainda compila e redireciona
+normalmente para quem não está autenticado.
 
 ---
 
@@ -376,9 +421,47 @@ visual anterior — é isso que fica exposto primeiro para quem olha o produto.
   `globalIgnores` por engano (bug já listado no `AGENTS.md` Fase 1) — e, depois de
   corrigido, ativar a verificação por lint das fronteiras de import
   `core`/`platform`/`modules` da seção 3.4 do `AGENTS.md`.
-- [ ] Implementar os testes de frontend que o `frontend/README.md` promete (auth,
-  tenant scope, guards RBAC) — ou formalizar que eles ficam para depois da Fase 5/6 e
-  ajustar a documentação enquanto isso (ver item correspondente em P3).
+- [ ] Implementar os testes de frontend mínimos (auth, tenant scope, guards RBAC) —
+  `frontend/README.md` já foi corrigido no P3 para não prometer o que não existe
+  ainda; esse item é o que falta para a promessa poder voltar ao README.
+
+---
+
+## P7 — Observabilidade e segurança adicional do backend (migrado de `backend/issues.md`, agora retirado)
+
+`backend/issues.md` foi retirado no P3 (estava desatualizado desde 07/07 — vários
+itens que ele listava como pendentes já tinham sido corrigidos pelo P1/P2 desta
+sessão). Os itens dele que **ainda são reais** e não tinham equivalente neste
+`PLAN.md` foram migrados para aqui, em vez de perdidos:
+
+- [ ] **`TenantScopeGuard` global.** Hoje só é aplicado por controller (`AuditController`)
+  via `@UseGuards` local — nunca foi registrado globalmente (`APP_GUARD`) com
+  `@Public()`/`@SkipTenantScope()` para as rotas que não precisam (`/auth/*`). O P1
+  fechou os vazamentos concretos que existiam sem isso, mas um guard global seria
+  defesa em profundidade para qualquer controller novo que esqueça de proteger uma
+  rota tenant-scoped.
+- [ ] **RLS (Row-Level Security) no Postgres.** Nenhuma política de RLS existe hoje —
+  o isolamento de tenant é 100% responsabilidade do código da aplicação (guards +
+  checagem manual nos services). Exigiria `RequestContext` via `AsyncLocalStorage`
+  propagando `tenantId`, `PrismaService` executando `SET LOCAL app.tenant_id` por
+  request, e `ENABLE ROW LEVEL SECURITY` + `CREATE POLICY` nas tabelas
+  multi-tenant — trabalho grande, mas é a camada de defesa que sobra se algum guard
+  futuro falhar.
+- [ ] **Cache Redis de permissões.** Hoje a lista de permissões vem inteira no JWT no
+  login e só muda quando o token expira (15 min) — revogar uma permissão não tem
+  efeito imediato. Cache Redis (TTL curto) + invalidação ao alterar
+  role/permission resolveria isso sem token mais curto. `ioredis` nem está no
+  `package.json` ainda.
+- [ ] **Observabilidade estruturada.** `LoggingInterceptor`/`AllExceptionsFilter`
+  (corrigidos no P2 para ao menos logar erro) ainda usam `console.log`/`Logger`
+  simples — sem correlation-id propagado entre requisição→log→auditoria, sem
+  logger estruturado (`pino`/`nestjs-pino`), sem OpenTelemetry. Um middleware de
+  `AsyncLocalStorage` para correlation-id serviria tanto para isso quanto para RLS
+  (item acima) — vale fazer junto.
+- [ ] **Auditoria de falhas de autenticação/autorização (401/403).** `AuditInterceptor`
+  só audita `POST`/`PATCH`/`DELETE` e login bem-sucedidos — uma tentativa de acesso
+  negada (403 do `RolesPermissionsGuard`, 401 de token inválido) não gera nenhum
+  registro hoje. Útil para detectar tentativa de escalonamento de privilégio.
 
 ---
 

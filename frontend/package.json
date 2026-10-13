@@ -9,10 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@radix-ui/react-toast": "^1.2.15",
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide": "^1.24.0",
     "lucide-react": "^1.17.0",
     "next": "16.4.0",
     "radix-ui": "^1.4.3",
@@ -42,7 +42,6 @@
     "eslint-config-next": "16.4.0",
     "knip": "^6.27.0",
     "tailwindcss": "^4",
-    "ts-morph": "^28.0.0",
     "typescript": "^5"
   }
 }
