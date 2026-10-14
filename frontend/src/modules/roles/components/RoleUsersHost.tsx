@@ -7,7 +7,7 @@ import * as roleService from "@modules/roles/actions/roleService";
 import RelationPicker from "@components/RelationPicker/RelationPicker";
 import { toast } from "sonner";
 import useApiError from "@/hooks/useApiError";
-import { createRelationHost } from "@lib/registry/relation-host";
+import { RelationHost, type RelationHostConfig } from "@lib/registry/relation-host";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 
@@ -25,8 +25,8 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
         [],
     );
 
-    const RelationHost = React.useMemo(
-        () => createRelationHost<UserEntity>({
+    const config = React.useMemo<RelationHostConfig<UserEntity>>(
+        () => ({
             title: "Usuários",
             columns,
             initialData: initial,
@@ -83,7 +83,7 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
         [columns, currentTenantId, formatError, initial, roleId],
     );
 
-    return <RelationHost initial={initial} />;
+    return <RelationHost config={config} initial={initial} />;
 }
 
 export default RoleUsersHost;

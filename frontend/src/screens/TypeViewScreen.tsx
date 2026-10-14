@@ -1,12 +1,15 @@
 // screens/TypeViewScreen.tsx
 import { getModule } from "@lib/registry";
 import { createDataProvider } from "@lib/data-provider";
+import { ApiServerError } from "@lib/api-server";
 import { AppTopbar } from "@components/Layout/AppTopbar";
 import { RecordListHost } from "@components/Layout/RecordListHost";
 import { RecordSearch } from "@components/Layout/RecordSearch";
+import { PermissionDeniedView } from "@components/Layout/PermissionDeniedView";
 import { TypeView, type TypeViewMode } from "@components/TypeView/TypeView";
 import { ViewSwitcher } from "@components/TypeView/ViewSwitcher";
 import { CreateRecordSheet } from "@components/TypeView/CreateRecordSheet";
+import type { SearchResult } from "@lib/data-provider/types";
 
 type TypeViewScreenProps = {
     moduleName: string;
@@ -22,7 +25,22 @@ export async function TypeViewScreen({ moduleName, searchParams }: TypeViewScree
 
     const args = mod.parseListState(rawParams);
     const dataProvider = createDataProvider();
-    const result = await dataProvider.search(moduleName, args);
+
+    let result: SearchResult<unknown>;
+    try {
+        result = await dataProvider.search(moduleName, args);
+    } catch (err) {
+        if (err instanceof ApiServerError && err.status === 403) {
+            return (
+                <div>
+                    <AppTopbar title={mod.label} />
+                    <PermissionDeniedView message={err.message} />
+                </div>
+            );
+        }
+        throw err;
+    }
+
     const listContext = { data: result.data, searchArgs: args };
 
     return (

@@ -1220,6 +1220,130 @@ navegador já registrada em blocos anteriores.
 
 ---
 
+## Roteiro de fechamento do backlog (2026-10-14)
+
+Índice de execução das pendências que restaram depois do P16 — não duplica o
+detalhe de cada item (que já está no bloco de origem, linkado entre
+parênteses), só organiza a **ordem**. Etapas pequenas, uma de cada vez, com
+checkpoint antes de seguir para a próxima — mesmo método do resto deste
+arquivo.
+
+### Etapa 1 — Gaps pontuais já encontrados, zero dependência nova — ✅ feito em 2026-10-14
+
+- [x] **Error boundary amigável para 403 de permissão.** `TypeViewScreen.tsx` e
+  `DetailViewScreen.tsx` agora envolvem a chamada de dados (`dataProvider.search`/
+  `.read`) num try/catch: se o erro for `ApiServerError` com `status === 403`,
+  renderiza `PermissionDeniedView` (novo, `components/Layout/PermissionDeniedView.tsx`
+  — reaproveita o `EmptyState` do P14 com ícone `ShieldAlert`) em vez de deixar
+  a exceção propagar até o 500 genérico do Next. Mesmo padrão que já existia em
+  `dashboard/page.tsx` (confirmado por grep antes de implementar — não inventei
+  um padrão novo, segui o que já tinha precedente no próprio código).
+  **Achado ao validar**: não consegui reproduzir o 500 original do P14 contra
+  servidor real — o `AppAccessGuard` (client-side) já busca o perfil atualizado
+  do usuário a cada render e intercepta antes de qualquer chamada de dados,
+  mesmo forçando um cenário de JWT antigo + permissão revogada no backend no
+  meio da sessão. O código novo é uma defesa em profundidade genuína (nunca
+  exercitada no caminho feliz atual, mas protege contra qualquer inconsistência
+  futura entre as duas camadas) — validado por `tsc`/build/testes limpos e por
+  inspeção da lógica, não por reproduzir o 500 de fato.
+- [x] **Corrigido `static-components` em `UserRolesHost`/`RoleUsersHost`/
+  `RolePermissionsHost`/`PermissionRolesHost`** (achado o 4º consumidor com o
+  mesmo problema, não listado originalmente). Causa raiz: `createRelationHost(config)`
+  retornava um **componente novo** a cada chamada, normalmente dentro de um
+  `useMemo` no componente chamador — quando as dependências desse `useMemo`
+  mudavam (`currentTenantId` após um re-render do `AuthProvider`, por exemplo),
+  a identidade do componente mudava também, e o React desmontava a instância
+  antiga e montava outra, **resetando `items`/`pickerOpen` sem motivo**. Não
+  era só lint — era um bug real de estado. Resolvido reescrevendo
+  `lib/registry/relation-host.tsx`: `RelationHost` passou a ser um componente
+  único e fixo (exportado direto, não mais uma fábrica `createRelationHost`),
+  recebendo a config variável só como prop (`<RelationHost config={config}
+  initial={...} />`); os 4 consumidores passaram a memoizar a **config** (um
+  objeto de dados) em vez de memoizar o **componente**.
+  **Segundo achado no caminho, consequência direta do primeiro fix**: ao
+  reescrever, apareceu um erro novo de lint (`set-state-in-effect`) que estava
+  mascarado antes pela estrutura de fábrica — o `useEffect` que sincronizava
+  `items` a partir de `initial`/`config.initialData` chamava `setState`
+  diretamente dentro do efeito, anti-pattern real do React (cascading
+  renders). Corrigido com o padrão oficial "ajustar estado a partir de uma
+  prop" (comparar o valor anterior **durante o render**, via um segundo
+  `useState` guardando o valor anterior, chamando `setState` fora de qualquer
+  efeito) — não dá para simplesmente "derivar" `items` de `initial` porque
+  `items` diverge dele conforme o usuário anexa/remove itens.
+
+### Checkpoint desta rodada (Etapa 1)
+
+`tsc --noEmit` limpo, `npm run build` limpo, `npx vitest run` → 4/4 arquivos,
+18/18 testes. Lint comparado via `git stash`: o erro `static-components` e o
+warning de `exhaustive-deps` que o acompanhava **desapareceram** nos 4
+arquivos — não geraram nenhum erro novo, só restam os `no-explicit-any`
+pré-existentes (débito da Etapa 3, não tocado aqui de propósito). Validado
+contra servidores reais: `GET /tenants` com usuário sem `tenant.read` → 200
+(antes 500), interceptado pelo `AppAccessGuard` com a mensagem "Acesso negado.
+Permissão obrigatória: tenant.read."; `GET /users/:id` com role ADMIN
+atribuída → tabela de roles e botão "Associar" renderizando normalmente após
+a refatoração do `RelationHost` (confirma que attach/detach continuam
+funcionando, não só que o lint ficou limpo).
+
+### Etapa 2 — Trilha A: hardening do backend (P7.2 → P7.5)
+
+Ordem já acordada — cada item é sua própria rodada de discussão + implementação
+antes do próximo (ver detalhe completo no bloco **P7** acima):
+
+1. **P7.2** — Auditoria de falhas de autenticação/autorização (401/403).
+2. **P7.3** — Observabilidade estruturada (correlation-id + logger).
+3. **P7.4** — RLS (Row-Level Security) no Postgres.
+4. **P7.5** — Cache Redis de permissões.
+
+### Etapa 3 — Débito de lint (mecânico, sem risco de segurança)
+
+- [ ] Zerar os 289 erros de lint do backend (`npm run lint` dentro de
+  `backend/`) — maior parte concentrada em `test/roles.attach-detach.e2e-spec.ts`
+  e `roles.service.spec.ts` (mocks de Prisma com `any`), ver P0.
+- [ ] Zerar os 55 erros de lint do frontend restantes desde o P6 (17
+  `no-explicit-any`, 16 `no-unused-vars`, 5 `exhaustive-deps`, etc. — lista
+  completa no bloco P6).
+- [ ] Só depois dos dois itens acima: tirar `continue-on-error: true` dos
+  passos de lint em `.github/workflows/ci.yml`, tornando o gate bloqueante —
+  é o que já estava planejado desde que o débito foi descoberto no P6.
+
+### Etapa 4 — Upgrades maiores de framework (cada um isolado, branch própria)
+
+Só depois da Etapa 2/3 — são os que têm maior risco de regressão, então quanto
+mais estável o resto, melhor (ver detalhe completo no bloco **P0.3**):
+
+1. NestJS v11 → v12 (ler breaking changes; testar Fastify/Swagger/e2e).
+2. TypeScript 5.9 → 7.0 (reescrita nativa do compilador, não é bump trivial).
+3. Prisma 7 → 8 — **checar antes se já saiu do RC** (estava `8.0.0-rc.22` em
+   2026-10-13; não adotar RC num template).
+4. Bumps menores sem pressa (`@tanstack/react-table` 8→9 é major, `radix-ui`,
+   `recharts`, `react-intl`, `shadcn` CLI).
+
+### Etapa 5 — Decisões já tomadas, aguardando outra fase (não é "fazer agora")
+
+Não entram nesta sequência — ficam documentadas para não serem reabertas sem
+necessidade:
+
+- Módulo `task` no backend sem destino — aguarda a Fase 2 do `AGENTS.md`
+  (limpeza de entidades específicas de ONG do schema).
+- Refresh de sessão proativo (ler `exp` do JWT antes de expirar) — decisão
+  explícita de manter reativo até o projeto tratar performance/edge runtime
+  como tema próprio.
+- `braces`/`fast-glob` no frontend — sem correção segura disponível; só
+  reavaliar quando `shadcn`/`eslint-config-next` atualizarem a cadeia.
+
+### Etapa 6 — Validação manual com ferramentas indisponíveis nesta sessão
+
+Fazer quando a ferramenta estiver disponível, não bloqueia nenhuma etapa acima:
+
+- [ ] `docker compose up --build` real (Docker não instalado neste ambiente —
+  P6 só validou por equivalência).
+- [ ] Clique real em navegador: `Dialog`/`AlertDialog`/toasts/`Sheet` de
+  criação (abrir → submeter → fechar) — P4/P13/P14/P16 só validaram via
+  HTML/CSS reais e testes unitários, nunca um clique de verdade.
+
+---
+
 ## Decisões já tomadas pelo usuário (registradas para não perguntar de novo)
 
 - **Captura do "before" na auditoria**: dispatch dinâmico no interceptor (não Prisma

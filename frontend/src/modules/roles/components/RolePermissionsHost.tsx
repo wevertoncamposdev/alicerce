@@ -7,7 +7,7 @@ import * as roleService from "@modules/roles/actions/roleService";
 import RelationPicker from "@components/RelationPicker/RelationPicker";
 import { toast } from "sonner";
 import useApiError from "@/hooks/useApiError";
-import { createRelationHost } from "@lib/registry/relation-host";
+import { RelationHost, type RelationHostConfig } from "@lib/registry/relation-host";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 
 export function RolePermissionsHost({ roleId, initial }: { roleId: string; initial: PermissionEntity[] }) {
@@ -24,8 +24,8 @@ export function RolePermissionsHost({ roleId, initial }: { roleId: string; initi
         [],
     );
 
-    const RelationHost = React.useMemo(
-        () => createRelationHost<PermissionEntity>({
+    const config = React.useMemo<RelationHostConfig<PermissionEntity>>(
+        () => ({
             title: "Permissões",
             columns,
             initialData: initial,
@@ -82,7 +82,7 @@ export function RolePermissionsHost({ roleId, initial }: { roleId: string; initi
         [columns, currentTenantId, formatError, initial, roleId],
     );
 
-    return <RelationHost initial={initial} />;
+    return <RelationHost config={config} initial={initial} />;
 }
 
 export default RolePermissionsHost;

@@ -26,11 +26,13 @@ roles/
 
 ## Pontos específicos deste módulo
 
-- **`views: ["list", "form"]`** em `contract.tsx` — não usa `cards`/`graph` (só
+- **`views: ["list"]`** em `contract.tsx` — não usa `cards`/`graph` (só
   `favorites` usa essas duas hoje; não é um padrão obrigatório, é por módulo).
+  "Criar" não é mais uma view (`?view=form`) desde o P13 — é o botão "+ Novo"
+  que abre um `Sheet`, ver `CreateRecordSheet.tsx`.
 - **Relações são bidirecionais nos dois sentidos, mas só um lado é editável**: as abas
   `users`/`permissions` aqui em `RoleUsersHost`/`RolePermissionsHost` usam
-  `createRelationHost` (`lib/registry/relation-host.tsx`) com attach/detach completo
+  `RelationHost` (`lib/registry/relation-host.tsx`) com attach/detach completo
   (picker + toast + indicador de autosave). Os lados reversos
   (`modules/users/components/UserRolesHost.tsx`,
   `modules/permissions/components/PermissionRolesHost.tsx`) são só leitura — é o Role

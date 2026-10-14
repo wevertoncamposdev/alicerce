@@ -2,8 +2,10 @@
 import { getModule } from "@lib/registry";
 import { createDataProvider } from "@lib/data-provider";
 import { getEntityAuditTrail } from "@lib/data-provider/rest/audit";
+import { ApiServerError } from "@lib/api-server";
 import { DetailView } from "@components/DetailView/DetailView";
 import { AppTopbar } from "@components/Layout/AppTopbar";
+import { PermissionDeniedView } from "@components/Layout/PermissionDeniedView";
 import { AutoSaveStatusProvider } from "@/contexts/autosave-status-context";
 import { AutoSaveIndicator } from "@components/Layout/AutoSaveIndicator";
 import { MetaDataSidebar } from "@components/DetailView/MetaDataView/MetaDataSidebar";
@@ -14,7 +16,20 @@ export async function DetailViewScreen({ moduleName, id }: { moduleName: string;
     const mod = getModule(moduleName);
     const dataProvider = createDataProvider();
 
-    const record: Record<string, any> = await dataProvider.read(moduleName, id);
+    let record: Record<string, any>;
+    try {
+        record = await dataProvider.read(moduleName, id);
+    } catch (err) {
+        if (err instanceof ApiServerError && err.status === 403) {
+            return (
+                <div>
+                    <AppTopbar title={mod.label} />
+                    <PermissionDeniedView message={err.message} />
+                </div>
+            );
+        }
+        throw err;
+    }
 
     const [contextItems, auditItems] = await Promise.all([
         resolveContextItems(mod, record),
