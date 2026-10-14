@@ -31,6 +31,9 @@ export function UserRolesHost({ userId, initial }: { userId: string; initial: Ro
             initialData: initial,
             idAccessor: (r) => r.id,
             rowLink: (r) => `/roles/${r.id}`,
+            emptyMessage: "Nenhuma role associada a este usuário.",
+            confirmDetachTitle: "Remover role do usuário?",
+            confirmDetachDescription: "O usuário perde imediatamente as permissões associadas a essa role.",
             onAttach: async (item: any) => {
                 if (!currentTenantId) {
                     toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
@@ -50,7 +53,6 @@ export function UserRolesHost({ userId, initial }: { userId: string; initial: Ro
                 }
             },
             onDetach: async (roleId: string) => {
-                if (!window.confirm("Remover role do usuário?")) return;
                 if (!currentTenantId) {
                     toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
                     return;

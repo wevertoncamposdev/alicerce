@@ -20,7 +20,7 @@ export function AppTopbar({
 
             <div className="flex items-center gap-2 shrink-0">
                 <SidebarTrigger />
-                <h1 className="text-lg font-semibold">{title}</h1>
+                <h1 className="text-page-title">{title}</h1>
             </div>
             <div className="">
                 {autosave}

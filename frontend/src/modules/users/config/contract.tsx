@@ -45,7 +45,7 @@ const { parseListState, serializeListState } = createListQueryState();
 const createUserAction = createRecordFormAction.bind(
     null,
     "users",
-    formFields.map((f) => f.name)
+    formFields,
 );
 
 const usersListLayout: ListLayout<UserEntity> = {
@@ -86,7 +86,7 @@ function loadUserContext(record: UserEntity): ContextItem[] {
 export const usersModule = defineRecordModule<UserEntity>({
     model: "users",
     label: "Users",
-    views: ["list", "form"],
+    views: ["list"],
     defaultView: "list",
     dataHandlers: { search: searchUsers, read: readUser, create: createUser, update: updateUser, delete: deleteUser },
     formFields,

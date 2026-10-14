@@ -17,6 +17,7 @@ import {
     ChecklistSection,
 } from "@modules/develop/content/part3-modulos";
 import {
+    ConvencoesUiSection,
     ArmadilhasSection,
     EstadoAtualSection,
     GlossarioSection,
@@ -44,6 +45,7 @@ export function DevelopDocsShell() {
                     <GuiaCriarModuloSection />
                     <ChecklistSection />
 
+                    <ConvencoesUiSection />
                     <ArmadilhasSection />
                     <EstadoAtualSection />
                     <GlossarioSection />

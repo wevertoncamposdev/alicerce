@@ -9,6 +9,8 @@ import {
 } from "@components/ui/dialog";
 import { Input } from "@components/ui/input";
 import { Button } from "@components/ui/button";
+import { Skeleton } from "@components/ui/skeleton";
+import { EmptyState } from "@components/ui/empty-state";
 import {
     Table,
     TableBody,
@@ -100,7 +102,7 @@ export default function RelationPicker({
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="w-[720px] max-w-full sm:max-w-[720px]">
+            <DialogContent className="w-full sm:max-w-[720px]">
                 <DialogHeader>
                     <DialogTitle>Buscar {kind}</DialogTitle>
                 </DialogHeader>
@@ -113,9 +115,13 @@ export default function RelationPicker({
 
                 <div className="max-h-64 overflow-auto">
                     {loading && items.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Carregando...</p>
+                        <div className="space-y-2 py-1">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <Skeleton key={i} className="h-8 w-full" />
+                            ))}
+                        </div>
                     ) : items.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Nenhum item encontrado.</p>
+                        <EmptyState title="Nenhum item encontrado." className="py-6" />
                     ) : (
                         <>
                             <Table>

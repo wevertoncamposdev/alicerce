@@ -25,7 +25,7 @@ const { parseListState, serializeListState } = createListQueryState();
 const createTenantAction = createRecordFormAction.bind(
     null,
     "tenants",
-    formFields.map((f) => f.name)
+    formFields,
 );
 
 const tenantsListLayout: ListLayout<TenantEntity> = {
@@ -65,7 +65,7 @@ function loadTenantContext(record: TenantEntity): ContextItem[] {
 export const tenantsModule = defineRecordModule<TenantEntity>({
     model: "tenants",
     label: "Tenants",
-    views: ["list", "form"],
+    views: ["list"],
     defaultView: "list",
     dataHandlers: { search: searchTenants, read: readTenant, create: createTenant, update: updateTenant, delete: deleteTenant },
     formFields,

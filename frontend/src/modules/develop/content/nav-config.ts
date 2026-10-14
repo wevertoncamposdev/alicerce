@@ -22,6 +22,7 @@ export const DEVELOP_DOC_NAV: DocNavGroup[] = [
     {
         title: "Referência",
         items: [
+            { id: "convencoes-ui", label: "Convenções de UI" },
             { id: "armadilhas", label: "Armadilhas conhecidas" },
             { id: "estado-atual", label: "Estado atual / pendências" },
             { id: "glossario", label: "Glossário" },

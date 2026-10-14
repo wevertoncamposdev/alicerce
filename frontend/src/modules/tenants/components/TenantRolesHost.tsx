@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import type { RoleEntity } from "@modules/roles/types/types";
+import { EmptyState } from "@components/ui/empty-state";
 
 export function TenantRolesHost({ items }: { items: RoleEntity[] }) {
     return (
@@ -22,8 +23,8 @@ export function TenantRolesHost({ items }: { items: RoleEntity[] }) {
                     <tbody>
                         {items.length === 0 ? (
                             <tr>
-                                <td colSpan={3} className="px-3 py-4 text-center text-muted-foreground">
-                                    Nenhuma role associada.
+                                <td colSpan={3}>
+                                    <EmptyState title="Nenhuma role associada." className="py-4" />
                                 </td>
                             </tr>
                         ) : (

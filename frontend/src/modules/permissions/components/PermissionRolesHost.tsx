@@ -19,15 +19,11 @@ export function PermissionRolesHost({ items }: { items: RoleEntity[] }) {
             columns,
             initialData: items,
             idAccessor: (r) => r.id,
+            emptyMessage: "Nenhum role usa esta permissão ainda.",
         }),
         [columns, items],
     );
 
-    return (
-        <>
-            <RelationHost initial={items} />
-            {items.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum role usa esta permissão ainda.</p> : null}
-        </>
-    );
+    return <RelationHost initial={items} />;
 }
 export default PermissionRolesHost;

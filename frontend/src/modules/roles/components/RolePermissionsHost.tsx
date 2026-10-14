@@ -31,6 +31,9 @@ export function RolePermissionsHost({ roleId, initial }: { roleId: string; initi
             initialData: initial,
             idAccessor: (p) => p.id,
             rowLink: (p) => `/permissions/${p.id}`,
+            emptyMessage: "Nenhuma permissão associada a esta role.",
+            confirmDetachTitle: "Remover permissão desta role?",
+            confirmDetachDescription: "Todos os usuários com essa role perdem essa permissão imediatamente.",
             onAttach: async (item: any) => {
                 if (!currentTenantId) {
                     toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
@@ -50,7 +53,6 @@ export function RolePermissionsHost({ roleId, initial }: { roleId: string; initi
                 }
             },
             onDetach: async (permissionId: string) => {
-                if (!window.confirm("Remover permissão deste role?")) return;
                 if (!currentTenantId) {
                     toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
                     return;

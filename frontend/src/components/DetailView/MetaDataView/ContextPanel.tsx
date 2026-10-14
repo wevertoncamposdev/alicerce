@@ -1,8 +1,9 @@
 import type { ContextItem } from "./types";
+import { EmptyState } from "@components/ui/empty-state";
 
 export function ContextPanel({ items }: { items: ContextItem[] }) {
     if (!items.length) {
-        return <div className="text-sm text-muted-foreground">Nenhum contexto disponível.</div>;
+        return <EmptyState title="Nenhum contexto disponível." className="py-4" />;
     }
 
     return (

@@ -11,6 +11,9 @@ export type RelationHostFactoryConfig<T extends Record<string, any>> = {
     idAccessor?: (item: T) => string;
     rowLink?: (item: T) => string | undefined;
     attachLabel?: string;
+    emptyMessage?: string;
+    confirmDetachTitle?: string;
+    confirmDetachDescription?: string;
     onAttach?: (item: any) => Promise<void> | void;
     onDetach?: (id: string) => Promise<void> | void;
     renderPicker?: (props: {
@@ -70,6 +73,9 @@ export function createRelationHost<T extends Record<string, any>>(config: Relati
                     detach={config.onDetach ? async (id: string) => { await config.onDetach?.(id); } : undefined}
                     idAccessor={idAccessor}
                     rowLink={config.rowLink}
+                    emptyMessage={config.emptyMessage}
+                    confirmDetachTitle={config.confirmDetachTitle}
+                    confirmDetachDescription={config.confirmDetachDescription}
                 />
 
                 {pickerOpen && config.renderPicker ? (

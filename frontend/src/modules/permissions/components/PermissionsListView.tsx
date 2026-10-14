@@ -8,7 +8,6 @@ export function PermissionsListView({ data }: { data: PermissionEntity[] }) {
 
     return (
         <div>
-            <h2 className="text-lg font-medium mb-4">{formatMessage({ id: "permission.title" })}</h2>
             <table className="w-full table-auto">
                 <thead>
                     <tr>

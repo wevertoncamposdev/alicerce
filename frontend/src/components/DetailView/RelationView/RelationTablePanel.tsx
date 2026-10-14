@@ -10,10 +10,12 @@ import {
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { Input } from "@components/ui/input";
+import { EmptyState } from "@components/ui/empty-state";
 import { Button } from "@components/ui/button";
 import { Trash2 } from "lucide-react";
 import { RelationListHost } from "./RelationListHost";
 import { createFavoriteNote, deleteFavoriteNote } from "@modules/favorites/config/notes-provider";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 export type NoteRowLike = {
     id: string;
@@ -59,6 +61,7 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
         emptyMessage = "Nenhuma nota encontrada.",
     } = props;
     const [notes, setNotes] = React.useState<T[]>(initialNotes);
+    const { confirm, dialog } = useConfirmDialog();
     const [searchText, setSearchText] = React.useState("");
     const [newNoteText, setNewNoteText] = React.useState("");
     const [isAdding, setIsAdding] = React.useState(false);
@@ -100,7 +103,10 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
         getCoreRowModel: getCoreRowModel(),
     });
 
-    function handleDelete(noteId: string) {
+    async function handleDelete(noteId: string) {
+        const confirmed = await confirm({ title: "Remover esta nota?" });
+        if (!confirmed) return;
+
         const previous = notes;
         setNotes((current) => current.filter((n) => n.id !== noteId));
 
@@ -148,17 +154,17 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
                         autoFocus
                         onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                     />
-                    <Button type="button" size="sm" onClick={handleCreate} disabled={isPending}>
+                    <Button type="button" size="sm" variant="save" onClick={handleCreate} disabled={isPending}>
                         Salvar
                     </Button>
-                    <Button type="button" size="sm" variant="ghost" onClick={() => setIsAdding(false)}>
+                    <Button type="button" size="sm" variant="outline" onClick={() => setIsAdding(false)}>
                         Cancelar
                     </Button>
                 </div>
             ) : null}
 
             {filteredNotes.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-6 text-center">{emptyMessage}</p>
+                <EmptyState title={emptyMessage} className="py-6" />
             ) : (
                 <div className="rounded-md border overflow-hidden">
                     <Table>
@@ -185,6 +191,7 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
                     </Table>
                 </div>
             )}
+            {dialog}
         </RelationListHost>
     );
 }

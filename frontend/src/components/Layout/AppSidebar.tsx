@@ -37,6 +37,7 @@ import {
   LogOut,
   Star,
   ChevronsUpDown,
+  Blocks,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
@@ -121,7 +122,16 @@ export function AppSidebar({
   return (
     <Sidebar>
       <SidebarHeader>
-
+        {/* Placeholder de marca — este é um template sem logo real. Troque o
+            quadrado+ícone por um <img> da logo do produto quando houver uma;
+            o nome "Alicerce" também é só o nome do template. Não é um botão
+            (nada para clicar aqui) — por isso não usa SidebarMenuButton. */}
+        <div className="flex items-center gap-2 p-2">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <Blocks className="size-3.5" />
+          </span>
+          <span className="text-page-title">Alicerce</span>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

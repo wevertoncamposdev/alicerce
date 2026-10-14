@@ -5,7 +5,10 @@ import Link from "next/link";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { Button } from "@components/ui/button";
+import { Skeleton } from "@components/ui/skeleton";
+import { EmptyState } from "@components/ui/empty-state";
 import { Trash2 } from "lucide-react";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 export type RelationCrudHostProps<T> = {
     columns: ColumnDef<T>[];
@@ -16,6 +19,9 @@ export type RelationCrudHostProps<T> = {
     attach?: (payload: any) => Promise<void>;
     idAccessor?: (item: T) => string;
     rowLink?: (item: T) => string | undefined;
+    emptyMessage?: string;
+    confirmDetachTitle?: string;
+    confirmDetachDescription?: string;
 };
 
 export function RelationCrudHost<T extends Record<string, any>>({
@@ -27,9 +33,14 @@ export function RelationCrudHost<T extends Record<string, any>>({
     create,
     idAccessor = (i: T) => (i.id as string) ?? "",
     rowLink,
+    emptyMessage = "Nenhum item.",
+    confirmDetachTitle = "Remover este item?",
+    confirmDetachDescription,
 }: RelationCrudHostProps<T>) {
+    const { confirm, dialog } = useConfirmDialog();
     const [items, setItems] = React.useState<T[]>(initialData);
     const [loadingIds, setLoadingIds] = React.useState<Record<string, boolean>>({});
+    const [loading, setLoading] = React.useState(Boolean(list));
 
     React.useEffect(() => {
         setItems(initialData);
@@ -38,8 +49,12 @@ export function RelationCrudHost<T extends Record<string, any>>({
     React.useEffect(() => {
         let mounted = true;
         if (list) {
+            setLoading(true);
             list().then((res) => {
-                if (mounted) setItems(res);
+                if (mounted) {
+                    setItems(res);
+                    setLoading(false);
+                }
             });
         }
         return () => {
@@ -51,6 +66,9 @@ export function RelationCrudHost<T extends Record<string, any>>({
 
     async function handleDetach(id: string) {
         if (!detach) return;
+        const confirmed = await confirm({ title: confirmDetachTitle, description: confirmDetachDescription });
+        if (!confirmed) return;
+
         const prev = items;
         setItems((s) => s.filter((it) => idAccessor(it) !== id));
         setLoadingIds((l) => ({ ...l, [id]: true }));
@@ -70,8 +88,14 @@ export function RelationCrudHost<T extends Record<string, any>>({
 
     return (
         <div>
-            {items.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-6 text-center">Nenhum item.</p>
+            {loading ? (
+                <div className="space-y-2 py-1">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <Skeleton key={i} className="h-8 w-full" />
+                    ))}
+                </div>
+            ) : items.length === 0 ? (
+                <EmptyState title={emptyMessage} className="py-6" />
             ) : (
                 <div className="rounded-md border overflow-hidden">
                     <Table>
@@ -121,6 +145,7 @@ export function RelationCrudHost<T extends Record<string, any>>({
                     </Table>
                 </div>
             )}
+            {dialog}
         </div>
     );
 }

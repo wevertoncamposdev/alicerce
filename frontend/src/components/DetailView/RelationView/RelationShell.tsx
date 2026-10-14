@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 
 type Tab = {
     label: string;
@@ -9,30 +10,24 @@ type Tab = {
 };
 
 export function RelationShell({ tabs }: { tabs: Tab[] }) {
-    const [active, setActive] = React.useState<string>(tabs[0]?.key ?? "");
-
-    React.useEffect(() => {
-        if (!active && tabs[0]) setActive(tabs[0].key);
-    }, [tabs, active]);
-
-    const activeTab = tabs.find((t) => t.key === active) ?? tabs[0];
+    if (tabs.length === 0) return null;
 
     return (
-        <div>
-            <div className="flex space-x-2 border-b mb-4">
+        <Tabs defaultValue={tabs[0].key}>
+            <TabsList variant="line" className="mb-4 w-full justify-start border-b">
                 {tabs.map((t) => (
-                    <button
-                        key={t.key}
-                        onClick={() => setActive(t.key)}
-                        className={`py-2 px-3 -mb-px ${t.key === active ? "border-b-2 border-primary font-semibold" : "text-muted-foreground"}`}
-                    >
+                    <TabsTrigger key={t.key} value={t.key}>
                         {t.label}
-                    </button>
+                    </TabsTrigger>
                 ))}
-            </div>
+            </TabsList>
 
-            <div>{activeTab?.content}</div>
-        </div>
+            {tabs.map((t) => (
+                <TabsContent key={t.key} value={t.key}>
+                    {t.content}
+                </TabsContent>
+            ))}
+        </Tabs>
     );
 }
 

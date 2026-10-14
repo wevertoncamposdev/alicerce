@@ -10,9 +10,7 @@ interface DetailViewProps<T> {
     record: T;
     contextItems: ContextItem[];
     auditItems: AuditFeedItem[];
-    /** título e descrição visuais — o engine não inventa esses textos */
-    title: string;
-    description?: string;
+    /** título da página já fica no AppTopbar — aqui só ações secundárias da tela de detalhe. */
     toolbar?: React.ReactNode;
 }
 
@@ -27,8 +25,6 @@ export function DetailView<T>({
     record,
     contextItems,
     auditItems,
-    title,
-    description,
     toolbar,
 }: DetailViewProps<T>) {
     const layout = moduleDefinition.detailLayout;
@@ -48,7 +44,7 @@ export function DetailView<T>({
     const relationTabs = layout.relations?.(context) ?? [];
 
     return (
-        <DetailShell title={title} description={description} toolbar={toolbar}>
+        <DetailShell toolbar={toolbar}>
             <div className="flex flex-col gap-6 lg:flex-row">
                 <div className="flex-1 space-y-6">
                     {mainSlot}

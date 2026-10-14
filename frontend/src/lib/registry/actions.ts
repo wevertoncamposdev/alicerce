@@ -2,7 +2,10 @@
 
 import { createDataProvider } from "@lib/data-provider";
 import { getModule } from "@lib/registry";
-type ActionState = { ok: boolean; message?: string };
+import { validateFormPayload } from "@lib/registry/form-validation";
+import type { FormFieldConfig } from "@lib/registry/types";
+
+type ActionState = { ok: boolean; message?: string; fieldErrors?: Record<string, string> };
 
 function resolveActionErrorMessage(error: unknown): string {
     if (typeof error === "string") {
@@ -34,7 +37,7 @@ function resolveActionErrorMessage(error: unknown): string {
 
 export async function createRecordFormAction(
     model: string,
-    fieldNames: string[],
+    fields: FormFieldConfig<Record<string, unknown>>[],
     _prev: ActionState,
     formData: FormData,
 ): Promise<ActionState> {
@@ -46,8 +49,17 @@ export async function createRecordFormAction(
         }
 
         const payload: Record<string, unknown> = {};
-        for (const name of fieldNames) {
-            payload[name] = formData.get(name);
+        for (const field of fields) {
+            payload[field.name] = formData.get(field.name) ?? "";
+        }
+
+        const validation = validateFormPayload(fields, payload);
+        if (!validation.ok) {
+            return {
+                ok: false,
+                message: "Corrija os campos destacados.",
+                fieldErrors: validation.fieldErrors,
+            };
         }
 
         await dataHandlers.create(payload);

@@ -1,23 +1,25 @@
 "use client";
 
 import React from "react";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@components/ui/alert";
 
 interface DetailShellProps {
-    title: string;
-    description?: string;
     toolbar?: React.ReactNode;
     error?: string | null;
     children: React.ReactNode;
 }
 
-export function DetailShell({ title, description, toolbar, error, children }: DetailShellProps) {
+export function DetailShell({ toolbar, error, children }: DetailShellProps) {
     return (
-        <section className="space-y-5">
+        <section className="space-y-6">
+            {toolbar ? <div className="flex items-center justify-end gap-2">{toolbar}</div> : null}
 
             {error ? (
-                <div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
-                    {error}
-                </div>
+                <Alert variant="destructive">
+                    <AlertCircle />
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
             ) : null}
 
             <div className="space-y-4">{children}</div>

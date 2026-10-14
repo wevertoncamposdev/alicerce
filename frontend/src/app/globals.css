@@ -57,7 +57,9 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  /* Azul de marca — ver scripts/check-contrast.mjs (ratio 5.97:1 contra o
+     --primary-foreground abaixo, acima do mínimo AA de 4.5:1). */
+  --primary: oklch(0.5 0.2 260);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --save: oklch(41.692% 0.13126 259.024);
@@ -69,7 +71,10 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  /* Mesma família de hue do --primary — o anel de foco reforça a cor de
+     marca em vez de ficar neutro (ratio 4.03:1 contra o fundo, acima do
+     mínimo de 3:1 para componentes de UI). */
+  --ring: oklch(0.6 0.18 260);
   /* Paleta categórica validada (CVD-safe + contraste) — skill dataviz,
      references/palette.md. Slots 1-5 do set de 8: blue, orange, aqua,
      yellow, magenta. Trocar por aqui se adotar uma marca própria —
@@ -82,12 +87,12 @@
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary: oklch(0.5 0.2 260);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-ring: oklch(0.6 0.18 260);
 }
 
 .dark {
@@ -97,8 +102,12 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  /* Azul mais claro que no light mode — contra o fundo escuro, um primary
+     de luminância média teria contraste insuficiente com texto branco (ver
+     scripts/check-contrast.mjs); clarear o próprio azul e usar foreground
+     escuro dá ratio 7.81:1, bem acima do mínimo AA. */
+  --primary: oklch(0.72 0.16 258);
+  --primary-foreground: oklch(0.145 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -108,7 +117,7 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: oklch(0.72 0.16 258);
   /* Mesmos 5 slots, passo escuro — validado separadamente contra a
      superfície dark (ver scripts/validate_palette.js --mode dark). */
   --chart-1: #3987e5;
@@ -118,12 +127,12 @@
   --chart-5: #d55181;
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.72 0.16 258);
+  --sidebar-primary-foreground: oklch(0.145 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.72 0.16 258);
 }
 
 @layer base {
@@ -138,5 +147,24 @@
   html {
     font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
     @apply font-sans;
+  }
+}
+
+/* Hierarquia de texto nomeada por papel, não por tamanho — ver PLAN.md P9.
+   Antes desta rodada, título de página/seção variava entre text-lg/text-base/
+   text-2xl e font-medium/font-semibold/font-bold sem critério entre módulos.
+   Usar estas classes (em vez de combinações soltas de text-/font- cruas) em
+   qualquer título novo de tela/seção de produto. */
+@layer utilities {
+  .text-page-title {
+    @apply text-lg font-semibold;
+  }
+
+  .text-section-title {
+    @apply text-base font-semibold;
+  }
+
+  .text-label {
+    @apply text-sm font-medium;
   }
 }

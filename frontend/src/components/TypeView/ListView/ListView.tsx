@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { EmptyState } from "@components/ui/empty-state";
 import {
     ColumnDef,
     SortingState,
@@ -61,17 +62,7 @@ export function ListView<T extends { id: string | number }>({
     });
 
     if (data.length === 0) {
-        return (
-            <div className="py-20 text-center">
-                <p className="font-medium">
-                    Nenhum registro encontrado.
-                </p>
-
-                <p className="text-sm text-muted-foreground mt-1">
-                    Tente alterar sua pesquisa.
-                </p>
-            </div>
-        );
+        return <EmptyState title="Nenhum registro encontrado." description="Tente alterar sua pesquisa." className="py-20" />;
     }
 
     return (

@@ -1,4 +1,5 @@
 import type { AuditEntry } from "@modules/audit/types/types";
+import { EmptyState } from "@components/ui/empty-state";
 
 export function AuditListView({ data }: { data: AuditEntry[] }) {
     return (
@@ -16,8 +17,8 @@ export function AuditListView({ data }: { data: AuditEntry[] }) {
                 <tbody>
                     {data.length === 0 ? (
                         <tr>
-                            <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
-                                Nenhum registro encontrado.
+                            <td colSpan={5}>
+                                <EmptyState title="Nenhum registro encontrado." className="py-6" />
                             </td>
                         </tr>
                     ) : (

@@ -25,7 +25,7 @@ const formFields = [
 
 const { parseListState, serializeListState } = createListQueryState();
 
-const createRoleAction = createRecordFormAction.bind(null, "roles", formFields.map((f) => f.name));
+const createRoleAction = createRecordFormAction.bind(null, "roles", formFields);
 
 const rolesListLayout: ListLayout<RoleEntity> = {
     list: ({ data }) => <RolesListView data={data} />,
@@ -71,7 +71,7 @@ function loadRoleContext(record: RoleEntity): ContextItem[] {
 export const rolesModule = defineRecordModule<RoleEntity>({
     model: "roles",
     label: "Roles",
-    views: ["list", "form"],
+    views: ["list"],
     defaultView: "list",
     dataHandlers: { search: searchRoles, read: readRole, create: createRole, update: updateRole, delete: deleteRole },
     formFields,

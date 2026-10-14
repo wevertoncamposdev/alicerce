@@ -24,7 +24,7 @@ export async function DetailViewScreen({ moduleName, id }: { moduleName: string;
     return (
         <AutoSaveStatusProvider>
             <AppTopbar
-                title={record?.title ?? ""}
+                title={mod.label}
                 autosave={<AutoSaveIndicator />}
                 actions={
                     <MetaDataSidebar>
@@ -32,13 +32,12 @@ export async function DetailViewScreen({ moduleName, id }: { moduleName: string;
                     </MetaDataSidebar>
                 }
             />
-            <div className="px-4 py-2">
+            <div className="px-4 py-3">
                 <DetailView
                     moduleDefinition={mod}
                     record={record}
                     contextItems={contextItems}
                     auditItems={auditItems}
-                    title={mod.label}
                 />
             </div>
         </AutoSaveStatusProvider>

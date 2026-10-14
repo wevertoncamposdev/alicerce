@@ -1,4 +1,5 @@
 import type { AuditFeedItem } from "./types";
+import { EmptyState } from "@components/ui/empty-state";
 
 function actionLabel(action: string) {
     switch (action) {
@@ -11,7 +12,7 @@ function actionLabel(action: string) {
 
 export function AuditPanel({ items }: { items: AuditFeedItem[] }) {
     if (!items.length) {
-        return <div className="text-sm text-muted-foreground">Nenhum evento de auditoria registrado.</div>;
+        return <EmptyState title="Nenhum evento de auditoria registrado." className="py-4" />;
     }
 
     return (

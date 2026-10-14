@@ -34,7 +34,7 @@ const { parseListState: parseFavoritesListState, serializeListState: serializeFa
 const createFavoriteAction = createRecordFormAction.bind(
     null,
     "favorites",
-    formFields.map((f) => f.name),
+    formFields,
 );
 
 const favoritesListLayout: ListLayout<FavoriteEntity> = {
@@ -80,7 +80,7 @@ function loadFavoriteContext(record: FavoriteEntity): ContextItem[] {
 export const favoritesModule = defineRecordModule<FavoriteEntity>({
     model: "favorites",
     label: "Favoritos",
-    views: ["list", "cards", "graph", "form"],
+    views: ["list", "cards", "graph"],
     defaultView: "list",
     dataHandlers: { search: searchFavorites, read: readFavorite, create: createFavorite, update: updateFavorite, delete: deleteFavorite },
     formFields,

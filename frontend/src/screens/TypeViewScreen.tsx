@@ -6,6 +6,7 @@ import { RecordListHost } from "@components/Layout/RecordListHost";
 import { RecordSearch } from "@components/Layout/RecordSearch";
 import { TypeView, type TypeViewMode } from "@components/TypeView/TypeView";
 import { ViewSwitcher } from "@components/TypeView/ViewSwitcher";
+import { CreateRecordSheet } from "@components/TypeView/CreateRecordSheet";
 
 type TypeViewScreenProps = {
     moduleName: string;
@@ -22,20 +23,30 @@ export async function TypeViewScreen({ moduleName, searchParams }: TypeViewScree
     const args = mod.parseListState(rawParams);
     const dataProvider = createDataProvider();
     const result = await dataProvider.search(moduleName, args);
+    const listContext = { data: result.data, searchArgs: args };
 
     return (
         <div>
             <AppTopbar
                 title={mod.label}
                 center={<RecordSearch searchText={args.searchText} resultCount={result.pagination.total} />}
-                actions={<ViewSwitcher current={mode} views={mod.views} />}
+                actions={
+                    <>
+                        <ViewSwitcher current={mode} views={mod.views} />
+                        {mod.listLayout.form ? (
+                            <CreateRecordSheet label={mod.label}>
+                                {mod.listLayout.form(listContext)}
+                            </CreateRecordSheet>
+                        ) : null}
+                    </>
+                }
             />
-            <div className="px-4 py-2">
+            <div className="px-4 py-3">
                 <RecordListHost>
                     <TypeView
                         layout={mod.listLayout}
                         mode={mode}
-                        context={{ data: result.data, searchArgs: args }}
+                        context={listContext}
                     />
                 </RecordListHost>
             </div>

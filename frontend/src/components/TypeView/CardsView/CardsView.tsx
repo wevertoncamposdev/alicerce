@@ -1,15 +1,21 @@
 import Link from "next/link";
+import { EmptyState } from "@components/ui/empty-state";
+import { Card, CardContent } from "@components/ui/card";
 
 export function CardsView<T extends { id: string | number; title: string }>({ data, detail }: { data: T[]; detail: string }) {
     if (data.length === 0) {
-        return <p className="text-sm text-muted-foreground p-4">Nenhum item encontrado.</p>;
+        return <EmptyState title="Nenhum item encontrado." />;
     }
 
     return (
         <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
             {data.map((item) => (
-                <Link key={item.id} href={`${detail}/${item.id}`} className="border rounded-lg p-4 hover:shadow-sm transition-shadow">
-                    <strong>{item.title}</strong>
+                <Link key={item.id} href={`${detail}/${item.id}`} className="block transition-shadow hover:shadow-md">
+                    <Card>
+                        <CardContent>
+                            <span className="font-medium text-foreground">{item.title}</span>
+                        </CardContent>
+                    </Card>
                 </Link>
             ))}
         </div>

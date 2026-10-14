@@ -32,6 +32,9 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
             initialData: initial,
             idAccessor: (u) => u.id,
             rowLink: (u) => `/users/${u.id}`,
+            emptyMessage: "Nenhum usuário associado a esta role.",
+            confirmDetachTitle: "Remover usuário desta role?",
+            confirmDetachDescription: "O usuário perde imediatamente as permissões associadas a essa role.",
             onAttach: async (item: any) => {
                 if (!currentTenantId) {
                     toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
@@ -51,7 +54,6 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
                 }
             },
             onDetach: async (userId: string) => {
-                if (!window.confirm("Remover usuário deste role?")) return;
                 if (!currentTenantId) {
                     toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
                     return;

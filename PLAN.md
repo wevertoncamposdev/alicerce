@@ -705,6 +705,521 @@ sessão). Os itens dele que **ainda são reais** e não tinham equivalente neste
 
 ---
 
+## P8 — Padronização visual "comercial": correções de bugs — ✅ feito em 2026-10-14
+
+Novo bloco, aberto a pedido do usuário: o visual do frontend está "muito simples" e
+precisa de padronização comercial (formulários, drawers, tipografia) usando só
+Tailwind + shadcn, sem libs novas fora desse ecossistema. Três investigações
+exploratórias + um agente de planejamento mapearam o design system atual; o plano
+completo (P8→P15) está registrado nas "Decisões já tomadas" abaixo. Este bloco é a
+primeira fase — bugs de zero dependência, antes de qualquer trabalho de tokens/
+componentes novos.
+
+- [x] **Título vazio em toda tela de detalhe.** `src/screens/DetailViewScreen.tsx:27`
+  passava `title={record?.title ?? ""}` para o `AppTopbar` — nenhuma entidade
+  (`User`/`Role`/`Permission`/`Tenant`/`Favorite`) tem campo `title`, então o `<h1>`
+  do topbar renderizava vazio em **todo** módulo. Corrigido para `title={mod.label}`,
+  mesmo padrão já usado em `TypeViewScreen.tsx:29`.
+- [x] **`title`/`description`/`toolbar` mortos em `DetailShell`.** `DetailShell.tsx`
+  desestruturava os três props e nunca os usava no JSX — `toolbar` também não tinha
+  nenhum consumidor real passando valor (grep vazio em todo `src/`). Removidos
+  `title`/`description` de `DetailShell.tsx` e `DetailView.tsx` (dead code — o título
+  da página já vive só no `AppTopbar` desde o fix acima). **`toolbar` foi mantido e
+  religado**: agora renderiza de fato (`flex justify-end gap-2` acima do conteúdo),
+  pronto para quando um botão de ação (ex.: excluir, que hoje não existe em lugar
+  nenhum da UI) precisar de um lugar — não implementado ainda, só o slot ficou
+  utilizável.
+- [x] **`RelationShell` usando `Tabs` do shadcn.** O componente reimplementava tabs
+  manualmente com `<button>`/`border-b-2` cravado — trocado por
+  `Tabs`/`TabsList variant="line"`/`TabsTrigger`/`TabsContent` de
+  `components/ui/tabs.tsx` (já instalado, zero uso real antes desta mudança). A
+  variante `line` do `TabsList` foi escolhida porque reproduz visualmente o mesmo
+  padrão de "sublinhado na aba ativa" que o markup manual já tinha — troca de casca,
+  não de comportamento. API externa (`tabs: {key,label,content}[]`) mantida igual,
+  nenhum módulo consumidor (`users`/`roles`/`permissions`/`tenants`) precisou mudar.
+- [x] **`text-gray-700` cravado no `Label` do formulário de criação.** `FormView.tsx`
+  passava `className="text-sm font-medium text-gray-700"` no `Label` — redundante
+  (`text-sm font-medium` já é o default do componente, ver `components/ui/label.tsx`)
+  e prejudicial (cor fixa, não token OKLCH, não respeita dark mode). Removido o
+  `className` por completo.
+
+### Checkpoint desta rodada (P8)
+
+`tsc --noEmit` limpo, `npm run build` limpo (19 rotas), `npx vitest run` → 3/3
+arquivos, 13/13 testes. **Validado contra servidores reais** (não só tipo/build):
+subiu backend+frontend limpos (achou e matou dois processos zumbi de sessões
+anteriores nas portas 3000/3001/5000 antes de subir — mesma classe de achado já
+registrada no P2/P4), registrou um tenant/usuário de teste via
+`POST /api/auth/register`, e confirmou no HTML real: `GET /users/:id` → `<h1>Users</h1>`
+(antes vazio) + abas "Roles"/"Permissions" renderizadas via `data-slot="tabs-trigger"`
+do shadcn; `GET /users?view=form` → labels "E-mail"/"Senha" via `data-slot="label"`,
+zero ocorrência de `text-gray-700` no HTML, nenhum erro de aplicação em nenhuma das
+duas páginas.
+
+---
+
+## P9 — Fundação de tokens (tipografia nomeada + espaçamento) — ✅ feito em 2026-10-14
+
+- [x] **3 classes de hierarquia nomeadas em `globals.css`** (`@layer utilities`,
+  depois do `@layer base`): `.text-page-title` (`text-lg font-semibold` — o `<h1>`
+  do `AppTopbar`), `.text-section-title` (`text-base font-semibold` — cabeçalho de
+  bloco lateral/card), `.text-label` (`text-sm font-medium` — já é o default do
+  `Label` do shadcn, disponível para texto solto que precise da mesma hierarquia sem
+  usar o componente). Valores escolhidos a partir do padrão já dominante no código,
+  não inventados — é nomear o que já existia disperso, não redesenhar.
+- [x] **Aplicado nos pontos divergentes identificados**: `AppTopbar.tsx` (`text-lg
+  font-semibold` → `.text-page-title`), `SideShell.tsx` (`text-base font-semibold` →
+  `.text-section-title`, usado hoje pelas páginas de login/register, não pelo
+  `DetailView` como a investigação inicial supunha).
+  **Achado não previsto, corrigido também aqui**: `PermissionsListView.tsx` tinha um
+  `<h2>{formatMessage({id:"permission.title"})}</h2>` próprio — redundante, já que o
+  `AppTopbar` da rota `/permissions` já mostra `mod.label` ("Permissions"). Nenhum
+  outro módulo (`users`/`roles`/`tenants`, via `ListView.tsx` genérico) duplica o
+  título dessa forma — confirmado por grep que `ListView.tsx` não tem `h1`/`h2`/`h3`
+  nenhum. Removido o `<h2>` em vez de só trocar sua classe.
+  **Decisão consciente de não alinhar**: `DocBlocks.tsx` (`DocSection`, `text-2xl
+  font-bold tracking-tight`) foi deixado como está — é o título de seção de uma
+  página de documentação/artigo (`/develop`), não uma tela de produto; forçá-lo a
+  usar `.text-page-title` (menor) reduziria a hierarquia visual de um guia que já
+  funciona bem no seu próprio contexto editorial.
+- [x] **Espaçamento padronizado nos três shells de página**: `TypeViewScreen.tsx` e
+  `DetailViewScreen.tsx` (`px-4 py-2` → `px-4 py-3`, mesmo padding nos dois agora);
+  `DetailShell.tsx` (`space-y-5` no `<section>` externo → `space-y-6`, mantendo
+  `space-y-4` no bloco interno — hierarquia de 6 entre blocos maiores da página, 4
+  entre itens dentro de um bloco).
+
+### Achado da rodada: `npm run build` não detecta todo erro de CSS que o `next dev` detecta
+
+Um comentário CSS que escrevi continha a sequência `*/` no meio do texto
+(`text-*/font-*`), fechando o bloco de comentário no meio da frase e deixando o resto
+do texto como CSS inválido. **`npm run build` completou sem nenhum erro** (19 rotas,
+build limpo) — só `next dev` (Turbopack, client bundle) acusou
+`Error: Parsing CSS source code failed` e devolveu 500 em toda rota. Corrigido
+reescrevendo o comentário sem a sequência `*/` solta. **Lição**: para qualquer
+mudança em `globals.css`, `npm run build` sozinho não é suficiente como checkpoint —
+confirma a necessidade, já prevista no plano deste bloco, de validar contra o
+servidor de dev real, não só tipo/build.
+
+### Checkpoint desta rodada (P9)
+
+`tsc --noEmit` limpo, `npm run build` limpo, `npx vitest run` → 3/3 arquivos, 13/13
+testes. Validado contra servidores reais (mesmo processo de matar zumbis antes de
+subir, ver P8): `GET /permissions` → `<h1>Permissions</h1>` com `.text-page-title`,
+zero `<h2>` na página (confirma remoção do título duplicado); `GET /auth/login` →
+`<h3>Login</h3>` com `.text-section-title`; `GET /users` → `<h1>Users</h1>` intacto.
+Nenhum erro de aplicação em nenhuma das três páginas.
+
+---
+
+## P10 — Primitivas shadcn faltantes — ✅ feito em 2026-10-14
+
+- [x] **`Textarea` e `Alert` instalados** via `npx shadcn add textarea alert`.
+  **Achado repetido do P4**: o CLI gerou os dois arquivos importando `cn` do pacote
+  npm `"cn"` em vez de `@lib/utils` (padrão do resto do design system) — corrigido
+  nos dois, e a dependência `cn` (reintroduzida pelo CLI, sem nenhum outro uso no
+  projeto) removida de novo do `package.json`. **Aplicação real only no
+  `DetailShell.tsx`**: o banner de erro cravado
+  (`border border-red-300 bg-red-50 text-red-700`) foi trocado por
+  `Alert variant="destructive"` + `AlertDescription` + ícone `AlertCircle`
+  (lucide). A aplicação de `Textarea` dentro do `FormView.tsx` fica para o P12 (onde
+  o formulário é revisado como um todo, para não tocar o mesmo arquivo em duas
+  rodadas fragmentadas).
+  **Achado**: assim como `toolbar` no P8, a prop `error` do `DetailShell` também não
+  tem nenhum consumidor real hoje (grep vazio) — a troca de markup foi feita mesmo
+  assim (mesma lógica do `toolbar`: deixar pronto para uso, não é código morto a
+  remover, é um slot que ainda não tem uma feature que o preencha).
+- [x] **Variante `inline-detail` adicionada ao `select.tsx`** (o wrapper nativo do
+  projeto, não o Select Radix do shadcn — confirmado no mapeamento do P7/planejamento
+  deste bloco). Reescrito com `cva`, replicando exatamente o padrão de variantes já
+  usado em `input.tsx` (`default` = aparência de campo normal; `inline-detail` =
+  `rounded-none border-0 border-b` para ficar visualmente igual ao `Input` no modo de
+  edição). Zero consumidor hoje (confirmado por grep) — pronto para o P12.
+- [x] **Decisão de não instalar**: Combobox/Command (não há campo de busca com
+  autocomplete em nenhum formulário hoje — o único candidato, escolher uma relação,
+  já resolve isso via `RelationPicker` com `Dialog`+debounce), Accordion/Breadcrumb
+  (sem hierarquia de navegação nem conteúdo colapsável em nenhuma tela real),
+  Pagination (`ListView.tsx` já tem paginação funcional via TanStack Table —
+  instalar o componente de paginação do shadcn, pensado para links `<a>`, exigiria
+  reescrever uma lógica client-side que já funciona).
+
+### Checkpoint desta rodada (P10)
+
+`tsc --noEmit` limpo, `npm run build` limpo, `npx vitest run` → 3/3 arquivos, 13/13
+testes. Validado contra servidores reais: `GET /users/:id` carrega sem erro com o
+`DetailShell` já usando `Alert` internamente (prop `error` não exercitada por nenhum
+fluxo real hoje, mas a troca de componente não quebrou a renderização normal).
+
+---
+
+## P11 — Convenção de botões — ✅ feito em 2026-10-14
+
+- [x] **Convenção documentada em `/develop`.** Nova seção "Convenções de UI"
+  (`ConvencoesUiSection`, `part4-referencia.tsx`, registrada em `nav-config.ts` e
+  `DevelopDocsShell.tsx`, grupo "Referência"): `save` = submit/autosave (dominante,
+  mantido); `default` = ação primária fora de formulário (ex.: futuro botão "+ Novo"
+  do P13); `outline` = secundária com peso visual (cancelar, fechar); `ghost` =
+  terciária/ícone em contexto denso (linha de tabela, dropdown); `destructive` =
+  irreversível; `link` = navegação leve dentro de lista/tabela.
+- [x] **Inconsistência real encontrada e corrigida** — não nos dois arquivos que o
+  planejamento original apontava (`RelationPicker.tsx`/`MetaDataSidebar.tsx`
+  já seguiam a convenção ao ler o código de novo: `outline` para o trigger
+  secundário do drawer, `ghost` para o ícone de fechar — nenhuma mudança neles).
+  O caso real estava em **`RelationTablePanel.tsx`**: o botão "Salvar" (criar nota)
+  usava a variante `default` implícita (sem `variant` declarado) em vez de `save`,
+  e "Cancelar" usava `ghost` em vez de `outline`. Corrigido para alinhar com a
+  convenção — nenhum outro par Salvar/Cancelar foi encontrado no resto do código
+  (confirmado por grep em todo `src/`).
+
+---
+
+## P12 — Formulários — ✅ feito em 2026-10-14
+
+O maior bloco do plano de UI. Reescrito `FormView.tsx` por completo.
+
+- [x] **`FormFieldConfig.type` ganhou `checkbox`/`switch`** (`lib/registry/types.ts`).
+  Nenhum módulo usa esses tipos hoje — é capacidade nova para quando um módulo
+  precisar de um campo booleano, sem abusar de `select` com `"true"`/`"false"`.
+- [x] **`FormView.tsx` renderiza componentes reais**: `Textarea` (P10) no lugar do
+  `<textarea>` cru; `Select` (P10, com a variante `inline-detail` no modo edit) no
+  lugar do `<select>` cru; `Checkbox`/`Switch` via um componente auxiliar novo,
+  `BooleanFieldInput`. **Achado de implementação**: `Checkbox`/`Switch` (Radix) usam
+  `checked`/`onCheckedChange`, não `value`/`onChange` como os demais campos, e não
+  geram entrada no `FormData` nativo por conta própria — `BooleanFieldInput` resolve
+  os dois problemas com um `<input type="hidden">` paralelo ao componente visual,
+  sincronizado via estado interno (modo uncontrolled, create) ou via `checked`
+  vindo de fora (modo controlled, edit) — funciona nos dois modos sem duplicar
+  lógica.
+- [x] **`Label` agora aparece também no modo edição** — antes só existia no create;
+  confirmado no HTML real (`GET /users/:id` passou a mostrar "E-mail"/"Senha"/"Status"
+  como labels, onde antes não havia nenhum).
+- [x] **Mensagens de erro por campo via zod — módulo novo `lib/registry/form-validation.ts`,
+  genérico desde já (não só prova de conceito num módulo).** `buildFormSchema`
+  deriva um `z.object` a partir do próprio `FormFieldConfig[]` do módulo (sem
+  escrever schema manual por módulo); `validateFormPayload` devolve
+  `{ok:true} | {ok:false, fieldErrors}`. **Dois achados reais de implementação,
+  cobertos pelos 5 testes novos (`form-validation.test.ts`)**:
+  1. Encadear builders nativos do zod (`z.string().email(msg).min(1,msg2)`) faz um
+     campo e-mail vazio+obrigatório reportar "e-mail inválido" em vez de
+     "obrigatório" — a ordem dos checks internos do zod decide qual mensagem
+     "ganha", não a ordem lógica que eu queria. Resolvido com um único
+     `superRefine` por campo, com prioridade explícita (vazio+obrigatório sempre
+     vence sobre formato errado).
+  2. No zod 4, `.refine(check, (value) => ({message}))` com mensagem dinâmica
+     **não aplica a mensagem** (cai no "Invalid input" genérico) — só
+     `superRefine` + `ctx.addIssue({message})` respeita uma mensagem calculada a
+     partir do valor. Confirmado isolando o comportamento num script Node antes de
+     decidir a correção.
+  **Integração**: `createRecordFormAction` (`lib/registry/actions.ts`) validava
+  nada antes — agora valida o payload completo antes de chamar `dataHandlers.create`,
+  devolvendo `fieldErrors` no `ActionState` em vez de só uma mensagem genérica.
+  **Mudança de assinatura que quebrou os 5 módulos**: a função passou a receber
+  `fields: FormFieldConfig[]` (para poder derivar o schema) em vez de só
+  `fieldNames: string[]` — e por ela ser consumida via `.bind()` em cada
+  `contract.tsx`, tentar deixá-la genérica (`<T extends object>`) quebrava a
+  inferência de tipo do `.bind()` (TypeScript não propaga genéricos através de
+  `Function.prototype.bind`, inferia `T = object` e `keyof object` vira `never`).
+  Resolvido tipando o parâmetro como `FormFieldConfig<Record<string, unknown>>[]`
+  (estrutural, sem genérico próprio na função) — os 5 `contract.tsx`
+  (`users`/`roles`/`permissions`/`tenants`/`favorites`) atualizados para passar
+  `formFields` direto em vez de `formFields.map((f) => f.name)`.
+  No autosave do edit, a mesma validação roda dentro do `onSave` do
+  `useAutoSaveController`, antes do PATCH: se inválido, marca os `fieldErrors`
+  (estado local do `EditFormView`) e lança para o `onError` existente, sem chamar
+  a API — evita um PATCH condenado a falhar/persistir dado inválido.
+- [x] **Indicador de loading por campo.** `useAutoSaveController.saving` é um
+  booleano do formulário inteiro (não por campo — o commit sempre salva o draft
+  completo, não um campo isolado); como não existe granularidade por campo na
+  API atual do hook, o indicador (`Loader2` animado) aparece ao lado do `Label` de
+  **todo** campo enquanto qualquer commit estiver em andamento — mais simples que
+  fingir uma granularidade que o hook não tem, e ainda comunica "algo está
+  salvando" sem inventar estado novo.
+
+### Checkpoint desta rodada (P11+P12)
+
+`tsc --noEmit` limpo, `npm run build` limpo, `npx vitest run` → 4/4 arquivos, 18/18
+testes (13 anteriores + 5 novos de `form-validation.test.ts`). Lint dos arquivos
+tocados sem novidade (2 warnings pré-existentes em `RelationTablePanel.tsx`, não
+relacionados à troca de variante). **Validado contra servidores reais**: `GET
+/users?view=form` → Labels "E-mail"/"Senha" certas; `GET /users/:id` → Labels
+"E-mail"/"Senha"/"Status" (confirma P12.3, antes não existiam no edit), `Select`
+renderizado (`data-slot="select"`, opção "Selecione..."); `GET /roles?view=form` →
+Labels "Nome"/"Tipo"/"Descrição", `Select` e `Textarea` presentes. Nenhum erro de
+aplicação em nenhuma página. **Não verificado nesta sessão** (sem ferramenta de
+automação de navegador, mesma ressalva já registrada no P4): o clique real de
+submissão no browser — criar com erro e ver a mensagem aparecer, criar com sucesso,
+editar um campo e ver o autosave disparar. A cobertura real da lógica de validação
+vem dos 5 testes unitários (determinísticos, não dependem de browser); a
+renderização SSR das páginas foi confirmada via HTML real.
+
+---
+
+## P13 — Criar via `Sheet` + alinhar overlays existentes — ✅ feito em 2026-10-14
+
+- [x] **`form` removido do `ViewSwitcher`** — deixou de ser um modo de visualização
+  misturado com `list`/`cards`/`graph` (o ícone `Plus` que destoava dos ícones de
+  "como exibir dados"). `ICON_BY_VIEW` perdeu a entrada; `ViewSwitcher` agora
+  filtra `"form"` de `views` antes de montar o `ToggleGroup` (defesa redundante,
+  já que `views` também parou de listar `"form"` nos 5 contracts — ver abaixo) e
+  retorna `null` se não sobrar nenhuma view real.
+- [x] **Novo botão "+ Novo" abre um `Sheet`** (`components/TypeView/CreateRecordSheet.tsx`,
+  novo). Reaproveita 100% o `FormView mode="create"` que cada módulo já montava em
+  `listLayout.form(ctx)` — não duplica lógica de criação nenhuma, só troca a casca
+  (antes: substituía a lista inteira ao navegar para `?view=form`; agora: Sheet
+  lateral por cima da lista).
+  **Restrição real de RSC descoberta no caminho**: `TypeViewScreen` (Server
+  Component) é quem chama `mod.listLayout.form(ctx)` — uma função não pode viajar
+  como prop de um Client Component ancestral (`CreateRecordSheet`, que precisa de
+  `useState` para `open`/`setOpen`) até dentro dessa chamada, porque ela passa por
+  um Server Component no meio e funções não serializam através da fronteira RSC.
+  Resolvido com Context API (`contexts/create-sheet-context.tsx`, novo): Context
+  atravessa a fronteira RSC normalmente desde que o Provider seja Client Component
+  — o Server Component no meio só repassa `children` sem precisar saber nada sobre
+  isso. `CreateFormView` (dentro de `FormView.tsx`) consome o contexto e chama
+  `onCreateSuccess?.()` quando `state.ok && state.message` (sinal de resposta real
+  do servidor — `state.ok` já é `true` no estado inicial do `useActionState`, antes
+  de qualquer submit, então não basta checar só `ok`).
+  **`"form"` removido de `views: [...]`** nos 5 contracts (`users`/`roles`/
+  `permissions`/`tenants`/`favorites`) — deixou de ser uma "view" roteável por
+  `?view=form` (cai no fallback `defaultView`, sempre `"list"` nos 5), mas a função
+  `listLayout.form` continua existindo e é chamada diretamente pelo
+  `CreateRecordSheet` via `TypeViewScreen`, não mais através do roteamento de
+  `mode`/`TypeView`.
+- [x] **`RelationPicker.tsx` alinhado**: `Skeleton` (4 linhas) no lugar do
+  `<p>Carregando...</p>` cru; largura do `DialogContent` simplificada de
+  `w-[720px] max-w-full sm:max-w-[720px]` (redundante — a base já era fixa em
+  720px, então o `max-w-full`/`sm:max-w` não acrescentavam nada) para
+  `w-full sm:max-w-[720px]`, mesmo comportamento final mas consistente com o
+  padrão do `DialogContent` default (`w-full max-w-[calc(100%-2rem)] sm:max-w-sm`).
+
+### Checkpoint desta rodada (P13)
+
+`tsc --noEmit` limpo, `npm run build` limpo, `npx vitest run` → 4/4 arquivos, 18/18
+testes. Lint sem regressão (confirmado via `git stash`: o único erro e os dois
+warnings reportados nos arquivos tocados já existiam antes desta rodada — não são
+meus). **Validado contra servidores reais**, de ponta a ponta:
+`GET /users` → botão "Novo" presente, `data-slot="sheet-trigger"` presente,
+`data-slot="sheet-content"` **ausente** (confirma que o Sheet começa fechado —
+Radix só monta o conteúdo via Portal quando aberto), `aria-label="form"` ausente no
+switcher, `<table>` real da lista presente; `GET /users?view=form` → sem erro,
+nenhum campo de senha solto substituindo a lista, `<table>` presente (confirma o
+fallback para `"list"`); `GET /favorites` → switcher mostra só
+`list`/`cards`/`graph`, botão "Novo" presente; `GET /audit` (módulo read-only) →
+**sem** botão "Novo" e **sem** `sheet-trigger`, confirmando que o botão só aparece
+quando o módulo de fato declara `listLayout.form`. **Não verificado nesta sessão**
+(sem ferramenta de automação de navegador): o clique real no botão abrindo o Sheet
+e o fechamento automático após criar com sucesso — a lógica do Context foi inferida
+corretamente pela estrutura do código e pelos sinais indiretos no HTML (Sheet
+fechado por padrão), mas o ciclo completo open→submit→close não foi clicado de
+verdade.
+
+---
+
+## P14 — `EmptyState` e `Skeleton` padronizados — ✅ feito em 2026-10-14
+
+- [x] **Componente novo `components/ui/empty-state.tsx`** — ícone (default `Inbox`
+  do lucide, trocável), título, descrição opcional, ação opcional. Funciona tanto
+  solto numa página quanto dentro de uma célula de tabela (`<td colSpan>`), já que
+  é só um `<div>` flexível.
+- [x] **12 ocorrências de texto solto substituídas** — mais do que as ~10 do
+  plano original, achadas por grep direto (`ListView`, `CardsView`,
+  `RelationPicker`, `RelationCrudHost`, `RelationTablePanel`, `ContextPanel`,
+  `AuditPanel`, `PermissionRolesHost`, `UserPermissionsHost`, `TenantUsersHost`,
+  `TenantRolesHost`, `AuditListView` — os últimos 3 não estavam na lista do
+  planejamento original).
+  **Achado real de duplicação, corrigido**: `PermissionRolesHost.tsx` renderizava
+  sua própria mensagem de vazio ("Nenhum role usa esta permissão ainda.") **além**
+  da que `RelationCrudHost` (usado internamente via `createRelationHost`) já
+  renderiza — as duas apareceriam juntas quando vazio. Resolvido adicionando
+  `emptyMessage?: string` como prop configurável em `RelationCrudHost` e
+  propagando via `createRelationHost`, em vez de duplicar a renderização.
+  Aproveitada a mudança para dar mensagens específicas (não o genérico "Nenhum
+  item.") nos 4 usos de `createRelationHost` (`UserRolesHost`, `RoleUsersHost`,
+  `RolePermissionsHost`, `PermissionRolesHost`).
+- [x] **`Skeleton` em `RelationCrudHost`** — a busca inicial via `list()` (prop
+  opcional) não tinha nenhum estado de loading visual; adicionado `loading`
+  state + 3 linhas de `Skeleton` enquanto carrega, antes de decidir entre
+  `EmptyState` (vazio) ou a tabela real.
+- [x] **Bug real encontrado durante a validação, corrigido (regressão do P12,
+  não do P14 em si)**: o React acusava em runtime "Select elements must be
+  either controlled or uncontrolled" toda vez que um módulo com campo `select`
+  carregava — `renderFieldInput` (`FormView.tsx`) passava `value` **e**
+  `defaultValue` simultaneamente para o `<Select>`, sempre, nos dois modos.
+  Só apareceu nos logs do servidor de dev durante a validação visual deste
+  bloco (nenhum teste automatizado pega warning de console do React).
+  Corrigido: `value` quando `onChange` está presente (modo edit, controlled),
+  `defaultValue` quando não (modo create, uncontrolled) — nunca os dois.
+
+### Achado da rodada, não é bug: `GET /tenants` retorna 500 para usuário recém-registrado
+
+Validando este bloco, `GET /tenants` devolveu 500 para um usuário de teste
+recém-criado via `POST /api/auth/register`. Não é regressão: o log mostra
+`403 Acesso negado: permission insuficiente` vindo do backend (RBAC funcionando
+corretamente — esse usuário não tem `tenant.read`). O frontend hoje não tem um
+error boundary amigável para esse caso (propaga como 500 genérico em vez de uma
+página "sem permissão") — é um gap de UX genuíno, mas fora do escopo deste bloco
+(P14 é sobre estado vazio, não sobre erro de autorização); fica como candidato a
+item futuro, não corrigido aqui.
+
+### Checkpoint desta rodada (P14)
+
+`tsc --noEmit` limpo, `npm run build` limpo, `npx vitest run` → 4/4 arquivos,
+18/18 testes. Lint confirmado sem regressão via `git stash` — os 28 problemas
+(17 erros, 11 warnings) nos arquivos tocados são **exatamente os mesmos antes e
+depois** desta rodada (débito de `static-components` em
+`UserRolesHost`/`RoleUsersHost`/`RolePermissionsHost`, já documentado desde o
+P6, não corrigido aqui). **Validado contra servidores reais**: `GET
+/favorites?view=cards` (tenant novo, zero favoritos) → `EmptyState` renderizado
+de verdade no HTML ("Nenhum item encontrado." + ícone `Inbox` do lucide); `GET
+/users/:id` → sem o warning de Select controlado/não-controlado no log do
+servidor (confirmado ausente após o fix, presente antes dele). **Não
+verificado**: o `EmptyState` dentro de abas não-ativas do `Tabs` (ex.: aba
+"Permissions" de um usuário sem permissões) — Radix Tabs só monta no DOM a aba
+ativa (`data-state="active"`), então não aparece no HTML de uma requisição SSR
+simples sem clicar na aba; a lógica foi revisada no código e é idêntica à das
+abas que puderam ser validadas (mesma função `EmptyState`, mesma estrutura).
+
+---
+
+## P15 — Branding mínimo no `SidebarHeader` — ✅ feito em 2026-10-14
+
+- [x] **Placeholder de nome/logo do produto.** `AppSidebar.tsx`: `SidebarHeader`
+  estava completamente vazio — adicionado um quadrado com ícone `Blocks` (lucide)
+  sobre fundo `bg-primary` + o nome "Alicerce" (`.text-page-title`, token do P9).
+  **Decisão de implementação**: não usa `SidebarMenuButton` (como o resto do
+  menu) porque não há nenhuma ação associada a clicar no branding — usar um
+  botão `disabled` deixaria o texto com `opacity-50` (classe nativa do
+  componente), apagando visualmente o nome do produto, que é o contrário do
+  efeito desejado. Um `<div>` simples resolve sem herdar esse estado.
+  Comentário no código aponta explicitamente onde substituir pelo `<img>` de
+  uma logo real — é um template sem marca própria, então o placeholder precisa
+  ser fácil de achar e trocar.
+
+### Checkpoint desta rodada (P15)
+
+`tsc --noEmit` limpo, `npm run build` limpo, `npx vitest run` → 4/4 arquivos,
+18/18 testes. Lint do arquivo tocado sem nenhum problema. Validado contra
+servidores reais: `GET /dashboard` → "Alicerce" e o ícone `Blocks` presentes no
+HTML, sem erro de aplicação.
+
+---
+
+### Fechamento do bloco de padronização visual (P8 → P15)
+
+Com o P15, o bloco inteiro pedido pelo usuário ("o UX/UI hoje está muito
+simples, precisa padronizar... formulários, drawers, tipografia... bom visual
+comercial") está fechado. Resumo do que mudou, de ponta a ponta:
+
+- **4 bugs reais corrigidos** (P8): título vazio em toda tela de detalhe, props
+  mortas no `DetailShell`, tabs reimplementadas à mão, cor cravada quebrando
+  dark mode.
+- **Fundação de tokens** (P9): hierarquia de texto nomeada, espaçamento
+  consistente, mais um título duplicado encontrado e removido
+  (`PermissionsListView`).
+- **3 primitivas shadcn novas** (P10): `Textarea`, `Alert`, variante
+  `inline-detail` no `Select` — decisão explícita de **não** instalar
+  Combobox/Accordion/Breadcrumb/Pagination sem consumidor real.
+- **Convenção de botões documentada e uma inconsistência real corrigida** (P11).
+- **Formulários reescritos** (P12): campos reais em vez de HTML cru, `Label`
+  sempre visível, erro por campo via zod genérico (não RHF — decisão
+  justificada), indicador de loading por campo.
+- **Criar passou a ser um `Sheet`** (P13), não mais um modo de visualização
+  disfarçado — com uma restrição real de RSC descoberta e resolvida via Context.
+- **`EmptyState`/`Skeleton` padronizados** (P14) em 12+ pontos, mais uma
+  duplicação de mensagem de vazio encontrada e corrigida, mais um bug real de
+  runtime (`Select` controlado/não-controlado) pego durante a validação.
+- **Branding mínimo** (P15) no lugar que estava vazio desde o início.
+
+**Padrão que se repetiu em quase todo bloco**: a validação visual contra
+servidor real (não só `tsc`/`build`/testes) encontrou algo que os checkpoints
+automatizados não pegam — um comentário CSS que quebrava o parser (P9), um
+warning de runtime do React (P14), duplicações de UI que só aparecem quando se
+olha a tela renderizada (P9, P14). Vale manter esse hábito nos próximos blocos
+do `PLAN.md`, não só nos de UI.
+
+---
+
+## P16 — Atualização visual: cor de marca, elevação, confirmações — ✅ feito em 2026-10-14
+
+Pedido explícito do usuário, depois do P8–P15: até aquele ponto a padronização
+tinha mantido o visual neutro já existente, só organizando inconsistências. O
+usuário pediu uma atualização real rumo a um "padrão de UX/UI de mercado",
+citando `Dialog`/`Alert` como exemplos de elementos a adicionar. Antes de
+tocar em código, três perguntas focadas (`AskUserQuestion`) calibraram a
+direção — decisão de design de grande raio, afeta a aparência do app inteiro:
+**SaaS moderno com cor de marca** (base neutra + azul vibrante em destaques,
+sombra leve nos cards — não minimalista puro, não dashboard denso, não
+"new-york" de alto contraste), **azul** como tom, **densidade equilibrada**
+(nem compacta nem espaçosa).
+
+- [x] **Nova paleta de marca azul, com contraste WCAG calculado, não chutado.**
+  Escrito `scripts/check-contrast.mjs` (conversão OKLCH → sRGB linear →
+  luminância relativa → razão de contraste, fórmula WCAG 2.x) para validar os
+  candidatos antes de aplicar — nenhum valor foi escolhido só visualmente.
+  Light: `--primary: oklch(0.5 0.2 260)` (`#0559d2`) vs `--primary-foreground`
+  branco → ratio 5.97:1 (mínimo AA para texto normal é 4.5:1); `--ring: oklch(0.6
+  0.18 260)` vs fundo branco → ratio 4.03:1 (mínimo para componentes de UI é
+  3:1). Dark: `--primary: oklch(0.72 0.16 258)` (`#66a5ff`) com
+  `--primary-foreground` **escuro**, não branco — testado e confirmado que azul
+  claro + texto branco só dá ratio 2.43:1 (reprova), enquanto azul claro + texto
+  escuro dá 7.81:1. `--sidebar-primary`/`--sidebar-ring` uniformizados com o
+  novo primary em cada modo (antes o dark já tinha um azul ali, inconsistente
+  com o light que era cinza — achado de uma inconsistência pré-existente).
+  `--save` (cor do botão de submit/autosave) mantido como estava — já era um
+  azul da mesma família de hue (259, contra o novo 260), com ratio 8.35:1,
+  não precisava mudar. O botão `default` (`bg-primary`) já ficou azul
+  automaticamente, sem tocar em `button.tsx` — ele já consumia o token.
+- [x] **Elevação (sombra) padronizada em superfícies flutuantes.** `Sheet`/
+  `Popover`/`DropdownMenu` já tinham `shadow-md`/`shadow-lg`; `Dialog` e `Card`
+  não tinham nenhuma — adicionado `shadow-lg` ao `DialogContent` e `shadow-sm`
+  ao `Card`.
+- [x] **`CardsView.tsx` modernizado** — usava `<a>` com `border`+`hover:shadow-sm`
+  cru; trocado por `Card`/`CardContent` reais (ganha a sombra base do Card +
+  hover mais evidente, `hover:shadow-md`).
+- [x] **`AlertDialog` instalado e os 3 `window.confirm` nativos substituídos**
+  (`UserRolesHost`, `RoleUsersHost`, `RolePermissionsHost` — remoção de
+  role/usuário/permissão). **Mesmo bug recorrente do CLI** (P4/P10): o arquivo
+  gerado importava `cn` do pacote npm em vez de `@lib/utils`, e `Button` via
+  `@/components/ui/button` em vez do alias `@components` — corrigido; `cn`
+  removido de novo do `package.json`.
+  Criado `components/ui/confirm-dialog.tsx` (wrapper declarativo do
+  `AlertDialog`) e `hooks/use-confirm-dialog.tsx` (hook imperativo —
+  `const {confirm, dialog} = useConfirmDialog(); const ok = await confirm({title,
+  description}); if (!ok) return;` — mesma ergonomia que `window.confirm` já
+  tinha, só que assíncrono e com um Dialog real em vez do confirm nativo do
+  browser).
+  **Achado de duplicação durante a implementação**: a primeira versão
+  confirmava tanto dentro de `RelationCrudHost` (camada genérica usada via
+  `createRelationHost`) quanto dentro do `onDetach` de cada Host — o usuário
+  veria dois diálogos em sequência. Resolvido centralizando a confirmação só
+  no `RelationCrudHost` (via novas props `confirmDetachTitle`/
+  `confirmDetachDescription`, propagadas por `createRelationHost`), e revertida
+  a confirmação duplicada dos 3 Hosts — cada um agora só passa a mensagem
+  customizada, não a lógica de confirmar.
+  **Mais duas ações destrutivas que não tinham confirmação nenhuma, corrigidas**
+  (não pedidas explicitamente, achadas ao mapear o padrão): o ícone de lixeira
+  genérico do `RelationCrudHost` (usado por `PermissionRolesHost` e por
+  qualquer módulo futuro via `createRelationHost`) e a remoção de nota em
+  `RelationTablePanel.tsx` — ambos agora confirmam antes de excluir.
+
+### Checkpoint desta rodada (P16)
+
+`tsc --noEmit` limpo, `npm run build` limpo, `npx vitest run` → 4/4 arquivos,
+18/18 testes. Lint comparado via `git stash`: **zero erros novos** nos arquivos
+tocados, +1 warning (`exhaustive-deps`, mesma classe de débito já aceita em
+todo o projeto desde o P0). **Validado contra servidores reais**: extraído e
+lido o CSS compilado de verdade (não só o código-fonte) — `--primary: #0559d2`
+no light e `--primary: #66a5ff` no dark, exatamente os hex calculados pelo
+script de contraste; `.shadow-sm` presente e definida; botão "+ Novo" com
+`data-variant="default"` (consome `bg-primary`, agora azul); tela de detalhe de
+usuário com role atribuída mostrando o ícone de remover (trigger do
+`AlertDialog`) sem o próprio dialog montado no DOM enquanto fechado (confirma
+que o Radix só monta via Portal quando aberto — mesmo padrão já visto no P13).
+**Não verificado nesta sessão**: o clique real abrindo o `AlertDialog` e
+confirmando/cancelando — mesma limitação de ferramenta de automação de
+navegador já registrada em blocos anteriores.
+
+---
+
 ## Decisões já tomadas pelo usuário (registradas para não perguntar de novo)
 
 - **Captura do "before" na auditoria**: dispatch dinâmico no interceptor (não Prisma
@@ -719,6 +1234,27 @@ sessão). Os itens dele que **ainda são reais** e não tinham equivalente neste
 - **P7, por onde começar**: `TenantScopeGuard` global primeiro (menor escopo, sem
   dependência nova) — RLS, Redis, logging estruturado e auditoria de 401/403 ficam
   para rodadas futuras, cada um com sua própria discussão antes de implementar.
+- **Ordem combinada P7 restante + padronização visual (2026-10-14)**: duas trilhas
+  independentes (sem dependência técnica entre si). **Trilha A (backend)**, dentro do
+  P7: auditoria 401/403 → observabilidade estruturada (correlation-id + logger) → RLS
+  → cache Redis; depois débito de lint; depois upgrades maiores de framework
+  (NestJS v12, TS 7.0, Prisma 8 quando saísse do RC), cada um isolado em branch
+  própria. **Trilha B (frontend, novo bloco P8→P15)**: P8 bugs (feito, ver acima) →
+  P9 tokens de tipografia/espaçamento → P10 primitivas shadcn faltantes (decisão por
+  item: instalar `Textarea`/`Alert`, ajustar `select.tsx` com variante inline-detail,
+  não instalar Combobox/Accordion/Breadcrumb/Pagination sem consumidor real) → P11
+  convenção de botões → P12 formulários (maior bloco: `checkbox`/`switch` no
+  `FormFieldConfig`, `Textarea`/`Select` reais, `Label` também no edit, erro por
+  campo via **zod leve — não react-hook-form**, decisão justificada: o projeto já
+  tem dois modelos de estado de formulário idiomáticos — `useActionState` no create,
+  `useAutoSaveController` por campo no edit — RHF duplicaria o primeiro e é
+  incompatível com o segundo) → P13 criar via `Sheet` (decisão: **editar continua em
+  página cheia, só criar migra** — `DetailView` já é main+side+abas de relação,
+  não cabe num drawer; criar é bem mais simples e cabe no `Sheet` já instalado e
+  ocioso) → P14 `EmptyState`/`Skeleton` novos (podem andar em paralelo a P11–P13) →
+  P15 branding mínimo no `SidebarHeader` (flexível, pode ser feito em qualquer ponto).
+  Recomendação: priorizar a Trilha B primeiro (demanda explícita mais recente do
+  usuário), Trilha A em paralelo ou imediatamente depois.
 
 ---
 
