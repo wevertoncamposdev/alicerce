@@ -1,6 +1,6 @@
 import { apiServer } from "@lib/api-server"; // ajuste pro caminho real do seu apiServer
 import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
-import type { Favorite, FavoriteEntity } from "@/modules/favorites/types/types";
+import type { Favorite, FavoriteEntity } from "@modules/favorites/types/types";
 
 
 // modules/favorites/config/provider.ts

@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { canAccessRoute, resolveRoutePermission } from "@/lib/authz";
-import type { AuthUserProfile } from "@/lib/auth-types";
+import { canAccessRoute, resolveRoutePermission } from "@lib/authz";
+import type { AuthUserProfile } from "@lib/auth-types";
 
 export function AppAccessGuard({
     currentUser,

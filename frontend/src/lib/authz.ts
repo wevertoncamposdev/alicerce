@@ -1,7 +1,7 @@
 export type RouteAccessMeta = {
     prefix: string;
     permission: string;
-    module: 'users' | 'roles' | 'permissions' | 'audit' | 'tenants' | 'tasks' | 'favorites';
+    module: 'users' | 'roles' | 'permissions' | 'audit' | 'tenants' | 'favorites';
     title: string;
 };
 
@@ -12,7 +12,6 @@ const ROUTE_RULES: ReadonlyArray<RouteAccessMeta> = [
     { prefix: '/permissions', permission: 'permission.read', module: 'permissions', title: 'Permissoes' },
     { prefix: '/audit', permission: 'audit.read', module: 'audit', title: 'Auditoria' },
     { prefix: '/tenants', permission: 'tenant.read', module: 'tenants', title: 'Tenants' },
-    { prefix: '/tasks', permission: 'task.read', module: 'tasks', title: 'Tarefas' },
 ];
 
 const ACTION_PERMISSION_RULES = {
@@ -30,9 +29,6 @@ const ACTION_PERMISSION_RULES = {
     'tenants.create': 'tenant.update',
     'tenants.update': 'tenant.update',
     'tenants.delete': 'tenant.update',
-    'tasks.create': 'task.create',
-    'tasks.update': 'task.update',
-    'tasks.delete': 'task.delete',
 } as const;
 
 export type AuthAction = keyof typeof ACTION_PERMISSION_RULES;

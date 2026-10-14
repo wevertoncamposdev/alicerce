@@ -36,7 +36,7 @@ describe('PermissionsController', () => {
     const dto = {
       tenantId: 'tenant-malicious',
       name: 'read:users',
-      type: 'READ',
+      type: 'READ' as const,
       resource: 'users',
       description: 'desc',
     };

@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: alicerce
+      POSTGRES_PASSWORD: alicerce
+      POSTGRES_DB: alicerce
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alicerce"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://alicerce:alicerce@db:5432/alicerce
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-me}
+      COOKIE_SECRET: ${COOKIE_SECRET:-dev-only-change-me}
+      CORS_ORIGINS: http://localhost:3000
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    environment:
+      # Server-only — nunca chega ao browser (ver lib/api-server.ts). Pode
+      # usar o hostname interno do compose em vez de localhost.
+      INTERNAL_API_URL: http://backend:5000/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  db-data:

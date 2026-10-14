@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { UserEntity } from "@/modules/users/types/types";
+import type { UserEntity } from "@modules/users/types/types";
 
 export function TenantUsersHost({ items }: { items: UserEntity[] }) {
     return (

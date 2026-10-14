@@ -59,10 +59,7 @@ export function EstadoAtualSection() {
                 {`1. Padronizar o backend de audit no mesmo contrato dos outros módulos
    (SearchAuditDto + @Search()) — hoje funciona via GET com query params,
    só não segue o padrão formal que roles/users/permissions/tenants seguem.
-2. Remover components/shells/{RelationShell,PainelSearchShell}.tsx (legado) —
-   ainda usados por audit/page.tsx e pelas páginas de auth; migrar esses 3
-   consumidores para os shells atuais antes de apagar.
-3. Views Kanban e Calendar aparecem no ViewSwitcher mas não têm componente
+2. Views Kanban e Calendar aparecem no ViewSwitcher mas não têm componente
    implementado — decidir se entram ou se o ícone sai do switcher.`}
             </DocCode>
             <DocCallout type="info">
@@ -72,9 +69,13 @@ export function EstadoAtualSection() {
                 reverso de permissions — já estavam resolvidos; o antigo item #4, &quot;extrair mutações
                 para <code>config/client-actions.ts</code>&quot;, foi resolvido na direção oposta: esse
                 arquivo era um rascunho duplicado sem uso e foi removido —{" "}
-                <code>actions/roleService.ts</code> é o lugar definitivo). Atualize esta seção conforme os
-                itens acima forem resolvidos — ela deve sempre espelhar a realidade do código, não um
-                plano estático.
+                <code>actions/roleService.ts</code> é o lugar definitivo). <code>components/shells/</code>
+                legado (<code>RelationShell</code>, <code>PainelSearchShell</code>, <code>SideShell</code>)
+                também foi removido em 2026-10-13 — <code>audit/page.tsx</code> passou a usar{" "}
+                <code>TypeViewScreen</code> como todo módulo real (ele já tinha contrato registrado e nunca
+                era usado), e <code>SideShell</code> migrou para <code>components/Layout/SideShell.tsx</code>{" "}
+                com os tokens atuais. Atualize esta seção conforme os itens acima forem resolvidos — ela deve
+                sempre espelhar a realidade do código, não um plano estático.
             </DocCallout>
 
             <DocSubTitle>Licenciamento</DocSubTitle>

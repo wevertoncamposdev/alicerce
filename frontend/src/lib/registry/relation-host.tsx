@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import RelationCrudHost from "@/components/DetailView/RelationView/RelationCrudHost";
+import RelationCrudHost from "@components/DetailView/RelationView/RelationCrudHost";
 
 export type RelationHostFactoryConfig<T extends Record<string, any>> = {
     title: string;

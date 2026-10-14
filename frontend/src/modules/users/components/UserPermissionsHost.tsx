@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { PermissionEntity } from "@/modules/permissions/types/types";
+import type { PermissionEntity } from "@modules/permissions/types/types";
 
 export function UserPermissionsHost({ items }: { items: PermissionEntity[] }) {
     return (

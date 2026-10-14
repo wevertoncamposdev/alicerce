@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '@modules/user/user.module';
 import { AuthGuard } from './auth.guard';
+import { TenantScopeGuard } from '@core/common/guards/tenant-scope.guard';
 
 @Module({
   imports: [
@@ -22,8 +23,14 @@ import { AuthGuard } from './auth.guard';
   providers: [
     AuthService,
     {
+      // Ordem importa: precisa rodar antes do TenantScopeGuard, que depende
+      // de `request.user.tenantId` já estar populado por este guard.
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: TenantScopeGuard,
     },
   ],
   controllers: [AuthController],

@@ -1,10 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { ExecutionContext, INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { RoleModule } from '@modules/role/role.module';
 import { PrismaService } from '@core/prisma/prisma.service';
-import { APP_GUARD } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 
 class MockPrisma {
@@ -120,8 +118,22 @@ describe('Roles attach/detach (e2e with mocked Prisma)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(mockPrisma as unknown as PrismaService)
+      // RoleModule (testado isolado, sem AuthModule) não tem nada que povoe
+      // request.user — e @TenantId() lê o tenant de lá (nunca do body da
+      // requisição, que é o que os testes abaixo mandam em
+      // `.send({ tenantId: ... })`), lançando ForbiddenException direto no
+      // decorator se `request.user` não existir. RolesPermissionsGuard é o
+      // único guard que de fato roda neste módulo isolado — o stub faz dupla
+      // função: libera o acesso e povoa request.user, como o AuthGuard real
+      // faria a partir do JWT num ambiente completo.
       .overrideGuard(RolesPermissionsGuard)
-      .useValue({ canActivate: () => true })
+      .useValue({
+        canActivate: (context: ExecutionContext) => {
+          const request = context.switchToHttp().getRequest();
+          request.user = { sub: 'user-1', tenantId: 'tenant-1', roles: ['ADMIN'], permissions: ['role.assign'] };
+          return true;
+        },
+      })
       .compile();
 
     app = moduleFixture.createNestApplication();

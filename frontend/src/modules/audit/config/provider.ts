@@ -2,7 +2,7 @@ import { apiServer } from "@lib/api-server";
 import { getSessionTenantId } from "@lib/session";
 import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
 
-import type { AuditEntry } from "@/modules/audit/types/types";
+import type { AuditEntry } from "@modules/audit/types/types";
 
 export async function searchAuditEntries(args: SearchArgs): Promise<SearchResult<AuditEntry>> {
     const tenantId = await getSessionTenantId();

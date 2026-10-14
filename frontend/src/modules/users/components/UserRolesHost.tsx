@@ -2,17 +2,16 @@
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useAuth } from "@/contexts/auth-context";
-import { RoleEntity } from "@/modules/roles/types/types";
-import * as roleService from "@/modules/roles/actions/roleService";
-import RelationPicker from "@/components/RelationPicker/RelationPicker";
-import { useToast } from "@components/ui/toast";
+import { RoleEntity } from "@modules/roles/types/types";
+import * as roleService from "@modules/roles/actions/roleService";
+import RelationPicker from "@components/RelationPicker/RelationPicker";
+import { toast } from "sonner";
 import useApiError from "@/hooks/useApiError";
-import { createRelationHost } from "@/lib/registry/relation-host";
+import { createRelationHost } from "@lib/registry/relation-host";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 
 export function UserRolesHost({ userId, initial }: { userId: string; initial: RoleEntity[] }) {
     const { currentTenantId } = useAuth();
-    const toast = useToast();
     const formatError = useApiError();
     const { setStatus } = useAutoSaveStatus();
 
@@ -34,7 +33,7 @@ export function UserRolesHost({ userId, initial }: { userId: string; initial: Ro
             rowLink: (r) => `/roles/${r.id}`,
             onAttach: async (item: any) => {
                 if (!currentTenantId) {
-                    toast.show({ title: "Tenant indisponível", description: "Recarregue a página e tente novamente." });
+                    toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
                     return;
                 }
 
@@ -42,18 +41,18 @@ export function UserRolesHost({ userId, initial }: { userId: string; initial: Ro
                 try {
                     await roleService.attachRoleUser({ roleId: item.id, tenantId: currentTenantId, userId });
                     setStatus("saved");
-                    toast.show({ title: "Role associada" });
+                    toast("Role associada");
                 } catch (err) {
                     console.error("failed to attach role to user", err);
                     setStatus("error", "Falha ao associar a role.");
-                    toast.show({ title: "Falha ao associar role", description: formatError(err) });
+                    toast("Falha ao associar role", { description: formatError(err) });
                     throw err;
                 }
             },
             onDetach: async (roleId: string) => {
                 if (!window.confirm("Remover role do usuário?")) return;
                 if (!currentTenantId) {
-                    toast.show({ title: "Tenant indisponível", description: "Recarregue a página e tente novamente." });
+                    toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
                     return;
                 }
 
@@ -61,11 +60,11 @@ export function UserRolesHost({ userId, initial }: { userId: string; initial: Ro
                 try {
                     await roleService.detachRoleUser({ roleId, tenantId: currentTenantId, userId });
                     setStatus("saved");
-                    toast.show({ title: "Role removida" });
+                    toast("Role removida");
                 } catch (err) {
                     console.error("failed to detach role from user", err);
                     setStatus("error", "Falha ao remover a role.");
-                    toast.show({ title: "Falha ao remover role", description: formatError(err) });
+                    toast("Falha ao remover role", { description: formatError(err) });
                     throw err;
                 }
             },
@@ -78,7 +77,7 @@ export function UserRolesHost({ userId, initial }: { userId: string; initial: Ro
                 />
             ),
         }),
-        [columns, currentTenantId, formatError, initial, toast, userId],
+        [columns, currentTenantId, formatError, initial, userId],
     );
 
     return <RelationHost initial={initial} />;

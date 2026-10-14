@@ -2,13 +2,13 @@
 import { getModule } from "@lib/registry";
 import { createDataProvider } from "@lib/data-provider";
 import { getEntityAuditTrail } from "@lib/data-provider/rest/audit";
-import { DetailView } from "@/components/DetailView/DetailView";
-import { AppTopbar } from "@/components/Layout/AppTopbar";
+import { DetailView } from "@components/DetailView/DetailView";
+import { AppTopbar } from "@components/Layout/AppTopbar";
 import { AutoSaveStatusProvider } from "@/contexts/autosave-status-context";
-import { AutoSaveIndicator } from "@/components/Layout/AutoSaveIndicator";
-import { MetaDataSidebar } from "@/components/DetailView/MetaDataView/MetaDataSidebar";
-import { MetaDataView } from "@/components/DetailView/MetaDataView";
-import type { AuditFeedItem, ContextItem } from "@/components/DetailView/MetaDataView/types";
+import { AutoSaveIndicator } from "@components/Layout/AutoSaveIndicator";
+import { MetaDataSidebar } from "@components/DetailView/MetaDataView/MetaDataSidebar";
+import { MetaDataView } from "@components/DetailView/MetaDataView";
+import type { AuditFeedItem, ContextItem } from "@components/DetailView/MetaDataView/types";
 
 export async function DetailViewScreen({ moduleName, id }: { moduleName: string; id: string }) {
     const mod = getModule(moduleName);

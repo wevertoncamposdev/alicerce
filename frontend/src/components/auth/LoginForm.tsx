@@ -3,7 +3,7 @@
 import { useActionState } from 'react';
 import Link from 'next/link';
 import { Button, Input } from '@components/ui/index';
-import { login } from '@/lib/auth-login';
+import { login } from '@lib/auth-login';
 
 const initialState = { error: null as string | null };
 

@@ -50,18 +50,19 @@ describe('UsersController', () => {
 
   describe('POST /users', () => {
     it('should call create on service', async () => {
+      const tenantId = randomUUID();
       const dto: CreateUserDto = {
-        tenantId: randomUUID(),
+        tenantId,
         email: 'john@example.com',
         password: '123456',
       };
       const expected = { id: 'user-id', ...dto };
       service.create.mockResolvedValueOnce(expected as never);
 
-      const result = await controller.create(dto, dto.tenantId);
+      const result = await controller.create(dto, tenantId);
 
       expect(result).toEqual(expected);
-      expect(service.create).toHaveBeenCalledWith(dto, dto.tenantId);
+      expect(service.create).toHaveBeenCalledWith(dto, tenantId);
     });
   });
 

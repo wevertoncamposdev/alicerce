@@ -8,12 +8,12 @@ import {
     searchFavorites, readFavorite, createFavorite, updateFavorite, deleteFavorite,
 } from "./provider";
 
-import type { FavoriteEntity } from "@/modules/favorites/types/types";
-import type { ContextItem } from "@/components/DetailView/MetaDataView/types";
+import type { FavoriteEntity } from "@modules/favorites/types/types";
+import type { ContextItem } from "@components/DetailView/MetaDataView/types";
 
-import { FormView } from "@/components/TypeView/FormView/FormView";
-import { CardsView } from "@/components/TypeView/CardsView/CardsView";
-import { RelationTablePanel } from "@/components/DetailView/RelationView/RelationTablePanel";
+import { FormView } from "@components/TypeView/FormView/FormView";
+import { CardsView } from "@components/TypeView/CardsView/CardsView";
+import { RelationTablePanel } from "@components/DetailView/RelationView/RelationTablePanel";
 import { FavoritesGraphView } from "@modules/favorites/components/FavoritesGraphView";
 import { FavoritesListView } from "@modules/favorites/components/FavoritesListView";
 import { listFavoriteNotes } from "./notes-provider";

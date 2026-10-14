@@ -15,17 +15,28 @@ import {
   SidebarFooter,
 } from "@components/ui/sidebar";
 import {
+  Avatar,
+  AvatarFallback,
+} from "@components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@components/ui/dropdown-menu";
+import {
   type LucideIcon,
-  User2,
   Home,
   Users,
   Building2,
   KeyRound,
   Shield,
   FileText,
-  CheckSquare2,
   LogOut,
-  Star
+  Star,
+  ChevronsUpDown,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
@@ -38,7 +49,6 @@ const MODULE_ICONS: Record<RouteAccessMeta["module"], LucideIcon> = {
   roles: KeyRound,
   permissions: Shield,
   audit: FileText,
-  tasks: CheckSquare2,
 };
 
 const GENERAL_MODULES: RouteAccessMeta["module"][] = ["users", "tenants"];
@@ -89,7 +99,18 @@ function NavItem({
   );
 }
 
-export function AppSidebar() {
+function getInitials(email: string): string {
+  const [local] = email.split("@");
+  return (local?.slice(0, 2) || "?").toUpperCase();
+}
+
+export function AppSidebar({
+  userEmail,
+  tenantName,
+}: {
+  userEmail?: string;
+  tenantName?: string | null;
+}) {
   const { signOut, hasPermission } = useAuth();
   const router = useRouter();
 
@@ -152,15 +173,42 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={() => {
-                signOut();
-                router.replace("/auth/login");
-              }}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton className="h-auto">
+                  <Avatar className="size-6">
+                    <AvatarFallback className="text-[0.65rem]">
+                      {userEmail ? getInitials(userEmail) : "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="flex min-w-0 flex-1 flex-col text-left">
+                    <span className="truncate text-sm">{userEmail ?? "Usuário"}</span>
+                    {tenantName ? (
+                      <span className="truncate text-xs text-muted-foreground">{tenantName}</span>
+                    ) : null}
+                  </span>
+                  <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuLabel className="flex flex-col">
+                  <span className="truncate text-sm font-medium">{userEmail ?? "Usuário"}</span>
+                  {tenantName ? (
+                    <span className="truncate text-xs text-muted-foreground">{tenantName}</span>
+                  ) : null}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    signOut();
+                    router.replace("/auth/login");
+                  }}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

@@ -2,7 +2,7 @@ import { apiServer } from "@lib/api-server";
 import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
 import type { PermissionEntity, CreatePermissionPayload, UpdatePermissionPayload } from "../types/types";
 import { getSessionTenantId } from "@lib/session";
-import { RoleEntity } from "@/modules/roles/types/types";
+import { RoleEntity } from "@modules/roles/types/types";
 
 function normalizeEntityList<T extends { id?: string }>(rows: unknown, nestedKey: string): T[] {
     if (!Array.isArray(rows)) return [];

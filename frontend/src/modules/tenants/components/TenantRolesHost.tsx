@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { RoleEntity } from "@/modules/roles/types/types";
+import type { RoleEntity } from "@modules/roles/types/types";
 
 export function TenantRolesHost({ items }: { items: RoleEntity[] }) {
     return (

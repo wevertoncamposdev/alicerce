@@ -61,13 +61,30 @@ para o esqueleto e `/develop` para o passo a passo completo.
 
 ## Testes
 
-**Não há testes automatizados no frontend ainda** — nenhuma dependência de teste está
-instalada neste pacote. A estratégia mínima (fluxos de auth, isolamento de tenant,
-guards de RBAC) está no backlog como item do `PLAN.md` (bloco de infraestrutura); o
-backend já segue um padrão de teste (`backend/test/TEST_PATTERN.md`) que serve de
-referência de estilo quando isso for implementado aqui.
+Runner: **Vitest** + `@testing-library/react` + `jsdom` (não Jest — integra nativamente
+com o Vite/esbuild que o Next.js 16 já usa, sem a camada extra de configuração que Jest
+precisa pra ESM/App Router). `npm run test` roda a suíte uma vez (`vitest run`);
+`npm run test:watch` fica observando. Config em `vitest.config.mts` (replica os aliases
+do `tsconfig.json`) + `vitest.setup.ts` (jest-dom e o cleanup do Testing Library entre
+testes — `globals` fica desligado, então o cleanup precisa ser registrado manualmente).
 
-Até lá, a validação de PR é manual:
+Cobertura mínima hoje (3 arquivos, 13 testes) foca no que tem maior risco de regressão
+silenciosa — auth, isolamento de tenant, guards de RBAC:
+
+- `src/lib/authz.test.ts` — funções puras de RBAC por rota/ação.
+- `src/components/auth/AppAccessGuard.test.tsx` — guard que bloqueia conteúdo de rota
+  sem a permissão exigida.
+- `src/contexts/auth-context.test.tsx` — `AuthProvider`/`useAuth`: roles/permissões do
+  usuário logado e isolamento de tenant (o tenant ativo vem sempre da resposta do
+  backend, nunca de um valor arbitrário do cliente).
+
+Teste novo fica co-localizado com o código (`arquivo.test.tsx` ao lado de `arquivo.tsx`),
+não numa pasta `tests/` separada. O backend segue um padrão próprio de teste
+(`backend/test/TEST_PATTERN.md`, Jest) — serve de referência de estilo (mocks,
+`describe`/`it` descritivos), não de runner, já que os dois projetos têm necessidades
+diferentes (componentes React vs. módulos NestJS/Prisma).
+
+Até a suíte crescer, a validação de PR também inclui verificação manual:
 
 1. `npm run build` sem erro de tipagem.
 2. Smoke visual nas rotas afetadas, desktop e mobile — ver checklist abaixo.

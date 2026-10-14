@@ -2,13 +2,14 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { AuditService } from './audit.service';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { UseGuards } from '@nestjs/common';
-import { TenantScopeGuard } from '@core/common/guards/tenant-scope.guard';
 import { Roles } from '@core/common/decorators/roles.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 
+// TenantScopeGuard não precisa mais ser listado aqui: é global desde o P7
+// (ver AuthModule) — roda em toda rota autenticada, não só nesta.
 @Controller('tenant/:tenantId/audit')
-@UseGuards(TenantScopeGuard, RolesPermissionsGuard)
+@UseGuards(RolesPermissionsGuard)
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 

@@ -1,11 +1,11 @@
 // screens/TypeViewScreen.tsx
 import { getModule } from "@lib/registry";
 import { createDataProvider } from "@lib/data-provider";
-import { AppTopbar } from "@/components/Layout/AppTopbar";
-import { RecordListHost } from "@/components/Layout/RecordListHost";
-import { RecordSearch } from "@/components/Layout/RecordSearch";
-import { TypeView, type TypeViewMode } from "@/components/TypeView/TypeView";
-import { ViewSwitcher } from "@/components/TypeView/ViewSwitcher";
+import { AppTopbar } from "@components/Layout/AppTopbar";
+import { RecordListHost } from "@components/Layout/RecordListHost";
+import { RecordSearch } from "@components/Layout/RecordSearch";
+import { TypeView, type TypeViewMode } from "@components/TypeView/TypeView";
+import { ViewSwitcher } from "@components/TypeView/ViewSwitcher";
 
 type TypeViewScreenProps = {
     moduleName: string;

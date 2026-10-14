@@ -1,9 +1,9 @@
-// components/shells/DetailView.tsx
+// components/DetailView/DetailView.tsx
 import * as React from "react";
 import type { RecordModuleDefinition, DetailContext } from "@lib/registry/types";
-import type { ContextItem, AuditFeedItem } from "@/components/DetailView/MetaDataView/types";
-import { DetailShell } from "@/components/DetailView/DetailShell";
-import { RelationShell } from "@/components/DetailView/RelationView/RelationShell";
+import type { ContextItem, AuditFeedItem } from "@components/DetailView/MetaDataView/types";
+import { DetailShell } from "@components/DetailView/DetailShell";
+import { RelationShell } from "@components/DetailView/RelationView/RelationShell";
 
 interface DetailViewProps<T> {
     moduleDefinition: RecordModuleDefinition<T>;

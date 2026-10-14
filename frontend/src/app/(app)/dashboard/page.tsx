@@ -1,9 +1,9 @@
-import { AppTopbar } from "@/components/Layout/AppTopbar";
-import { apiServer, ApiServerError } from "@/lib/api-server";
-import { getCurrentUser, hasRole } from "@/lib/auth-server";
-import { searchPermissions } from "@/modules/permissions/config/provider";
-import { searchRoles } from "@/modules/roles/config/provider";
-import { searchUsers } from "@/modules/users/config/provider";
+import { AppTopbar } from "@components/Layout/AppTopbar";
+import { apiServer, ApiServerError } from "@lib/api-server";
+import { getCurrentUser, hasRole } from "@lib/auth-server";
+import { searchPermissions } from "@modules/permissions/config/provider";
+import { searchRoles } from "@modules/roles/config/provider";
+import { searchUsers } from "@modules/users/config/provider";
 
 function StatCard({
   title,

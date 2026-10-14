@@ -1,4 +1,4 @@
-import type { AuditEntry } from "@/modules/audit/types/types";
+import type { AuditEntry } from "@modules/audit/types/types";
 
 export function AuditListView({ data }: { data: AuditEntry[] }) {
     return (

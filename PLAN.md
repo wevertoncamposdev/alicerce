@@ -350,96 +350,336 @@ normalmente para quem não está autenticado.
 
 ---
 
-## P4 — Acabamento visual ("cara de projeto pronto")
+## P4 — Acabamento visual ("cara de projeto pronto") — ✅ feito em 2026-10-13/14 (8 de 8)
 
 O núcleo (TypeView/DetailView: listas, formulários, abas de relação, auditoria) já é
 consistente e usa os tokens shadcn com dark mode. As bordas do app ficaram numa geração
 visual anterior — é isso que fica exposto primeiro para quem olha o produto.
 
-- [ ] Migrar `frontend/src/app/page.tsx` (landing) e
-  `frontend/src/app/(public)/auth/**` de `bg-zinc-*`/`text-zinc-*` hardcoded para os
-  tokens semânticos (`bg-background`/`text-foreground`/etc.) — hoje quebram no dark mode.
-- [ ] Adicionar as primitivas shadcn que faltam: `Dialog`, `DropdownMenu`, `Avatar`,
-  `Popover`, `Checkbox`, `Switch` (`npx shadcn add ...`).
-- [ ] Substituir `frontend/src/components/RelationPicker/RelationPicker.tsx` (hoje
-  `<div>`/`<table>` cru) por um `Dialog` + `Table` reais.
-- [ ] Substituir `frontend/src/components/ui/toast.tsx` (hoje `bg-white` cru) pelo
-  componente de toast do shadcn.
-- [ ] Depois dos dois itens acima, migrar os 3 consumidores restantes de
-  `frontend/src/components/shells/{RelationShell,PainelSearchShell}.tsx`
-  (`audit/page.tsx` e as páginas de auth) para os shells atuais em `core/`/`TypeView`,
-  e então apagar os shells legados.
-- [ ] Dar cor à paleta de gráfico — `--chart-1..5` em `globals.css` hoje são cinza
-  puro (`neutral`), sem nenhuma cor de marca.
-- [ ] Construir um indicador de tenant/usuário atual na `AppTopbar`/`AppSidebar` — hoje
-  não existe avatar, nome de usuário nem nome do tenant em nenhum lugar da UI.
-- [ ] Construir a UI de troca de tenant — `setCurrentTenantId()` já existe no
-  `auth-context.tsx` e grava o cookie `session_tenant`, só falta o componente (dropdown)
-  que chama essa função fora do fluxo de login.
+- [x] **Landing + páginas de auth migradas.** `app/page.tsx` reescrita com `Button`/
+  `Image` reais em vez de `<a>`/`<img>` cravados; `(public)/auth/{login,register}/page.tsx`
+  trocaram `bg-zinc-*`/`text-zinc-*`/`border-red-300` por `bg-background`/`text-foreground`/
+  `text-muted-foreground`/`border-destructive`.
+- [x] **Primitivas shadcn adicionadas**: `Dialog`, `DropdownMenu`, `Avatar`, `Popover`,
+  `Checkbox`, `Switch`. **Achado durante a instalação**: o CLI gerou os 6 arquivos
+  importando `cn` do pacote npm `"cn"` em vez de `@lib/utils` (o padrão usado por
+  todo o resto do design system) — corrigido nos 6 arquivos, e a dependência `cn`
+  (que não era usada por mais nada) removida do `package.json`.
+- [x] **`RelationPicker.tsx` reescrito** com `Dialog`+`Table`+`Input`+`Button` reais —
+  mesma lógica de busca/paginação/debounce de antes, só a casca trocou.
+- [x] **Toast — não foi "substituir pelo toast do shadcn" porque esse componente foi
+  descontinuado na versão atual do registry** (`npx shadcn add toast` recomenda
+  explicitamente `sonner` agora). Adotado `sonner` + `<Toaster />` no layout raiz;
+  os 3 consumidores (`RolePermissionsHost`, `RoleUsersHost`, `UserRolesHost`) trocaram
+  `useToast().show({title,description})` por `toast(title, {description})` direto —
+  mais simples, sem hook. `components/ui/toast.tsx` e a dependência
+  `@radix-ui/react-toast` removidos.
+- [x] **Shells legados migrados e removidos.** `audit/page.tsx` não só trocou de shell
+  — foi reescrita para usar `TypeViewScreen` como todo módulo real (ela reimplementava
+  manualmente, com um `PainelSearchShell` ad-hoc, algo que o módulo `audit` já tinha
+  registrado e pronto para uso — `auditModule` existia e nunca era chamado).
+  `SideShell` migrou para `components/Layout/SideShell.tsx` (tokens atuais, virou
+  Server Component — não tinha nenhuma interatividade que justificasse `"use client"`).
+  `RelationShell`/`PainelSearchShell` legados não tinham mais nenhum consumidor real
+  (só o próprio barrel se auto-referenciando) — `components/shells/` inteiro removido.
+  Corrigido de tabela: comentário desatualizado em `DetailView.tsx` e `table.tsx`
+  (primitiva compartilhada) tinha as mesmas cores `zinc-*` cravadas — achado ao
+  trabalhar na mesma área, corrigido para `bg-muted`/`text-muted-foreground`/`border-border`.
+- [x] **Paleta do gráfico colorida — usando o skill `dataviz`.** Carreguei o skill antes
+  de editar (ele exige isso para qualquer escolha de cor de gráfico). Os 5 slots
+  `--chart-1..5` passaram da escala de cinza puro para os 5 primeiros tons da paleta
+  categórica validada do skill (blue/orange/aqua/yellow/magenta), com passos
+  diferentes para claro/escuro. Validado com `scripts/validate_palette.js` nos dois
+  modos antes de aplicar (todos os checks de CVD/contraste passam). Como o único
+  gráfico do projeto (`GraphView`) é de série única, a legenda não é necessária (regra
+  do skill: 1 série não precisa de legenda) — já tem tooltip ao passar o mouse.
+- [x] **Indicador de usuário/tenant construído e validado contra servidor real.**
+  `(app)/layout.tsx` busca o nome do tenant (`tenant.legalName`, que não vem no JWT/
+  perfil, só o id) com fallback silencioso — um usuário recém-criado sem role
+  atribuída ainda não tem `tenant.read`, e a sidebar não deve quebrar por isso.
+  `AppSidebar` ganhou um footer com `Avatar` (iniciais do e-mail) + `DropdownMenu`
+  mostrando e-mail/tenant e a ação "Sair" (antes era só um botão solto). Validado
+  fazendo login de verdade contra Postgres local e inspecionando o HTML renderizado —
+  ver "achado" abaixo.
+- [x] **UI de troca de tenant — removida do backlog (decisão do usuário, 2026-10-14).**
+  `ADR 0002` já decidiu que um usuário pertence a exatamente um tenant (`User.email`
+  é único na plataforma inteira exatamente por isso) — não há, no modelo de domínio
+  atual, um usuário com acesso a múltiplos tenants para "trocar" entre eles. O item
+  era um mal-entendido de uma versão anterior do domínio, não um requisito real.
+  Nenhum código foi tocado (`setCurrentTenantId`/`session_tenant` continuam como
+  estão — servem para fixar o tenant do JWT após login/registro, não para trocar em
+  sessão). Se um caso de uso real de múltiplos tenants por usuário surgir no futuro,
+  isso é uma mudança de modelo de domínio que contradiz o ADR 0002 — entra como ADR
+  novo, não como retomada deste item.
+
+### Achado desta rodada: servidor de dev desincronizado após muitas edições rápidas
+
+Ao validar o indicador de usuário/tenant pela primeira vez, o HTML renderizado não
+tinha o `DropdownMenu`/`Avatar` novo — só o botão antigo. Não era bug no código: o
+servidor de dev do frontend (rodando desde o início da sessão, sobrevivendo a dezenas
+de edições rápidas em sequência) tinha o Turbopack com o HMR desincronizado. Reiniciar
+os dois servidores do zero resolveu — o HTML passou a mostrar `admin@exemplo.com` e
+`Test Tenant` corretamente no footer da sidebar. **Lição**: depois de uma sequência
+longa de edições, reiniciar o dev server antes de validar visualmente, em vez de
+confiar no HMR para ter acompanhado tudo.
+
+### Checkpoint desta rodada (P4)
+
+Frontend: `tsc --noEmit` limpo, `npm run build` limpo, `npx knip` sem novidade (só os
+5 primitivos do shadcn sem uso ainda — decisão consciente — e o `server-only` "unlisted"
+já conhecido). Backend: `tsc`/`test` (77/77) confirmados intactos (nenhum arquivo de
+backend tocado neste bloco). Validação end-to-end real: login + GET `/dashboard` contra
+Postgres local e servidores recém-reiniciados, confirmando o indicador de usuário/tenant
+no HTML. **Não verificado**: cliques reais no `Dialog` do `RelationPicker` e nos toasts
+do `sonner` num navegador — esta sessão não tem uma ferramenta de automação de
+navegador; recomendo um teste manual rápido do fluxo "anexar permissão a um role" antes
+de considerar este bloco 100% fechado.
 
 ---
 
-## P5 — Módulos parcialmente wireados (decisão + fechamento)
+## P5 — Módulos parcialmente wireados (decisão + fechamento) — ✅ feito em 2026-10-14
 
-- [ ] **Módulo `task`.** Existe no backend (`backend/src/modules/task/`) e já está
-  referenciado em `frontend/src/lib/authz.ts` e `AppSidebar.tsx` (ícone, regras de
-  rota/permissão) — mas não existe `frontend/src/modules/tasks/` nenhum, e o import
-  está comentado em `lib/registry/bootstrap.ts`. Hoje é um link morto no menu para
-  qualquer usuário com `task.read`. Decidir: completar o módulo frontend (seguindo o
-  padrão de `favorites`) ou remover as referências de `authz.ts`/sidebar até decidir.
-- [ ] **Views ausentes do `ViewSwitcher`.** `Kanban` e `Calendar` aparecem no mapa de
-  ícones do `ViewSwitcher.tsx` mas não têm componente nenhum implementado. Decidir:
-  implementar (ver Fase 5 do `AGENTS.md`) ou remover do switcher até existir.
-- [ ] **Cobertura de views por módulo.** Só `favorites` usa `cards`/`graph`; roles,
-  users, tenants, permissions só têm `list`+`form`. Decidir se isso é intencional
-  (documentar como padrão) ou se outros módulos ganham mais views.
+Três decisões de escopo, todas confirmadas com o usuário antes de agir (nenhuma delas
+era uma correção mecânica):
 
----
+- [x] **Módulo `task` — referências removidas, não completado.** Decisão: o
+  `AGENTS.md` (Fase 2) já planeja remover `Task` do schema junto com as outras
+  entidades específicas de ONG (`Person`, `Address`, `Contact`, `Report`) quando o
+  template for limpo — completar o módulo frontend agora seria esforço descartado
+  antes mesmo de existir. Removido: a entrada `tasks` de `RouteAccessMeta`/
+  `ROUTE_RULES`/`ACTION_PERMISSION_RULES` em `lib/authz.ts`, a entrada `tasks` de
+  `MODULE_ICONS` (e o import agora não usado do ícone `CheckSquare2`) em
+  `AppSidebar.tsx`, e a linha comentada `// import "@modules/tasks/config/contract"`
+  em `lib/registry/bootstrap.ts` (contradizia o próprio comentário do arquivo, que diz
+  "cada linha aqui é uma feature existente"). O link morto no menu deixa de existir;
+  o destino do módulo backend fica para quando a Fase 2 do `AGENTS.md` for executada.
+- [x] **Views Kanban/Calendar removidas do `ViewSwitcher` — e mais uma achada no
+  processo.** Decisão: são Fase 5 do `AGENTS.md`, ainda não chegou a vez — um ícone
+  no switcher sem componente por trás é uma promessa vazia na UI. Ao olhar o
+  `ICON_BY_VIEW` de `ViewSwitcher.tsx` percebi que **`timeline` estava no mesmo caso**
+  (nenhum módulo declara essa view) e que **`text` também ficou órfão** depois que o
+  P3 removeu `TypeView/TextView/TextView.tsx` como código morto — os três removidos
+  juntos, com um comentário apontando para a Fase 5 e para onde checar quais views
+  são reais (`views:` de cada `modules/*/config/contract.tsx`).
+- [x] **Cobertura de views por módulo — documentada como intencional.** Decisão:
+  não padronizar `cards`/`graph` nos outros módulos só porque `favorites` tem.
+  Adicionado um `DocCallout` em `modules/develop/content/part3-modulos.tsx` (guia de
+  criação de módulo), logo depois do exemplo de `contract.tsx`, explicando que
+  `views` é uma escolha por módulo — view nova só quando o domínio daquele módulo
+  realmente pede, não para "ficar igual".
 
-## P6 — Infraestrutura de template (Fase 1 do `AGENTS.md`, ainda não iniciada)
+### Checkpoint desta rodada (P5)
 
-- [ ] `docker-compose.yml` (Postgres) na raiz + `Dockerfile` para `backend/` e
-  `frontend/` — hoje não existe nenhum dos dois em lugar nenhum do repo.
-- [ ] CI (`.github/workflows/ci.yml`): hoje só roda `test` do backend + `build` do
-  frontend + export do OpenAPI. Adicionar lint (`eslint`) e `tsc --noEmit` nos dois
-  projetos, e um job de e2e com Postgres em service container.
-- [ ] **Corrigir `backend/test/roles.attach-detach.e2e-spec.ts` (pré-existente, 4/4
-  falhando — achado ao rodar `npm run test:e2e` durante o P1).** Só sobrescreve
-  `RolesPermissionsGuard`; o `AuthGuard` global (via `AuthModule`, carregado
-  transitivamente por `RoleModule`) bloqueia a requisição antes — provável que falte
-  `.overrideGuard(AuthGuard).useValue({ canActivate: () => true })` no setup do teste,
-  igual ao `user-tenant-isolation.e2e-spec.ts` novo faz implicitamente ao não importar
-  `AuthModule`. Confirmado via `git stash` que a falha já existia antes do P1, não é
-  regressão. Corrigir isso é pré-requisito para ligar `test:e2e` no CI (item acima).
-- [ ] **`npm audit` (ou Dependabot com alertas de segurança) no CI.** O levantamento do
-  bloco P0 foi manual — adicionar um job que rode `npm audit` nos dois projetos (ou
-  habilitar os alertas de segurança do Dependabot) para a próxima leva de
-  vulnerabilidades não depender de uma auditoria manual de novo.
-- [ ] `.nvmrc` + `engines` no `package.json` de cada app + Dependabot (`.github/dependabot.yml`)
-  agrupado para patch/minor.
-- [ ] Corrigir `frontend/eslint.config.mjs` — o objeto `rules` está dentro de
-  `globalIgnores` por engano (bug já listado no `AGENTS.md` Fase 1) — e, depois de
-  corrigido, ativar a verificação por lint das fronteiras de import
-  `core`/`platform`/`modules` da seção 3.4 do `AGENTS.md`.
-- [ ] Implementar os testes de frontend mínimos (auth, tenant scope, guards RBAC) —
-  `frontend/README.md` já foi corrigido no P3 para não prometer o que não existe
-  ainda; esse item é o que falta para a promessa poder voltar ao README.
+`npx tsc --noEmit` limpo, `npm run build` limpo (sem rota `/tasks`, como esperado),
+`npx knip` sem regressão (mesmo baseline de antes — nenhum arquivo novo ficou morto).
+Os servidores de dev desta sessão já tinham caído entre as rodadas anteriores e esta;
+como as mudanças aqui são só remoção de entradas de configuração (sem lógica nova),
+o build limpo foi considerado suficiente — não reiniciei os servidores só para esta
+rodada.
 
 ---
 
-## P7 — Observabilidade e segurança adicional do backend (migrado de `backend/issues.md`, agora retirado)
+## P6 — Infraestrutura de template (Fase 1 do `AGENTS.md`) — ✅ feito em 2026-10-14
+
+- [x] **`docker-compose.yml` (raiz) + `Dockerfile` em `backend/` e `frontend/`.**
+  Multi-stage (`deps` → `build` → `runtime`), Node 26 Alpine. Backend: sem passo de
+  binário nativo de query engine porque usa driver adapter (`@prisma/adapter-pg`);
+  `bcrypt` tem binding nativo, então a imagem instala `python3 make g++` na fase
+  `deps` para compilar na hora caso não haja binário pronto pra essa combinação de
+  Node/arch. Frontend: usa `output: "standalone"` (novo em `next.config.ts`) para a
+  imagem final não levar `node_modules` inteiro. `docker-compose.yml` sobe Postgres
+  17 com healthcheck + os dois serviços apontando um para o outro pelo hostname
+  interno do compose. `.dockerignore` em cada app. **Ressalva importante: Docker não
+  está instalado neste ambiente de desenvolvimento — nenhum `docker build`/`docker
+  compose up` real foi executado.** A verificação foi por equivalência: `npm ci
+  --omit=dev` isolado (ver achado de dependências abaixo), caminho de build
+  (`dist/src/main.js`, `.next/standalone/server.js`) confirmado por `npm run build`,
+  parse do `docker-compose.yml` via `js-yaml`. Antes de confiar na imagem em
+  produção, rodar `docker compose up --build` uma vez para validar de verdade.
+- [x] **`backend/package.json`: `pg`, `@prisma/client`, `@prisma/adapter-pg` estavam
+  em `devDependencies`**, mas são usados em runtime (`PrismaService` constrói
+  `new PrismaPg(...)`; o client gerado importa `@prisma/client/runtime/client`).
+  Um `npm ci --omit=dev` de produção ficaria sem os três. Movidos para
+  `dependencies`; confirmado corrigido com `npm ci --omit=dev` numa cópia isolada do
+  `package.json`/`package-lock.json`.
+- [x] **`backend/package.json`: `start:prod` apontava para `node dist/main`**, mas o
+  build real sai em `dist/src/main.js` (estrutura do `rootDir` do `tsconfig`) — o
+  script nunca funcionou. Corrigido para `node dist/src/main`; confirmado com
+  `npm run start:prod` (bootstrap limpo).
+- [x] **`backend/package.json`: `lint` tinha `--fix` embutido** — a mesma classe de
+  problema que já tinha corrompido silenciosamente um type cast em
+  `tenant.middleware.ts` no P0/P2. Separado em `lint` (sem `--fix`, seguro para CI) e
+  `lint:fix` (novo script, uso manual).
+- [x] **`backend/.env.example` reescrito** — tinha linhas soltas de comentário do
+  SQLTools (`-- Active: ...`) e faltavam `COOKIE_SECRET`/`CORS_ORIGINS`, ambos lidos
+  via `process.env` em `main.ts` mas nunca documentados.
+- [x] **3 erros de `tsc --noEmit` pré-existentes no backend, corrigidos** (eram
+  aceitos como ruído de fundo desde o P0): `permissions.controller.spec.ts` (literal
+  `'READ'` sem `as const`, alargava para `string`), `roles.service.spec.ts` (`type:
+  'SYSTEM'` não existe no enum `RoleType`, só `ADMIN | USER | GUEST`),
+  `user.controller.spec.ts` (`dto.tenantId` é opcional no DTO, mas o parâmetro do
+  controller exige `string` — extraído um `tenantId` próprio no teste). Com isso,
+  `tsc --noEmit` do backend virou um gate limpo o bastante para ser bloqueante no CI.
+- [x] **Corrigido `backend/test/roles.attach-detach.e2e-spec.ts`** (pré-existente,
+  falhava 4/4). Diagnóstico anterior (P1) estava errado: `RoleModule` não importa
+  `AuthModule`, então sobrescrever `AuthGuard` não tinha efeito nenhum nesse grafo de
+  módulo isolado. A causa real é o decorator `@TenantId()`, que lança
+  `ForbiddenException` direto (não via guard) quando `request.user` não está
+  definido. Corrigido populando `request.user` dentro do `RolesPermissionsGuard`
+  sobrescrito — o único guard que de fato existe nesse teste. Confirmado 2x
+  (4/4, depois 11/11 da suíte e2e completa) para descartar flakiness.
+- [x] **Corrigido `frontend/eslint.config.mjs`** — o objeto `{ rules: {...} }` estava
+  dentro do array de `globalIgnores([...])` em vez de ser um objeto de config
+  separado, o que quebrava o ESLint por completo
+  (`TypeError: Config 'globalIgnores 0': Key 'ignores': Expected array to only
+  contain strings and functions`). **Isso significa que nenhuma regra de lint do
+  frontend rodou de fato até agora** — nem a de fronteira `@/lib` → `@lib`, que já
+  estava declarada desde antes. Corrigido; junto, ativada a regra de fronteira
+  `core/` não pode importar de `modules/`/`platform/` (AGENTS.md §3.4) — hoje inerte,
+  porque `src/core/` e `src/platform/` ainda não existem no frontend, mas já fica
+  pronta para quando existirem.
+- [x] **132 violações de lint ficaram visíveis** ao corrigir o crash acima. 77 eram
+  `@/lib`/`@/modules`/`@/components` em vez de `@lib`/`@modules`/`@components`
+  (aliases resolvem para o mesmo caminho no `tsconfig.json` — troca cosmética seguro)
+  — corrigidas via substituição em 41 arquivos. As 55 restantes (no-explicit-any: 17,
+  no-unused-vars: 16, exhaustive-deps: 5, no-unescaped-entities: 4,
+  static-components: 4, incompatible-library: 3, set-state-in-effect: 3,
+  prefer-const: 2, preserve-manual-memoization: 1) **não foram corrigidas** —
+  documentadas aqui como débito separado, mesmo julgamento já aplicado aos 289 erros
+  de lint do backend no P0. Um dos `static-components` sinaliza um "Cannot create
+  components during render" genuíno em `UserRolesHost.tsx`/hosts de relação
+  parecidos — candidato a tarefa própria futura, não corrigido agora.
+- [x] **CI (`.github/workflows/ci.yml`) reescrito por completo.** Antes: Node 20
+  fixo em 3 lugares, só 3 jobs (`backend-tests`, `frontend-build`,
+  `export-openapi`), sem lint, sem `tsc --noEmit`, sem e2e. Agora, 5 jobs:
+  `backend-checks` (lint não-bloqueante + `tsc --noEmit` bloqueante + testes
+  unitários), `backend-e2e` (Postgres em service container + `prisma migrate deploy`
+  seguido de `test:e2e`), `frontend-checks` (lint não-bloqueante + `tsc --noEmit`
+  bloqueante + **testes unitários, novo** + build), `security-audit` (`npm audit
+  --audit-level=high` nos dois projetos, não-bloqueante) e `export-openapi`.
+  `node-version-file: .nvmrc` em todo job (elimina a duplicação de versão fixa). Lint
+  fica `continue-on-error: true` nos dois projetos de propósito — 289 erros no
+  backend / 55 no frontend são débito pré-existente grande o bastante para tornar o
+  gate vermelho desde o primeiro commit (sem sinal, só ruído); vira bloqueante quando
+  esse débito for zerado. `tsc --noEmit` é bloqueante nos dois, porque os dois
+  chegaram a zero erro nesta rodada.
+- [x] **`.nvmrc`** (`26`) + `"engines": { "node": ">=26.0.0" }` em
+  `backend/package.json` e `frontend/package.json`.
+- [x] **`.github/dependabot.yml`** — `npm` para `backend/` e `frontend/` (grupo
+  `patch-and-minor`, semanal) + `github-actions` na raiz. Majors ficam fora do grupo
+  de propósito — AGENTS.md §6.1 pede PR isolada por major (`chore/upgrade-<pacote>-<versão>`),
+  nunca em lote.
+- [x] **Testes de frontend mínimos implementados** (auth, isolamento de tenant,
+  guards RBAC) — zero dependência de teste existia até agora. Escolhido **Vitest**
+  (não Jest): o projeto não tinha nenhum test runner configurado, e Vitest integra
+  nativamente com o Vite/esbuild que o Next.js 16 já usa por baixo, roda mais rápido
+  e evita a camada extra de configuração que Jest precisa pra ESM/App Router. Stack:
+  `vitest` + `@vitejs/plugin-react` + `jsdom` + `@testing-library/react`/`jest-dom`.
+  `vitest.config.mts` replica os aliases do `tsconfig.json`; `globals` fica
+  desligado (imports explícitos de `describe/it/expect/vi`, no mesmo espírito do
+  padrão de teste já usado no backend) — por isso o cleanup do Testing Library entre
+  testes precisou ser registrado manualmente em `vitest.setup.ts` (ele depende de um
+  `afterEach` global pra se auto-registrar). Três arquivos, 13 testes:
+  - `src/lib/authz.test.ts` — funções puras de RBAC por rota/ação
+    (`canAccessRoute`/`resolveRoutePermission`/`canAccessAction`), sem mock nenhum.
+  - `src/components/auth/AppAccessGuard.test.tsx` — o guard de RBAC que bloqueia
+    conteúdo de rota sem a permissão exigida; `next/navigation` mockado via
+    `vi.mock`.
+  - `src/contexts/auth-context.test.tsx` — `AuthProvider`/`useAuth`: `hasRole`/
+    `hasPermission` a partir do usuário logado, e isolamento de tenant
+    (`signIn` adota o `tenant.id` devolvido pelo backend, nunca um valor do
+    cliente; `setCurrentTenantId(null)` limpa estado + cookie `session_tenant`).
+  `npm run test` (novo script, `vitest run`) roda no CI dentro de `frontend-checks`,
+  antes do build. `frontend/README.md` atualizado para descrever o runner e a
+  cobertura atual em vez do antigo "não há testes automatizados" (texto do P3).
+- [x] **`frontend/package.json`: `@types/node` estava em `^20`**, incompatível com o
+  `engines.node >=26.0.0` já declarado e com o peer requirement do `vitest@5`
+  (`@types/node ^22 || >=24`). Bump para `^26` (mesma major do Node já fixado em
+  `.nvmrc`).
+- [x] **`frontend/.env.example`/`.env.production`: removida `NEXT_PUBLIC_API_URL`**
+  (zero usos no código — confirmado por busca no repo inteiro).
+
+### Checkpoint desta rodada (P6)
+
+- Backend: `tsc --noEmit` limpo, `npm test` → 77/77, `npm run build` limpo,
+  `npm run test:e2e` → 4 suítes / 11 testes, todos passando.
+- Frontend: `tsc --noEmit` limpo, `npx vitest run` → 3 arquivos / 13 testes
+  passando, `npm run build` limpo (19 rotas geradas, sem erro).
+- `docker-compose.yml`, `.github/workflows/ci.yml` e `.github/dependabot.yml`
+  validados por parse YAML (`js-yaml`) — não por execução real (Docker/Actions
+  indisponíveis neste ambiente).
+
+---
+
+## P7 — Observabilidade e segurança adicional do backend (migrado de `backend/issues.md`, agora retirado) — 1 de 5 itens feito
 
 `backend/issues.md` foi retirado no P3 (estava desatualizado desde 07/07 — vários
 itens que ele listava como pendentes já tinham sido corrigidos pelo P1/P2 desta
 sessão). Os itens dele que **ainda são reais** e não tinham equivalente neste
 `PLAN.md` foram migrados para aqui, em vez de perdidos:
 
-- [ ] **`TenantScopeGuard` global.** Hoje só é aplicado por controller (`AuditController`)
-  via `@UseGuards` local — nunca foi registrado globalmente (`APP_GUARD`) com
-  `@Public()`/`@SkipTenantScope()` para as rotas que não precisam (`/auth/*`). O P1
-  fechou os vazamentos concretos que existiam sem isso, mas um guard global seria
-  defesa em profundidade para qualquer controller novo que esqueça de proteger uma
-  rota tenant-scoped.
+- [x] **`TenantScopeGuard` global — ✅ feito em 2026-10-14.** Registrado como
+  `APP_GUARD` em `auth.module.ts`, logo depois do `AuthGuard` no array de
+  `providers` (a ordem importa: este guard lê `request.user.tenantId`, que só
+  existe depois do `AuthGuard` rodar — múltiplos `APP_GUARD` no mesmo array de
+  providers executam na ordem declarada).
+  - **Achado ao investigar**: já existia um `TenantMiddleware`
+    (`core/common/middleware/tenant.middleware.ts`), mas aplicado só às rotas com
+    prefixo de path `tenant/:tenantId/*` (`TenantController`, `TaskController`,
+    `AuditController`) via `consumer.forRoutes(...)` no `app.module.ts` — ele
+    decodifica o JWT direto (roda antes de guards no pipeline do Nest) e seta
+    `request.tenantId`. Os demais controllers (`user`, `role`, `permission`,
+    `favorites`, `favorite-notes`) não passam por nenhum middleware nem guard de
+    tenant — a única defesa até agora era o decorator `@TenantId()` usado
+    manualmente em cada parâmetro de handler, que não protege um handler novo
+    que simplesmente esqueça de declarar esse parâmetro.
+  - **O guard reescrito** (`tenant-scope.guard.ts`) agora: (1) recebe
+    `Reflector` e pula completamente quando a rota é `@Public()` (lê o mesmo
+    `IS_PUBLIC_KEY` que o `AuthGuard` já usa — não duplica o conceito com um
+    decorator novo `@SkipTenantScope()`, que seria redundante já que toda rota
+    sem usuário autenticado também não tem tenant); (2) fail-closed por padrão:
+    antes só bloqueava quando a rota tinha `:tenantId` no path, agora exige
+    `resolvedTenantId` (de `request.tenantId`, setado pelo middleware quando
+    aplicável, ou `request.user.tenantId`, do JWT) em **toda** rota autenticada
+    — seguro porque, no modelo de domínio atual, todo usuário pertence a
+    exatamente um tenant e o JWT sempre carrega esse campo (confirmado em
+    `auth.service.ts`); (3) **removida a leitura direta do header
+    `x-tenant-id`** que existia como terceiro fallback — o guard antigo
+    aceitava esse header como fonte de tenant quando `request.user` não estava
+    setado, uma superfície de confiança desnecessária num valor controlado pelo
+    cliente (reforça o princípio já documentado no AGENTS.md 3.2.1: o JWT é a
+    única fonte confiável). `@TenantId()` (o param decorator, não tocado) ainda
+    lê esse header como fallback só para o cenário dos testes isolados que não
+    montam `AuthModule` — ver nota abaixo.
+  - **Removido o `@UseGuards(TenantScopeGuard, ...)` redundante do
+    `AuditController`** — como o guard é global agora, bastou manter
+    `@UseGuards(RolesPermissionsGuard)`.
+  - **Spec novo**: `tenant-scope.guard.spec.ts` (não existia nenhum), 6 casos —
+    pula rota pública, bloqueia sem tenantId em nenhuma fonte, aceita
+    `user.tenantId` do JWT, prioriza `request.tenantId` do middleware, bloqueia
+    `:tenantId` da rota divergente do contexto, aceita quando bate.
+  - **Validado contra servidor real** (não só mocks): subiu o backend local
+    contra Postgres, registrou um tenant/usuário de teste via
+    `POST /api/auth/register`, e confirmou com `curl` real: rota pública sem
+    token → 200; rota protegida sem token → 401; rota protegida com token válido
+    → 200; `GET /api/tenant/:tenantId/task` com o `:tenantId` correto → 200; o
+    mesmo endpoint com `:tenantId` de **outro** tenant na URL → 403 "Acesso
+    negado ao tenant" (o próprio guard global bloqueando); `GET /api/auth/profile`
+    (autenticado, sem `:tenantId` no path) → 200, confirmando que o fail-closed
+    não quebrou uma rota legítima sem tenant na URL.
+  - **Nota sobre os testes e2e existentes**: `test/user-tenant-isolation.e2e-spec.ts`
+    e `test/roles.attach-detach.e2e-spec.ts` montam só o módulo isolado
+    (`UsersModule`/`RoleModule`), nunca `AuthModule` — então o guard global
+    (registrado dentro do `AuthModule`) não entra nesse grafo de teste, e eles
+    continuam simulando tenant via header `x-tenant-id` lido pelo
+    `@TenantId()` decorator, como já faziam. Isso é intencional (testam
+    isolamento de tenant na camada de serviço, não o guard), mas significa que
+    a cobertura e2e do guard global em si veio só da validação manual acima +
+    `app.e2e-spec.ts` (que monta o `AppModule` completo e confirma que `GET /`
+    pública continua 200). Se quiser uma suíte e2e dedicada ao guard global
+    (ex.: `tenant-scope.e2e-spec.ts` montando `AppModule` completo), fica como
+    item pequeno separado — não fiz aqui para não misturar com o item do
+    backlog.
 - [ ] **RLS (Row-Level Security) no Postgres.** Nenhuma política de RLS existe hoje —
   o isolamento de tenant é 100% responsabilidade do código da aplicação (guards +
   checagem manual nos services). Exigiria `RequestContext` via `AsyncLocalStorage`
@@ -474,6 +714,11 @@ sessão). Os itens dele que **ainda são reais** e não tinham equivalente neste
   neste projeto — criar um só para isso passaria a rodar em toda requisição da
   aplicação, não só nas de API, então essa decisão fica para quando o projeto tratar
   performance/edge runtime como tema próprio, não de passagem dentro do P2.
+- **UI de troca de tenant (P4)**: era um mal-entendido de uma versão anterior do
+  domínio — removida do backlog sem implementar nada, ver P4 para o detalhe completo.
+- **P7, por onde começar**: `TenantScopeGuard` global primeiro (menor escopo, sem
+  dependência nova) — RLS, Redis, logging estruturado e auditoria de 401/403 ficam
+  para rodadas futuras, cada um com sua própria discussão antes de implementar.
 
 ---
 

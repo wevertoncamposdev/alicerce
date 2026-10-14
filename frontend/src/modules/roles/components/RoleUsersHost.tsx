@@ -2,18 +2,17 @@
 
 import * as React from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { UserEntity } from "@/modules/users/types/types";
-import * as roleService from "@/modules/roles/actions/roleService";
-import RelationPicker from "@/components/RelationPicker/RelationPicker";
-import { useToast } from "@components/ui/toast";
+import { UserEntity } from "@modules/users/types/types";
+import * as roleService from "@modules/roles/actions/roleService";
+import RelationPicker from "@components/RelationPicker/RelationPicker";
+import { toast } from "sonner";
 import useApiError from "@/hooks/useApiError";
-import { createRelationHost } from "@/lib/registry/relation-host";
+import { createRelationHost } from "@lib/registry/relation-host";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 
 export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: UserEntity[] }) {
     const { currentTenantId } = useAuth();
-    const toast = useToast();
     const formatError = useApiError();
     const { setStatus } = useAutoSaveStatus();
 
@@ -35,7 +34,7 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
             rowLink: (u) => `/users/${u.id}`,
             onAttach: async (item: any) => {
                 if (!currentTenantId) {
-                    toast.show({ title: "Tenant indisponível", description: "Recarregue a página e tente novamente." });
+                    toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
                     return;
                 }
 
@@ -43,18 +42,18 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
                 try {
                     await roleService.attachRoleUser({ roleId, tenantId: currentTenantId, userId: item.id });
                     setStatus("saved");
-                    toast.show({ title: "Usuário associado" });
+                    toast("Usuário associado");
                 } catch (err) {
                     console.error("failed to attach user", err);
                     setStatus("error", "Falha ao associar o usuário.");
-                    toast.show({ title: "Falha ao associar usuário", description: formatError(err) });
+                    toast("Falha ao associar usuário", { description: formatError(err) });
                     throw err;
                 }
             },
             onDetach: async (userId: string) => {
                 if (!window.confirm("Remover usuário deste role?")) return;
                 if (!currentTenantId) {
-                    toast.show({ title: "Tenant indisponível", description: "Recarregue a página e tente novamente." });
+                    toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
                     return;
                 }
 
@@ -62,11 +61,11 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
                 try {
                     await roleService.detachRoleUser({ roleId, tenantId: currentTenantId, userId });
                     setStatus("saved");
-                    toast.show({ title: "Usuário removido" });
+                    toast("Usuário removido");
                 } catch (err) {
                     console.error("failed to detach user", err);
                     setStatus("error", "Falha ao remover o usuário.");
-                    toast.show({ title: "Falha ao remover usuário", description: formatError(err) });
+                    toast("Falha ao remover usuário", { description: formatError(err) });
                     throw err;
                 }
             },
@@ -79,7 +78,7 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
                 />
             ),
         }),
-        [columns, currentTenantId, formatError, initial, roleId, toast],
+        [columns, currentTenantId, formatError, initial, roleId],
     );
 
     return <RelationHost initial={initial} />;

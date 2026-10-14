@@ -1,8 +1,8 @@
 "use client";
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { RoleEntity } from "@/modules/roles/types/types";
-import { createRelationHost } from "@/lib/registry/relation-host";
+import type { RoleEntity } from "@modules/roles/types/types";
+import { createRelationHost } from "@lib/registry/relation-host";
 
 export function PermissionRolesHost({ items }: { items: RoleEntity[] }) {
     const columns = React.useMemo<ColumnDef<RoleEntity>[]>(

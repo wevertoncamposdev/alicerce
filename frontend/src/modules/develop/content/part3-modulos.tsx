@@ -191,7 +191,7 @@ export class WidgetModule {}
                     <DocCode label="modules/widget/config/provider.ts">
                         {`import { apiServer } from "@lib/api-server";
 import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
-import type { WidgetEntity } from "@/modules/widget/types/types";
+import type { WidgetEntity } from "@modules/widget/types/types";
 
 export async function searchWidgets(args: SearchArgs): Promise<SearchResult<WidgetEntity>> {
   const response = await apiServer.search<{ items: WidgetEntity[]; total: number; page: number; limit: number }>(
@@ -230,7 +230,7 @@ export async function deleteWidget(id: string) {
                     </DocCallout>
                     <DocCode label="modules/widget/components/columns.tsx">
                         {`import type { ColumnDef } from "@tanstack/react-table";
-import type { WidgetEntity } from "@/modules/widget/types/types";
+import type { WidgetEntity } from "@modules/widget/types/types";
 
 export const widgetColumns: ColumnDef<WidgetEntity>[] = [
   { accessorKey: "title", header: "Título" },
@@ -241,8 +241,8 @@ export const widgetColumns: ColumnDef<WidgetEntity>[] = [
                     <DocCode label="modules/widget/components/WidgetListView.tsx">
                         {`"use client";
 import { widgetColumns } from "./columns";
-import { ListView } from "@/components/TypeView/ListView/ListView";
-import type { WidgetEntity } from "@/modules/widget/types/types";
+import { ListView } from "@components/TypeView/ListView/ListView";
+import type { WidgetEntity } from "@modules/widget/types/types";
 
 export function WidgetListView({ data }: { data: WidgetEntity[] }) {
   return <ListView columns={widgetColumns} data={data} />;
@@ -259,10 +259,10 @@ export function WidgetListView({ data }: { data: WidgetEntity[] }) {
                     <DocCode label="modules/widget/config/contract.tsx">
                         {`import { defineRecordModule, registerModule } from "@lib/registry";
 import { createListQueryState } from "@lib/query-state/list-query-state";
-import { FormView } from "@/components/TypeView/FormView/FormView";
+import { FormView } from "@components/TypeView/FormView/FormView";
 import { WidgetListView } from "@modules/widget/components/WidgetListView";
 import { searchWidgets, readWidget, createWidget, updateWidget, deleteWidget } from "./provider";
-import type { WidgetEntity } from "@/modules/widget/types/types";
+import type { WidgetEntity } from "@modules/widget/types/types";
 
 const formFields = [
   { name: "title" as const, label: "Título", type: "text" as const, required: true },
@@ -292,6 +292,15 @@ export const widgetModule = defineRecordModule<WidgetEntity>({
 
 registerModule(widgetModule);`}
                     </DocCode>
+                    <DocCallout type="info" title="views é por módulo, não um conjunto fixo">
+                        Nem todo módulo precisa de todas as views. Hoje só <code>favorites</code> usa{" "}
+                        <code>cards</code>/<code>graph</code> — faz sentido lá (favoritos têm uma
+                        dimensão temporal/visual que vale um gráfico); roles/users/tenants/permissions só
+                        declaram <code>list</code>+<code>form</code> porque é o que o domínio deles pede.
+                        Adicionar <code>cards</code>/<code>graph</code> a um módulo novo só porque{" "}
+                        <code>favorites</code> tem é padronizar por padronizar — decida pelo que os dados
+                        daquele módulo realmente precisam mostrar.
+                    </DocCallout>
                 </DocStep>
 
                 <DocStep n={9} title="Registrar no bootstrap (lib/registry/bootstrap.ts)">

@@ -126,7 +126,7 @@ describe('RolesService', () => {
     });
 
     await service.create(
-      { name: 'Admin', type: 'SYSTEM', description: 'Admin role' },
+      { name: 'Admin', type: 'ADMIN', description: 'Admin role' },
       'tenant-1',
     );
 
@@ -134,7 +134,7 @@ describe('RolesService', () => {
       data: {
         tenantId: 'tenant-1',
         name: 'Admin',
-        type: 'SYSTEM',
+        type: 'ADMIN',
         description: 'Admin role',
         status: 'ACTIVE',
       },

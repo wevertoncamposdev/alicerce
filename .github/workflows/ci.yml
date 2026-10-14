@@ -7,42 +7,111 @@ on:
     branches: [ develop, main ]
 
 jobs:
-  backend-tests:
+  backend-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
       - name: Install backend deps
         run: npm --prefix backend ci
-      - name: Run backend tests
+      # Não-bloqueante: ~289 erros pré-existentes (ver PLAN.md, bloco P6) —
+      # vira bloqueante quando esse débito for zerado, não antes (um gate
+      # vermelho desde o primeiro commit não dá sinal, só ruído).
+      - name: Lint
+        run: npm --prefix backend run lint
+        continue-on-error: true
+      - name: Type-check
+        run: npx --prefix backend tsc --noEmit
+      - name: Unit tests
         run: npm --prefix backend test
 
-  frontend-build:
+  backend-e2e:
     runs-on: ubuntu-latest
-    needs: backend-tests
+    needs: backend-checks
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: alicerce
+          POSTGRES_PASSWORD: alicerce
+          POSTGRES_DB: alicerce
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U alicerce"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://alicerce:alicerce@localhost:5432/alicerce
+      JWT_SECRET: ci-only-secret
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
+      - name: Install backend deps
+        run: npm --prefix backend ci
+      - name: Apply migrations
+        run: npm --prefix backend exec -- prisma migrate deploy
+      - name: Run e2e tests
+        run: npm --prefix backend run test:e2e
+
+  frontend-checks:
+    runs-on: ubuntu-latest
+    needs: backend-checks
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
       - name: Install frontend deps
         run: npm --prefix frontend ci
-      - name: Build frontend
+      # Não-bloqueante: 55 erros pré-existentes (ver PLAN.md, bloco P6) —
+      # mesma lógica do backend acima.
+      - name: Lint
+        run: npm --prefix frontend run lint
+        continue-on-error: true
+      - name: Type-check
+        run: npx --prefix frontend tsc --noEmit
+      - name: Unit tests
+        run: npm --prefix frontend test
+      - name: Build
         run: npm --prefix frontend run build
+
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install backend deps
+        run: npm --prefix backend ci
+      - name: Install frontend deps
+        run: npm --prefix frontend ci
+      - name: Audit backend
+        run: npm --prefix backend audit --audit-level=high
+        continue-on-error: true
+      - name: Audit frontend
+        run: npm --prefix frontend audit --audit-level=high
+        continue-on-error: true
 
   export-openapi:
     runs-on: ubuntu-latest
-    needs: backend-tests
+    needs: backend-checks
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
       - name: Install backend deps
         run: npm --prefix backend ci
       - name: Export OpenAPI

@@ -1,5 +1,5 @@
 "use client";
-import { ApiError } from "@/lib/api-client";
+import { ApiError } from "@lib/api-client";
 
 export default function useApiError() {
     return (err: unknown) => {
