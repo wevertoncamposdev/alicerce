@@ -181,9 +181,9 @@ describe('UsersService', () => {
     it('findOne: should throw NotFoundException when the user belongs to another tenant', async () => {
       repository.findById.mockResolvedValueOnce(userFromOtherTenant as never);
 
-      await expect(
-        service.findOne(userId, ownTenantId),
-      ).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.findOne(userId, ownTenantId)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
 
     it('update: should throw NotFoundException and never touch the row when the user belongs to another tenant', async () => {
@@ -198,9 +198,9 @@ describe('UsersService', () => {
     it('remove: should throw NotFoundException and never touch the row when the user belongs to another tenant', async () => {
       repository.findById.mockResolvedValueOnce(userFromOtherTenant as never);
 
-      await expect(
-        service.remove(userId, ownTenantId),
-      ).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.remove(userId, ownTenantId)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
       expect(repository.softDeleteById).not.toHaveBeenCalled();
     });
 

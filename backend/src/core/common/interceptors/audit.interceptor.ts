@@ -8,8 +8,22 @@ import { Observable, from, switchMap, tap } from 'rxjs';
 import { AuditService } from '@modules/audit/audit.service';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { AuditType } from '@core/prisma/generated/enums';
+import { resolveAuditEntityFromUrl } from '@core/common/utils/audit-entity.util';
+import { RequestWithAuth } from '@core/common/types/http.types';
 
 type PrismaDelegate = { findUnique?: (args: unknown) => Promise<unknown> };
+
+/**
+ * O handler pode retornar qualquer coisa (este interceptor audita todas as
+ * rotas mutáveis da app) — este tipo cobre só os campos que a auditoria
+ * inspeciona para descobrir tenant/user quando não vêm do request (ex.:
+ * signup, onde tenant/user ainda não existiam no início da requisição).
+ */
+interface AuditableResult {
+  id?: string;
+  tenant?: { id?: string };
+  user?: { id?: string; tenantId?: string };
+}
 
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
@@ -39,25 +53,6 @@ export class AuditInterceptor implements NestInterceptor {
     }
 
     return 'DATA_CHANGE';
-  }
-
-  // Extrai o nome do recurso da URL, ignorando prefixo /api e, quando
-  // existir, o segmento tenant/:tenantId/.
-  // "/api/favorites/019f..."        -> "favorites"
-  // "/api/tenant/abc/audit"         -> "audit"
-  // "/api/tenant/abc/favorites/xy"  -> "favorites"
-  //
-  // O frontend consulta a trilha de auditoria pelo nome singular do módulo
-  // (normalizeAuditEntityName em frontend/src/screens/DetailViewScreen.tsx).
-  // Como as rotas usam o nome do recurso ora no plural ("favorites",
-  // "roles"), ora já singular ("user", "tenant"), normalizamos aqui também
-  // para que o nome gravado sempre bata com o nome consultado — e é esse
-  // mesmo nome singular que usamos como chave do Prisma Client abaixo
-  // (coincide com o nome do delegate: `this.prisma.user`, `.role`, etc.).
-  private resolveEntity(url: string): string {
-    const resourceMatch = url.match(/^\/api\/(?:tenant\/[^/]+\/)?([^/?]+)/);
-    const resource = resourceMatch?.[1] ?? url;
-    return resource.endsWith('s') ? resource.slice(0, -1) : resource;
   }
 
   // Busca o estado da entidade ANTES da mutação, para o "before" da
@@ -110,13 +105,13 @@ export class AuditInterceptor implements NestInterceptor {
     return clone;
   }
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const req = context.switchToHttp().getRequest();
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    const req = context.switchToHttp().getRequest<RequestWithAuth>();
     const user = req.user;
     const tenantId = req.tenantId;
     const method = req.method;
-    const url = req.originalUrl;
-    const routeId = req.params?.id as string | undefined;
+    const url = req.originalUrl ?? req.url;
+    const routeId = req.params?.id;
 
     // Só audita ações relevantes (CRUD, login, onboarding, etc.) — para o
     // resto, nem vale a pena tentar capturar "before".
@@ -127,7 +122,7 @@ export class AuditInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    const entity = this.resolveEntity(url);
+    const entity = resolveAuditEntityFromUrl(url);
 
     // O "before" precisa ser lido ANTES do handler rodar — depois a
     // mutação já aconteceu. Por isso entra na cadeia antes de
@@ -135,7 +130,7 @@ export class AuditInterceptor implements NestInterceptor {
     return from(this.captureBeforeState(method, entity, routeId)).pipe(
       switchMap((before) =>
         next.handle().pipe(
-          tap((result) => {
+          tap((result: AuditableResult) => {
             const resolvedTenantId =
               tenantId ??
               user?.tenantId ??
@@ -150,7 +145,7 @@ export class AuditInterceptor implements NestInterceptor {
                 type: this.resolveAuditType(url),
                 action: method,
                 entity,
-                entityId: routeId ?? (result?.id as string | undefined),
+                entityId: routeId ?? result?.id,
                 before: this.sanitizePayload(before),
                 // "after" é o que o handler efetivamente persistiu/retornou
                 // (a entidade salva), não o payload que o cliente mandou —

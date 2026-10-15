@@ -16,7 +16,7 @@ const INTERNAL_API_URL = process.env.INTERNAL_API_URL ?? "http://localhost:5000/
  */
 async function handler(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
     const { path } = await context.params;
-    let token = await getSessionToken();
+    const token = await getSessionToken();
 
     if (!token) {
         return NextResponse.json({ message: "Sessão não encontrada." }, { status: 401 });
@@ -55,7 +55,7 @@ async function handler(request: NextRequest, context: { params: Promise<{ path: 
         });
     };
 
-    let response = await fetchFromUpstream(token);
+    const response = await fetchFromUpstream(token);
 
     // Caso retorne 401, o access token pode ter expirado. Tentamos o fluxo de refresh.
     if (response.status === 401) {

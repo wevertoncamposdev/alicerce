@@ -1,5 +1,4 @@
 import {
-  IsArray,
   IsBoolean,
   IsEmail,
   IsEnum,
@@ -8,17 +7,14 @@ import {
   IsUrl,
   IsDateString,
   MaxLength,
-  ArrayUnique,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 import {
-  BoardRoleType,
   CoverageArea,
   OrganizationSize,
   PartnershipType,
   TenantCategory,
-  TenantDocumentType,
   TenantServiceArea,
 } from '@core/prisma/generated/enums';
 

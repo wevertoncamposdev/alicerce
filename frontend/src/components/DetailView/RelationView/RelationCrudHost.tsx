@@ -15,8 +15,6 @@ export type RelationCrudHostProps<T> = {
     initialData?: T[];
     list?: () => Promise<T[]>;
     detach?: (id: string) => Promise<void>;
-    create?: (payload: any) => Promise<T>;
-    attach?: (payload: any) => Promise<void>;
     idAccessor?: (item: T) => string;
     rowLink?: (item: T) => string | undefined;
     emptyMessage?: string;
@@ -24,14 +22,12 @@ export type RelationCrudHostProps<T> = {
     confirmDetachDescription?: string;
 };
 
-export function RelationCrudHost<T extends Record<string, any>>({
+export function RelationCrudHost<T extends object>({
     columns,
     initialData = [],
     list,
     detach,
-    attach,
-    create,
-    idAccessor = (i: T) => (i.id as string) ?? "",
+    idAccessor = (i: T) => ((i as { id?: string }).id ?? ""),
     rowLink,
     emptyMessage = "Nenhum item.",
     confirmDetachTitle = "Remover este item?",
@@ -39,7 +35,6 @@ export function RelationCrudHost<T extends Record<string, any>>({
 }: RelationCrudHostProps<T>) {
     const { confirm, dialog } = useConfirmDialog();
     const [items, setItems] = React.useState<T[]>(initialData);
-    const [loadingIds, setLoadingIds] = React.useState<Record<string, boolean>>({});
     const [loading, setLoading] = React.useState(Boolean(list));
 
     React.useEffect(() => {
@@ -62,6 +57,10 @@ export function RelationCrudHost<T extends Record<string, any>>({
         };
     }, [list]);
 
+    // TanStack Table's useReactTable() retorna funções que o React Compiler
+    // não consegue memoizar com segurança — limitação conhecida da lib, não
+    // um bug deste componente (ver https://react.dev/reference/react-compiler).
+    // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({ data: items, columns, getCoreRowModel: getCoreRowModel() });
 
     async function handleDetach(id: string) {
@@ -71,18 +70,11 @@ export function RelationCrudHost<T extends Record<string, any>>({
 
         const prev = items;
         setItems((s) => s.filter((it) => idAccessor(it) !== id));
-        setLoadingIds((l) => ({ ...l, [id]: true }));
         try {
             await detach(id);
         } catch (err) {
             console.error("relation-crud detach failed", err);
             setItems(prev);
-        } finally {
-            setLoadingIds((l) => {
-                const copy = { ...l };
-                delete copy[id];
-                return copy;
-            });
         }
     }
 

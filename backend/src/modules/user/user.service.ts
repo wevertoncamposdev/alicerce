@@ -3,7 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 //@Core
-import { Prisma } from '@core/prisma/generated/client';
+import { Prisma, Permission } from '@core/prisma/generated/client';
 import { PrismaService } from '@core/prisma/prisma.service';
 
 //@DTO
@@ -22,7 +22,6 @@ import { UserErrorCode } from './domain/errors/user-error-codes';
 
 //@Repository
 import { UserRepository } from './persistence/repository/user.repository';
-import { TenantId } from '@src/core/common/decorators/tenant-id.decorator';
 
 @Injectable()
 export class UsersService {
@@ -39,7 +38,10 @@ export class UsersService {
     tenantId: string,
   ): Promise<UserResponseDto> {
     try {
+      // tenantId do body nunca é usado — vem do contexto autenticado
+      // (parâmetro `tenantId` desta função), nunca do payload do cliente.
       const { personId, tenantId: _tenantId, ...rest } = createUserDto;
+      void _tenantId;
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
       const user = await this.userRepository.create({
         ...rest,
@@ -210,7 +212,7 @@ export class UsersService {
       include: { permission: true },
     });
 
-    const uniquePermissions = new Map<string, any>();
+    const uniquePermissions = new Map<string, Permission>();
     for (const item of rolePermissions) {
       if (item.permission && !uniquePermissions.has(item.permission.id)) {
         uniquePermissions.set(item.permission.id, item.permission);

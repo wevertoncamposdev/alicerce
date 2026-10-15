@@ -1,22 +1,7 @@
 
 import "server-only";
 import { getModule } from "@lib/registry";
-import type { DataProvider, SearchArgs, SearchResult } from "@lib/data-provider/types";
-
-const inflightSearchRequests = new Map<string, Promise<unknown>>();
-const inflightReadRequests = new Map<string, Promise<unknown>>();
-
-function withInFlightRequest<T>(
-  store: Map<string, Promise<unknown>>,
-  key: string,
-  load: () => Promise<T>,
-): Promise<T> {
-  const existing = store.get(key);
-  if (existing) return existing as Promise<T>;
-  const request = load().finally(() => store.delete(key));
-  store.set(key, request as Promise<unknown>);
-  return request;
-}
+import type { SearchArgs } from "@lib/data-provider/types";
 
 // lib/data-provider/provider.ts
 export function createDataProvider() {

@@ -3,7 +3,6 @@
 
 import {
     DocSection,
-    DocSubTitle,
     DocP,
     DocCode,
     DocCallout,
@@ -153,7 +152,7 @@ export function GuiaCriarModuloSection() {
                     />
                     <DocCallout type="warning">
                         Todo controller novo precisa ter <strong>as seis rotas acima</strong>. É exatamente a
-                        ausência de <code>@Get(':id')</code> + <code>findOne</code> que hoje quebra a tela de
+                        ausência de <code>@Get(&apos;:id&apos;)</code> + <code>findOne</code> que hoje quebra a tela de
                         detalhe de Role/Permission — não repita esse gap em módulos novos.
                     </DocCallout>
                     <DocCode label="widget.module.ts">

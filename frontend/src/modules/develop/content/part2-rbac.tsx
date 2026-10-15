@@ -88,7 +88,7 @@ const ACTION_PERMISSION_RULES = {
             <DocSubTitle>Pendências conhecidas neste ponto do projeto</DocSubTitle>
             <DocP>
                 Ao mexer em Roles/Permissions, esteja ciente do estado atual do repositório (ver também a
-                seção &quot;Armadilhas conhecidas&quot;): faltam rotas <code>@Get(':id')</code> e{" "}
+                seção &quot;Armadilhas conhecidas&quot;): faltam rotas <code>@Get(&apos;:id&apos;)</code> e{" "}
                 <code>findOne</code> em <code>RolesController</code>/<code>PermissionsController</code>, e{" "}
                 <code>readRolePermissions</code>/<code>readRoleUsers</code> ainda não enviam{" "}
                 <code>tenantId</code> — isso é exatamente o tipo de vazamento descrito na seção de

@@ -5,6 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { randomUUID } from 'crypto';
 import { RolesService } from '../role/roles.service';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -36,6 +37,10 @@ describe('UsersController', () => {
         {
           provide: RolesService,
           useValue: {},
+        },
+        {
+          provide: PermissionCacheService,
+          useValue: { getFreshPermissions: jest.fn() },
         },
       ],
     }).compile();

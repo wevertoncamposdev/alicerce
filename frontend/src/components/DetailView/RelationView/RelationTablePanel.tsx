@@ -75,6 +75,26 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
         return notes.filter((note) => note.content.toLowerCase().includes(query));
     }, [notes, searchText]);
 
+    const handleDelete = React.useCallback(
+        async (noteId: string) => {
+            const confirmed = await confirm({ title: "Remover esta nota?" });
+            if (!confirmed) return;
+
+            const previous = notes;
+            setNotes((current) => current.filter((n) => n.id !== noteId));
+
+            startTransition(async () => {
+                try {
+                    await deleteFn(favoriteId, noteId);
+                } catch (err) {
+                    console.error("[relation-shell] falha ao remover nota", err);
+                    setNotes(previous);
+                }
+            });
+        },
+        [confirm, notes, deleteFn, favoriteId, startTransition],
+    );
+
     const tableColumns = React.useMemo<ColumnDef<T>[]>(
         () => [
             ...(overrideColumns ?? defaultColumns<T>()),
@@ -94,31 +114,18 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
                 ),
             },
         ],
-        [overrideColumns, notes],
+        [overrideColumns, handleDelete],
     );
 
+    // TanStack Table's useReactTable() retorna funções que o React Compiler
+    // não consegue memoizar com segurança — limitação conhecida da lib, não
+    // um bug deste componente (ver https://react.dev/reference/react-compiler).
+    // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
         data: filteredNotes,
         columns: tableColumns,
         getCoreRowModel: getCoreRowModel(),
     });
-
-    async function handleDelete(noteId: string) {
-        const confirmed = await confirm({ title: "Remover esta nota?" });
-        if (!confirmed) return;
-
-        const previous = notes;
-        setNotes((current) => current.filter((n) => n.id !== noteId));
-
-        startTransition(async () => {
-            try {
-                await deleteFn(favoriteId, noteId);
-            } catch (err) {
-                console.error("[relation-shell] falha ao remover nota", err);
-                setNotes(previous);
-            }
-        });
-    }
 
     function handleCreate() {
         const content = newNoteText.trim();

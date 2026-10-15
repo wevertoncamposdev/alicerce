@@ -1,11 +1,4 @@
-import {
-  IsString,
-  IsArray,
-  IsUrl,
-  IsDateString,
-  MaxLength,
-  IsOptional,
-} from 'class-validator';
+import { IsString, IsArray, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 // dto/search-favorites.dto.ts

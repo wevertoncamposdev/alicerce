@@ -42,6 +42,10 @@ export function ListView<T extends { id: string | number }>({
 
     const [sorting, setSorting] = useState<SortingState>([]);
 
+    // TanStack Table's useReactTable() retorna funções que o React Compiler
+    // não consegue memoizar com segurança — limitação conhecida da lib, não
+    // um bug deste componente (ver https://react.dev/reference/react-compiler).
+    // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
         data,
         columns,

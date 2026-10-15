@@ -1,11 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsEnum,
-  IsDateString,
-  IsUUID,
-  IsBoolean,
-} from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsDateString } from 'class-validator';
 import { TaskStatus, TaskPriority } from './create-task.dto';
 
 export class UpdateTaskDto {

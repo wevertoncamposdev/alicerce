@@ -3,8 +3,9 @@ import { NotFoundException } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { RoleRepository } from './persistence/role.repository';
 import { PrismaService } from '@core/prisma/prisma.service';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
-const prismaMock: any = {
+const prismaMock = {
   role: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
   permission: { findUnique: jest.fn() },
   user: { findUnique: jest.fn() },
@@ -21,17 +22,28 @@ const roleRepositoryMock = {
   count: jest.fn(),
 };
 
+const permissionCacheMock = {
+  invalidateUser: jest.fn(),
+  invalidateUsers: jest.fn(),
+};
+
 describe('RolesService', () => {
   let service: RolesService;
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    // Default: nenhum usuário afetado, a menos que um teste sobrescreva com
+    // `.mockResolvedValueOnce` — evita que todo teste que passa por
+    // attachPermission/detachPermission/remove precise mockar isto só para
+    // não quebrar no `.map()` da invalidação de cache.
+    prismaMock.userRole.findMany.mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RolesService,
         { provide: PrismaService, useValue: prismaMock },
         { provide: RoleRepository, useValue: roleRepositoryMock },
+        { provide: PermissionCacheService, useValue: permissionCacheMock },
       ],
     }).compile();
 
@@ -152,6 +164,9 @@ describe('RolesService', () => {
     expect(roleRepositoryMock.search).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: 'tenant-1',
+        // `expect.any(Array)` é tipado como `any` pelo @types/jest — não
+        // tem como tipar isso de forma mais estrita sem reescrever o matcher.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         OR: expect.any(Array),
       }),
       0,
@@ -182,9 +197,9 @@ describe('RolesService', () => {
       deletedAt: null,
     });
 
-    await expect(
-      service.findOne('role-1', 'tenant-1'),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.findOne('role-1', 'tenant-1')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('update: should throw NotFoundException when the role belongs to another tenant', async () => {
@@ -207,9 +222,9 @@ describe('RolesService', () => {
       deletedAt: null,
     });
 
-    await expect(
-      service.remove('role-1', 'tenant-1'),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.remove('role-1', 'tenant-1')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('findUsersOfRole: should include detailed user fields required by the detail UI', async () => {
@@ -278,5 +293,100 @@ describe('RolesService', () => {
       },
     });
     expect(result[0].permission.name).toBe('read:users');
+  });
+
+  // P7.5: invalidação do cache de permissões. attachUser/detachUser afetam
+  // só 1 usuário; attachPermission/detachPermission/remove afetam todo
+  // mundo que tem a role (ver RolesService.invalidatePermissionCacheForRole).
+  describe('permission cache invalidation', () => {
+    it('attachUser: invalidates only the attached user', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        deletedAt: null,
+      });
+      prismaMock.user.findUnique.mockResolvedValueOnce({
+        id: 'user-1',
+        tenantId: 't1',
+        deletedAt: null,
+      });
+      prismaMock.userRole.upsert.mockResolvedValueOnce({ id: 'ur-1' });
+
+      await service.attachUser('role-1', 't1', 'user-1');
+
+      expect(permissionCacheMock.invalidateUser).toHaveBeenCalledWith(
+        't1',
+        'user-1',
+      );
+    });
+
+    it('detachUser: invalidates only the detached user', async () => {
+      prismaMock.userRole.deleteMany.mockResolvedValueOnce({ count: 1 });
+
+      await service.detachUser('role-1', 't1', 'user-1');
+
+      expect(permissionCacheMock.invalidateUser).toHaveBeenCalledWith(
+        't1',
+        'user-1',
+      );
+    });
+
+    it('attachPermission: invalidates every user who holds the role', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        deletedAt: null,
+      });
+      prismaMock.permission.findUnique.mockResolvedValueOnce({
+        id: 'perm-1',
+        tenantId: 't1',
+        deletedAt: null,
+      });
+      prismaMock.rolePermission.upsert.mockResolvedValueOnce({ id: 'rp-1' });
+      prismaMock.userRole.findMany.mockResolvedValueOnce([
+        { userId: 'user-1' },
+        { userId: 'user-2' },
+      ]);
+
+      await service.attachPermission('role-1', 't1', 'perm-1');
+
+      expect(permissionCacheMock.invalidateUsers).toHaveBeenCalledWith('t1', [
+        'user-1',
+        'user-2',
+      ]);
+    });
+
+    it('detachPermission: invalidates every user who holds the role', async () => {
+      prismaMock.rolePermission.deleteMany.mockResolvedValueOnce({
+        count: 1,
+      });
+      prismaMock.userRole.findMany.mockResolvedValueOnce([
+        { userId: 'user-3' },
+      ]);
+
+      await service.detachPermission('role-1', 't1', 'perm-1');
+
+      expect(permissionCacheMock.invalidateUsers).toHaveBeenCalledWith('t1', [
+        'user-3',
+      ]);
+    });
+
+    it('remove: invalidates every user who held the deactivated role', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        deletedAt: null,
+      });
+      prismaMock.role.update.mockResolvedValueOnce({ id: 'role-1' });
+      prismaMock.userRole.findMany.mockResolvedValueOnce([
+        { userId: 'user-4' },
+      ]);
+
+      await service.remove('role-1', 't1');
+
+      expect(permissionCacheMock.invalidateUsers).toHaveBeenCalledWith('t1', [
+        'user-4',
+      ]);
+    });
   });
 });

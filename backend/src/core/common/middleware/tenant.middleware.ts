@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from '@core/common/types/http.types';
 
 @Injectable()
 export class TenantMiddleware implements NestMiddleware {
@@ -30,16 +31,15 @@ export class TenantMiddleware implements NestMiddleware {
     // header, quando presentes, só servem para confirmar o que já está no
     // token, nunca para substituí-lo.
     let tenantIdFromJwt: string | undefined;
-    const authHeaderValue = req.headers['authorization'];
+    const authHeaderValue = req.headers['authorization'] as
+      string | string[] | undefined;
     const authHeader = Array.isArray(authHeaderValue)
       ? authHeaderValue[0]
       : authHeaderValue;
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
       try {
-        const payload = this.jwtService.decode(token) as
-          | { tenantId?: string }
-          | null;
+        const payload = this.jwtService.decode<JwtPayload>(token);
         tenantIdFromJwt = payload?.tenantId;
       } catch {
         throw new UnauthorizedException('JWT inválido');

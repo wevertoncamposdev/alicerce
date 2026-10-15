@@ -3,12 +3,16 @@ import {
   ExecutionContext,
   ForbiddenException,
 } from '@nestjs/common';
+import { RequestWithAuth } from '@core/common/types/http.types';
 
 export const TenantId = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
-    const paramTenantId = request.params['tenantId'] as string | undefined;
-    const headerTenantId = request.headers['x-tenant-id'] as string | undefined;
+    const request = ctx.switchToHttp().getRequest<RequestWithAuth>();
+    const paramTenantId = request.params?.tenantId;
+    const headerValue = request.headers['x-tenant-id'];
+    const headerTenantId = Array.isArray(headerValue)
+      ? headerValue[0]
+      : headerValue;
     const tenantId =
       request.tenantId ?? request.user?.tenantId ?? headerTenantId;
 

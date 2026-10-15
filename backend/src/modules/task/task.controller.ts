@@ -16,6 +16,7 @@ import { UpdateTaskDto } from './update-task.dto';
 import { Roles } from '@core/common/decorators/roles.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
+import type { RequestWithAuth } from '@core/common/types/http.types';
 
 // tenantId vem do param da rota, mas é confiável: TenantMiddleware (ver
 // app.module.ts) já intercepta toda rota `tenant/:tenantId/*path` e rejeita
@@ -30,10 +31,10 @@ export class TaskController {
   @Permissions('task.create')
   create(
     @Param('tenantId') tenantId: string,
-    @Request() req,
+    @Request() req: RequestWithAuth,
     @Body() createTaskDto: CreateTaskDto,
   ) {
-    return this.taskService.create(tenantId, req.user.id, createTaskDto);
+    return this.taskService.create(tenantId, req.user!.sub, createTaskDto);
   }
 
   @Get()

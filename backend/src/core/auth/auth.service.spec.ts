@@ -1,18 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { PrismaService } from '@core/prisma/prisma.service';
+import { PrismaBootstrapService } from '@core/prisma/prisma-bootstrap.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { I18nService } from 'nestjs-i18n';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
 describe('AuthService', () => {
   let service: AuthService;
   let prisma: {
     refreshToken: {
       findUnique: jest.Mock;
-      update: jest.Mock;
-      updateMany: jest.Mock;
+      update: jest.Mock<Promise<unknown>, [{ where: { id: string } }]>;
+      updateMany: jest.Mock<
+        Promise<unknown>,
+        [{ where: { familyId: string } }]
+      >;
       create: jest.Mock;
     };
     user: { findUnique: jest.Mock };
@@ -30,8 +34,12 @@ describe('AuthService', () => {
     prisma = {
       refreshToken: {
         findUnique: jest.fn(),
-        update: jest.fn().mockResolvedValue({}),
-        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        update: jest
+          .fn<Promise<unknown>, [{ where: { id: string } }]>()
+          .mockResolvedValue({}),
+        updateMany: jest
+          .fn<Promise<unknown>, [{ where: { familyId: string } }]>()
+          .mockResolvedValue({ count: 1 }),
         create: jest.fn().mockResolvedValue({}),
       },
       user: { findUnique: jest.fn().mockResolvedValue(baseUser) },
@@ -40,13 +48,17 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: PrismaService, useValue: prisma },
+        { provide: PrismaBootstrapService, useValue: prisma },
         {
           provide: JwtService,
           useValue: { signAsync: jest.fn().mockResolvedValue('token') },
         },
         { provide: ConfigService, useValue: {} },
         { provide: I18nService, useValue: {} },
+        {
+          provide: PermissionCacheService,
+          useValue: { setPermissions: jest.fn().mockResolvedValue(undefined) },
+        },
       ],
     }).compile();
 

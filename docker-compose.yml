@@ -15,10 +15,26 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   backend:
     build: ./backend
     environment:
       DATABASE_URL: postgresql://alicerce:alicerce@db:5432/alicerce
+      # Role de runtime sujeita a RLS (ver migration add_app_runtime_role) —
+      # criada automaticamente na primeira migration aplicada pelo backend.
+      APP_DATABASE_URL: postgresql://app_runtime:app_runtime@db:5432/alicerce
+      # Cache de permissões (P7.5) — se o Redis cair em produção, a app
+      # continua no ar (fail-open para o Postgres, ver PermissionCacheService).
+      REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-dev-only-change-me}
       COOKIE_SECRET: ${COOKIE_SECRET:-dev-only-change-me}
       CORS_ORIGINS: http://localhost:3000
@@ -27,6 +43,8 @@ services:
       - "5000:5000"
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   frontend:

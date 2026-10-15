@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionsController } from './permissions.controller';
 import { PermissionsService } from './permissions.service';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
 describe('PermissionsController', () => {
   let controller: PermissionsController;
@@ -23,6 +24,10 @@ describe('PermissionsController', () => {
       controllers: [PermissionsController],
       providers: [
         { provide: PermissionsService, useValue: permissionsServiceMock },
+        {
+          provide: PermissionCacheService,
+          useValue: { getFreshPermissions: jest.fn() },
+        },
       ],
     }).compile();
 

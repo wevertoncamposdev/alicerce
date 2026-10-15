@@ -49,12 +49,19 @@ export default function RelationPicker({
         return () => clearTimeout(t);
     }, [q]);
 
-    // load when kind, tenantId or term changes -> reset page
-    React.useEffect(() => {
+    // load when kind, tenantId or term changes -> reset page.
+    // Ajuste de estado durante o render (não um useEffect) — mesmo padrão já
+    // usado em relation-host.tsx: compara a chave atual com a anterior e
+    // reseta síncrono, sem o render em cascata extra de um setState dentro
+    // de efeito (ver "Adjusting state based on a prop change" na doc do React).
+    const resetKey = `${kind}:${tenantId ?? ""}:${term}`;
+    const [prevResetKey, setPrevResetKey] = React.useState(resetKey);
+    if (resetKey !== prevResetKey) {
+        setPrevResetKey(resetKey);
         setPage(0);
         setHasMore(true);
         setItems([]);
-    }, [kind, tenantId, term]);
+    }
 
     React.useEffect(() => {
         let mounted = true;

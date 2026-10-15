@@ -35,7 +35,7 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
             emptyMessage: "Nenhum usuário associado a esta role.",
             confirmDetachTitle: "Remover usuário desta role?",
             confirmDetachDescription: "O usuário perde imediatamente as permissões associadas a essa role.",
-            onAttach: async (item: any) => {
+            onAttach: async (item: UserEntity) => {
                 if (!currentTenantId) {
                     toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
                     return;
@@ -75,12 +75,16 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
                 <RelationPicker
                     kind="users"
                     tenantId={currentTenantId}
-                    onSelect={onSelect}
+                    // RelationPicker busca pela própria API e tipa o resultado
+                    // como `Entity` (forma mínima genérica p/ renderizar a
+                    // lista) — em runtime o endpoint de users retorna o
+                    // UserEntity completo, só não declarado nesse tipo.
+                    onSelect={(item) => onSelect(item as unknown as UserEntity)}
                     onClose={onClose}
                 />
             ),
         }),
-        [columns, currentTenantId, formatError, initial, roleId],
+        [columns, currentTenantId, formatError, initial, roleId, setStatus],
     );
 
     return <RelationHost config={config} initial={initial} />;

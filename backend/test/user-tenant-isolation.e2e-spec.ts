@@ -2,9 +2,12 @@ import { randomUUID } from 'crypto';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
+import { App } from 'supertest/types';
 import { UsersModule } from '@modules/user/user.module';
+import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
 /**
  * Cobre a Fase 0 do AGENTS.md ("acesso cruzado entre tenants retorna
@@ -55,7 +58,7 @@ class MockPrisma {
 }
 
 describe('User tenant isolation (e2e with mocked Prisma)', () => {
-  let app: INestApplication;
+  let app: INestApplication<App>;
   let mockPrisma: MockPrisma;
 
   const tenantOwn = randomUUID();
@@ -85,12 +88,23 @@ describe('User tenant isolation (e2e with mocked Prisma)', () => {
     });
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [UsersModule],
+      // AuthorizationModule precisa estar no grafo para RolesService (puxado
+      // via RoleModule, importado transitivamente por UsersModule) resolver
+      // PermissionCacheService — @Global() só vale para módulos que já
+      // fazem parte do grafo compilado, não é implícito num TestingModule
+      // isolado como este.
+      imports: [UsersModule, AuthorizationModule],
     })
       .overrideProvider(PrismaService)
       .useValue(mockPrisma as unknown as PrismaService)
       .overrideGuard(RolesPermissionsGuard)
       .useValue({ canActivate: () => true })
+      // RolesPermissionsGuard é substituído acima, então o
+      // PermissionCacheService real nunca é chamado — só precisa existir no
+      // grafo de DI porque RolesService (puxado via RoleModule, importado
+      // transitivamente por UsersModule) o injeta.
+      .overrideProvider(PermissionCacheService)
+      .useValue({ invalidateUser: jest.fn(), invalidateUsers: jest.fn() })
       .compile();
 
     app = moduleFixture.createNestApplication();

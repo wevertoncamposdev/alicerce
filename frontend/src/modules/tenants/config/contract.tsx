@@ -3,7 +3,6 @@ import type { DetailLayout, ListLayout } from "@lib/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
 import { createRecordFormAction } from "@lib/registry/actions";
 
-import { ListView } from "@components/TypeView/ListView/ListView";
 import { FormView } from "@components/TypeView/FormView/FormView";
 import { TenantsListView } from "@modules/tenants/components/TenantsListView";
 import { TenantUsersHost } from "@modules/tenants/components/TenantUsersHost";

@@ -41,6 +41,10 @@ enum AuditType {
   LOGOUT
   DATA_CHANGE
   PERMISSION_CHANGE
+  // Tentativa de acesso negada por falta de permissão (403) — só esse caso,
+  // não 401: tenantId/userId são obrigatórios no model Audit, e um 401
+  // (token ausente/inválido) não tem usuário identificável para registrar.
+  ACCESS_DENIED
 }
 
 enum ReportType {

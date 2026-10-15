@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { UserResponseDto } from '../dto/user-response.dto';
 import { DateUtil } from '../utils/date.util';
 import { UserValidator } from '../validators/user.validator';
+import { UserLike } from '../types/user-like.type';
 
 @Injectable()
 export class UserMapper {
   constructor(private validator: UserValidator) {}
 
-  mapToResponseDto(user: any): UserResponseDto {
+  mapToResponseDto(user: UserLike): UserResponseDto {
     return {
       id: user.id,
       email: user.email,
@@ -22,7 +23,7 @@ export class UserMapper {
     };
   }
 
-  mapToResponseDtoArray(users: any[]): UserResponseDto[] {
+  mapToResponseDtoArray(users: UserLike[]): UserResponseDto[] {
     return users.map((user) => this.mapToResponseDto(user));
   }
 }

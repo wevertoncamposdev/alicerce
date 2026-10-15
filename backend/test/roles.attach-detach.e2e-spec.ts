@@ -1,16 +1,51 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext, INestApplication } from '@nestjs/common';
 import request from 'supertest';
+import { App } from 'supertest/types';
+import { RequestWithAuth } from '@core/common/types/http.types';
 import { RoleModule } from '@modules/role/role.module';
+import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+
+interface MockRole {
+  id: string;
+  tenantId: string;
+  deletedAt: Date | null;
+}
+
+interface MockUser {
+  id: string;
+  deletedAt: Date | null;
+}
+
+interface MockPermission {
+  id: string;
+  tenantId: string;
+  deletedAt: Date | null;
+}
+
+interface MockUserRole {
+  tenantId: string;
+  userId: string;
+  roleId: string;
+  assignedAt?: Date;
+}
+
+interface MockRolePermission {
+  tenantId: string;
+  roleId: string;
+  permissionId: string;
+  resource: string | null;
+}
 
 class MockPrisma {
-  roles = new Map<string, any>();
-  users = new Map<string, any>();
-  permissions = new Map<string, any>();
-  userRoles: any[] = [];
-  rolePermissions: any[] = [];
+  roles = new Map<string, MockRole>();
+  users = new Map<string, MockUser>();
+  permissions = new Map<string, MockPermission>();
+  userRoles: MockUserRole[] = [];
+  rolePermissions: MockRolePermission[] = [];
 
   constructor() {
     // seed minimal data
@@ -28,20 +63,30 @@ class MockPrisma {
   }
 
   role = {
-    findUnique: async ({ where: { id } }: any) => this.roles.get(id) ?? null,
+    findUnique: ({ where: { id } }: { where: { id: string } }) =>
+      this.roles.get(id) ?? null,
   };
 
   user = {
-    findUnique: async ({ where: { id } }: any) => this.users.get(id) ?? null,
+    findUnique: ({ where: { id } }: { where: { id: string } }) =>
+      this.users.get(id) ?? null,
   };
 
   permission = {
-    findUnique: async ({ where: { id } }: any) =>
+    findUnique: ({ where: { id } }: { where: { id: string } }) =>
       this.permissions.get(id) ?? null,
   };
 
   userRole = {
-    upsert: async ({ where, create, update }: any) => {
+    upsert: ({
+      where,
+      create,
+      update,
+    }: {
+      where: { userId_roleId: { userId: string; roleId: string } };
+      create: MockUserRole;
+      update: Partial<MockUserRole>;
+    }) => {
       const existing = this.userRoles.find(
         (r) =>
           r.userId === where.userId_roleId.userId &&
@@ -55,7 +100,11 @@ class MockPrisma {
       this.userRoles.push(created);
       return created;
     },
-    deleteMany: async ({ where }: any) => {
+    deleteMany: ({
+      where,
+    }: {
+      where: { userId: string; roleId: string; tenantId: string };
+    }) => {
       const before = this.userRoles.length;
       this.userRoles = this.userRoles.filter(
         (r) =>
@@ -67,14 +116,27 @@ class MockPrisma {
       );
       return { count: before - this.userRoles.length };
     },
-    findMany: async ({ where }: any) =>
+    findMany: ({ where }: { where: { roleId: string; tenantId: string } }) =>
       this.userRoles.filter(
         (r) => r.roleId === where.roleId && r.tenantId === where.tenantId,
       ),
   };
 
   rolePermission = {
-    upsert: async ({ where, create }: any) => {
+    upsert: ({
+      where,
+      create,
+    }: {
+      where: {
+        roleId_permissionId_resource: {
+          roleId: string;
+          permissionId: string;
+          resource: string | null;
+        };
+      };
+      create: MockRolePermission;
+      update: Record<string, never>;
+    }) => {
       const key = where.roleId_permissionId_resource;
       const existing = this.rolePermissions.find(
         (p) =>
@@ -87,7 +149,11 @@ class MockPrisma {
       this.rolePermissions.push(created);
       return created;
     },
-    deleteMany: async ({ where }: any) => {
+    deleteMany: ({
+      where,
+    }: {
+      where: { permissionId: string; roleId: string; tenantId: string };
+    }) => {
       const before = this.rolePermissions.length;
       this.rolePermissions = this.rolePermissions.filter(
         (p) =>
@@ -99,7 +165,7 @@ class MockPrisma {
       );
       return { count: before - this.rolePermissions.length };
     },
-    findMany: async ({ where }: any) =>
+    findMany: ({ where }: { where: { roleId: string; tenantId: string } }) =>
       this.rolePermissions.filter(
         (p) => p.roleId === where.roleId && p.tenantId === where.tenantId,
       ),
@@ -107,17 +173,25 @@ class MockPrisma {
 }
 
 describe('Roles attach/detach (e2e with mocked Prisma)', () => {
-  let app: INestApplication;
+  let app: INestApplication<App>;
   let mockPrisma: MockPrisma;
 
   beforeAll(async () => {
     mockPrisma = new MockPrisma();
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [RoleModule],
+      // AuthorizationModule precisa estar no grafo para RolesService (o SUT,
+      // não mockado) resolver PermissionCacheService — @Global() só vale
+      // para módulos que já fazem parte do grafo compilado, não é implícito
+      // num TestingModule isolado como este.
+      imports: [RoleModule, AuthorizationModule],
     })
       .overrideProvider(PrismaService)
       .useValue(mockPrisma as unknown as PrismaService)
+      // RolesPermissionsGuard é substituído por um stub abaixo, então o
+      // PermissionCacheService real nunca é chamado.
+      .overrideProvider(PermissionCacheService)
+      .useValue({ invalidateUser: jest.fn(), invalidateUsers: jest.fn() })
       // RoleModule (testado isolado, sem AuthModule) não tem nada que povoe
       // request.user — e @TenantId() lê o tenant de lá (nunca do body da
       // requisição, que é o que os testes abaixo mandam em
@@ -129,8 +203,14 @@ describe('Roles attach/detach (e2e with mocked Prisma)', () => {
       .overrideGuard(RolesPermissionsGuard)
       .useValue({
         canActivate: (context: ExecutionContext) => {
-          const request = context.switchToHttp().getRequest();
-          request.user = { sub: 'user-1', tenantId: 'tenant-1', roles: ['ADMIN'], permissions: ['role.assign'] };
+          const request = context.switchToHttp().getRequest<RequestWithAuth>();
+          request.user = {
+            sub: 'user-1',
+            username: 'user-1@example.com',
+            tenantId: 'tenant-1',
+            roles: ['ADMIN'],
+            permissions: ['role.assign'],
+          };
           return true;
         },
       })
@@ -159,7 +239,7 @@ describe('Roles attach/detach (e2e with mocked Prisma)', () => {
 
   it('detaches a user from a role', async () => {
     // ensure a relation exists
-    await mockPrisma.userRole.upsert({
+    mockPrisma.userRole.upsert({
       where: { userId_roleId: { userId: 'user-1', roleId: 'role-1' } },
       create: { tenantId: 'tenant-1', userId: 'user-1', roleId: 'role-1' },
       update: {},
@@ -187,7 +267,7 @@ describe('Roles attach/detach (e2e with mocked Prisma)', () => {
   });
 
   it('detaches a permission from a role', async () => {
-    await mockPrisma.rolePermission.upsert({
+    mockPrisma.rolePermission.upsert({
       where: {
         roleId_permissionId_resource: {
           roleId: 'role-1',

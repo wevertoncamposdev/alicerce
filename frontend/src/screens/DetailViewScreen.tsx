@@ -16,7 +16,7 @@ export async function DetailViewScreen({ moduleName, id }: { moduleName: string;
     const mod = getModule(moduleName);
     const dataProvider = createDataProvider();
 
-    let record: Record<string, any>;
+    let record: Record<string, unknown>;
     try {
         record = await dataProvider.read(moduleName, id);
     } catch (err) {

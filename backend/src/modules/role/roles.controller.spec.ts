@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RolesController } from './roles.controller';
 import { RolesService } from './roles.service';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
 describe('RolesController', () => {
   let controller: RolesController;
@@ -26,7 +27,13 @@ describe('RolesController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RolesController],
-      providers: [{ provide: RolesService, useValue: rolesServiceMock }],
+      providers: [
+        { provide: RolesService, useValue: rolesServiceMock },
+        {
+          provide: PermissionCacheService,
+          useValue: { getFreshPermissions: jest.fn() },
+        },
+      ],
     }).compile();
 
     controller = module.get<RolesController>(RolesController);

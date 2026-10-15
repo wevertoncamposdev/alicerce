@@ -7,21 +7,20 @@ import {
 
 import * as path from 'path';
 import * as fs from 'fs';
-import {
-  I18nModule,
-  HeaderResolver,
-  AcceptLanguageResolver,
-} from 'nestjs-i18n';
+import { I18nModule } from 'nestjs-i18n';
 
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from '@src/app.controller';
 import { AppService } from '@src/app.service';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { RequestContextInterceptor } from '@core/common/interceptors/request-context.interceptor';
 import { LoggingInterceptor } from '@core/common/interceptors/logging.interceptor';
 import { AuditInterceptor } from '@core/common/interceptors/audit.interceptor';
 import { AllExceptionsFilter } from '@core/common/filters/all-exceptions.filter';
 
 import { PrismaModule } from '@core/prisma/prisma.module';
+import { RedisModule } from '@core/redis/redis.module';
+import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { AuthModule } from '@core/auth/auth.module';
 import { TenantMiddleware } from '@core/common/middleware/tenant.middleware';
 import { AuditModule } from '@modules/audit/audit.module';
@@ -38,6 +37,8 @@ import { PermissionModule } from '@modules/permission/permission.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    RedisModule,
+    AuthorizationModule,
     UsersModule,
     RoleModule,
     PermissionModule,
@@ -62,6 +63,13 @@ import { PermissionModule } from '@modules/permission/permission.module';
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
+    },
+    // Precisa vir antes dos demais interceptors: abre o escopo de
+    // AsyncLocalStorage que a extension de RLS do Prisma usa para descobrir o
+    // tenant da requisição (ver request-context.interceptor.ts).
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestContextInterceptor,
     },
     {
       provide: APP_INTERCEPTOR,

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '@core/auth/auth.guard';
+import { RequestWithAuth } from '@core/common/types/http.types';
 
 /**
  * Guard global (registrado em AuthModule, depois do AuthGuard — a ordem dos
@@ -32,8 +33,8 @@ export class TenantScopeGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
-    const paramTenantId = request.params['tenantId'];
+    const request = context.switchToHttp().getRequest<RequestWithAuth>();
+    const paramTenantId = request.params?.tenantId;
     const resolvedTenantId = request.tenantId ?? request.user?.tenantId;
 
     if (!resolvedTenantId) {

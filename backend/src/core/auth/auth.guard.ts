@@ -8,6 +8,7 @@ import {
 import { JwtService } from '@nestjs/jwt'; // Serviço para verificar/assinar JWT
 import { Reflector } from '@nestjs/core'; // Leitor de metadata em runtime
 import { Request } from 'express'; // Tipo de request HTTP (Express)
+import { JwtPayload } from '@core/common/types/http.types';
 
 // Chave de metadata usada para marcar rotas públicas
 export const IS_PUBLIC_KEY = 'isPublic';
@@ -54,10 +55,10 @@ export class AuthGuard implements CanActivate {
 
     try {
       // Verifica assinatura, expiração e estrutura do JWT
-      const payload = await this.jwtService.verifyAsync(token);
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
 
       // Injeta payload no request para uso posterior nos handlers/services
-      request['user'] = payload;
+      (request as Request & { user: JwtPayload }).user = payload;
     } catch {
       // Token inválido, expirado ou malformado: 401
       throw new UnauthorizedException();

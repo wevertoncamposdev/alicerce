@@ -611,7 +611,7 @@ rodada.
 
 ---
 
-## P7 — Observabilidade e segurança adicional do backend (migrado de `backend/issues.md`, agora retirado) — 1 de 5 itens feito
+## P7 — Observabilidade e segurança adicional do backend (migrado de `backend/issues.md`, agora retirado) — 5 de 5 itens feito
 
 `backend/issues.md` foi retirado no P3 (estava desatualizado desde 07/07 — vários
 itens que ele listava como pendentes já tinham sido corrigidos pelo P1/P2 desta
@@ -680,28 +680,195 @@ sessão). Os itens dele que **ainda são reais** e não tinham equivalente neste
     (ex.: `tenant-scope.e2e-spec.ts` montando `AppModule` completo), fica como
     item pequeno separado — não fiz aqui para não misturar com o item do
     backlog.
-- [ ] **RLS (Row-Level Security) no Postgres.** Nenhuma política de RLS existe hoje —
-  o isolamento de tenant é 100% responsabilidade do código da aplicação (guards +
-  checagem manual nos services). Exigiria `RequestContext` via `AsyncLocalStorage`
-  propagando `tenantId`, `PrismaService` executando `SET LOCAL app.tenant_id` por
-  request, e `ENABLE ROW LEVEL SECURITY` + `CREATE POLICY` nas tabelas
-  multi-tenant — trabalho grande, mas é a camada de defesa que sobra se algum guard
-  futuro falhar.
-- [ ] **Cache Redis de permissões.** Hoje a lista de permissões vem inteira no JWT no
-  login e só muda quando o token expira (15 min) — revogar uma permissão não tem
-  efeito imediato. Cache Redis (TTL curto) + invalidação ao alterar
-  role/permission resolveria isso sem token mais curto. `ioredis` nem está no
-  `package.json` ainda.
-- [ ] **Observabilidade estruturada.** `LoggingInterceptor`/`AllExceptionsFilter`
-  (corrigidos no P2 para ao menos logar erro) ainda usam `console.log`/`Logger`
-  simples — sem correlation-id propagado entre requisição→log→auditoria, sem
-  logger estruturado (`pino`/`nestjs-pino`), sem OpenTelemetry. Um middleware de
-  `AsyncLocalStorage` para correlation-id serviria tanto para isso quanto para RLS
-  (item acima) — vale fazer junto.
-- [ ] **Auditoria de falhas de autenticação/autorização (401/403).** `AuditInterceptor`
-  só audita `POST`/`PATCH`/`DELETE` e login bem-sucedidos — uma tentativa de acesso
-  negada (403 do `RolesPermissionsGuard`, 401 de token inválido) não gera nenhum
-  registro hoje. Útil para detectar tentativa de escalonamento de privilégio.
+- [x] **RLS (Row-Level Security) no Postgres — ✅ feito em 2026-10-15.** Antes, o
+  isolamento de tenant era 100% responsabilidade do código da aplicação (guards +
+  `where: { tenantId }` manual nos services) — RLS é a camada que sobra se algum
+  guard futuro falhar.
+  - **Role dedicada (`app_runtime`), sem privilégio de owner.** Decisão confirmada
+    com o usuário antes de implementar: owner ignora RLS por padrão no Postgres
+    mesmo com política criada, então reusar a role das migrations (`DATABASE_URL`)
+    tornaria a proteção inócua. Migration `add_app_runtime_role` cria a role (dev:
+    senha em claro, mesmo padrão de `JWT_SECRET`/`COOKIE_SECRET` deste template —
+    comentário na própria migration avisa para produção) + grants CRUD +
+    `ALTER DEFAULT PRIVILEGES` (tabelas futuras não exigem grant manual). Nova env
+    var `APP_DATABASE_URL`; `DATABASE_URL` (owner) continua reservada a
+    migrations/seed.
+  - **16 tabelas de uma vez** (`users`, `roles`, `permissions`, `user_roles`,
+    `role_permissions`, `audits`, `tasks`, `favorites`, `favorite_notes`, `reports`,
+    `refresh_tokens`, `tenant_areas`, `tenant_board_members`, `tenant_board_terms`,
+    `tenant_documents`, `people`) — migration `add_tenant_rls`, `ENABLE ROW LEVEL
+    SECURITY` + `CREATE POLICY` via loop `DO $$ ... FOREACH ... EXECUTE format(...)`.
+    Fora da lista: `Tenant` (raiz, sem coluna `tenantId` própria) e os filhos de
+    `Person` (`PersonAddress`/`Address`/`Contact`/`PersonDocument`, isolados só por
+    tabela-pai).
+  - **`RequestContext` via `AsyncLocalStorage`** (`core/common/context/request-context.ts`)
+    e o `RequestContextInterceptor` — precisa ser o PRIMEIRO interceptor global
+    (antes de `LoggingInterceptor`/`AuditInterceptor`) para seu escopo envolver todos
+    os demais; roda depois do `TenantScopeGuard`, então `request.tenantId` já existe
+    (exceto rotas `@Public()`, que seguem sem contexto de propósito).
+  - **Extension do Prisma (`tenant-rls.extension.ts`)** intercepta toda operação de
+    modelo (`$allOperations`) nas 16 tabelas: sem tenant no contexto, passa direto
+    (RLS bloqueia tudo sem `app.tenant_id` setado); com tenant, abre uma transação e
+    executa `SELECT set_config('app.tenant_id', $tenantId, true)` antes da query real
+    — `SET LOCAL`/`set_config` só vale dentro de transação e na mesma conexão, e com
+    pool (`adapter-pg`) isso só é garantido com transação interativa por operação
+    (custo real: cada leitura/escrita vira no mínimo BEGIN+SET+query+COMMIT).
+  - **Dois bugs sutis encontrados e corrigidos only via validação contra Postgres
+    real** (não apareceram em nenhum teste unitário/e2e mockado — ver nota abaixo):
+    1. `Object.assign(this, this.$extends(...))` em `PrismaService` (o truque que dá
+       RLS transparente aos ~20 services que injetam `PrismaService` sem mudar
+       nenhum deles) também contamina o estado interno de extensões do client — até
+       uma referência de `$transaction` capturada *antes* do assign passava a abrir
+       transações cujo `tx` já voltava estendido, causando recursão no mesmo hook
+       até "Unable to start a transaction in the given time". Corrigido com um
+       **segundo client Prisma, nunca estendido** (`rawClient`, conexão própria),
+       usado só internamente pela extension — elimina a recursão de raiz.
+    2. `AsyncLocalStorage.run(store, callback)` **perde o contexto quando
+       `callback` é uma arrow síncrona que só retorna/dispara uma Promise/Observable**
+       (`() => promise`) — só uma função **`async`** (mesmo sem nenhum `await`
+       interno) preserva a propagação para as continuações async feitas dentro dela.
+       Achado isolando o bug com scripts de reprodução mínima fora do Nest (puro
+       `AsyncLocalStorage` + `pg.Pool`, depois + Prisma `$extends`, depois +
+       `$transaction`) até achar a variável exata — não é documentado pelo Node nem
+       pelo Prisma. Corrigiu `RequestContextInterceptor`, que fazia exatamente esse
+       padrão síncrono ao envolver `next.handle().subscribe(subscriber)`.
+  - **`AuthService` não passa pelo RLS — não é um bypass geral.** Login por email,
+    refresh token por hash e a criação do tenant no signup são inerentemente
+    cross-tenant (o tenant ainda não é conhecido nesse ponto — é o próprio "portão
+    de entrada" que estabelece o contexto que todo o resto exige depois). Novo
+    `PrismaBootstrapService` (role owner, nunca estendido) injetado só ali,
+    substituindo `PrismaService` nos ~11 call sites do arquivo.
+  - **Nota sobre os testes e2e "existentes" — achado importante sobre a suíte
+    deste projeto**: as 4 specs em `test/*.e2e-spec.ts` ou não tocam Prisma
+    (`app.e2e-spec.ts`) ou fazem `.overrideProvider(PrismaService).useValue(mock)`
+    explicitamente (`user-tenant-isolation`, `roles.attach-detach`) — ou seja,
+    **nenhuma delas bate no Postgres real**, são testes de integração HTTP/DI com
+    Prisma mockado, não e2e de verdade. Rodá-las continua sendo o checkpoint padrão
+    (confirma que nada na cadeia de guards/interceptors/DI quebrou), mas não prova
+    nada sobre RLS — a validação real deste item veio de dois caminhos
+    complementares: (a) scripts diretos com `pg`/Prisma contra o Postgres local
+    confirmando que `app_runtime` com `app.tenant_id` de um tenant não vê linha de
+    outro **mesmo sem `WHERE tenantId` na query**; (b) servidor `start:dev` real —
+    registrou dois tenants via `/api/auth/register`, criou uma task no tenant A,
+    confirmou tenant B não a vê e recebe 403 ao tentar acessar a rota do tenant A.
+  - **Bug pré-existente encontrado e corrigido de passagem** (não é RLS, bloqueava a
+    validação acima): `task.controller.ts` usava `req.user.id` para o criador da
+    task, mas o payload do JWT só tem `sub` (`auth.guard.ts` injeta o payload
+    decodificado direto como `request.user`) — toda criação de task sempre recebia
+    `userId: undefined`. Corrigido para `req.user.sub`.
+- [x] **Cache Redis de permissões — ✅ feito em 2026-10-15.** Antes, a lista de
+  permissões vinha inteira no JWT no login e só mudava quando o token expirava
+  (15min) — revogar uma permissão não tinha efeito imediato.
+  - **Escopo confirmado com o usuário antes de implementar: só `@Permissions()`,
+    não `@Roles()`.** Role muda raramente (trocar a role de alguém já é uma ação
+    administrativa pouco frequente) e continua vindo do JWT; só a checagem de
+    permissão passou a consultar uma fonte fresca.
+  - `RedisService`/`RedisModule` (novo, `ioredis`) + `PermissionCacheService`
+    (`core/authorization/`): cache-aside com TTL de 60s — hit no Redis responde
+    direto; miss consulta o Postgres (`UserRole → Role → RolePermission →
+    Permission`, filtrando role/permission ativas e não-deletadas) e popula
+    o cache. Todo acesso ao Redis é best-effort (`try/catch` + log, nunca
+    lança) — Redis fora do ar só degrada para consultar o Postgres a cada
+    checagem, nunca derruba a aplicação nem bloqueia logins.
+  - `RolesPermissionsGuard` virou `async` e passou a consultar
+    `PermissionCacheService` em vez de `user.permissions` do JWT para a parte
+    de `@Permissions()` (roles continuam do JWT, como antes).
+  - **Invalidação no fan-out certo**: `attachUser`/`detachUser` invalidam só o
+    usuário afetado; `attachPermission`/`detachPermission`/`remove` (de role)
+    e `update`/`remove` (de permission) invalidam **todo mundo que tem a
+    role/permission afetada** (`RolesService`/`PermissionsService`, via
+    `findUsersOfRole`/`findRolesOfPermission`). `AuthService` também popula o
+    cache proativamente no login/registro (evita um miss garantido na primeira
+    requisição da sessão).
+  - **`REDIS_URL` novo** (`.env`/`.env.example`/`docker-compose.yml`, serviço
+    `redis:7-alpine` com healthcheck) — opcional em dev: sem Redis no ar a app
+    sobe normalmente (fail-open).
+  - **Validação real, não só mocks**: como a suíte "e2e" do projeto mocka
+    Prisma (ver nota em P7.4) e não havia Redis real nem Docker disponíveis
+    neste ambiente, baixei um binário Redis efêmero via `redis-memory-server`
+    (sem alterar `package.json` do projeto — só usado para validar, depois
+    descartado) e apontei o backend real (`start:dev`) para ele. Prova
+    definitiva: registrou um tenant admin, criou uma task (201), revogou
+    `task.create` da própria role via `DELETE /roles/:id/permissions/:id`, e
+    **sem esperar o token expirar** a mesma chamada de criar task passou a
+    retornar 403 "Acesso negado: permission insuficiente" — o comportamento
+    que era literalmente impossível antes deste item (ficaria permitido por até
+    15min).
+  - Ripple effect nos testes: `RolesPermissionsGuard` ganhou uma dependência
+    nova, então todo teste que o compila sem mockar (controllers de
+    user/role/permission/tenant, specs e2e de role/user isolados) precisou
+    passar a prover `PermissionCacheService` — ou direto como provider, ou
+    importando `AuthorizationModule` (`@Global()` só vale dentro do mesmo
+    grafo de teste compilado, não é implícito).
+- [x] **Observabilidade estruturada — ✅ feito em 2026-10-15.** `LoggingInterceptor`
+  (`console.log` cru) e `AllExceptionsFilter` (`Logger` do Nest com strings
+  concatenadas) agora logam em JSON estruturado (campos, não string) com
+  `correlationId` propagado requisição→log→auditoria (fecha o item pedido —
+  não implementado: OpenTelemetry, fora de escopo desta rodada).
+  **Decisão de implementação que mudou no meio do caminho, documentada porque
+  o caminho errado foi tentado primeiro e vale não repetir**: a abordagem
+  inicial foi instalar `nestjs-pino` (sugestão do próprio texto deste item) e
+  configurar via `LoggerModule.forRoot()` + middleware. **Não funcionou com
+  Fastify**: o middleware do `nestjs-pino` roda como middleware Express-style
+  (via `@fastify/middie`, que o adapter Fastify do Nest usa para suportar
+  middlewares de estilo Express) sobre um objeto "raw" — DIFERENTE do
+  `FastifyRequest` que guards/interceptors/filters recebem via
+  `context.switchToHttp().getRequest()`. Confirmado rodando o servidor de
+  verdade e inspecionando `req.log` dentro do interceptor: `constructor.name`
+  era `"Object"` (o logger NOOP nativo do Fastify, não um pino real) —
+  o middleware populava `.log` no objeto errado. Revertido: `nestjs-pino` e
+  `pino-http` desinstalados; a solução correta para Fastify é mais simples —
+  **habilitar o logger nativo do próprio Fastify** (ele já usa pino por
+  baixo), passando a config em `new FastifyAdapter({ logger: {...} })`
+  (`main.ts`), com `disableRequestLogging: true` para não duplicar com o
+  `LoggingInterceptor` (que já faz esse log no formato do projeto) e `redact`
+  nos paths de `authorization`/`cookie`/`set-cookie` — nunca em texto claro,
+  mesmo por acidente. Isso dá de graça `request.id` (correlation-id nativo do
+  Fastify, formato `req-N`) e `request.log` (child logger pino real) em
+  qualquer lugar que receba o `FastifyRequest`, sem dependência extra.
+  **Segundo bug real encontrado só pela suíte e2e completa, não pelos
+  unitários**: `test/app.e2e-spec.ts` passou a falhar (`GET /` → 500 em vez
+  de 200) porque esse teste monta a app via `createNestApplication()` **sem**
+  especificar o `FastifyAdapter` — isso usa Express por padrão, que não
+  decora `request` com `.log`, e `req.log.info(...)` lançava
+  `TypeError` sem esse fallback. Corrigido no `LoggingInterceptor` (cai para
+  o `Logger` do Nest quando `request.log` não existe — com uma ressalva: o
+  Nest `Logger` não tem `.info()`, só `.log()`, então o fallback precisa
+  chamar o método certo, não só trocar qual instância usar) e confirmado que
+  o `AllExceptionsFilter` já tinha esse mesmo fallback desde a implementação
+  do P7.2. **Lição**: rodar a suíte e2e completa (não só os specs do arquivo
+  tocado) antes de considerar uma mudança de infraestrutura transversal
+  fechada — o bug só apareceu ali, nenhum teste unitário o pegaria.
+  `LoggingInterceptor` e `AllExceptionsFilter` validados contra servidor real
+  (não só mocks): o mesmo `correlationId` apareceu na resposta ao cliente, no
+  log estruturado (`reqId`/`correlationId`) e no registro `ACCESS_DENIED` da
+  auditoria para uma mesma requisição 403 — o rastro completo pedido pelo
+  item. 1 teste novo no `logging.interceptor.spec.ts` cobrindo o fallback.
+- [x] **Auditoria de falhas de autorização (403) — ✅ feito em 2026-10-14, só 403
+  (não 401).** `AuditInterceptor` não é o lugar certo para isto: interceptors
+  rodam *depois* dos guards no pipeline do Nest, então quando um guard já
+  bloqueia a requisição (401/403), o interceptor nunca chega a rodar.
+  Implementado em `AllExceptionsFilter` (`@Catch()` captura toda exceção,
+  inclusive as de guards) — quando `status === 403` e `request.user` existe,
+  registra `type: 'ACCESS_DENIED'` (novo valor no enum `AuditType`, migration
+  `20261014175117_add_access_denied_audit_type`) com `tenantId`/`userId` reais
+  do usuário autenticado, `action`/`entity` resolvidos da URL, e a mensagem da
+  exceção como contexto.
+  **Decisão explícita com o usuário antes de implementar**: só 403, não 401 —
+  `tenantId`/`userId` são colunas obrigatórias (FK) no model `Audit`, e um 401
+  (token ausente/inválido) não tem usuário identificável para preencher essas
+  colunas; mudar isso exigiria tornar as FKs opcionais, uma mudança de modelo
+  de dados maior, fora do escopo deste item.
+  `resolveEntity` (antes método privado duplicável do `AuditInterceptor`)
+  extraído para `core/common/utils/audit-entity.util.ts` e reaproveitado pelos
+  dois lugares, em vez de copiar a lógica.
+  **Validado contra Postgres real, não só mock**: criado um usuário sem roles,
+  tentativa de `DELETE /api/favorites/:id` (sem `favorite.delete`) → 403, e o
+  registro apareceu na trilha de auditoria consultada como ADMIN:
+  `type: "ACCESS_DENIED"`, `userId`/`tenantId` corretos, `entity: "favorite"`,
+  `after: '{"message":"Acesso negado: role insuficiente"}'`.
+  3 specs novos em `all-exceptions.filter.spec.ts` (registra quando há
+  `request.user`; não registra sem `request.user`; não registra para 401).
 
 ---
 
@@ -1285,27 +1452,120 @@ atribuída → tabela de roles e botão "Associar" renderizando normalmente apó
 a refatoração do `RelationHost` (confirma que attach/detach continuam
 funcionando, não só que o lint ficou limpo).
 
-### Etapa 2 — Trilha A: hardening do backend (P7.2 → P7.5)
+### Etapa 2 — Trilha A: hardening do backend (P7.2 → P7.5) — 4 de 4 itens feito, Etapa 2 concluída
 
 Ordem já acordada — cada item é sua própria rodada de discussão + implementação
 antes do próximo (ver detalhe completo no bloco **P7** acima):
 
-1. **P7.2** — Auditoria de falhas de autenticação/autorização (401/403).
-2. **P7.3** — Observabilidade estruturada (correlation-id + logger).
-3. **P7.4** — RLS (Row-Level Security) no Postgres.
-4. **P7.5** — Cache Redis de permissões.
+1. [x] **P7.2** — Auditoria de falhas de autorização (403, não 401 — decisão
+   explícita, ver P7) — ✅ feito em 2026-10-14.
+2. [x] **P7.3** — Observabilidade estruturada (correlation-id + logger nativo
+   do Fastify, não `nestjs-pino` — ver P7 para o porquê) — ✅ feito em
+   2026-10-15.
+3. [x] **P7.4** — RLS (Row-Level Security) no Postgres (role dedicada
+   `app_runtime` + `AsyncLocalStorage` + extension do Prisma + 16 tabelas — ver
+   P7 para os dois bugs sutis encontrados e a validação real contra Postgres)
+   — ✅ feito em 2026-10-15.
+4. [x] **P7.5** — Cache Redis de permissões (só `@Permissions()`, `@Roles()`
+   continua no JWT — decisão confirmada com o usuário; ver P7 para a
+   invalidação fan-out e a prova real de revogação imediata) — ✅ feito em
+   2026-10-15.
 
-### Etapa 3 — Débito de lint (mecânico, sem risco de segurança)
+### Etapa 3 — Débito de lint (mecânico, sem risco de segurança) — ✅ feita em 2026-10-15
 
-- [ ] Zerar os 289 erros de lint do backend (`npm run lint` dentro de
-  `backend/`) — maior parte concentrada em `test/roles.attach-detach.e2e-spec.ts`
-  e `roles.service.spec.ts` (mocks de Prisma com `any`), ver P0.
-- [ ] Zerar os 55 erros de lint do frontend restantes desde o P6 (17
-  `no-explicit-any`, 16 `no-unused-vars`, 5 `exhaustive-deps`, etc. — lista
-  completa no bloco P6).
-- [ ] Só depois dos dois itens acima: tirar `continue-on-error: true` dos
-  passos de lint em `.github/workflows/ci.yml`, tornando o gate bloqueante —
-  é o que já estava planejado desde que o débito foi descoberto no P6.
+- [x] **Backend zerado: 464 → 0 problemas** (431 erros + 33 warnings; o número
+  tinha crescido desde o "289" original por causa do próprio trabalho da
+  Etapa 2 — P7.4/P7.5 adicionaram arquivos novos com o mesmo padrão de débito).
+  - **Causa raiz dominante**: `request`/`response` não tipados em
+    guards/interceptors/filters/decorators (`context.switchToHttp().getRequest()`
+    sem generic). Resolvido com um tipo compartilhado
+    (`core/common/types/http.types.ts`: `JwtPayload`, `RequestWithAuth`,
+    `PinoLikeLogger`) + `core/common/types/response-like.type.ts`
+    (`ResponseLike`, cobrindo os 3 runtimes que `AllExceptionsFilter`
+    precisa suportar — Fastify/Express/Node puro) — aplicado em
+    `all-exceptions.filter.ts` (53→0), `audit.interceptor.ts` (29→0),
+    `logging.interceptor.ts` (27→0), `tenant.middleware.ts`,
+    `roles-permissions.guard.ts`, `tenant-scope.guard.ts`, os decorators
+    `@TenantId()`/`@CurrentUserId()`, `request-context.interceptor.ts`,
+    `auth.guard.ts`, `auth.controller.ts`, `task.controller.ts`.
+  - **Mocks de teste (`const xMock: any = {...}`)**: a causa raiz ali não era
+    a FORMA do mock, era a anotação `: any` sufocando a inferência — removendo
+    só a anotação (deixando TS inferir o tipo do literal), `roles.service.spec.ts`
+    caiu de 74→1, `permissions.service.spec.ts` 24→0,
+    `permission-cache.service.spec.ts` 10→0. `test/roles.attach-detach.e2e-spec.ts`
+    (63→0) precisou de interfaces de verdade (`MockRole`, `MockUserRole` etc.)
+    porque usava uma classe com métodos tipados `any` ponto a ponto, não um
+    literal solto.
+  - **`@typescript-eslint/unbound-method` (19 ocorrências, todo em specs)**:
+    não eram bugs — é o idiom padrão `expect(mock.method).toHaveBeenCalledWith(...)`,
+    que a regra trata como risco de perder `this` mesmo sem o Jest nunca
+    chamar o método de verdade. Desligada via override escopado a
+    `**/*.spec.ts`/`test/**` em `eslint.config.mjs`, com comentário
+    explicando o porquê (não é um "cop-out" geral, é específico do idiom).
+  - **Bug real achado de passagem, não lint**: `task.controller.ts` usava
+    `req.user.id` (sempre `undefined` — o JWT só tem `sub`) — mesmo achado do
+    P7.4, aqui confirmado que já estava corrigido.
+- [x] **Frontend zerado: 46 → 0 problemas** (26 erros + 20 warnings — a lista
+  original do P6 "17 no-explicit-any, 16 no-unused-vars, 5 exhaustive-deps"
+  também já tinha mudado com o código).
+  - **`any` genuíno** (JSON de resposta de API, payloads dinâmicos): trocado
+    por `Record<string, unknown>`/casts estreitos pontuais —
+    `api-client.ts`, `DetailViewScreen.tsx`.
+  - **Generics (`T extends Record<string, any>`) nos componentes de relação**
+    (`RelationCrudHost`, `RelationHost`): trocar ingenuamente por
+    `Record<string, unknown>` quebrou o type-check de verdade (interfaces
+    nomeadas como `RoleEntity` não satisfazem um index signature de
+    `unknown`, só de `any`) — corrigido com `T extends object` + cast estreito
+    `(it as { id?: unknown }).id` no accessor default, em vez de alargar a
+    constraint. Expôs 3 mismatches reais em `RolePermissionsHost`/
+    `RoleUsersHost`/`UserRolesHost` (o `onSelect` do `RelationPicker`,
+    tipado numa `Entity` mínima própria, não era estruturalmente compatível
+    com `PermissionEntity`/`UserEntity`/`RoleEntity` — `any` escondia isso).
+    Corrigido com um cast pontual e comentado em cada call site (o endpoint
+    real retorna a entidade completa, só não declarada no tipo `Entity`),
+    não reescrevendo `RelationPicker` para ser genérico (mudança maior,
+    fora do escopo de um lint cleanup).
+  - **Código morto confirmado (zero uso em todo o repo), removido em vez de
+    só silenciado**: `attach`/`create` em `RelationCrudHostProps` e o estado
+    `loadingIds` (nunca lido em nenhum JSX); `withInFlightRequest` +
+    os dois `Map` de dedupe em `lib/data-provider/provider.ts` (função de
+    deduplicação de requisições concorrentes nunca chamada por `search`/`read`
+    — feature que começou e nunca foi ligada); imports soltos (`ListView`,
+    `Favorite`, `DocSubTitle`, `IsUUID`, `BoardRoleType` etc. em vários DTOs
+    e configs de módulo).
+  - **`react-hooks/set-state-in-effect` (2 ocorrências, não cosmético)**:
+    `RelationPicker.tsx` e `hooks/use-mobile.ts` chamavam `setState` direto
+    no corpo de um efeito — causa um render em cascata extra. Resolvido com
+    o padrão já estabelecido em `relation-host.tsx` ("ajustar estado durante
+    o render comparando com o valor anterior") no primeiro, e com
+    `useSyncExternalStore` (o hook do próprio React pra assinar uma API
+    externa como `matchMedia`) no segundo — não só silenciado.
+  - **`react-hooks/preserve-manual-memoization` (erro, não warning)** em
+    `use-autosave-controller.ts`: `commitDraftAsync` (um `useCallback`)
+    chamava a si mesma recursivamente pra drenar a fila de saves pendentes —
+    o React Compiler não consegue provar que a referência própria capturada
+    no closure sobrevive à otimização, e desiste de compilar o hook.
+    Reescrito pra um `while` (mesma semântica — inclusive reprocessar a fila
+    depois de um erro — comprovado com um teste novo, `use-autosave-controller.test.ts`,
+    que não existia antes) em vez da recursão.
+  - **`react-hooks/incompatible-library` (3 ocorrências)**: limitação
+    conhecida e documentada do próprio React Compiler com a API do
+    TanStack Table (`useReactTable()` retorna funções não-memoizáveis) — não
+    é um bug de nenhum componente, silenciado com `eslint-disable-next-line`
+    comentado em cada um dos 3 usos (`RelationCrudHost`, `ListView`,
+    `RelationTablePanel`).
+- [x] **`continue-on-error: true` removido dos dois passos de Lint em
+  `.github/workflows/ci.yml`** — o gate agora é bloqueante nos dois projetos.
+  (`continue-on-error` do `security-audit` e do `export:openapi` continuam
+  de propósito — não fazem parte deste item, ver Etapa 5 para o motivo do
+  audit.)
+- **Checkpoint desta etapa**: `tsc --noEmit` limpo, `npm run lint` com exit
+  0 (sem nenhum problema, nem warning) e suíte de testes 100% verde nos dois
+  projetos (backend: 109 unitários + 11 e2e; frontend: 22, incluindo o teste
+  novo do autosave) — mais `next build` e `nest build` de produção rodando
+  sem erro, já que esta etapa tocou em padrões de runtime do React
+  (`useSyncExternalStore`, ajuste de estado durante render), não só
+  anotações de tipo.
 
 ### Etapa 4 — Upgrades maiores de framework (cada um isolado, branch própria)
 

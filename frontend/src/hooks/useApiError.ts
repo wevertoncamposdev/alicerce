@@ -10,7 +10,7 @@ export default function useApiError() {
             if (typeof err === "string") return err;
             if (typeof err === "object") return JSON.stringify(err);
             return String(err);
-        } catch (e) {
+        } catch {
             return "Erro ao processar mensagem de erro";
         }
     };

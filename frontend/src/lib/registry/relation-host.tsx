@@ -4,7 +4,7 @@ import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import RelationCrudHost from "@components/DetailView/RelationView/RelationCrudHost";
 
-export type RelationHostConfig<T extends Record<string, any>> = {
+export type RelationHostConfig<T extends object> = {
     title: string;
     columns: ColumnDef<T>[];
     initialData: T[];
@@ -14,10 +14,10 @@ export type RelationHostConfig<T extends Record<string, any>> = {
     emptyMessage?: string;
     confirmDetachTitle?: string;
     confirmDetachDescription?: string;
-    onAttach?: (item: any) => Promise<void> | void;
+    onAttach?: (item: T) => Promise<void> | void;
     onDetach?: (id: string) => Promise<void> | void;
     renderPicker?: (props: {
-        onSelect: (item: any) => Promise<void> | void;
+        onSelect: (item: T) => Promise<void> | void;
         onClose: () => void;
     }) => React.ReactNode;
 };
@@ -33,7 +33,7 @@ export type RelationHostConfig<T extends Record<string, any>> = {
  * Resolvido tornando o componente único e recebendo a config variável só
  * como prop — o React reconcilia props no mesmo componente montado.
  */
-export function RelationHost<T extends Record<string, any>>({
+export function RelationHost<T extends object>({
     config,
     initial,
 }: {
@@ -55,9 +55,10 @@ export function RelationHost<T extends Record<string, any>>({
         setPrevSourceData(sourceData);
         setItems(sourceData);
     }
-    const idAccessor = config.idAccessor ?? ((it) => String((it as any).id ?? ""));
+    const idAccessor =
+        config.idAccessor ?? ((it: T) => String((it as { id?: unknown }).id ?? ""));
 
-    const handleSelect = async (item: any) => {
+    const handleSelect = async (item: T) => {
         const itemId = idAccessor(item);
         const previousItems = items;
 

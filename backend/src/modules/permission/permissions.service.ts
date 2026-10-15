@@ -4,10 +4,31 @@ import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { SearchPermissionDto } from './dto/search-permission.dto';
 import { Prisma } from '@core/prisma/generated/client';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
 @Injectable()
 export class PermissionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly permissionCache: PermissionCacheService,
+  ) {}
+
+  // Mudar/remover uma permissão afeta todo mundo que tem qualquer role que
+  // carregue essa permissão — fan-out permission → roles → usuários.
+  private async invalidatePermissionCacheForPermission(
+    permissionId: string,
+    tenantId: string,
+  ): Promise<void> {
+    const roles = await this.findRolesOfPermission(permissionId, tenantId);
+    const userRoles = await this.prisma.userRole.findMany({
+      where: { tenantId, roleId: { in: roles.map((r) => r.roleId) } },
+      select: { userId: true },
+    });
+    await this.permissionCache.invalidateUsers(
+      tenantId,
+      Array.from(new Set(userRoles.map((ur) => ur.userId))),
+    );
+  }
 
   async findOne(id: string) {
     const permission = await this.prisma.permission.findUnique({
@@ -51,7 +72,7 @@ export class PermissionsService {
       throw new NotFoundException('Permissao nao encontrada');
     }
 
-    return this.prisma.permission.update({
+    const updated = await this.prisma.permission.update({
       where: { id },
       data: {
         name: dto.name,
@@ -60,6 +81,14 @@ export class PermissionsService {
         description: dto.description,
       },
     });
+
+    // Sobretudo relevante se `name` mudou — a checagem em
+    // RolesPermissionsGuard compara por nome, então um cache com o nome
+    // antigo passaria a negar acesso que deveria ser concedido (ou o
+    // contrário, se o nome novo colidir com outra checagem existente).
+    await this.invalidatePermissionCacheForPermission(id, existing.tenantId);
+
+    return updated;
   }
 
   async remove(id: string) {
@@ -68,6 +97,8 @@ export class PermissionsService {
     if (!existing || existing.deletedAt) {
       throw new NotFoundException('Permissao nao encontrada');
     }
+
+    await this.invalidatePermissionCacheForPermission(id, existing.tenantId);
 
     return this.prisma.permission.update({
       where: { id },

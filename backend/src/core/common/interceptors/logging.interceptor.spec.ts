@@ -1,39 +1,46 @@
-import { ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  ExecutionContext,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { of, throwError } from 'rxjs';
 import { LoggingInterceptor } from './logging.interceptor';
 
 describe('LoggingInterceptor', () => {
   let interceptor: LoggingInterceptor;
-  let consoleLogSpy: jest.SpyInstance;
+  let logInfoMock: jest.Mock;
 
-  const buildContext = (req: Record<string, unknown>, res: unknown) =>
-    ({
+  const buildContext = (req: Record<string, unknown>, res: unknown) => {
+    logInfoMock = jest.fn();
+    const request = { ...req, log: { info: logInfoMock } };
+    return {
       switchToHttp: () => ({
-        getRequest: () => req,
+        getRequest: () => request,
         getResponse: () => res,
       }),
-    }) as unknown as ExecutionContext;
+    } as unknown as ExecutionContext;
+  };
 
   beforeEach(() => {
     interceptor = new LoggingInterceptor();
-    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
   });
 
-  afterEach(() => {
-    consoleLogSpy.mockRestore();
-  });
-
-  it('logs the response status code on success', (done) => {
+  it('logs a structured entry with the response status code on success', (done) => {
     const context = buildContext(
-      { method: 'GET', originalUrl: '/user', headers: {} },
+      { method: 'GET', originalUrl: '/user', headers: {}, id: 'req-1' },
       { statusCode: 200 },
     );
     const next = { handle: () => of({ id: '1' }) };
 
     interceptor.intercept(context, next).subscribe({
       complete: () => {
-        expect(consoleLogSpy).toHaveBeenCalledWith(
-          expect.stringContaining('GET /user 200'),
+        expect(logInfoMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            method: 'GET',
+            url: '/user',
+            statusCode: 200,
+          }),
         );
         done();
       },
@@ -42,17 +49,24 @@ describe('LoggingInterceptor', () => {
 
   it('logs the HttpException status and still propagates the error', (done) => {
     const context = buildContext(
-      { method: 'PATCH', originalUrl: '/user/1', headers: {} },
+      { method: 'PATCH', originalUrl: '/user/1', headers: {}, id: 'req-2' },
       { statusCode: 200 },
     );
-    const error = new HttpException('Usuario nao encontrado', HttpStatus.NOT_FOUND);
+    const error = new HttpException(
+      'Usuario nao encontrado',
+      HttpStatus.NOT_FOUND,
+    );
     const next = { handle: () => throwError(() => error) };
 
     interceptor.intercept(context, next).subscribe({
       error: (thrown) => {
         expect(thrown).toBe(error);
-        expect(consoleLogSpy).toHaveBeenCalledWith(
-          expect.stringContaining(`PATCH /user/1 ${HttpStatus.NOT_FOUND}`),
+        expect(logInfoMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            method: 'PATCH',
+            url: '/user/1',
+            statusCode: HttpStatus.NOT_FOUND,
+          }),
         );
         done();
       },
@@ -61,7 +75,7 @@ describe('LoggingInterceptor', () => {
 
   it('logs 500 for a non-HttpException error', (done) => {
     const context = buildContext(
-      { method: 'GET', originalUrl: '/boom', headers: {} },
+      { method: 'GET', originalUrl: '/boom', headers: {}, id: 'req-3' },
       { statusCode: 200 },
     );
     const error = new Error('unexpected failure');
@@ -69,11 +83,43 @@ describe('LoggingInterceptor', () => {
 
     interceptor.intercept(context, next).subscribe({
       error: () => {
-        expect(consoleLogSpy).toHaveBeenCalledWith(
-          expect.stringContaining(
-            `GET /boom ${HttpStatus.INTERNAL_SERVER_ERROR}`,
-          ),
+        expect(logInfoMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            method: 'GET',
+            url: '/boom',
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          }),
         );
+        done();
+      },
+    });
+  });
+
+  // Regressão real: `createNestApplication()` sem especificar o
+  // FastifyAdapter usa Express por padrão (ex.: app.e2e-spec.ts), que não
+  // decora `request` com `.log` — sem este fallback, toda requisição virava
+  // 500 nesse ambiente.
+  it('falls back to the Nest Logger when request.log does not exist', (done) => {
+    const logSpy = jest.spyOn(Logger.prototype, 'log').mockImplementation();
+    const request = { method: 'GET', originalUrl: '/no-pino', headers: {} };
+    const context = {
+      switchToHttp: () => ({
+        getRequest: () => request,
+        getResponse: () => ({ statusCode: 200 }),
+      }),
+    } as unknown as ExecutionContext;
+    const next = { handle: () => of({ id: '1' }) };
+
+    interceptor.intercept(context, next).subscribe({
+      complete: () => {
+        expect(logSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            method: 'GET',
+            url: '/no-pino',
+            statusCode: 200,
+          }),
+        );
+        logSpy.mockRestore();
         done();
       },
     });

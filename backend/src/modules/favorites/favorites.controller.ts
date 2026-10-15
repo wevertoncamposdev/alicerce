@@ -7,9 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
-  Query,
   Search,
-  Put,
 } from '@nestjs/common';
 import { SearchFavoritesDto } from './dto/search-favorite.dto';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';

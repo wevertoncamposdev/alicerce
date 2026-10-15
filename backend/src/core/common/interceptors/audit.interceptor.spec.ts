@@ -105,13 +105,16 @@ describe('AuditInterceptor', () => {
       });
 
     it('resolves LOGIN for the login endpoint', async () => {
-      await runWith({
-        method: 'POST',
-        originalUrl: '/api/auth/login',
-        params: {},
-        body: { email: 'x@example.com', password: 'secret' },
-        user: undefined,
-      }, { user: { id: 'u1' }, tenant: { id: 't1' } });
+      await runWith(
+        {
+          method: 'POST',
+          originalUrl: '/api/auth/login',
+          params: {},
+          body: { email: 'x@example.com', password: 'secret' },
+          user: undefined,
+        },
+        { user: { id: 'u1' }, tenant: { id: 't1' } },
+      );
 
       expect(auditService.register).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LOGIN' }),

@@ -34,7 +34,7 @@ export function RolePermissionsHost({ roleId, initial }: { roleId: string; initi
             emptyMessage: "Nenhuma permissão associada a esta role.",
             confirmDetachTitle: "Remover permissão desta role?",
             confirmDetachDescription: "Todos os usuários com essa role perdem essa permissão imediatamente.",
-            onAttach: async (item: any) => {
+            onAttach: async (item: PermissionEntity) => {
                 if (!currentTenantId) {
                     toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
                     return;
@@ -74,12 +74,16 @@ export function RolePermissionsHost({ roleId, initial }: { roleId: string; initi
                 <RelationPicker
                     kind="permissions"
                     tenantId={currentTenantId}
-                    onSelect={onSelect}
+                    // RelationPicker busca pela própria API e tipa o resultado
+                    // como `Entity` (forma mínima genérica p/ renderizar a
+                    // lista) — em runtime o endpoint de permissions retorna o
+                    // PermissionEntity completo, só não declarado nesse tipo.
+                    onSelect={(item) => onSelect(item as unknown as PermissionEntity)}
                     onClose={onClose}
                 />
             ),
         }),
-        [columns, currentTenantId, formatError, initial, roleId],
+        [columns, currentTenantId, formatError, initial, roleId, setStatus],
     );
 
     return <RelationHost config={config} initial={initial} />;

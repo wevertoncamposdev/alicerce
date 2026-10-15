@@ -13,13 +13,42 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
+  const isProduction = process.env.NODE_ENV === 'production';
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ trustProxy: true }), // necessário atrás de proxy/load balancer (Render, etc)
+    new FastifyAdapter({
+      trustProxy: true, // necessário atrás de proxy/load balancer (Render, etc)
+      // Logger NATIVO do Fastify (ele já usa pino por baixo) — não o pacote
+      // `nestjs-pino`/`pino-http`: esse roda como middleware Express-style
+      // (via @fastify/middie) sobre um objeto "raw" diferente do
+      // FastifyRequest que guards/interceptors/filters recebem via
+      // `context.switchToHttp().getRequest()` — então `request.log`, visto
+      // DAQUI, continuava sendo o logger NOOP nativo do Fastify, nunca pino
+      // de verdade (confirmado rodando o servidor antes de trocar de
+      // abordagem). Habilitando o logger nativo do próprio Fastify,
+      // `request.log`/`request.id` passam a ser reais em qualquer lugar que
+      // receba o FastifyRequest, sem depender de middleware adicional.
+      logger: {
+        level: isProduction ? 'info' : 'debug',
+        redact: {
+          paths: [
+            'req.headers.authorization',
+            'req.headers.cookie',
+            'res.headers["set-cookie"]',
+          ],
+          censor: '[REDACTED]',
+        },
+        transport: isProduction
+          ? undefined
+          : { target: 'pino-pretty', options: { singleLine: true } },
+      },
+      // O log automático de "incoming request"/"request completed" do
+      // Fastify ficaria duplicado com o LoggingInterceptor (que já loga cada
+      // requisição no formato do projeto, incluindo duração e referer).
+      disableRequestLogging: true,
+    }),
   );
-
-  const isProduction = process.env.NODE_ENV === 'production';
 
   // Em BFF, normalmente só existe UMA origem confiável: o servidor Next.
   // Evite usar '*' mesmo em dev — mantenha a lista explícita.
@@ -100,4 +129,4 @@ async function bootstrap() {
   );
 }
 
-bootstrap();
+void bootstrap();

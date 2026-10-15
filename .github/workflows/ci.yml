@@ -17,12 +17,8 @@ jobs:
           node-version-file: .nvmrc
       - name: Install backend deps
         run: npm --prefix backend ci
-      # Não-bloqueante: ~289 erros pré-existentes (ver PLAN.md, bloco P6) —
-      # vira bloqueante quando esse débito for zerado, não antes (um gate
-      # vermelho desde o primeiro commit não dá sinal, só ruído).
       - name: Lint
         run: npm --prefix backend run lint
-        continue-on-error: true
       - name: Type-check
         run: npx --prefix backend tsc --noEmit
       - name: Unit tests
@@ -72,11 +68,8 @@ jobs:
           node-version-file: .nvmrc
       - name: Install frontend deps
         run: npm --prefix frontend ci
-      # Não-bloqueante: 55 erros pré-existentes (ver PLAN.md, bloco P6) —
-      # mesma lógica do backend acima.
       - name: Lint
         run: npm --prefix frontend run lint
-        continue-on-error: true
       - name: Type-check
         run: npx --prefix frontend tsc --noEmit
       - name: Unit tests

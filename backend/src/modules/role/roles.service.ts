@@ -5,12 +5,14 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { SearchRoleDto } from './dto/search-role.dto';
 import { Prisma } from '@core/prisma/generated/client';
 import { RoleRepository } from './persistence/role.repository';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
 @Injectable()
 export class RolesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly roleRepository: RoleRepository,
+    private readonly permissionCache: PermissionCacheService,
   ) {}
 
   async findOne(id: string, tenantId: string) {
@@ -78,13 +80,31 @@ export class RolesService {
       throw new NotFoundException('Role nao encontrada');
     }
 
-    return this.prisma.role.update({
+    const result = await this.prisma.role.update({
       where: { id },
       data: {
         status: 'INACTIVE',
         deletedAt: new Date(),
       },
     });
+
+    await this.invalidatePermissionCacheForRole(id, tenantId);
+
+    return result;
+  }
+
+  // Mudar as permissões associadas a uma role afeta de uma vez todo mundo que
+  // tem essa role — diferente de attachUser/detachUser, que afetam só 1
+  // usuário.
+  private async invalidatePermissionCacheForRole(
+    roleId: string,
+    tenantId: string,
+  ): Promise<void> {
+    const affectedUsers = await this.findUsersOfRole(roleId, tenantId);
+    await this.permissionCache.invalidateUsers(
+      tenantId,
+      affectedUsers.map((userRole) => userRole.userId),
+    );
   }
 
   async attachUser(roleId: string, tenantId: string, userId: string) {
@@ -100,7 +120,7 @@ export class RolesService {
     if (!user || user.deletedAt)
       throw new NotFoundException('User nao encontrado');
 
-    return this.prisma.userRole.upsert({
+    const userRole = await this.prisma.userRole.upsert({
       where: {
         userId_roleId: {
           userId,
@@ -116,6 +136,10 @@ export class RolesService {
         assignedAt: new Date(),
       },
     });
+
+    await this.permissionCache.invalidateUser(tenantId, userId);
+
+    return userRole;
   }
 
   async detachUser(roleId: string, tenantId: string, userId: string) {
@@ -126,6 +150,8 @@ export class RolesService {
         userId,
       },
     });
+
+    await this.permissionCache.invalidateUser(tenantId, userId);
 
     return { removed: result.count > 0 };
   }
@@ -152,16 +178,20 @@ export class RolesService {
     if (permission.tenantId !== tenantId)
       throw new NotFoundException('Permission nao encontrada para este tenant');
 
-    // upsert (idempotent) by unique composite [roleId, permissionId, resource]
-    const uniqueWhere = {
+    // upsert (idempotent) by unique composite [roleId, permissionId, resource].
+    // O tipo gerado pelo Prisma para a chave composta exige `resource:
+    // string` mesmo a coluna sendo nullable (limitação conhecida da geração
+    // de tipos para chaves compostas com campo opcional) — o `null` em
+    // runtime funciona normalmente, só o tipo do gerador é mais estrito.
+    const uniqueWhere: Prisma.RolePermissionWhereUniqueInput = {
       roleId_permissionId_resource: {
         roleId,
         permissionId,
-        resource: resource ?? null,
+        resource: (resource ?? null) as unknown as string,
       },
-    } as any;
+    };
 
-    return this.prisma.rolePermission.upsert({
+    const rolePermission = await this.prisma.rolePermission.upsert({
       where: uniqueWhere,
       create: {
         tenantId,
@@ -173,6 +203,10 @@ export class RolesService {
         // touch to update timestamp if any (no timestamp field here), keep as no-op
       },
     });
+
+    await this.invalidatePermissionCacheForRole(roleId, tenantId);
+
+    return rolePermission;
   }
 
   async detachPermission(
@@ -187,6 +221,8 @@ export class RolesService {
         permissionId,
       },
     });
+
+    await this.invalidatePermissionCacheForRole(roleId, tenantId);
 
     return { removed: result.count > 0 };
   }

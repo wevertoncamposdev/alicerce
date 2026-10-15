@@ -1,10 +1,4 @@
-import {
-  IsString,
-  IsUrl,
-  IsDateString,
-  MaxLength,
-  IsUUID,
-} from 'class-validator';
+import { IsString, IsUrl, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateFavoriteDto {
