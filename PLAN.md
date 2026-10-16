@@ -105,18 +105,61 @@ nos dois projetos depois da mudança.
 
 ### P0.3 — Upgrades maiores (cada um como tarefa própria quando formos fazer — regra do `AGENTS.md` §6.1, branch `chore/upgrade-<pacote>-<versão>`)
 
-- [ ] **NestJS v11 → v12.** `latest` do pacote já é `12.1.3` (`11.x` passou a ser a
-  tag `legacy`). Ler breaking changes oficiais antes; testar bootstrap, plugins
-  Fastify (cookie/cors/helmet/static), Swagger e toda a suíte e2e depois. Resolve o
-  último par de vulnerabilidades do backend (`fastify`/`@nestjs/platform-fastify`,
-  1 moderate + 1 high — hoje só corrige com esse major, confirmado nesta rodada).
-- [ ] **TypeScript 5.9 → 7.0.** Não é um bump trivial — é a reescrita nativa do
-  compilador (não existe mais um "6.x" como major corrente). Tratar com atenção
-  redobrada: `tsc --noEmit` limpo nos dois projetos antes de mesclar, revisar se
-  `ts-jest`/`ts-loader`/`ts-node`/`tsx` já têm suporte.
-- [ ] **Prisma 7 → 8 — só quando saísse do RC.** Hoje a tag `latest` do npm é
-  `8.0.0-rc.22` (release candidate, não GA). Não adotar RC num projeto-template;
-  monitorar até a tag `latest` apontar para uma versão estável antes de migrar.
+- [x] **NestJS v11 → v12 — ✅ feito em 2026-10-15/16, branch `chore/upgrade-nestjs-12`.**
+  `@nestjs/{common,core,config,jwt,mapped-types,platform-express,platform-fastify,
+  swagger}` + `@nestjs/{cli,testing}` (dev) para `^12.x`. Resolveu o último par de
+  vulnerabilidades do backend — `@nestjs/platform-fastify@12` traz `fastify@5.12.5`
+  (as CVEs eram em `<=5.12.4`); `npm audit` confirma 0 vulnerabilidades agora.
+  - **`@nestjs/schematics` removido do `package.json`** (não rebaixado, removido):
+    `@nestjs/schematics@12` exige `typescript >=6.0.0` como peer, o que entraria em
+    conflito com o teto do `typescript-eslint` (`<6.1.0`) sem necessidade — `@nestjs/
+    cli@12` já traz sua própria cópia compatível como dependência direta (não peer),
+    então a entrada própria do projeto era redundante. TypeScript ficou intocado em
+    `5.9.3`, sem reabrir o item bloqueado abaixo.
+  - **Achado real, não só checklist**: o v12 passou a distribuir TODOS os pacotes
+    `@nestjs/*` como ESM-only (`"type": "module"` no `package.json` de cada um, sem
+    build CJS alternativo) — confirmado que é exclusivo do `@nestjs/*` entre as 14
+    dependências diretas do projeto (todo o resto, incluindo `fastify`/`rxjs`/
+    `@prisma/client`, continua CommonJS). O **build/runtime real não quebra**
+    (validado: `nest build` + `node dist/src/main.js` sobe normal, `GET /api`,
+    `GET /api/docs` e um fluxo completo de registro contra o Postgres real
+    funcionaram — Node resolve isso nativamente via `require(esm)`), mas o
+    **Jest/ts-jest parava de carregar qualquer coisa que importasse `@nestjs/*`**
+    (`SyntaxError: Cannot use import statement outside a module`).
+  - **Primeira tentativa (shim com `babel-jest` transformando só `@nestjs/**` de
+    ESM pra CJS) não funcionou** — descoberto só testando de verdade, não só lendo
+    docs: Jest tem uma verificação interna, anterior a `transform`/
+    `transformIgnorePatterns`, que recusa carregar qualquer módulo cujo
+    `package.json` mais próximo declare `"type": "module"` pela rota clássica
+    CommonJS — nenhuma combinação de `transform`/`transformIgnorePatterns`
+    contorna isso (testado com padrões cada vez mais permissivos, incluindo
+    `node_modules` inteiro e `.*`, todos sem efeito nesse arquivo específico).
+  - **Fix real**: `NODE_OPTIONS=--experimental-vm-modules` (suporte nativo a ESM
+    do próprio Jest) + `transformIgnorePatterns` liberando só `@nestjs/**`
+    (`ts-jest` continua só com `.ts`, nunca tenta transformar o `.js` ESM dos
+    pacotes — tentar fazia o `ts-jest` gerar `exports`/`require` CJS que o loader
+    ESM do Jest não reconhece, `ReferenceError: exports is not defined`). `babel-
+    jest`/`@babel/core`/`@babel/preset-env` instalados e depois **removidos** — não
+    eram necessários, o suporte nativo do Jest bastou. `cross-env` (novo,
+    devDependency) injeta o `NODE_OPTIONS` nos scripts `test`/`test:watch`/
+    `test:cov`/`test:debug`/`test:e2e` de forma portável entre shells.
+  - Validado: `tsc --noEmit` limpo, `npm run lint` 0 problemas, **109 testes
+    unitários + 11 e2e** passando (com os warnings esperados de
+    `ExperimentalWarning: VM Modules`), `nest build` limpo, `npm audit` 0
+    vulnerabilidades.
+- [ ] **TypeScript 5.9 → 7.0 — confirmado bloqueado, não fazer ainda.** Verificado
+  nesta rodada: `typescript@7.0.2` já é GA (não é mais dev build), mas
+  `ts-jest@29` exige `typescript: ">=4.3 <7"` (exclui a 7 explicitamente) e
+  `typescript-eslint@8`/`@typescript-eslint/parser` exigem `typescript: ">=4.8.4
+  <6.1.0"` (nem a 6.1 é suportada ainda). Subir pra 7 agora quebraria a suíte de
+  testes inteira e o ESLint dos dois projetos (zerado na Etapa 3). Reavaliar
+  quando esse teto subir — monitorar `typescript-eslint`, não só `ts-jest`.
+- [ ] **Prisma 7 → 8 — confirmado ainda em RC, não fazer ainda.** Checado de novo
+  nesta rodada (2026-10-15/16): tag `latest` do pacote `prisma` é `8.0.0-rc.23`
+  (ainda RC, passou de `rc.22` pra `rc.23` desde a última checagem); `@prisma/
+  client`/`@prisma/adapter-pg` continuam na tag `latest` = `7.10.1` (não
+  acompanharam o CLI pro RC). Não adotar RC num projeto-template — monitorar até
+  a tag `latest` do pacote `prisma` apontar pra uma versão estável.
 - [ ] **Demais bumps menores do `npm outdated`** (tratar caso a caso, sem pressa):
   `@tanstack/react-table` 8→9 é major (conferir breaking changes do TanStack Table
   antes de subir — é usado em todas as `ListView` do frontend); `radix-ui`, `recharts`,
@@ -1567,16 +1610,23 @@ antes do próximo (ver detalhe completo no bloco **P7** acima):
   (`useSyncExternalStore`, ajuste de estado durante render), não só
   anotações de tipo.
 
-### Etapa 4 — Upgrades maiores de framework (cada um isolado, branch própria)
+### Etapa 4 — Upgrades maiores de framework (cada um isolado, branch própria) — 1 de 4 feito, 2 bloqueados por dependência externa
 
 Só depois da Etapa 2/3 — são os que têm maior risco de regressão, então quanto
 mais estável o resto, melhor (ver detalhe completo no bloco **P0.3**):
 
-1. NestJS v11 → v12 (ler breaking changes; testar Fastify/Swagger/e2e).
-2. TypeScript 5.9 → 7.0 (reescrita nativa do compilador, não é bump trivial).
-3. Prisma 7 → 8 — **checar antes se já saiu do RC** (estava `8.0.0-rc.22` em
-   2026-10-13; não adotar RC num template).
-4. Bumps menores sem pressa (`@tanstack/react-table` 8→9 é major, `radix-ui`,
+1. [x] NestJS v11 → v12 — ✅ feito em 2026-10-15/16, branch
+   `chore/upgrade-nestjs-12` (ver P0.3 para a descoberta do ESM-only e o fix
+   real — `NODE_OPTIONS=--experimental-vm-modules`, não o shim de Babel que
+   foi tentado primeiro e não funcionou).
+2. [ ] TypeScript 5.9 → 7.0 — **bloqueado**: `ts-jest` exige `typescript:
+   ">=4.3 <7"` e `typescript-eslint` exige `typescript: ">=4.8.4 <6.1.0"` —
+   nem a 6.1 é suportada ainda, confirmado nesta rodada (ver P0.3). Reavaliar
+   quando esse teto subir.
+3. [ ] Prisma 7 → 8 — **bloqueado**: ainda `8.0.0-rc.23` (RC) na tag `latest`
+   do pacote `prisma`, confirmado de novo nesta rodada (ver P0.3). Não
+   adotar RC num template.
+4. [ ] Bumps menores sem pressa (`@tanstack/react-table` 8→9 é major, `radix-ui`,
    `recharts`, `react-intl`, `shadcn` CLI).
 
 ### Etapa 5 — Decisões já tomadas, aguardando outra fase (não é "fazer agora")
