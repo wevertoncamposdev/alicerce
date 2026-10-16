@@ -2086,26 +2086,88 @@ memória de sessão pra não repetir a confusão).
 ### 7.G — Gerador (Fase 4)
 
 Depende de 7.A–7.F fechados (usa o contrato final, o padrão final de
-permissões/RLS).
+permissões/RLS) — **7.A-7.F confirmadas mergeadas no `develop` pelo usuário
+em 2026-10-16**. Decisões de escopo confirmadas com o usuário antes de
+começar (sessão já longa, roteiro deliberadamente enxuto):
 
-- [ ] Decidir mecanismo: script Node simples (copiar template + substituir
-  placeholders) vs. Nest Schematics completo — recomendado o script simples
-  (mais barato de manter num template).
-- [ ] Templates de módulo: backend (model stub + module/controller/service/
-  dto do contrato 7.C) e frontend (contract.tsx/provider.ts usando
-  `createRestDataHandlers` de 7.F).
-- [ ] Criar `package.json` raiz mínimo (hoje não existe, cada projeto é
-  independente) só pra hospedar `npm run new:module <nome>` + um `dev` que
-  sobe os dois.
-- [ ] O gerador precisa tocar todos os pontos manuais hoje dispersos:
-  `permission-catalog.ts`, `TENANT_SCOPED_MODELS` + gerar a migration SQL de
-  RLS correspondente (esquecer isso hoje falha silenciosamente — sem RLS,
-  sem erro), `alicerce.config.ts`.
-- [ ] Gerar também um teste smoke automático para o módulo novo.
+- **Mecanismo**: script Node puro (`scripts/new-module.mjs`, raiz nova do
+  repo), não Nest Schematics — mais barato de manter num template.
+- **`--feature-of <pai>` (gerar Feature em vez de Módulo) fica de fora
+  desta rodada** — documentado como próximo passo, não implementado agora.
+  O gerador cobre só Módulo independente, que já satisfaz o critério de
+  pronto do `AGENTS.md` §1.
+- **Convenção de nome**: singular kebab-case (`npm run new:module widget`);
+  o script deriva PascalCase/camelCase/plural (regra ingênua `+s`/`y→ies`,
+  nomes irregulares exigem ajuste manual, documentado no próprio output).
+- **Migrations automáticas**: o script roda `npx prisma migrate dev --name
+  add_<nome>` de verdade (via `child_process`, precisa do Postgres de dev
+  acessível — mesma exigência que já existe hoje) + escreve e aplica a
+  migration de RLS (mesmo padrão de `add_rls_to_examples`, 7.D). Não é só
+  instrução impressa — isso é o que cumpre "zero código de tenant" de
+  verdade.
+- **`package.json` raiz novo**, mínimo: só `new:module` + um `dev` (via
+  `concurrently`) que sobe backend+frontend juntos. Não é um monorepo de
+  verdade (sem workspaces).
 
-Checkpoint/critério de aceite da fase: criar um módulo de teste do zero só
-com `npm run new:module` e confirmar que funciona na UI (lista, criar,
-editar, RLS, permissão) sem edição manual além do que o gerador perguntar.
+8 pontos manuais que o gerador precisa tocar (mapeados nas 7.A-7.F desta
+sessão, não suposição):
+
+1. `backend/prisma/models/features/<nome>.prisma` (novo)
+2. `backend/src/modules/<nome>/` — dto/controller/service/module (novos,
+   seguindo o contrato 7.C: `findOneOrThrow`/`resolvePagination`/whitelist)
+3. `backend/src/app.module.ts` — import + registro
+4. `backend/src/core/authorization/permission-catalog.ts` — 4 entradas
+   (`<nome>.create/read/update/delete`)
+5. `backend/src/core/prisma/extensions/tenant-rls.extension.ts` —
+   `TENANT_SCOPED_MODELS.add('<PascalNome>')`
+6. Migrations (model + RLS, automatizadas — ver acima)
+7. `frontend/src/modules/<nome>/` — types/provider (via
+   `createRestDataHandlers`)/contract.tsx/ListView/columns (novos)
+8. `frontend/src/app/(app)/<nome>/{page.tsx,[id]/page.tsx}` (rotas finas)
+9. `frontend/src/bootstrap.ts` — import do contract.tsx
+10. `frontend/src/alicerce.config.ts` — entrada no manifesto
+
+- [x] `package.json` raiz + `scripts/new-module.mjs`.
+- [x] Templates backend (model/dto/controller/service/module) seguindo o
+  contrato 7.C.
+- [x] Templates frontend (types/provider/contract/ListView/columns/rotas)
+  seguindo o contrato 7.F (`createRestDataHandlers`, `alicerce.config.ts`).
+- [x] Edições em arquivo existente: `app.module.ts`, `permission-catalog.ts`,
+  `tenant-rls.extension.ts`, `bootstrap.ts`, `alicerce.config.ts`.
+- [x] Migrations automáticas (model + RLS) via `child_process`.
+- [x] Teste smoke gerado (`<nome>.service.spec.ts`, mock de PrismaService,
+  happy-path de `search`/`create`).
+
+**Concluída em 2026-10-16.** Achados da verificação de ponta a ponta
+(`npm run new:module widget`, módulo descartado depois de validar):
+
+- **Finais de linha mistos no repo** quebraram o primeiro `editExisting`:
+  `app.module.ts` é CRLF, `tenant.prisma`/arquivos do frontend são LF. O
+  helper de edição do script agora detecta o estilo de cada arquivo e
+  normaliza o anchor/inserção antes de procurar, em vez de assumir LF.
+- `execFileSync` com `shell: true` + array de args gerava um
+  `DeprecationWarning` do próprio Node (args não escapados) — troca para
+  resolver `npx.cmd` no Windows diretamente, sem `shell: true`.
+- O template do teste smoke precisou do mesmo `eslint-disable-next-line
+  @typescript-eslint/no-unsafe-assignment` já usado em
+  `roles.service.spec.ts` — `expect.objectContaining()` é tipado como `any`
+  pelo `@types/jest` instalado, falso-positivo conhecido, não bug do gerador.
+- Verificação completa: `tsc`/lint/testes limpos nos dois projetos (109
+  testes backend + 22 frontend, igual a antes — o módulo de teste foi
+  removido depois), CRUD completo via API real (create/read/update/
+  delete/search), e **isolamento de RLS confirmado com dois tenants reais**
+  (signup de um segundo tenant, widget criado lá invisível para o tenant
+  admin original). Rota `/widgets` do frontend compilou e redirecionou
+  corretamente para login sem sessão (comportamento esperado, não testado
+  visualmente num browser real por falta de ferramenta de automação nesta
+  sessão).
+- `--feature-of <pai>` continua **não implementado**, documentado como
+  próximo passo (ver decisões de design acima).
+
+Isso fecha o critério de "pronto do template" do `AGENTS.md` §1: criar um
+módulo novo de domínio agora exige só `npm run new:module <nome>` + editar
+o model Prisma/campos/colunas gerados — zero código de UI/auth/tenant
+escrito à mão.
 
 ---
 

@@ -320,16 +320,16 @@ Cada fase só começa quando a anterior passou no checkpoint. Marque `[x]` ao co
 
 ### Fase 3 — Contrato de módulo
 
-- [ ] Backend: service base tenant-scoped (ou extensão Prisma), helper `search` (whitelist de sort/filtros), padrão único de pastas
-- [ ] Frontend: `createRestDataHandlers(resource)`; módulo declara só campos, colunas, views e layout de detalhe
-- [ ] Paginação e ordenação no servidor (remover `getPaginationRowModel` client-side)
-- [ ] `cache()` do React no data-provider; remover `Map`s de módulo
-- [ ] `defineModuleManifest` + `alicerce.config.ts`
+- [x] Backend: service base tenant-scoped (ou extensão Prisma), helper `search` (whitelist de sort/filtros), padrão único de pastas — Etapa 7.C do PLAN.md (`findOneOrThrow`/`tenant-search.util.ts`), 2026-10-16
+- [x] Frontend: `createRestDataHandlers(resource)`; módulo declara só campos, colunas, views e layout de detalhe — Etapa 7.F, 2026-10-16
+- [x] Paginação e ordenação no servidor (remover `getPaginationRowModel` client-side) — Etapa 7.F (TanStack Table v9 + paginação real), 2026-10-16
+- [x] `cache()` do React no data-provider; remover `Map`s de módulo — Etapa 7.F, 2026-10-16
+- [x] `defineModuleManifest` + `alicerce.config.ts` — Etapa 7.F, 2026-10-16
 
 ### Fase 4 — Gerador
 
-- [ ] `npm run new:module <nome> [--feature-of <pai>]` cria: model Prisma, módulo Nest, permissões no catálogo, rotas finas, contract, ListView wrapper, registro no bootstrap, teste smoke
-- [ ] Validar criando um módulo novo do zero só com o gerador
+- [x] `npm run new:module <nome>` cria: model Prisma, módulo Nest, permissões no catálogo, rotas finas, contract, ListView wrapper, registro no bootstrap, teste smoke — Etapa 7.G, 2026-10-16. `--feature-of <pai>` (gerar Feature em vez de Módulo) ficou **fora desta rodada**, documentado como próximo passo em PLAN.md.
+- [x] Validar criando um módulo novo do zero só com o gerador — `npm run new:module widget`, verificado de ponta a ponta (tsc/lint/testes, CRUD real via API, isolamento de RLS entre dois tenants) e descartado depois de validar; detalhes em PLAN.md, Etapa 7.G
 
 ### Fase 5 — Componentes portados da referência
 

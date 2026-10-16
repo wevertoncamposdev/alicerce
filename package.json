@@ -1,0 +1,13 @@
+{
+  "name": "alicerce",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Ponto de entrada mínimo pro template — não é um monorepo (sem workspaces); backend/ e frontend/ continuam independentes.",
+  "scripts": {
+    "new:module": "node scripts/new-module.mjs",
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm run start:dev --prefix backend\" \"npm run dev --prefix frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
