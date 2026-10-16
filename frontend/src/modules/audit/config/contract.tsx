@@ -7,7 +7,7 @@ import { readAuditEntry, searchAuditEntries } from "@modules/audit/config/provid
 import type { AuditEntry } from "@modules/audit/types/types";
 
 const auditListLayout: ListLayout<AuditEntry> = {
-    list: ({ data }) => <AuditListView data={data} />,
+    list: ({ data, pagination }) => <AuditListView data={data} pagination={pagination} />,
 };
 
 const { parseListState, serializeListState } = createListQueryState();

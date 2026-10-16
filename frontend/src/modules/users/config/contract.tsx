@@ -48,7 +48,7 @@ const createUserAction = createRecordFormAction.bind(
 );
 
 const usersListLayout: ListLayout<UserEntity> = {
-    list: ({ data }) => <UsersListView data={data} />,
+    list: ({ data, pagination, searchArgs }) => <UsersListView data={data} pagination={pagination} sort={searchArgs.sort} />,
     form: () => (
         <FormView<UserEntity>
             mode="create"

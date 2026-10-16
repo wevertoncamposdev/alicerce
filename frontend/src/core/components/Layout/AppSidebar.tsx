@@ -29,42 +29,22 @@ import {
 import {
   type LucideIcon,
   Home,
-  Users,
-  Building2,
-  KeyRound,
-  Shield,
-  FileText,
   LogOut,
-  Star,
   ChevronsUpDown,
   Blocks,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
-import { listRouteRules, RouteAccessMeta } from "@lib/authz";
+import { listRouteRules } from "@lib/authz";
+import { alicerceModules } from "@/alicerce.config";
 
-const MODULE_ICONS: Record<RouteAccessMeta["module"], LucideIcon> = {
-  users: Users,
-  favorites: Star,
-  tenants: Building2,
-  roles: KeyRound,
-  permissions: Shield,
-  audit: FileText,
-};
+const MODULE_ICONS: Record<string, LucideIcon> = Object.fromEntries(
+  alicerceModules.map((mod) => [mod.key, mod.icon]),
+);
 
-const GENERAL_MODULES: RouteAccessMeta["module"][] = ["users", "tenants"];
-
-function renderNavLabel(title: string) {
-  if (title === "Papeis") {
-    return "Papéis";
-  }
-
-  if (title === "Permissoes") {
-    return "Permissões";
-  }
-
-  return title;
-}
+const GENERAL_MODULES: string[] = alicerceModules
+  .filter((mod) => mod.navGroup === "geral")
+  .map((mod) => mod.key);
 
 function NavItem({
   href,
@@ -152,7 +132,7 @@ export function AppSidebar({
                 <SidebarMenuItem key={route.prefix}>
                   <NavItem
                     href={route.prefix}
-                    label={renderNavLabel(route.title)}
+                    label={route.title}
                     icon={MODULE_ICONS[route.module]}
                     disabled={!hasPermission(route.permission)}
                   />
@@ -170,7 +150,7 @@ export function AppSidebar({
                 <SidebarMenuItem key={route.prefix}>
                   <NavItem
                     href={route.prefix}
-                    label={renderNavLabel(route.title)}
+                    label={route.title}
                     icon={MODULE_ICONS[route.module]}
                     disabled={!hasPermission(route.permission)}
                   />

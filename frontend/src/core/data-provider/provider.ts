@@ -1,17 +1,33 @@
-
 import "server-only";
+import { cache } from "react";
 import { getModule } from "@core/registry";
 import type { SearchArgs } from "@core/data-provider/types";
 
 // lib/data-provider/provider.ts
+//
+// `cache()` do React dedupe chamadas repetidas com os MESMOS argumentos
+// dentro da MESMA renderização (ex.: DetailViewScreen e uma aba de relação
+// pedindo o mesmo registro não disparam 2 requests) — mesmo padrão já usado
+// em lib/auth-server.ts (getCurrentUser). Só funciona com uma referência de
+// função ESTÁVEL a nível de módulo — por isso search/read vivem fora de
+// createDataProvider() (que cria um objeto novo a cada chamada) e são só
+// reexpostas por ele.
+const cachedSearch = cache(async <T>(model: string, args: SearchArgs) => {
+  return getModule<T>(model).dataHandlers.search(args);
+});
+
+const cachedRead = cache(async <T>(model: string, id: string) => {
+  return getModule<T>(model).dataHandlers.read(id);
+});
+
 export function createDataProvider() {
   return {
     search<T>(model: string, args: SearchArgs) {
-      return getModule<T>(model).dataHandlers.search(args);
+      return cachedSearch<T>(model, args);
     },
 
     read<T>(model: string, id: string) {
-      return getModule<T>(model).dataHandlers.read(id);
+      return cachedRead<T>(model, id);
     },
 
     async create<T>(model: string, payload: unknown): Promise<T> {

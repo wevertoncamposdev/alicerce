@@ -3,10 +3,11 @@
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import RelationCrudHost from "@core/components/DetailView/RelationView/RelationCrudHost";
+import type { AppTableFeatures } from "@core/table-features";
 
 export type RelationHostConfig<T extends object> = {
     title: string;
-    columns: ColumnDef<T>[];
+    columns: ColumnDef<AppTableFeatures, T>[];
     initialData: T[];
     idAccessor?: (item: T) => string;
     rowLink?: (item: T) => string | undefined;

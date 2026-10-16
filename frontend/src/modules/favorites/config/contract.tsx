@@ -38,7 +38,7 @@ const createFavoriteAction = createRecordFormAction.bind(
 );
 
 const favoritesListLayout: ListLayout<FavoriteEntity> = {
-    list: ({ data }) => <FavoritesListView data={data} />,
+    list: ({ data, pagination, searchArgs }) => <FavoritesListView data={data} pagination={pagination} sort={searchArgs.sort} />,
     graph: ({ data }) => <FavoritesGraphView data={data} />,
     cards: ({ data }) => <CardsView data={data} detail="/favorites" />,
     form: () => (

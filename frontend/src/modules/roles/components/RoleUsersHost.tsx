@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import useApiError from "@/hooks/useApiError";
 import { RelationHost, type RelationHostConfig } from "@core/registry/relation-host";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { AppTableFeatures } from "@core/table-features";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 
 function RoleUsersHost({ roleId, initial }: { roleId: string; initial: UserEntity[] }) {
@@ -16,7 +17,7 @@ function RoleUsersHost({ roleId, initial }: { roleId: string; initial: UserEntit
     const formatError = useApiError();
     const { setStatus } = useAutoSaveStatus();
 
-    const columns = React.useMemo<ColumnDef<UserEntity>[]>(
+    const columns = React.useMemo<ColumnDef<AppTableFeatures, UserEntity>[]>(
         () => [
             { accessorKey: "email", header: "E-mail" },
             { accessorKey: "status", header: "Status" },

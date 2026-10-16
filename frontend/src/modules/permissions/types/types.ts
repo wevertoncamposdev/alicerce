@@ -8,14 +8,4 @@ export type PermissionEntity = {
     tenantId: string;
 };
 
-export type CreatePermissionPayload = {
-    tenantId: string;
-    name: string;
-    type: string;
-    resource?: string;
-    description?: string;
-};
-
-export type UpdatePermissionPayload = Partial<CreatePermissionPayload>;
-
 export type ContextItem = { key: string; label: string; value: string };
