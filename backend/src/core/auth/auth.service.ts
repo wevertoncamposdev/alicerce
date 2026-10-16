@@ -11,11 +11,7 @@ import * as crypto from 'crypto';
 import { PrismaBootstrapService } from '@core/prisma/prisma-bootstrap.service';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 import { SignUpPublicDto } from './dto/sign-up-public.dto';
-import {
-  RoleType,
-  TenantCategory,
-  TenantServiceArea,
-} from '@core/prisma/generated/enums';
+import { RoleType } from '@core/prisma/generated/enums';
 import { I18nService } from 'nestjs-i18n';
 import {
   PERMISSION_CATALOG,
@@ -62,18 +58,6 @@ export class AuthService {
     private readonly i18n: I18nService,
     private readonly permissionCache: PermissionCacheService,
   ) {}
-
-  private buildRegistrationNumber(tenantSlug: string) {
-    const normalized = tenantSlug
-      .replace(/[^a-z0-9]/gi, '')
-      .slice(0, 8)
-      .toUpperCase();
-
-    return `${normalized || 'TENANT'}${Date.now().toString().slice(-10)}`.slice(
-      0,
-      20,
-    );
-  }
 
   private async getAuthUserByEmail(email: string) {
     return this.prismaBootstrap.user.findUnique({
@@ -327,11 +311,7 @@ export class AuthService {
       const tenant = await tx.tenant.create({
         data: {
           legalName: dto.tenantName,
-          tradeName: dto.tenantName,
-          registrationNumber: this.buildRegistrationNumber(dto.tenantSlug),
           slug: dto.tenantSlug,
-          category: TenantCategory.OTHER,
-          primaryServiceArea: TenantServiceArea.OTHER,
           status: 'ACTIVE',
         },
       });

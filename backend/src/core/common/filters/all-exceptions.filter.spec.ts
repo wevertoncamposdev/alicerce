@@ -101,7 +101,7 @@ describe('AllExceptionsFilter', () => {
   it('registers an ACCESS_DENIED audit entry (with correlationId) for 403 when request.user is present', () => {
     const { host } = buildHost({
       method: 'DELETE',
-      url: '/api/tenant/t1/favorites/f1',
+      url: '/api/tenant/t1/examples/f1',
       user: { sub: 'user-1', tenantId: 'tenant-1' },
       id: 'req-3',
     });
@@ -117,7 +117,7 @@ describe('AllExceptionsFilter', () => {
       userId: 'user-1',
       type: 'ACCESS_DENIED',
       action: 'DELETE',
-      entity: 'favorite',
+      entity: 'example',
       payload: {
         message: 'Acesso negado: permission insuficiente',
         correlationId: 'req-3',

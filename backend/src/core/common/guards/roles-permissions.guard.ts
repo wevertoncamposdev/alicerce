@@ -7,6 +7,8 @@ import {
 import { Reflector } from '@nestjs/core';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 import { RequestWithAuth } from '@core/common/types/http.types';
+import { ROLES_KEY } from '@core/common/decorators/roles.decorator';
+import { PERMISSIONS_KEY } from '@core/common/decorators/permissions.decorator';
 
 @Injectable()
 export class RolesPermissionsGuard implements CanActivate {
@@ -89,12 +91,12 @@ export class RolesPermissionsGuard implements CanActivate {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
     const requiredPermissions = this.reflector.getAllAndOverride<string[]>(
-      'permissions',
+      PERMISSIONS_KEY,
       [context.getHandler(), context.getClass()],
     );
     const { user } = context.switchToHttp().getRequest<RequestWithAuth>();

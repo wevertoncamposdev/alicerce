@@ -12,15 +12,12 @@ model User {
     updatedAt DateTime  @updatedAt
     deletedAt DateTime?
 
-    tenant          Tenant         @relation(fields: [tenantId], references: [id])
-    roles           UserRole[]
-    audits          Audit[]
-    person          Person?
-    tasksCreated    Task[]         @relation("taskCreator")
-    tasksAssignedTo Task[]         @relation("taskAssignedTo")
-    favorites       Favorite[]
-    refreshTokens   RefreshToken[]
-    favoriteNotes   FavoriteNote[]
+    tenant        Tenant         @relation(fields: [tenantId], references: [id])
+    roles         UserRole[]
+    audits        Audit[]
+    examples      Example[]
+    refreshTokens RefreshToken[]
+    exampleNotes  ExampleNote[]
 
     @@map("users")
 }

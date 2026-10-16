@@ -13,16 +13,9 @@ const TENANT_SCOPED_MODELS = new Set<Prisma.ModelName>([
   'UserRole',
   'RolePermission',
   'Audit',
-  'Task',
-  'Favorite',
-  'FavoriteNote',
-  'Report',
+  'Example',
+  'ExampleNote',
   'RefreshToken',
-  'TenantArea',
-  'TenantBoardMember',
-  'TenantBoardTerm',
-  'TenantDocument',
-  'Person',
 ]);
 
 /**

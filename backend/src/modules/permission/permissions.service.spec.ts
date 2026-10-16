@@ -52,7 +52,7 @@ describe('PermissionsService', () => {
         { userId: 'user-2' },
       ]);
 
-      await service.update('perm-1', { name: 'user.read.renamed' });
+      await service.update('perm-1', { name: 'user.read.renamed' }, 't1');
 
       expect(prismaMock.userRole.findMany).toHaveBeenCalledWith({
         where: { tenantId: 't1', roleId: { in: ['role-1', 'role-2'] } },
@@ -78,7 +78,7 @@ describe('PermissionsService', () => {
       ]);
       prismaMock.permission.update.mockResolvedValueOnce({ id: 'perm-1' });
 
-      await service.remove('perm-1');
+      await service.remove('perm-1', 't1');
 
       expect(permissionCacheMock.invalidateUsers).toHaveBeenCalledWith('t1', [
         'user-3',
@@ -89,7 +89,7 @@ describe('PermissionsService', () => {
       prismaMock.permission.findUnique.mockResolvedValueOnce(null);
 
       await expect(
-        service.update('missing', { name: 'x' }),
+        service.update('missing', { name: 'x' }, 't1'),
       ).rejects.toBeInstanceOf(NotFoundException);
       expect(permissionCacheMock.invalidateUsers).not.toHaveBeenCalled();
     });

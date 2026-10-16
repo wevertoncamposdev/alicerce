@@ -78,18 +78,18 @@ describe('AuditInterceptor', () => {
   it('singularizes the plural resource name from the URL', (done) => {
     const req = {
       method: 'POST',
-      originalUrl: '/api/favorites',
+      originalUrl: '/api/examples',
       params: {},
       body: { title: 'x' },
       user: { id: 'actor-1', tenantId: 'tenant-1' },
     };
-    const persistedResult = { id: 'fav-1', title: 'x' };
+    const persistedResult = { id: 'ex-1', title: 'x' };
     const next = { handle: () => of(persistedResult) };
 
     interceptor.intercept(buildContext(req), next).subscribe({
       complete: () => {
         expect(auditService.register).toHaveBeenCalledWith(
-          expect.objectContaining({ entity: 'favorite', entityId: 'fav-1' }),
+          expect.objectContaining({ entity: 'example', entityId: 'ex-1' }),
         );
         done();
       },
@@ -170,12 +170,12 @@ describe('AuditInterceptor', () => {
       await runWith(
         {
           method: 'PATCH',
-          originalUrl: '/api/favorites/fav-1',
-          params: { id: 'fav-1' },
+          originalUrl: '/api/examples/ex-1',
+          params: { id: 'ex-1' },
           body: { title: 'y' },
           user: { id: 'actor-1', tenantId: 'tenant-1' },
         },
-        { id: 'fav-1', title: 'y' },
+        { id: 'ex-1', title: 'y' },
       );
 
       expect(auditService.register).toHaveBeenCalledWith(
@@ -225,12 +225,12 @@ describe('AuditInterceptor', () => {
     it('does not look up "before" for POST (there is nothing to look up for a create)', (done) => {
       const req = {
         method: 'POST',
-        originalUrl: '/api/favorites',
+        originalUrl: '/api/examples',
         params: {},
         body: { title: 'x' },
         user: { id: 'actor-1', tenantId: 'tenant-1' },
       };
-      const next = { handle: () => of({ id: 'fav-1', title: 'x' }) };
+      const next = { handle: () => of({ id: 'ex-1', title: 'x' }) };
 
       interceptor.intercept(buildContext(req), next).subscribe({
         complete: () => {

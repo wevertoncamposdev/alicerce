@@ -19,12 +19,7 @@ async function main() {
     update: {},
     create: {
       legalName: 'Tenant Exemplo',
-      tradeName: 'Tenant Exemplo',
-      registrationNumber: '12345678000199',
       slug: 'tenant-exemplo',
-      category: 'ASSOCIATION',
-      primaryServiceArea: 'EDUCATION',
-      partnershipType: 'NONE',
       status: 'ACTIVE',
     },
   });

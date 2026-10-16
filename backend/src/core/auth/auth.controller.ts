@@ -10,11 +10,16 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService, AuthSessionResponse } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { Public } from './auth.guard';
 import { SignUpPublicDto } from './dto/sign-up-public.dto';
 import { JwtPayload } from '@core/common/types/http.types';
+
+// Superfície de brute-force (login/registro) — bem mais estrito que o
+// throttle global (`default`, 60/min em app.module.ts).
+const BRUTE_FORCE_THROTTLE = { default: { limit: 5, ttl: 60_000 } };
 
 // Nome do cookie que transporta o refresh token entre BFF e Nest.
 // O access token nunca viaja em cookie para o Nest — ele vem como Bearer no header.
@@ -36,6 +41,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @Throttle(BRUTE_FORCE_THROTTLE)
   @Post('register')
   async signUp(
     @Body() signUpPublicDto: SignUpPublicDto,
@@ -48,6 +54,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle(BRUTE_FORCE_THROTTLE)
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async signIn(

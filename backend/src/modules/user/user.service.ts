@@ -40,7 +40,7 @@ export class UsersService {
     try {
       // tenantId do body nunca é usado — vem do contexto autenticado
       // (parâmetro `tenantId` desta função), nunca do payload do cliente.
-      const { personId, tenantId: _tenantId, ...rest } = createUserDto;
+      const { tenantId: _tenantId, ...rest } = createUserDto;
       void _tenantId;
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
       const user = await this.userRepository.create({
@@ -49,11 +49,6 @@ export class UsersService {
         tenant: {
           connect: { id: tenantId },
         },
-        person: personId
-          ? {
-              connect: { id: personId },
-            }
-          : undefined,
       });
 
       return this.userMapper.mapToResponseDto(user);
@@ -75,17 +70,11 @@ export class UsersService {
         });
       }
 
-      const { personId, password, ...rest } = updateUserDto;
+      const { password, ...rest } = updateUserDto;
       const data: Prisma.UserUpdateInput = { ...rest };
 
       if (password) {
         data.password = await bcrypt.hash(password, 10);
-      }
-
-      if (personId) {
-        data.person = {
-          connect: { id: personId },
-        };
       }
 
       return await this.userRepository.updateById(id, data);

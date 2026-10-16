@@ -10,13 +10,16 @@ import * as fs from 'fs';
 import { I18nModule } from 'nestjs-i18n';
 
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from '@src/app.controller';
 import { AppService } from '@src/app.service';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { RequestContextInterceptor } from '@core/common/interceptors/request-context.interceptor';
 import { LoggingInterceptor } from '@core/common/interceptors/logging.interceptor';
 import { AuditInterceptor } from '@core/common/interceptors/audit.interceptor';
 import { AllExceptionsFilter } from '@core/common/filters/all-exceptions.filter';
+import { validateEnv } from '@core/config/env.schema';
+import { HealthModule } from '@core/health/health.module';
 
 import { PrismaModule } from '@core/prisma/prisma.module';
 import { RedisModule } from '@core/redis/redis.module';
@@ -27,17 +30,22 @@ import { AuditModule } from '@modules/audit/audit.module';
 
 import { UsersModule } from '@modules/user/user.module';
 import { TenantModule } from '@modules/tenant/tenant.module';
-import { TaskModule } from '@modules/task/task.module';
-import { FavoritesModule } from './modules/favorites/favorites.module';
+import { ExamplesModule } from './modules/examples/examples.module';
 
 import { RoleModule } from '@modules/role/role.module';
 import { PermissionModule } from '@modules/permission/permission.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
+    // Throttle global moderado (defesa-em-profundidade contra abuso
+    // genérico); rotas sensíveis a brute-force (`/auth/login`,
+    // `/auth/register`) sobrescrevem com um limite mais estrito via
+    // `@Throttle()` no próprio controller.
+    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 60 }]),
     PrismaModule,
     RedisModule,
+    HealthModule,
     AuthorizationModule,
     UsersModule,
     RoleModule,
@@ -45,8 +53,7 @@ import { PermissionModule } from '@modules/permission/permission.module';
     AuthModule,
     TenantModule,
     AuditModule,
-    TaskModule,
-    FavoritesModule,
+    ExamplesModule,
     I18nModule.forRoot({
       fallbackLanguage: 'pt',
       loaderOptions: {
@@ -63,6 +70,10 @@ import { PermissionModule } from '@modules/permission/permission.module';
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
     // Precisa vir antes dos demais interceptors: abre o escopo de
     // AsyncLocalStorage que a extension de RLS do Prisma usa para descobrir o

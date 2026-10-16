@@ -3,13 +3,13 @@
 //
 // Extrai o nome do recurso da URL, ignorando prefixo /api e, quando
 // existir, o segmento tenant/:tenantId/.
-// "/api/favorites/019f..."        -> "favorites"
+// "/api/examples/019f..."        -> "examples"
 // "/api/tenant/abc/audit"         -> "audit"
-// "/api/tenant/abc/favorites/xy"  -> "favorites"
+// "/api/tenant/abc/examples/xy"  -> "examples"
 //
 // O frontend consulta a trilha de auditoria pelo nome singular do módulo
 // (normalizeAuditEntityName em frontend/src/screens/DetailViewScreen.tsx).
-// Como as rotas usam o nome do recurso ora no plural ("favorites",
+// Como as rotas usam o nome do recurso ora no plural ("examples",
 // "roles"), ora já singular ("user", "tenant"), normalizamos aqui também
 // para que o nome gravado sempre bata com o nome consultado — e é esse
 // mesmo nome singular que serve de chave do Prisma Client em quem usa isto

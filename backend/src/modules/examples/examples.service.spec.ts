@@ -1,0 +1,81 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaService } from '@core/prisma/prisma.service';
+import { ExamplesService } from './examples.service';
+
+describe('ExamplesService', () => {
+  let service: ExamplesService;
+
+  // Nosso Prisma "falso"
+  const prismaMock = {
+    example: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
+      findMany: jest.fn(),
+      count: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ExamplesService,
+
+        // Sempre que o ExamplesService pedir um PrismaService,
+        // entregue o prismaMock.
+        {
+          provide: PrismaService,
+          useValue: prismaMock,
+        },
+      ],
+    }).compile();
+
+    service = module.get<ExamplesService>(ExamplesService);
+
+    // Limpa chamadas anteriores do mock
+    jest.clearAllMocks();
+  });
+
+  it('deve criar um exemplo', async () => {
+    // Arrange (Preparação)
+
+    const dto = {
+      id: '7bef0254-e4b4-4ad2-91c3-97eb86d3e9da',
+      tenantId: '275ea732-f063-48e2-92e1-c640a0bc5928',
+      title: 'NestJS',
+      url: 'https://nestjs.com',
+      createdAt: new Date(),
+      userId: '7ac4d61e-82c0-4782-8c1a-da2418cfe1ab',
+    };
+
+    const exampleCreated = {
+      id: '1',
+      title: 'NestJS',
+      url: 'https://nestjs.com',
+      userId: 'user-1',
+    };
+
+    // Quando alguém chamar prisma.example.create(),
+    // devolva exampleCreated.
+    prismaMock.example.create.mockResolvedValue(exampleCreated);
+
+    // Act (Execução)
+
+    const result = await service.create(dto, dto.tenantId, dto.userId);
+
+    // Assert (Verificação)
+
+    expect(prismaMock.example.create).toHaveBeenCalledWith({
+      data: {
+        title: 'NestJS',
+        url: 'https://nestjs.com',
+        tenantId: dto.tenantId,
+        userId: dto.userId,
+      },
+    });
+
+    expect(result).toEqual(exampleCreated);
+  });
+});

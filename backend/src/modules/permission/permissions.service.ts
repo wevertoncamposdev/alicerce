@@ -1,10 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { SearchPermissionDto } from './dto/search-permission.dto';
 import { Prisma } from '@core/prisma/generated/client';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { findOneOrThrow } from '@core/common/utils/find-one-or-throw.util';
+import {
+  resolvePagination,
+  buildSearchTextWhere,
+  buildWhitelistedFilters,
+  buildWhitelistedOrderBy,
+} from '@core/common/utils/tenant-search.util';
+
+// Ver PLAN.md, Etapa 7.C ("whitelist por módulo").
+const SEARCHABLE_FIELDS = ['name', 'resource'] as const;
+const FILTERABLE_FIELDS = ['name', 'type', 'resource', 'description'] as const;
+const SORTABLE_FIELDS = ['name', 'type', 'resource', 'createdAt'] as const;
 
 @Injectable()
 export class PermissionsService {
@@ -30,13 +42,12 @@ export class PermissionsService {
     );
   }
 
-  async findOne(id: string) {
-    const permission = await this.prisma.permission.findUnique({
-      where: { id },
-    });
-    if (!permission || permission.deletedAt)
-      throw new NotFoundException('Permission nao encontrada');
-    return permission;
+  async findOne(id: string, tenantId: string) {
+    return findOneOrThrow(
+      await this.prisma.permission.findUnique({ where: { id } }),
+      (permission) => !permission.deletedAt && permission.tenantId === tenantId,
+      'Permission nao encontrada',
+    );
   }
 
   async findAll(tenantId: string) {
@@ -65,15 +76,15 @@ export class PermissionsService {
     });
   }
 
-  async update(id: string, dto: UpdatePermissionDto) {
-    const existing = await this.prisma.permission.findUnique({ where: { id } });
-
-    if (!existing || existing.deletedAt) {
-      throw new NotFoundException('Permissao nao encontrada');
-    }
+  async update(id: string, dto: UpdatePermissionDto, tenantId: string) {
+    const existing = findOneOrThrow(
+      await this.prisma.permission.findUnique({ where: { id } }),
+      (permission) => !permission.deletedAt && permission.tenantId === tenantId,
+      'Permissao nao encontrada',
+    );
 
     const updated = await this.prisma.permission.update({
-      where: { id },
+      where: { id: existing.id },
       data: {
         name: dto.name,
         type: dto.type,
@@ -91,17 +102,17 @@ export class PermissionsService {
     return updated;
   }
 
-  async remove(id: string) {
-    const existing = await this.prisma.permission.findUnique({ where: { id } });
-
-    if (!existing || existing.deletedAt) {
-      throw new NotFoundException('Permissao nao encontrada');
-    }
+  async remove(id: string, tenantId: string) {
+    const existing = findOneOrThrow(
+      await this.prisma.permission.findUnique({ where: { id } }),
+      (permission) => !permission.deletedAt && permission.tenantId === tenantId,
+      'Permissao nao encontrada',
+    );
 
     await this.invalidatePermissionCacheForPermission(id, existing.tenantId);
 
     return this.prisma.permission.update({
-      where: { id },
+      where: { id: existing.id },
       data: {
         deletedAt: new Date(),
       },
@@ -109,31 +120,22 @@ export class PermissionsService {
   }
 
   async search(query: SearchPermissionDto, tenantId?: string) {
-    const page =
-      query.pagination?.pageIndex !== undefined
-        ? query.pagination.pageIndex + 1
-        : 1;
-    const limit = query.pagination?.pageSize ?? 20;
+    const { page, limit, skip, take } = resolvePagination(query.pagination);
 
     const where: Prisma.PermissionWhereInput = {
       tenantId: tenantId ?? undefined,
       deletedAt: null,
-      ...(query.searchText
-        ? {
-            OR: [
-              { name: { contains: query.searchText, mode: 'insensitive' } },
-              { resource: { contains: query.searchText, mode: 'insensitive' } },
-            ],
-          }
-        : {}),
+      ...buildSearchTextWhere(query.searchText, SEARCHABLE_FIELDS),
+      ...buildWhitelistedFilters(query.filters, FILTERABLE_FIELDS),
     };
+    const orderBy = buildWhitelistedOrderBy(query.sort, SORTABLE_FIELDS);
 
     const [items, total] = await Promise.all([
       this.prisma.permission.findMany({
         where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        orderBy: orderBy.length ? orderBy : [{ createdAt: 'desc' }],
       }),
       this.prisma.permission.count({ where }),
     ]);

@@ -53,17 +53,14 @@ describe('TenantService', () => {
 
     Object.assign(prismaError, {
       code: 'P2002',
-      meta: { target: ['registrationNumber'] },
+      meta: { target: ['slug'] },
     });
 
     repository.create.mockRejectedValueOnce(prismaError);
 
     const dto: CreateTenantDto = {
       legalName: 'Associacao Maravilhosa',
-      registrationNumber: '12345678901234',
       slug: 'associacao-maravilhosa',
-      category: 'ASSOCIATION',
-      primaryServiceArea: 'OTHER',
     };
 
     await expect(service.create(dto)).rejects.toBeInstanceOf(ConflictException);

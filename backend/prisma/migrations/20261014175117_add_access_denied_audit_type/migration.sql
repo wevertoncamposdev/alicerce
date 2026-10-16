@@ -1,2 +1,0 @@
--- AlterEnum
-ALTER TYPE "AuditType" ADD VALUE 'ACCESS_DENIED';

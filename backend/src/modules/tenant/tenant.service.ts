@@ -20,22 +20,7 @@ export class TenantService {
 
   async create(createTenantDto: CreateTenantDto) {
     try {
-      const {
-        foundedAt: foundedAtRaw,
-        closedAt: closedAtRaw,
-        ...rest
-      } = createTenantDto;
-
-      const foundedAt = this.tenantBusinessRules.parseDate(foundedAtRaw);
-      const closedAt = this.tenantBusinessRules.parseDate(closedAtRaw);
-
-      this.tenantBusinessRules.validateDateRange(foundedAt, closedAt);
-
-      const data: Prisma.TenantCreateInput = {
-        ...rest,
-        foundedAt,
-        closedAt,
-      };
+      const data: Prisma.TenantCreateInput = { ...createTenantDto };
 
       return await this.tenantRepository.create(data);
     } catch (error) {
@@ -91,22 +76,7 @@ export class TenantService {
     this.assertOwnTenant(id, requestTenantId);
 
     try {
-      const {
-        foundedAt: foundedAtRaw,
-        closedAt: closedAtRaw,
-        ...rest
-      } = updateTenantDto;
-
-      const foundedAt = this.tenantBusinessRules.parseDate(foundedAtRaw);
-      const closedAt = this.tenantBusinessRules.parseDate(closedAtRaw);
-
-      this.tenantBusinessRules.validateDateRange(foundedAt, closedAt);
-
-      const data: Prisma.TenantUpdateInput = {
-        ...rest,
-        foundedAt,
-        closedAt,
-      };
+      const data: Prisma.TenantUpdateInput = { ...updateTenantDto };
 
       return await this.tenantRepository.updateById(id, data);
     } catch (error) {
@@ -139,7 +109,6 @@ export class TenantService {
       ? {
           OR: [
             { legalName: { contains: query.searchText, mode: 'insensitive' } },
-            { tradeName: { contains: query.searchText, mode: 'insensitive' } },
             { slug: { contains: query.searchText, mode: 'insensitive' } },
           ],
         }

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { RedisService } from '@core/redis/redis.service';
+import { runWithTenantContext } from '@core/common/context/request-context';
 
 // TTL curto o suficiente para que uma permissão revogada pare de valer em
 // segundos (não nos 15min do access token) sem recarregar do Postgres em
@@ -44,27 +45,35 @@ export class PermissionCacheService {
   }
 
   async reloadPermissions(tenantId: string, userId: string): Promise<string[]> {
-    // Filtra role/permission ativas e não-deletadas — ao contrário do JWT
-    // (calculado uma vez no login e nunca mais revisto), esta é a fonte
-    // "fresca", então precisa refletir desativação/remoção também, não só
-    // detach explícito.
-    const userRoles = await this.prisma.userRole.findMany({
-      where: {
-        tenantId,
-        userId,
-        role: { deletedAt: null, status: 'ACTIVE' },
-      },
-      include: {
-        role: {
-          include: {
-            permissions: {
-              where: { permission: { deletedAt: null } },
-              include: { permission: true },
+    // `runWithTenantContext` é obrigatório aqui: este método é chamado pelo
+    // RolesPermissionsGuard, que roda ANTES do RequestContextInterceptor
+    // (guards vêm antes de interceptors no pipeline do Nest) — sem isto, a
+    // extension de RLS não acha tenantId no contexto e a policy do Postgres
+    // filtra todas as linhas, zerando as permissões de qualquer usuário
+    // sempre que o cache do Redis está frio (ver request-context.ts).
+    const userRoles = await runWithTenantContext(tenantId, () =>
+      // Filtra role/permission ativas e não-deletadas — ao contrário do JWT
+      // (calculado uma vez no login e nunca mais revisto), esta é a fonte
+      // "fresca", então precisa refletir desativação/remoção também, não só
+      // detach explícito.
+      this.prisma.userRole.findMany({
+        where: {
+          tenantId,
+          userId,
+          role: { deletedAt: null, status: 'ACTIVE' },
+        },
+        include: {
+          role: {
+            include: {
+              permissions: {
+                where: { permission: { deletedAt: null } },
+                include: { permission: true },
+              },
             },
           },
         },
-      },
-    });
+      }),
+    );
 
     const permissions = Array.from(
       new Set(

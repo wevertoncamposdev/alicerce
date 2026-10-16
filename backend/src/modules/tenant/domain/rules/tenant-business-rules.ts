@@ -12,26 +12,4 @@ export class TenantBusinessRules {
       });
     }
   }
-
-  parseDate(value?: string): Date | undefined {
-    if (!value) {
-      return undefined;
-    }
-
-    return new Date(value);
-  }
-
-  validateDateRange(foundedAt?: Date, closedAt?: Date): void {
-    if (foundedAt && closedAt && closedAt < foundedAt) {
-      throw new BadRequestException({
-        message:
-          'A data de encerramento nao pode ser anterior a data de fundacao.',
-        code: TenantErrorCode.DATE_RANGE_INVALID,
-        details: {
-          foundedAt: foundedAt.toISOString(),
-          closedAt: closedAt.toISOString(),
-        },
-      });
-    }
-  }
 }

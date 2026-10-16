@@ -35,8 +35,8 @@ export class PermissionsController {
   @Get(':id')
   @Roles('ADMIN')
   @Permissions('permission.read')
-  findOne(@Param('id') id: string) {
-    return this.permissionsService.findOne(id);
+  findOne(@Param('id') id: string, @TenantId() tenantId: string) {
+    return this.permissionsService.findOne(id, tenantId);
   }
 
   @Post()
@@ -49,15 +49,19 @@ export class PermissionsController {
   @Patch(':id')
   @Roles('ADMIN')
   @Permissions('permission.update')
-  update(@Param('id') id: string, @Body() dto: UpdatePermissionDto) {
-    return this.permissionsService.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdatePermissionDto,
+    @TenantId() tenantId: string,
+  ) {
+    return this.permissionsService.update(id, dto, tenantId);
   }
 
   @Delete(':id')
   @Roles('ADMIN')
   @Permissions('permission.delete')
-  remove(@Param('id') id: string) {
-    return this.permissionsService.remove(id);
+  remove(@Param('id') id: string, @TenantId() tenantId: string) {
+    return this.permissionsService.remove(id, tenantId);
   }
 
   @Search()

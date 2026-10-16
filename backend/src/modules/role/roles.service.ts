@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -6,6 +6,18 @@ import { SearchRoleDto } from './dto/search-role.dto';
 import { Prisma } from '@core/prisma/generated/client';
 import { RoleRepository } from './persistence/role.repository';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { findOneOrThrow } from '@core/common/utils/find-one-or-throw.util';
+import {
+  resolvePagination,
+  buildSearchTextWhere,
+  buildWhitelistedFilters,
+  buildWhitelistedOrderBy,
+} from '@core/common/utils/tenant-search.util';
+
+// Ver PLAN.md, Etapa 7.C ("whitelist por módulo").
+const SEARCHABLE_FIELDS = ['name'] as const;
+const FILTERABLE_FIELDS = ['name', 'type', 'description'] as const;
+const SORTABLE_FIELDS = ['name', 'type', 'createdAt'] as const;
 
 @Injectable()
 export class RolesService {
@@ -16,10 +28,11 @@ export class RolesService {
   ) {}
 
   async findOne(id: string, tenantId: string) {
-    const role = await this.prisma.role.findUnique({ where: { id } });
-    if (!role || role.deletedAt || role.tenantId !== tenantId)
-      throw new NotFoundException('Role nao encontrada');
-    return role;
+    return findOneOrThrow(
+      await this.prisma.role.findUnique({ where: { id } }),
+      (role) => !role.deletedAt && role.tenantId === tenantId,
+      'Role nao encontrada',
+    );
   }
 
   async findAll(tenantId: string) {
@@ -57,14 +70,14 @@ export class RolesService {
   }
 
   async update(id: string, dto: UpdateRoleDto, tenantId: string) {
-    const existing = await this.prisma.role.findUnique({ where: { id } });
-
-    if (!existing || existing.deletedAt || existing.tenantId !== tenantId) {
-      throw new NotFoundException('Role nao encontrada');
-    }
+    const existing = findOneOrThrow(
+      await this.prisma.role.findUnique({ where: { id } }),
+      (role) => !role.deletedAt && role.tenantId === tenantId,
+      'Role nao encontrada',
+    );
 
     return this.prisma.role.update({
-      where: { id },
+      where: { id: existing.id },
       data: {
         name: dto.name,
         type: dto.type,
@@ -74,14 +87,14 @@ export class RolesService {
   }
 
   async remove(id: string, tenantId: string) {
-    const existing = await this.prisma.role.findUnique({ where: { id } });
-
-    if (!existing || existing.deletedAt || existing.tenantId !== tenantId) {
-      throw new NotFoundException('Role nao encontrada');
-    }
+    const existing = findOneOrThrow(
+      await this.prisma.role.findUnique({ where: { id } }),
+      (role) => !role.deletedAt && role.tenantId === tenantId,
+      'Role nao encontrada',
+    );
 
     const result = await this.prisma.role.update({
-      where: { id },
+      where: { id: existing.id },
       data: {
         status: 'INACTIVE',
         deletedAt: new Date(),
@@ -108,17 +121,17 @@ export class RolesService {
   }
 
   async attachUser(roleId: string, tenantId: string, userId: string) {
-    // validate role exists and belongs to tenant
-    const role = await this.prisma.role.findUnique({ where: { id: roleId } });
-    if (!role || role.deletedAt)
-      throw new NotFoundException('Role nao encontrada');
-    if (role.tenantId !== tenantId)
-      throw new NotFoundException('Role nao encontrada para este tenant');
+    findOneOrThrow(
+      await this.prisma.role.findUnique({ where: { id: roleId } }),
+      (role) => !role.deletedAt && role.tenantId === tenantId,
+      'Role nao encontrada',
+    );
 
-    // validate user exists
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user || user.deletedAt)
-      throw new NotFoundException('User nao encontrado');
+    findOneOrThrow(
+      await this.prisma.user.findUnique({ where: { id: userId } }),
+      (user) => !user.deletedAt,
+      'User nao encontrado',
+    );
 
     const userRole = await this.prisma.userRole.upsert({
       where: {
@@ -162,21 +175,17 @@ export class RolesService {
     permissionId: string,
     resource?: string,
   ) {
-    // validate role exists and belongs to tenant
-    const role = await this.prisma.role.findUnique({ where: { id: roleId } });
-    if (!role || role.deletedAt)
-      throw new NotFoundException('Role nao encontrada');
-    if (role.tenantId !== tenantId)
-      throw new NotFoundException('Role nao encontrada para este tenant');
+    findOneOrThrow(
+      await this.prisma.role.findUnique({ where: { id: roleId } }),
+      (role) => !role.deletedAt && role.tenantId === tenantId,
+      'Role nao encontrada',
+    );
 
-    // validate permission exists and belongs to tenant
-    const permission = await this.prisma.permission.findUnique({
-      where: { id: permissionId },
-    });
-    if (!permission || permission.deletedAt)
-      throw new NotFoundException('Permission nao encontrada');
-    if (permission.tenantId !== tenantId)
-      throw new NotFoundException('Permission nao encontrada para este tenant');
+    findOneOrThrow(
+      await this.prisma.permission.findUnique({ where: { id: permissionId } }),
+      (permission) => !permission.deletedAt && permission.tenantId === tenantId,
+      'Permission nao encontrada',
+    );
 
     // upsert (idempotent) by unique composite [roleId, permissionId, resource].
     // O tipo gerado pelo Prisma para a chave composta exige `resource:
@@ -228,24 +237,23 @@ export class RolesService {
   }
 
   async search(query: SearchRoleDto, tenantId?: string) {
-    const page =
-      query.pagination?.pageIndex !== undefined
-        ? query.pagination.pageIndex + 1
-        : 1;
-    const limit = query.pagination?.pageSize ?? 20;
+    const { page, limit, skip, take } = resolvePagination(query.pagination);
 
     const where: Prisma.RoleWhereInput = {
       tenantId: tenantId ?? undefined,
       deletedAt: null,
-      ...(query.searchText
-        ? {
-            OR: [{ name: { contains: query.searchText, mode: 'insensitive' } }],
-          }
-        : {}),
+      ...buildSearchTextWhere(query.searchText, SEARCHABLE_FIELDS),
+      ...buildWhitelistedFilters(query.filters, FILTERABLE_FIELDS),
     };
+    const orderBy = buildWhitelistedOrderBy(query.sort, SORTABLE_FIELDS);
 
     const [items, total] = await Promise.all([
-      this.roleRepository.search(where, (page - 1) * limit, limit),
+      this.roleRepository.search(
+        where,
+        skip,
+        take,
+        orderBy.length ? orderBy : undefined,
+      ),
       this.roleRepository.count(where),
     ]);
 

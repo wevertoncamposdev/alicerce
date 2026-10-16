@@ -29,12 +29,17 @@ export class RoleRepository {
     return this.prisma.role.delete({ where: { id } });
   }
 
-  search(where: Prisma.RoleWhereInput, skip: number, take: number) {
+  search(
+    where: Prisma.RoleWhereInput,
+    skip: number,
+    take: number,
+    orderBy: Prisma.RoleOrderByWithRelationInput[] = [{ createdAt: 'desc' }],
+  ) {
     return this.prisma.role.findMany({
       where,
       skip,
       take,
-      orderBy: { createdAt: 'desc' },
+      orderBy,
     });
   }
 
