@@ -17,14 +17,6 @@ export type CreateRolePayload = {
     description?: string;
 };
 
-
-export interface RolePayload {
-    tenantId: string;
-    name: string;
-    type: RoleType;
-    description?: string;
-}
-
 export type ContextItem = { key: string; label: string; value: string };
 
 

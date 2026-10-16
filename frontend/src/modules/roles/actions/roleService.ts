@@ -1,21 +1,7 @@
 import { apiClient } from '@lib/api-client';
-import type { RoleEntity, RolePayload } from '@modules/roles/types/types';
 
 // Nota: autenticação agora é via cookie httpOnly (lida pelo proxy em
 // /api/proxy), então nenhum destes métodos precisa mais receber `token`.
-
-export interface FetchRolesParams {
-    tenantId: string;
-}
-
-export interface UpdateRoleParams {
-    roleId: string;
-    payload: Partial<RolePayload>;
-}
-
-export interface RemoveRoleParams {
-    roleId: string;
-}
 
 export interface AttachRoleUserParams {
     roleId: string;
@@ -27,22 +13,6 @@ export interface AttachRolePermissionParams {
     roleId: string;
     tenantId: string;
     permissionId: string;
-}
-
-export async function fetchRoles(params: FetchRolesParams): Promise<RoleEntity[]> {
-    return apiClient.get<RoleEntity[]>(`roles?tenantId=${params.tenantId}`);
-}
-
-export async function createRole(payload: RolePayload): Promise<RoleEntity> {
-    return apiClient.post<RoleEntity>('roles', payload);
-}
-
-export async function updateRole(params: UpdateRoleParams): Promise<RoleEntity> {
-    return apiClient.patch<RoleEntity>(`roles/${params.roleId}`, params.payload);
-}
-
-export async function removeRole(params: RemoveRoleParams): Promise<null> {
-    return apiClient.delete<null>(`roles/${params.roleId}`);
 }
 
 export async function attachRoleUser(params: AttachRoleUserParams): Promise<null> {

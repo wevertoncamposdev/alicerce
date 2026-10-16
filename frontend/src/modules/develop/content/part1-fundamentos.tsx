@@ -123,19 +123,20 @@ export function MultiTenantSection() {
             <DocP>
                 Nunca use <code>include: {"{ user: true }"}</code> puro — isso serializa todos os campos do
                 usuário relacionado, inclusive hash de senha e outros campos sensíveis. Use sempre{" "}
-                <code>select</code> explícito, como no exemplo de <code>favorites.service.ts</code>:
+                <code>select</code> explícito, como no exemplo de <code>examples.service.ts</code>:
             </DocP>
-            <DocCode label="modules/favorites/favorites.service.ts (findOne)">
-                {`const favorite = await this.prisma.favorite.findUnique({
-  where: { id },
-  include: {
-    user: { select: { id: true, email: true } },
-    tenant: { select: { id: true, legalName: true } },
-  },
-});
-if (!favorite || favorite.tenantId !== tenantId || favorite.userId !== userSub) {
-  throw new Error('Favorite not found or access denied');
-}`}
+            <DocCode label="modules/examples/examples.service.ts (findOne)">
+                {`const example = findOneOrThrow(
+  await this.prisma.example.findUnique({
+    where: { id },
+    include: {
+      user: { select: { id: true, email: true } },
+      tenant: { select: { id: true, legalName: true } },
+    },
+  }),
+  (entry) => entry.tenantId === tenantId && entry.userId === userSub,
+  'Example not found or access denied',
+);`}
             </DocCode>
         </DocSection>
     );

@@ -41,10 +41,6 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     return { user, tenantId };
 });
 
-export function hasPermission(currentUser: CurrentUser | null, permission: string): boolean {
-    return Boolean(currentUser?.user.permissions?.includes(permission));
-}
-
 export function hasRole(currentUser: CurrentUser | null, role: string): boolean {
     return Boolean(currentUser?.user.roles?.includes(role));
 }

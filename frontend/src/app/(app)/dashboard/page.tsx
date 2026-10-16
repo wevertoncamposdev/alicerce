@@ -1,4 +1,4 @@
-import { AppTopbar } from "@components/Layout/AppTopbar";
+import { AppTopbar } from "@core/components/Layout/AppTopbar";
 import { apiServer, ApiServerError } from "@lib/api-server";
 import { getCurrentUser, hasRole } from "@lib/auth-server";
 import { searchPermissions } from "@modules/permissions/config/provider";

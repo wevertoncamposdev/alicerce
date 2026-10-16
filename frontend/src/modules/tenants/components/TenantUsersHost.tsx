@@ -42,5 +42,3 @@ export function TenantUsersHost({ items }: { items: UserEntity[] }) {
         </div>
     );
 }
-
-export default TenantUsersHost;

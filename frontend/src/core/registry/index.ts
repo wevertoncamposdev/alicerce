@@ -1,5 +1,5 @@
 import "server-only";
-import type { RecordModuleDefinition } from "@lib/registry/types";
+import type { RecordModuleDefinition } from "@core/registry/types";
 
 const modules = new Map<string, RecordModuleDefinition>();
 
@@ -17,7 +17,7 @@ export function registerModule<T>(definition: RecordModuleDefinition<T>): void {
 export function getModule<T = unknown>(model: string): RecordModuleDefinition<T> {
     const found = modules.get(model);
     if (!found) {
-        throw new Error(`Módulo não registrado: "${model}". Confira se ele está importado em registry/bootstrap.ts`);
+        throw new Error(`Módulo não registrado: "${model}". Confira se ele está importado em src/bootstrap.ts`);
     }
     return found as RecordModuleDefinition<T>;
 }

@@ -42,5 +42,3 @@ export function TenantRolesHost({ items }: { items: RoleEntity[] }) {
         </div>
     );
 }
-
-export default TenantRolesHost;

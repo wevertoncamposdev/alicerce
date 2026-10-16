@@ -27,6 +27,10 @@ const eslintConfig = defineConfig([
             group: ['@/components/*'],
             message: 'Use @components/* em vez de @/components/*.'
           },
+          {
+            group: ['@/core/*'],
+            message: 'Use @core/* em vez de @/core/*.'
+          },
         ],
       }],
     },

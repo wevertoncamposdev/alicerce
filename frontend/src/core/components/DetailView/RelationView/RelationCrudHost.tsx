@@ -22,7 +22,7 @@ export type RelationCrudHostProps<T> = {
     confirmDetachDescription?: string;
 };
 
-export function RelationCrudHost<T extends object>({
+function RelationCrudHost<T extends object>({
     columns,
     initialData = [],
     list,

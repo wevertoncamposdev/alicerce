@@ -5,7 +5,7 @@
 // já declara (required/type). Usado tanto no create (payload completo) quanto
 // no autosave do edit (draft parcial, só os campos que o controller envia).
 import { z } from "zod";
-import type { FormFieldConfig } from "@lib/registry/types";
+import type { FormFieldConfig } from "@core/registry/types";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

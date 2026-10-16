@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import RelationCrudHost from "@components/DetailView/RelationView/RelationCrudHost";
+import RelationCrudHost from "@core/components/DetailView/RelationView/RelationCrudHost";
 
 export type RelationHostConfig<T extends object> = {
     title: string;
@@ -115,5 +115,3 @@ export function RelationHost<T extends object>({
         </div>
     );
 }
-
-export default RelationHost;

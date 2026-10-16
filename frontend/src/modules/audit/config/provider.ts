@@ -1,6 +1,6 @@
 import { apiServer } from "@lib/api-server";
 import { getSessionTenantId } from "@lib/session";
-import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
+import type { SearchArgs, SearchResult } from "@core/data-provider/types";
 
 import type { AuditEntry } from "@modules/audit/types/types";
 

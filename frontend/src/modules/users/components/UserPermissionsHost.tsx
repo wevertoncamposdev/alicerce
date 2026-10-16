@@ -44,5 +44,3 @@ export function UserPermissionsHost({ items }: { items: PermissionEntity[] }) {
         </div>
     );
 }
-
-export default UserPermissionsHost;

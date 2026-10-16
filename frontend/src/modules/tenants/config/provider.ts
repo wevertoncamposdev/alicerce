@@ -1,5 +1,5 @@
 import { apiServer } from "@lib/api-server";
-import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
+import type { SearchArgs, SearchResult } from "@core/data-provider/types";
 import type { TenantEntity, CreateTenantPayload, UpdateTenantPayload } from "../types/types";
 
 export async function searchTenants(args: SearchArgs): Promise<SearchResult<TenantEntity>> {

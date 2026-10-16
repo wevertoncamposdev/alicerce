@@ -1,5 +1,5 @@
 // lib/query-state/list-query-state.ts
-import type { SearchArgs } from "@lib/data-provider/types";
+import type { SearchArgs } from "@core/data-provider/types";
 
 const DEFAULT_PAGE_SIZE = 20;
 

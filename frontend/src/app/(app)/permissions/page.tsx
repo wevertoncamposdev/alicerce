@@ -1,5 +1,5 @@
 // app/(app)/permissions/page.tsx
-import { TypeViewScreen } from "@/screens/TypeViewScreen";
+import { TypeViewScreen } from "@core/screens/TypeViewScreen";
 
 export default function PermissionsPage({
   searchParams,

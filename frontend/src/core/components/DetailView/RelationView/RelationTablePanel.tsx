@@ -14,7 +14,6 @@ import { EmptyState } from "@components/ui/empty-state";
 import { Button } from "@components/ui/button";
 import { Trash2 } from "lucide-react";
 import { RelationListHost } from "./RelationListHost";
-import { createFavoriteNote, deleteFavoriteNote } from "@modules/favorites/config/notes-provider";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 export type NoteRowLike = {
@@ -27,8 +26,8 @@ export type NoteRowLike = {
 type RelationTablePanelProps<T extends NoteRowLike> = {
     favoriteId: string;
     initialNotes: T[];
-    createNoteFn?: (favoriteId: string, content: string) => Promise<T>;
-    deleteNoteFn?: (favoriteId: string, noteId: string) => Promise<void>;
+    createNoteFn: (favoriteId: string, content: string) => Promise<T>;
+    deleteNoteFn: (favoriteId: string, noteId: string) => Promise<void>;
     columns?: ColumnDef<T>[];
     searchPlaceholder?: string;
     addLabel?: string;
@@ -66,8 +65,6 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
     const [newNoteText, setNewNoteText] = React.useState("");
     const [isAdding, setIsAdding] = React.useState(false);
     const [isPending, startTransition] = useTransition();
-    const createFn = createNoteFn ?? (createFavoriteNote as unknown as (favoriteId: string, content: string) => Promise<T>);
-    const deleteFn = deleteNoteFn ?? (deleteFavoriteNote as unknown as (favoriteId: string, noteId: string) => Promise<void>);
 
     const filteredNotes = React.useMemo(() => {
         const query = searchText.trim().toLowerCase();
@@ -85,14 +82,14 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
 
             startTransition(async () => {
                 try {
-                    await deleteFn(favoriteId, noteId);
+                    await deleteNoteFn(favoriteId, noteId);
                 } catch (err) {
                     console.error("[relation-shell] falha ao remover nota", err);
                     setNotes(previous);
                 }
             });
         },
-        [confirm, notes, deleteFn, favoriteId, startTransition],
+        [confirm, notes, deleteNoteFn, favoriteId, startTransition],
     );
 
     const tableColumns = React.useMemo<ColumnDef<T>[]>(
@@ -133,7 +130,7 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
 
         startTransition(async () => {
             try {
-                const created = await createFn(favoriteId, content);
+                const created = await createNoteFn(favoriteId, content);
                 setNotes((current) => [created, ...current]);
                 setNewNoteText("");
                 setIsAdding(false);

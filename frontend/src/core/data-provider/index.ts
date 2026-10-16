@@ -1,2 +1,2 @@
-export type * from "@lib/data-provider/types";
-export { createDataProvider } from "@lib/data-provider/provider";
+export type * from "@core/data-provider/types";
+export { createDataProvider } from "@core/data-provider/provider";

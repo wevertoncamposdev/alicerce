@@ -35,6 +35,9 @@
       "@components/*": [
         "./src/components/*"
       ],
+      "@core/*": [
+        "./src/core/*"
+      ],
     }
   },
   "include": [

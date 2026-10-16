@@ -7,10 +7,10 @@ import * as roleService from "@modules/roles/actions/roleService";
 import RelationPicker from "@components/RelationPicker/RelationPicker";
 import { toast } from "sonner";
 import useApiError from "@/hooks/useApiError";
-import { RelationHost, type RelationHostConfig } from "@lib/registry/relation-host";
+import { RelationHost, type RelationHostConfig } from "@core/registry/relation-host";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 
-export function RolePermissionsHost({ roleId, initial }: { roleId: string; initial: PermissionEntity[] }) {
+function RolePermissionsHost({ roleId, initial }: { roleId: string; initial: PermissionEntity[] }) {
     const { currentTenantId } = useAuth();
     const formatError = useApiError();
     const { setStatus } = useAutoSaveStatus();

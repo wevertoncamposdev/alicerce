@@ -1,7 +1,7 @@
 
 import "server-only";
-import { getModule } from "@lib/registry";
-import type { SearchArgs } from "@lib/data-provider/types";
+import { getModule } from "@core/registry";
+import type { SearchArgs } from "@core/data-provider/types";
 
 // lib/data-provider/provider.ts
 export function createDataProvider() {

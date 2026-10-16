@@ -15,5 +15,3 @@ export function buildRoleColumns(formatMessage: IntlLabelFormatter): ColumnDef<R
         },
     ];
 }
-
-export const roleColumns = buildRoleColumns((descriptor) => descriptor.id);

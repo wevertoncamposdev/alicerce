@@ -27,7 +27,10 @@ export function RbacSection() {
 Permission   -> Módulo independente (própria rota /permissions, SEARCH, CRUD)
 RolePermission -> Módulo Relacionado (N:N Role<->Permission) -> RelationShell dentro de /roles/[id]
 UserRole       -> Módulo Relacionado (N:N User<->Role)       -> RelationShell dentro de /users/[id]
-Person         -> Extensão de Módulo (1:1 com User)          -> seção/aba dentro de /users/[id]`}
+
+(Extensão de Módulo — complemento 1:1 do módulo pai, renderizado como seção
+do form de detalhe — ainda não tem exemplo real neste projeto; o padrão
+existe na taxonomia pra quando surgir um caso de uso.)`}
             </DocCode>
 
             <DocSubTitle>Backend — decorators de autorização</DocSubTitle>

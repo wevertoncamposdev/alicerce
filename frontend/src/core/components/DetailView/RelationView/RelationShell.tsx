@@ -30,5 +30,3 @@ export function RelationShell({ tabs }: { tabs: Tab[] }) {
         </Tabs>
     );
 }
-
-export default RelationShell;

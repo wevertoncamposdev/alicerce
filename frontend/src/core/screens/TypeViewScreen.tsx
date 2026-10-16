@@ -1,15 +1,15 @@
 // screens/TypeViewScreen.tsx
-import { getModule } from "@lib/registry";
-import { createDataProvider } from "@lib/data-provider";
+import { getModule } from "@core/registry";
+import { createDataProvider } from "@core/data-provider";
 import { ApiServerError } from "@lib/api-server";
-import { AppTopbar } from "@components/Layout/AppTopbar";
-import { RecordListHost } from "@components/Layout/RecordListHost";
-import { RecordSearch } from "@components/Layout/RecordSearch";
-import { PermissionDeniedView } from "@components/Layout/PermissionDeniedView";
+import { AppTopbar } from "@core/components/Layout/AppTopbar";
+import { RecordListHost } from "@core/components/Layout/RecordListHost";
+import { RecordSearch } from "@core/components/Layout/RecordSearch";
+import { PermissionDeniedView } from "@core/components/Layout/PermissionDeniedView";
 import { TypeView, type TypeViewMode } from "@components/TypeView/TypeView";
 import { ViewSwitcher } from "@components/TypeView/ViewSwitcher";
 import { CreateRecordSheet } from "@components/TypeView/CreateRecordSheet";
-import type { SearchResult } from "@lib/data-provider/types";
+import type { SearchResult } from "@core/data-provider/types";
 
 type TypeViewScreenProps = {
     moduleName: string;

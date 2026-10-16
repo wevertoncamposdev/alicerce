@@ -26,7 +26,7 @@ export function TaxonomiaSection() {
                         path: "Módulo",
                         guard: "modules/<nome>/",
                         description:
-                            "Entidade independente, com SEARCH e listagem próprias. Ganha rota /nome e /nome/[id]. Ex.: Role, Permission, Favorite.",
+                            "Entidade independente, com SEARCH e listagem próprias. Ganha rota /nome e /nome/[id]. Ex.: Role, Permission, Example.",
                     },
                     {
                         method: "SEARCH",
@@ -40,14 +40,14 @@ export function TaxonomiaSection() {
                         path: "Feature",
                         guard: "modules/<pai>/features/<feature>/",
                         description:
-                            "Sub-recurso dependente (1:N, cascade delete). Vive dentro da pasta do módulo pai, sem rota de listagem própria. Ex.: notas de um favorito.",
+                            "Sub-recurso dependente (1:N, cascade delete). Vive dentro da pasta do módulo pai, sem rota de listagem própria. Ex.: notas de um example.",
                     },
                     {
                         method: "PATCH",
                         path: "Extensão de Módulo",
                         guard: "aba/seção no DetailView",
                         description:
-                            "Complemento 1:1 do módulo pai, renderizado como seção do form de detalhe. Ex.: Person é extensão de User.",
+                            "Complemento 1:1 do módulo pai, renderizado como seção do form de detalhe. Ainda sem exemplo real neste projeto.",
                     },
                 ]}
             />
@@ -104,7 +104,7 @@ export function GuiaCriarModuloSection() {
                         Três DTOs mínimos: <code>create-widget.dto.ts</code>,{" "}
                         <code>update-widget.dto.ts</code> (geralmente <code>PartialType</code> do create) e{" "}
                         <code>search-widget.dto.ts</code> (searchText, pagination, sort, filters, groupBy —
-                        mesmo formato usado por <code>SearchFavoritesDto</code>).
+                        mesmo formato usado por <code>SearchExamplesDto</code>).
                     </DocP>
                     <DocCode label="dto/create-widget.dto.ts">
                         {`export class CreateWidgetDto {
@@ -120,7 +120,7 @@ export function GuiaCriarModuloSection() {
                         eles chegam como parâmetro, injetados pelos decorators do controller. Todo{" "}
                         <code>findUnique</code> por id é seguido de uma checagem manual de posse (
                         <code>tenantId</code>/<code>userId</code>) antes de update/delete, como em{" "}
-                        <code>favorites.service.ts</code>.
+                        <code>examples.service.ts</code>.
                     </DocP>
                     <DocCode label="widget.service.ts (search — paginação padrão)">
                         {`async search(query: SearchWidgetDto, tenantId: string) {
@@ -189,7 +189,7 @@ export class WidgetModule {}
                     </DocP>
                     <DocCode label="modules/widget/config/provider.ts">
                         {`import { apiServer } from "@lib/api-server";
-import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
+import type { SearchArgs, SearchResult } from "@core/data-provider/types";
 import type { WidgetEntity } from "@modules/widget/types/types";
 
 export async function searchWidgets(args: SearchArgs): Promise<SearchResult<WidgetEntity>> {
@@ -256,7 +256,7 @@ export function WidgetListView({ data }: { data: WidgetEntity[] }) {
                         <code>registerModule</code>.
                     </DocP>
                     <DocCode label="modules/widget/config/contract.tsx">
-                        {`import { defineRecordModule, registerModule } from "@lib/registry";
+                        {`import { defineRecordModule, registerModule } from "@core/registry";
 import { createListQueryState } from "@lib/query-state/list-query-state";
 import { FormView } from "@components/TypeView/FormView/FormView";
 import { WidgetListView } from "@modules/widget/components/WidgetListView";
@@ -302,8 +302,8 @@ registerModule(widgetModule);`}
                     </DocCallout>
                 </DocStep>
 
-                <DocStep n={9} title="Registrar no bootstrap (lib/registry/bootstrap.ts)">
-                    <DocCode label="lib/registry/bootstrap.ts">
+                <DocStep n={9} title="Registrar no bootstrap (src/bootstrap.ts)">
+                    <DocCode label="src/bootstrap.ts">
                         {`import "@modules/favorites/config/contract";
 // ...
 import "@modules/widget/config/contract"; // <- adicionar aqui`}
@@ -316,14 +316,14 @@ import "@modules/widget/config/contract"; // <- adicionar aqui`}
 
                 <DocStep n={10} title="Rotas (app/(app)/widget/page.tsx e [id]/page.tsx)">
                     <DocCode label="app/(app)/widget/page.tsx">
-                        {`import { TypeViewScreen } from "@/screens/TypeViewScreen";
+                        {`import { TypeViewScreen } from "@core/screens/TypeViewScreen";
 
 export default function WidgetPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   return <TypeViewScreen moduleName="widget" searchParams={searchParams} />;
 }`}
                     </DocCode>
                     <DocCode label="app/(app)/widget/[id]/page.tsx">
-                        {`import { DetailViewScreen } from "@/screens/DetailViewScreen";
+                        {`import { DetailViewScreen } from "@core/screens/DetailViewScreen";
 
 export default async function WidgetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -359,7 +359,7 @@ export function ChecklistSection() {
 [ ] provider.ts com uma função por operação, usando apiServer
 [ ] columns.tsx + <Modulo>ListView.tsx ("use client", colunas não cruzam a fronteira RSC)
 [ ] contract.tsx com defineRecordModule + registerModule
-[ ] import do contract.tsx em lib/registry/bootstrap.ts
+[ ] import do contract.tsx em src/bootstrap.ts
 [ ] app/(app)/<modulo>/page.tsx e [id]/page.tsx
 [ ] entrada em lib/authz.ts (ROUTE_RULES e, se preciso, ACTION_PERMISSION_RULES)
 [ ] ícone em AppSidebar.tsx

@@ -1,7 +1,7 @@
 // modules/favorites/config/contract.tsx
-import { defineRecordModule, registerModule } from "@lib/registry";
-import type { DetailLayout, ListLayout } from "@lib/registry/types";
-import { createRecordFormAction } from "@lib/registry/actions";
+import { defineRecordModule, registerModule } from "@core/registry";
+import type { DetailLayout, ListLayout } from "@core/registry/types";
+import { createRecordFormAction } from "@core/registry/actions";
 import { createListQueryState } from "@lib/query-state/list-query-state";
 
 import {
@@ -9,14 +9,14 @@ import {
 } from "./provider";
 
 import type { FavoriteEntity } from "@modules/favorites/types/types";
-import type { ContextItem } from "@components/DetailView/MetaDataView/types";
+import type { ContextItem } from "@core/components/DetailView/MetaDataView/types";
 
 import { FormView } from "@components/TypeView/FormView/FormView";
 import { CardsView } from "@components/TypeView/CardsView/CardsView";
-import { RelationTablePanel } from "@components/DetailView/RelationView/RelationTablePanel";
+import { RelationTablePanel } from "@core/components/DetailView/RelationView/RelationTablePanel";
 import { FavoritesGraphView } from "@modules/favorites/components/FavoritesGraphView";
 import { FavoritesListView } from "@modules/favorites/components/FavoritesListView";
-import { listFavoriteNotes } from "./notes-provider";
+import { listFavoriteNotes, createFavoriteNote, deleteFavoriteNote } from "./notes-provider";
 
 //ADAPTER
 
@@ -101,7 +101,12 @@ async function FavoritesNotesSection({ favoriteId }: { favoriteId: string }) {
     return (
         <div>
             <h2 className="text-sm font-medium text-muted-foreground mb-2">Notas</h2>
-            <RelationTablePanel favoriteId={favoriteId} initialNotes={notes} />
+            <RelationTablePanel
+                favoriteId={favoriteId}
+                initialNotes={notes}
+                createNoteFn={createFavoriteNote}
+                deleteNoteFn={deleteFavoriteNote}
+            />
         </div>
     );
 }

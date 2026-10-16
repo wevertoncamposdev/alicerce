@@ -4,8 +4,8 @@ import { apiServer } from "@lib/api-server";
 import { AuthProvider } from "@/contexts/auth-context";
 import { AppAccessGuard } from "@components/auth/AppAccessGuard";
 import { SidebarProvider } from "@components/ui/sidebar";
-import { AppSidebar } from "@components/Layout/AppSidebar";
-import "@lib/registry/bootstrap";
+import { AppSidebar } from "@core/components/Layout/AppSidebar";
+import "@/bootstrap";
 
 // Nome do tenant não vem no payload do JWT/perfil (só o id) — busca
 // separada, com fallback silencioso: um usuário recém-criado sem nenhuma

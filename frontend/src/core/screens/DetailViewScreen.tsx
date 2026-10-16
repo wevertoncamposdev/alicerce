@@ -1,16 +1,16 @@
 // screens/DetailViewScreen.tsx
-import { getModule } from "@lib/registry";
-import { createDataProvider } from "@lib/data-provider";
-import { getEntityAuditTrail } from "@lib/data-provider/rest/audit";
+import { getModule } from "@core/registry";
+import { createDataProvider } from "@core/data-provider";
+import { getEntityAuditTrail } from "@core/data-provider/rest/audit";
 import { ApiServerError } from "@lib/api-server";
-import { DetailView } from "@components/DetailView/DetailView";
-import { AppTopbar } from "@components/Layout/AppTopbar";
-import { PermissionDeniedView } from "@components/Layout/PermissionDeniedView";
+import { DetailView } from "@core/components/DetailView/DetailView";
+import { AppTopbar } from "@core/components/Layout/AppTopbar";
+import { PermissionDeniedView } from "@core/components/Layout/PermissionDeniedView";
 import { AutoSaveStatusProvider } from "@/contexts/autosave-status-context";
-import { AutoSaveIndicator } from "@components/Layout/AutoSaveIndicator";
-import { MetaDataSidebar } from "@components/DetailView/MetaDataView/MetaDataSidebar";
-import { MetaDataView } from "@components/DetailView/MetaDataView";
-import type { AuditFeedItem, ContextItem } from "@components/DetailView/MetaDataView/types";
+import { AutoSaveIndicator } from "@core/components/Layout/AutoSaveIndicator";
+import { MetaDataSidebar } from "@core/components/DetailView/MetaDataView/MetaDataSidebar";
+import { MetaDataView } from "@core/components/DetailView/MetaDataView";
+import type { AuditFeedItem, ContextItem } from "@core/components/DetailView/MetaDataView/types";
 
 export async function DetailViewScreen({ moduleName, id }: { moduleName: string; id: string }) {
     const mod = getModule(moduleName);

@@ -1,9 +1,9 @@
 'use server';
 
-import { createDataProvider } from "@lib/data-provider";
-import { getModule } from "@lib/registry";
-import { validateFormPayload } from "@lib/registry/form-validation";
-import type { FormFieldConfig } from "@lib/registry/types";
+import { createDataProvider } from "@core/data-provider";
+import { getModule } from "@core/registry";
+import { validateFormPayload } from "@core/registry/form-validation";
+import type { FormFieldConfig } from "@core/registry/types";
 
 type ActionState = { ok: boolean; message?: string; fieldErrors?: Record<string, string> };
 

@@ -1,5 +1,5 @@
 import { apiServer } from "@lib/api-server";
-import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
+import type { SearchArgs, SearchResult } from "@core/data-provider/types";
 import type { UserEntity, CreateUserPayload, UpdateUserPayload } from "../types/types";
 
 function normalizeEntityList<T extends { id?: string }>(rows: unknown, nestedKey: string): T[] {

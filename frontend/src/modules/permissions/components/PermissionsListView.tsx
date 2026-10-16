@@ -29,5 +29,3 @@ export function PermissionsListView({ data }: { data: PermissionEntity[] }) {
         </div>
     );
 }
-
-export default PermissionsListView;

@@ -2,7 +2,7 @@
 // Composição da página de documentação. Server Component — todo o conteúdo é estático
 // e renderiza no servidor; apenas a navegação lateral (scroll-spy) é client.
 
-import { AppTopbar } from "@components/Layout/AppTopbar";
+import { AppTopbar } from "@core/components/Layout/AppTopbar";
 import { DevelopDocsNav } from "@modules/develop/components/DevelopDocsNav";
 import { DEVELOP_DOC_NAV } from "@modules/develop/content/nav-config";
 import {

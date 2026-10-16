@@ -4,7 +4,7 @@ import type { UserEntity } from "../types/types";
 import { ListView } from "@components/TypeView/ListView/ListView";
 import { userColumns } from "@modules/users/components/columns";
 
-export function UsersListView({ data }: { data: UserEntity[] }) {
+function UsersListView({ data }: { data: UserEntity[] }) {
     return <ListView data={data} columns={userColumns} detail={"/users"} />;
 }
 

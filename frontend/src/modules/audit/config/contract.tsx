@@ -1,5 +1,5 @@
-import { defineRecordModule, registerModule } from "@lib/registry";
-import type { ListLayout } from "@lib/registry/types";
+import { defineRecordModule, registerModule } from "@core/registry";
+import type { ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
 
 import { AuditListView } from "@modules/audit/components/AuditListView";

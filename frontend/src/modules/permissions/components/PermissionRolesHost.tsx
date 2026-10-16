@@ -2,9 +2,9 @@
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { RoleEntity } from "@modules/roles/types/types";
-import { RelationHost, type RelationHostConfig } from "@lib/registry/relation-host";
+import { RelationHost, type RelationHostConfig } from "@core/registry/relation-host";
 
-export function PermissionRolesHost({ items }: { items: RoleEntity[] }) {
+function PermissionRolesHost({ items }: { items: RoleEntity[] }) {
     const columns = React.useMemo<ColumnDef<RoleEntity>[]>(
         () => [
             { accessorKey: "name", header: "Nome" },
