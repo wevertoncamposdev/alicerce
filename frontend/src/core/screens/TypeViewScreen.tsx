@@ -41,7 +41,7 @@ export async function TypeViewScreen({ moduleName, searchParams }: TypeViewScree
         throw err;
     }
 
-    const listContext = { data: result.data, searchArgs: args };
+    const listContext = { data: result.data, searchArgs: args, pagination: result.pagination };
 
     return (
         <div>

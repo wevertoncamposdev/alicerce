@@ -1,17 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { EmptyState } from "@components/ui/empty-state";
 import {
     ColumnDef,
     SortingState,
     flexRender,
-    getCoreRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
+    useTable,
 } from "@tanstack/react-table";
 
 import { ArrowDown, ArrowUp } from "lucide-react";
@@ -26,48 +22,70 @@ import {
 } from "@components/ui/table";
 
 import { Button } from "@components/ui/button";
+import { appTableFeatures, type AppTableFeatures } from "@core/table-features";
+import type { SearchResult, SortSpec } from "@core/data-provider/types";
+import { createListQueryState } from "@lib/query-state/list-query-state";
 
-type Props<T> = {
+const { serializeListState } = createListQueryState();
+
+type Props<T extends { id: string | number }> = {
     data: T[];
-    columns: ColumnDef<T>[];
+    columns: ColumnDef<AppTableFeatures, T>[];
     detail: string;
+    pagination: SearchResult<T>["pagination"];
+    sort?: SortSpec[];
 };
 
 export function ListView<T extends { id: string | number }>({
     data,
     columns,
     detail,
+    pagination,
+    sort,
 }: Props<T>) {
     const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
 
-    const [sorting, setSorting] = useState<SortingState>([]);
+    // Convertido direto do `sort` que chegou da URL/servidor (ver
+    // SearchArgs.sort) — nunca é estado local: clicar numa coluna navega
+    // pra uma nova URL (abaixo), o servidor reordena e devolve de novo.
+    const sorting: SortingState = (sort ?? []).map((s) => ({ id: s.field, desc: s.direction === "desc" }));
 
-    // TanStack Table's useReactTable() retorna funções que o React Compiler
+    function navigate(patch: Parameters<typeof serializeListState>[1]) {
+        const params = serializeListState(searchParams, patch);
+        router.push(`${pathname}?${params.toString()}`);
+    }
+
+    // TanStack Table's useTable() retorna funções que o React Compiler
     // não consegue memoizar com segurança — limitação conhecida da lib, não
     // um bug deste componente (ver https://react.dev/reference/react-compiler).
-    // eslint-disable-next-line react-hooks/incompatible-library
-    const table = useReactTable({
+    const table = useTable({
+        features: appTableFeatures,
         data,
         columns,
-        state: {
-            sorting,
-        },
-        onSortingChange: setSorting,
-
-        getCoreRowModel: getCoreRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-
-        initialState: {
-            pagination: {
-                pageSize: 10,
-            },
+        state: { sorting },
+        // Paginação e ordenação são 100% do servidor — `data` já chega como
+        // a página pedida na URL (ver TypeViewScreen); a tabela só exibe,
+        // nunca reprocessa localmente.
+        manualSorting: true,
+        onSortingChange: (updater) => {
+            const next = typeof updater === "function" ? updater(sorting) : updater;
+            const first = next[0];
+            if (!first) {
+                navigate({ sortField: "" });
+                return;
+            }
+            navigate({ sortField: first.id, sortDirection: first.desc ? "desc" : "asc" });
         },
     });
 
     if (data.length === 0) {
         return <EmptyState title="Nenhum registro encontrado." description="Tente alterar sua pesquisa." className="py-20" />;
     }
+
+    const canPreviousPage = pagination.page > 1;
+    const canNextPage = pagination.page < pagination.pages;
 
     return (
         <div className="space-y-4">
@@ -137,12 +155,12 @@ export function ListView<T extends { id: string | number }>({
 
             </Table>
 
-            {/* Paginação */}
+            {/* Paginação — sempre do servidor (SearchResult.pagination), nunca recalculada localmente */}
             <div className="flex items-center justify-between">
 
                 <p className="text-sm text-muted-foreground">
-                    Página {table.getState().pagination.pageIndex + 1} de{" "}
-                    {table.getPageCount()}
+                    Página {pagination.page} de{" "}
+                    {pagination.pages} ({pagination.total} registro(s))
                 </p>
 
                 <div className="flex gap-2">
@@ -150,8 +168,8 @@ export function ListView<T extends { id: string | number }>({
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}
+                        onClick={() => navigate({ pageIndex: pagination.page - 2 })}
+                        disabled={!canPreviousPage}
                     >
                         <ChevronLeft className="h-3 w-3" />
                     </Button>
@@ -159,8 +177,8 @@ export function ListView<T extends { id: string | number }>({
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
+                        onClick={() => navigate({ pageIndex: pagination.page })}
+                        disabled={!canNextPage}
                     >
                         <ChevronRight className="h-3 w-3" />
                     </Button>

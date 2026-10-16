@@ -28,7 +28,7 @@ const createTenantAction = createRecordFormAction.bind(
 );
 
 const tenantsListLayout: ListLayout<TenantEntity> = {
-    list: ({ data }) => <TenantsListView data={data} />,
+    list: ({ data, pagination, searchArgs }) => <TenantsListView data={data} pagination={pagination} sort={searchArgs.sort} />,
     form: () => (
         <FormView<TenantEntity>
             mode="create"

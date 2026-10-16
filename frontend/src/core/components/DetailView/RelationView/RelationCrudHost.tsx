@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { ColumnDef, flexRender, useTable } from "@tanstack/react-table";
+import { appTableFeatures, type AppTableFeatures } from "@core/table-features";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
@@ -10,8 +11,8 @@ import { EmptyState } from "@components/ui/empty-state";
 import { Trash2 } from "lucide-react";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
-export type RelationCrudHostProps<T> = {
-    columns: ColumnDef<T>[];
+export type RelationCrudHostProps<T extends object> = {
+    columns: ColumnDef<AppTableFeatures, T>[];
     initialData?: T[];
     list?: () => Promise<T[]>;
     detach?: (id: string) => Promise<void>;
@@ -37,13 +38,27 @@ function RelationCrudHost<T extends object>({
     const [items, setItems] = React.useState<T[]>(initialData);
     const [loading, setLoading] = React.useState(Boolean(list));
 
-    React.useEffect(() => {
+    // `items` diverge de `initialData` conforme attach/detach — não é um
+    // simples espelho de prop, então não dá pra "derivar" direto. Re-sincroniza
+    // quando `initialData` mudar de verdade (Server Component pai recarregou)
+    // sem useEffect: setState durante o render é seguro aqui porque o React
+    // re-renderiza antes de pintar — mesmo padrão de relation-host.tsx (ver
+    // "Adjusting state based on a prop change" na doc do React).
+    const [prevInitialData, setPrevInitialData] = React.useState(initialData);
+    if (initialData !== prevInitialData) {
+        setPrevInitialData(initialData);
         setItems(initialData);
-    }, [initialData]);
+    }
 
     React.useEffect(() => {
         let mounted = true;
         if (list) {
+            // Padrão de fetch em efeito recomendado pela própria doc do React
+            // (react.dev/learn/you-might-not-need-an-effect#fetching-data):
+            // marcar loading antes de chamar a API externa, desmarcar no
+            // retorno — não é um "setState que podia ser calculado no render",
+            // é sincronização real com um sistema externo (a API).
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLoading(true);
             list().then((res) => {
                 if (mounted) {
@@ -57,11 +72,10 @@ function RelationCrudHost<T extends object>({
         };
     }, [list]);
 
-    // TanStack Table's useReactTable() retorna funções que o React Compiler
+    // TanStack Table's useTable() retorna funções que o React Compiler
     // não consegue memoizar com segurança — limitação conhecida da lib, não
     // um bug deste componente (ver https://react.dev/reference/react-compiler).
-    // eslint-disable-next-line react-hooks/incompatible-library
-    const table = useReactTable({ data: items, columns, getCoreRowModel: getCoreRowModel() });
+    const table = useTable({ features: appTableFeatures, data: items, columns });
 
     async function handleDetach(id: string) {
         if (!detach) return;

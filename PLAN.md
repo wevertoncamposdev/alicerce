@@ -1997,32 +1997,91 @@ incompleta — `ListView.tsx` busca página real do servidor mas aplica uma
 SEGUNDA paginação client-side com `pageSize: 10` fixo desconectada da URL;
 "Página X de Y" não corresponde ao `total` real do backend.
 
-- [ ] Upgrade TanStack Table 8→9 (branch `chore/upgrade-tanstack-table-9`):
-  `useReactTable`→`useTable`, `getCoreRowModel`/`getSortedRowModel`/
-  `getPaginationRowModel`→`createCoreRowModel`/`createSortedRowModel`/
-  `createPaginatedRowModel` (v9 exige declarar features explicitamente),
-  nunca destruturar métodos de instância de `row`/`cell`. Toca
-  `ListView.tsx`, `RelationCrudHost.tsx`, `RelationTablePanel.tsx`.
-- [ ] Na mesma leva: reescrever `ListView.tsx` pra paginação/ordenação 100%
-  servidor — remover `useState` de paginação local, usar `result.pagination`
-  real, next/prev via `serializeListState` (já existe, só não é chamado pra
-  isso); `sorting` também vai pra URL/servidor.
-- [ ] Criar `createRestDataHandlers(resource, opts?)` (`core/data-provider/`)
-  encapsulando o `search/read/create/update/delete` repetido byte-a-byte em
-  cada `modules/*/config/provider.ts`; absorver `normalizeEntityList`
-  duplicado 3x (`users`/`roles`/`permissions`). Migrar `examples` + pelo
-  menos `roles`/`permissions`/`users`.
-- [ ] `cache()` do React em `createDataProvider()` (mesmo padrão de
-  `lib/auth-server.ts`).
-- [ ] `defineModuleManifest` + `alicerce.config.ts` — substitui as 4 edições
-  manuais hoje dispersas (`bootstrap.ts`, `AppSidebar.tsx` `MODULE_ICONS`,
-  `lib/authz.ts` `ROUTE_RULES`) por um registro único.
-- [ ] `modules/audit/config/provider.ts`: mandar paginação real ao backend
-  em vez de buscar tudo e fatiar em memória (precisa endpoint de search real
-  pra `Audit`).
+- [x] Upgrade TanStack Table 8→9 (branch `chore/upgrade-tanstack-table-9`,
+  decidido a partir de aqui porque o checkpoint de commit das Etapas
+  7.A-7.E foi pro `develop` antes de abrir a branch — ver "Decisões já
+  tomadas pelo usuário"). `useReactTable`→`useTable` confirmado; a API real
+  (puxada do guia oficial de migração, não só suposição) exige
+  `tableFeatures({...})` — não existe mais um jeito de passar
+  `getCoreRowModel()`/`getSortedRowModel()` soltos. `coreRowModel` continua
+  automático mesmo sem declarar nada (`table_getCoreRowModel` cai pra
+  `createCoreRowModel()` por padrão — confirmado lendo o pacote). Criado
+  `core/table-features.ts` com UM `tableFeatures()` compartilhado
+  (`rowSortingFeature`+`sortFns`+`columnVisibilityFeature`+
+  `columnOrderingFeature` — as duas últimas descobertas rodando `tsc`
+  contra o pacote real: sem elas, `row.getVisibleCells()`/
+  `column.getIndex()` não existem no tipo) e `AppTableFeatures` exportado,
+  usado em TODO `ColumnDef<AppTableFeatures, T>` do projeto (`TFeatures`
+  virou o 1º type-param obrigatório, sem default — achado real, maior que
+  os 3 arquivos que o plano original citava: acabou tocando 15 arquivos,
+  não só `ListView.tsx`/`RelationCrudHost.tsx`/`RelationTablePanel.tsx`).
+  De passagem, 2 erros reais de lint (`react-hooks/set-state-in-effect`)
+  apareceram em `RelationCrudHost.tsx` — o rename do hook fez o eslint
+  parar de reconhecer o componente como "biblioteca incompatível",
+  removendo uma isenção que escondia esses 2 problemas pré-existentes;
+  corrigido um com o padrão "ajustar estado durante o render" (mesmo de
+  `relation-host.tsx`) e o outro com disable justificado (padrão de fetch
+  em efeito da própria doc do React).
+- [x] Na mesma leva: `ListView.tsx` reescrito pra paginação/ordenação 100%
+  servidor — sem `useState` de paginação local; `ListContext<T>` ganhou
+  `pagination` (antes só tinha `searchArgs`, que o backend devolve mas
+  nunca chegava até a view); `TypeViewScreen`→6 `contract.tsx`→6 componentes
+  `*ListView` tiveram que threadear `pagination`/`sort` (mais arquivos do
+  que o plano previa, mas mecânico). Clicar página/coluna navega via
+  `serializeListState` (já existia, nunca tinha sido chamado pra isso).
+  **Validado contra servidor real** (não só tsc/build): 26 roles criadas via
+  API, página 1 mostra Role 06-25, página 2 mostra Role 01-05, "Página X de
+  Y (26 registro(s))" bate exato; `sortField=name&sortDirection=asc/desc`
+  muda a ordem real dos resultados.
+- [x] Criado `core/data-provider/rest-handlers.ts`
+  (`createRestDataHandlers<T>(resource)` + `normalizeEntityList`), migrados
+  `examples`(favorites)/`roles`/`permissions`/`users`. Cada provider.ts
+  mantém os exports nomeados antigos (`searchUsers`, `readUser`, ...)
+  desestruturando o retorno — `dashboard/page.tsx` importa esses nomes
+  direto, não dava pra só trocar por um objeto genérico. 6 tipos
+  `Create/UpdateXPayload` ficaram mortos com a migração (só serviam pro
+  cast interno que o helper não precisa) — removidos, confirmado via knip.
+- [x] `cache()` do React em `createDataProvider()` — `search`/`read` viraram
+  funções de módulo ESTÁVEIS fora da factory (`cache()` só dedupe de verdade
+  com referência de função estável; `createDataProvider()` cria objeto novo
+  a cada chamada, então as funções internas precisavam viver fora dela).
+- [x] `alicerce.config.ts` (raiz de `src/`) + `defineModuleManifest` — um
+  registro por módulo (ícone/rota/permissão/grupo de menu/permissões de
+  ação) substitui `AppSidebar.tsx` `MODULE_ICONS` e `lib/authz.ts`
+  `ROUTE_RULES`/`ACTION_PERMISSION_RULES`, que agora são *derivados* do
+  config em vez de listas paralelas mantidas à mão (inclusive removeu o
+  workaround `renderNavLabel` que corrigia acentuação perdida — o título
+  acentuado certo já vive no config). `bootstrap.ts` continua com a lista
+  estática de imports de propósito: Next.js/Turbopack exige caminho de
+  import literal pro code-splitting, não arrisquei tornar isso dinâmico a
+  partir do config. `AuthAction` reconstruído via tipo condicional a partir
+  de `alicerceModules` (não um `Record<string,string>` largo) pra manter a
+  union literal exata que `authz.test.ts` dependia — todos os 22 testes
+  (incluindo os de `authz.test.ts`) continuam passando.
+- [x] Backend: `AuditController`/`AuditService` ganharam `@Search()` de
+  verdade (`SearchAuditDto extends SearchBaseDto` + os helpers da 7.C —
+  `resolvePagination`/`buildSearchTextWhere`/`buildWhitelistedFilters`/
+  `buildWhitelistedOrderBy`, mesmo contrato dos outros módulos) e
+  `@Get(':id')` (não existia, `readAuditEntry` fazia fetch-tudo-e-`.find()`
+  no cliente). Frontend `audit/config/provider.ts` migrado pra chamar o
+  endpoint novo com paginação real. **Achado ao migrar**: `AuditListView`
+  nunca teve rodapé de paginação (a paginação "falsa" antiga nunca era
+  realmente usada pra nada, só existia no objeto de retorno) — trocar pra
+  paginação real de verdade (limite 20) sem adicionar um rodapé teria
+  travado a trilha de auditoria em só 20 itens sem jeito de ver o resto;
+  adicionado um paginador mínimo (prev/next + "Página X de Y") em
+  `AuditListView.tsx`, mesmo padrão de `ListView.tsx`. Validado contra
+  servidor real: 3 roles criadas → 3 entradas de auditoria reais aparecem
+  com paginação correta.
 
-Checkpoint: `tsc`/lint/testes/build; clicar página 2/3 reflete dados reais do
-servidor; rodapé de contagem bate com o total real.
+Checkpoint: `tsc`/lint/`knip`/testes/`build` limpos nos dois projetos (109
+testes unitários + 11 e2e no backend, 22 no frontend). Clicar página 2/3 e
+ordenar por coluna reflete dados reais do servidor, validado contra
+`nest start`/`next dev` reais rodando (não só e2e mockado) — não só
+tsc/build. **Achado de processo**: `TaskStop` em processo de dev server
+(`npm run dev`/`start:dev`) não mata o processo de verdade — a porta
+continua ocupada; precisou `Stop-Process` direto no PID (anotado em
+memória de sessão pra não repetir a confusão).
 
 ### 7.G — Gerador (Fase 4)
 

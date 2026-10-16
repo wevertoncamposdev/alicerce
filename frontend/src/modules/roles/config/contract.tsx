@@ -28,7 +28,7 @@ const { parseListState, serializeListState } = createListQueryState();
 const createRoleAction = createRecordFormAction.bind(null, "roles", formFields);
 
 const rolesListLayout: ListLayout<RoleEntity> = {
-    list: ({ data }) => <RolesListView data={data} />,
+    list: ({ data, pagination, searchArgs }) => <RolesListView data={data} pagination={pagination} sort={searchArgs.sort} />,
     form: () => (
         <FormView<RoleEntity>
             mode="create"

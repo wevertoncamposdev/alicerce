@@ -47,6 +47,8 @@ export type DetailLayout<T> = {
 export type ListContext<T> = {
     data: T[];
     searchArgs: SearchArgs;
+    /** Paginação real devolvida pelo servidor — ver SearchResult. */
+    pagination: SearchResult<T>["pagination"];
 };
 
 /**

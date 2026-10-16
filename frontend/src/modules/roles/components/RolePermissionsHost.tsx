@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { AppTableFeatures } from "@core/table-features";
 import { useAuth } from "@/contexts/auth-context";
 import type { PermissionEntity } from "@modules/permissions/types/types";
 import * as roleService from "@modules/roles/actions/roleService";
@@ -15,7 +16,7 @@ function RolePermissionsHost({ roleId, initial }: { roleId: string; initial: Per
     const formatError = useApiError();
     const { setStatus } = useAutoSaveStatus();
 
-    const columns = React.useMemo<ColumnDef<PermissionEntity>[]>(
+    const columns = React.useMemo<ColumnDef<AppTableFeatures, PermissionEntity>[]>(
         () => [
             { accessorKey: "name", header: "Nome" },
             { accessorKey: "type", header: "Tipo" },

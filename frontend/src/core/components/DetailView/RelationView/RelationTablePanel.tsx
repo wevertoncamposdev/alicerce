@@ -5,8 +5,7 @@ import { useTransition } from "react";
 import {
     ColumnDef,
     flexRender,
-    getCoreRowModel,
-    useReactTable,
+    useTable,
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { Input } from "@components/ui/input";
@@ -15,6 +14,7 @@ import { Button } from "@components/ui/button";
 import { Trash2 } from "lucide-react";
 import { RelationListHost } from "./RelationListHost";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
+import { appTableFeatures, type AppTableFeatures } from "@core/table-features";
 
 export type NoteRowLike = {
     id: string;
@@ -28,13 +28,13 @@ type RelationTablePanelProps<T extends NoteRowLike> = {
     initialNotes: T[];
     createNoteFn: (favoriteId: string, content: string) => Promise<T>;
     deleteNoteFn: (favoriteId: string, noteId: string) => Promise<void>;
-    columns?: ColumnDef<T>[];
+    columns?: ColumnDef<AppTableFeatures, T>[];
     searchPlaceholder?: string;
     addLabel?: string;
     emptyMessage?: string;
 };
 
-const defaultColumns = <T extends NoteRowLike>(): ColumnDef<T>[] => [
+const defaultColumns = <T extends NoteRowLike>(): ColumnDef<AppTableFeatures, T>[] => [
     { accessorKey: "content", header: "Nota" },
     {
         accessorKey: "user.email",
@@ -92,7 +92,7 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
         [confirm, notes, deleteNoteFn, favoriteId, startTransition],
     );
 
-    const tableColumns = React.useMemo<ColumnDef<T>[]>(
+    const tableColumns = React.useMemo<ColumnDef<AppTableFeatures, T>[]>(
         () => [
             ...(overrideColumns ?? defaultColumns<T>()),
             {
@@ -114,14 +114,13 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
         [overrideColumns, handleDelete],
     );
 
-    // TanStack Table's useReactTable() retorna funções que o React Compiler
+    // TanStack Table's useTable() retorna funções que o React Compiler
     // não consegue memoizar com segurança — limitação conhecida da lib, não
     // um bug deste componente (ver https://react.dev/reference/react-compiler).
-    // eslint-disable-next-line react-hooks/incompatible-library
-    const table = useReactTable({
+    const table = useTable({
+        features: appTableFeatures,
         data: filteredNotes,
         columns: tableColumns,
-        getCoreRowModel: getCoreRowModel(),
     });
 
     function handleCreate() {

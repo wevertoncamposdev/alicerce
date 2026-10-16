@@ -8,20 +8,6 @@ export type UserEntity = {
     createdAt: string;
 };
 
-export type CreateUserPayload = {
-    email: string;
-    password: string;
-    tenantId?: string;
-    personId?: string;
-};
-
-export type UpdateUserPayload = {
-    email?: string;
-    password?: string;
-    tenantId?: string;
-    personId?: string;
-};
-
 export type ContextItem = {
     key: string;
     label: string;
