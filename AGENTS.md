@@ -279,10 +279,14 @@ módulo remove rotas, navegação, permissões do seed e jobs — sem editar có
 
 Cada fase só começa quando a anterior passou no checkpoint. Marque `[x]` ao concluir.
 
-### Fase 0 — Segurança e sessão (bloqueadores)
+### Fase 0 — Segurança e sessão (bloqueadores) — checkboxes reconciliados em 2026-10-16; só falta validação manual com navegador (ver último item)
 
-- [ ] Refresh no `proxy.ts`: ler JWT `exp`, renovar antes de expirar, gravar cookies no request e no response; cookie de refresh com `path=/`; `session_token` com validade do refresh (quem expira é o JWT)
-- [ ] Corrigir `/api/auth/login` e `/api/auth/refresh` do Next: o Nest envia o refresh só por `Set-Cookie` (ler com `headers.getSetCookie()`)
+- [ ] ~~Refresh no `proxy.ts`: ler JWT `exp`, renovar antes de expirar...~~ —
+  **decisão tomada em sentido contrário, não é um gap**: o proxy usa retry-on-401
+  (reativo) em vez de refresh proativo, de propósito, até o projeto tratar
+  performance/edge runtime como tema próprio (ver `PLAN.md`, Etapa 5, e
+  `frontend/src/app/api/proxy/[...path]/route.ts`, já implementado e testado).
+- [x] Corrigir `/api/auth/login` e `/api/auth/refresh` do Next: o Nest envia o refresh só por `Set-Cookie` (ler com `headers.getSetCookie()`) — `frontend/src/lib/auth-login.ts` já lê via `res.headers.getSetCookie()`.
 - [x] Janela de tolerância (alguns segundos) na detecção de reuso de refresh token, para requisições paralelas
 - [x] `RolesService.findOne/update/remove` filtrando por `tenantId`
 - [x] `TenantController`: guard de permissão; `SEARCH` e `DELETE` só para `management`
@@ -291,14 +295,19 @@ Cada fase só começa quando a anterior passou no checkpoint. Marque `[x]` ao co
 - [x] Decidir unicidade de `User.email` (global ou por tenant) e alinhar o schema
 - [x] `FavoritesService`: `NotFoundException` em vez de `Error`
 - [x] Auditoria: nome da entidade consistente entre interceptor e frontend
-- [ ] Testes e2e: login → expirar token → navegar; acesso cruzado entre tenants retorna 403/404
+- [x] Acesso cruzado entre tenants retorna 403/404 — cobertura real em
+  `backend/test/user-tenant-isolation.e2e-spec.ts` e
+  `backend/test/roles.attach-detach.e2e-spec.ts`.
+- [ ] Teste e2e "login → expirar token → navegar" com navegador de verdade —
+  mesma pendência da Etapa 6 do `PLAN.md` (ferramenta de navegador
+  indisponível nesta sessão), não um gap novo.
 
-### Fase 1 — Ferramentas
+### Fase 1 — Ferramentas — ✅ completa (checkboxes reconciliados em 2026-10-16)
 
-- [ ] Corrigir `frontend/eslint.config.mjs` (objeto `rules` estava dentro de `globalIgnores`) e ativar as fronteiras da seção 3.4
-- [ ] Zerar lint do backend (`--fix` + correções manuais); `tsc` dos specs limpo
-- [ ] CI: Node LTS, `tsc` + lint + testes + build nos dois projetos, e2e com Postgres em service container
-- [ ] `.nvmrc`, `engines`, Dependabot agrupado, `docker-compose.yml` (Postgres), `.env.example` nos dois projetos
+- [x] Corrigir `frontend/eslint.config.mjs` (objeto `rules` estava dentro de `globalIgnores`) e ativar as fronteiras da seção 3.4 — confirmado no código: `rules` é item irmão de `globalIgnores`, e as fronteiras `core/` → não importa `modules/`/`platform/` já estão no arquivo.
+- [x] Zerar lint do backend (`--fix` + correções manuais); `tsc` dos specs limpo — `PLAN.md`, Etapa 3 (464→0 erros/warnings, incluindo os specs).
+- [x] CI: Node LTS, `tsc` + lint + testes + build nos dois projetos, e2e com Postgres em service container — `.github/workflows/ci.yml`.
+- [x] `.nvmrc`, `engines`, Dependabot agrupado, `docker-compose.yml` (Postgres), `.env.example` nos dois projetos — todos presentes (`.github/dependabot.yml` já agrupa patch/minor e deixa majors de fora de propósito, citando o §6.1).
 
 ### Fase 2 — Limpeza para template
 
@@ -332,8 +341,8 @@ Cada fase só começa quando a anterior passou no checkpoint. Marque `[x]` ao co
 
 ### Fase 6 — Core de plataforma
 
-- [ ] request-context, rate-limit, validação de env (zod), logger estruturado, health check
-- [ ] Auditoria com before/after real
+- [x] request-context, rate-limit, validação de env (zod), logger estruturado, health check — completo (rate-limit/env/health na Etapa 7.D do PLAN.md, 2026-10-16; request-context/logger já estavam feitos antes)
+- [x] Auditoria com before/after real
 - [ ] `files`, `notifications`, e-mail
 - [ ] Esqueci/redefinir senha, convite de usuário, perfil
 

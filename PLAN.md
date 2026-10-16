@@ -1610,7 +1610,7 @@ antes do próximo (ver detalhe completo no bloco **P7** acima):
   (`useSyncExternalStore`, ajuste de estado durante render), não só
   anotações de tipo.
 
-### Etapa 4 — Upgrades maiores de framework (cada um isolado, branch própria) — 1 de 4 feito, 2 bloqueados por dependência externa
+### Etapa 4 — Upgrades maiores de framework (cada um isolado, branch própria) — 2 de 4 feitos, 2 bloqueados por dependência externa, 5 majors sem data
 
 Só depois da Etapa 2/3 — são os que têm maior risco de regressão, então quanto
 mais estável o resto, melhor (ver detalhe completo no bloco **P0.3**):
@@ -1626,8 +1626,26 @@ mais estável o resto, melhor (ver detalhe completo no bloco **P0.3**):
 3. [ ] Prisma 7 → 8 — **bloqueado**: ainda `8.0.0-rc.23` (RC) na tag `latest`
    do pacote `prisma`, confirmado de novo nesta rodada (ver P0.3). Não
    adotar RC num template.
-4. [ ] Bumps menores sem pressa (`@tanstack/react-table` 8→9 é major, `radix-ui`,
-   `recharts`, `react-intl`, `shadcn` CLI).
+4. [x] **Bumps seguros (dentro do range já declarado) — ✅ feito em 2026-10-15/16.**
+   `npm update` nos dois projetos — só pacotes cujo `package.json` já permitia a
+   versão mais nova (patch/minor dentro da mesma major), **zero mudança de
+   range, só lockfile** (confirmado: só `package-lock.json` mudou nos dois
+   projetos). Backend: `@prisma/client`/`@prisma/adapter-pg`/`prisma`
+   (7.10.0→7.10.1), `pg`, `tsx`, `jest`, `ts-jest`, `typescript-eslint`,
+   `eslint`+plugins (dentro da major 9). Frontend: `tailwindcss`, `radix-ui`,
+   `lucide-react`, `shadcn`, `tailwind-merge`, `jsdom`, `knip`, `vitest`.
+   Checkpoint completo nos dois: `tsc` limpo, lint 0 problemas, testes 100%
+   verdes (backend 109+11, frontend 22), `nest build`/`next build` sem erro.
+   `npm audit` do backend: 0 vulnerabilidades. O `npm audit` do frontend passou
+   a mostrar 9 "high" (cadeia `braces`/`fast-glob` via `shadcn`/
+   `eslint-config-next`) — **não é novo, é o mesmo item já adiado na Etapa 5**
+   (ficou mais visível só porque o `shadcn` CLI subiu de versão; corrigir
+   exigiria `shadcn@1.0.0`, breaking change, por isso continua adiado).
+   - [ ] **Majors que ainda pedem decisão própria, cada um em sua branch
+     quando for a vez** (não fazer em lote): `@tanstack/react-table` 8→9
+     (usado em todas as `ListView` do frontend), `react-intl` 10→12,
+     `eslint`/`@eslint/js` 9→10 (nos dois projetos), `@vitejs/plugin-react`
+     5→6, `react`/`react-dom` 19.2→19.3.
 
 ### Etapa 5 — Decisões já tomadas, aguardando outra fase (não é "fazer agora")
 
@@ -1651,6 +1669,384 @@ Fazer quando a ferramenta estiver disponível, não bloqueia nenhuma etapa acima
 - [ ] Clique real em navegador: `Dialog`/`AlertDialog`/toasts/`Sheet` de
   criação (abrir → submeter → fechar) — P4/P13/P14/P16 só validaram via
   HTML/CSS reais e testes unitários, nunca um clique de verdade.
+
+---
+
+## Etapa 7 — Primeira versão funcionando do Alicerce (Fases 2-4 do `AGENTS.md`)
+
+Objetivo explícito do usuário (2026-10-16): fechar uma "primeira versão" do
+Alicerce pronta para criar módulos de domínio nos próprios projetos. Critério
+de pronto já escrito no `AGENTS.md` §1: `npm run new:module <nome>` + editar
+model/campos/colunas, **zero** novas primitivas de UI, zero código de auth,
+zero código de tenant. Corresponde às **Fases 2 (limpeza para template), 3
+(contrato de módulo) e 4 (gerador)** do roadmap do `AGENTS.md` §8, mais uma
+fatia confirmada da Fase 6 (segurança: env com zod, rate-limit, health
+check) e o upgrade do TanStack Table 8→9 (absorvido junto da correção de um
+bug de paginação no mesmo arquivo). Fases 0 e 1 já verificadas como
+completas (ver nota de reconciliação de checkboxes no `AGENTS.md`, feita
+nesta mesma sessão).
+
+**Fora de escopo de propósito** (não é esquecimento): Fase 5 (campos ricos,
+filtros avançados, views kanban/calendar/timeline, i18n com troca de idioma,
+tema claro/escuro funcional), restante da Fase 6 (files, notifications,
+e-mail, esqueci/redefinir senha, convite), Fases 7-9 (management, analytics,
+feedback, support, billing, empacotamento como GitHub Template) — nenhum
+bloqueia "criar um módulo novo".
+
+Levantamento feito via 3 rodadas de exploração read-only (backend, frontend,
+docs/cross-cutting) antes de montar esta sequência — achados citados em cada
+item abaixo, com caminho de arquivo real, não suposição.
+
+### 7.A — Diagnóstico e decisões que travam o resto
+
+- [x] `knip` no backend e no frontend (2026-10-15/16) — configurado nos dois
+  (`knip.json` em cada projeto, scripts `npm run knip`), dead code real
+  removido (não só scaffold): frontend — 4 arquivos mortos, 11 pares de
+  export duplicado (named+default) resolvidos para o estilo realmente
+  consumido, 7 `server-only` adicionado ao `package.json` (import real sem
+  dependência declarada), tipos/exports mortos (`hasPermission` duplicado em
+  `auth-server.ts`, `DocDivider`, `roleColumns`, 4 funções mortas em
+  `roleService.ts` superadas por `config/provider.ts`, `RolePayload`,
+  `DataProvider`, `LoginInput`/`AuthSessionResponse`,
+  5 tipos mortos em `favorites/types/types.ts`, `ApiErrorPayload`). Backend —
+  `favorite.entity.ts` (vestígio `nest g resource`) + 6 DTOs órfãos novos
+  (`search-result.dto.ts`, `role/dto/{assign-role,create-role-permission,update-role-permission}.dto.ts`,
+  `user/dto/{change-user-password,user-stats}.dto.ts`) apagados; bug real
+  corrigido de passagem — `RolesPermissionsGuard` comparava com as strings
+  literais `'roles'`/`'permissions'` em vez de importar `ROLES_KEY`/
+  `PERMISSIONS_KEY` dos próprios decorators (funcionava por coincidência,
+  frágil a qualquer rename). 3 deps mortas removidas do backend
+  (`multer` — já vem via `@nestjs/platform-express`, override de segurança
+  mantido —, `@eslint/eslintrc`, `source-map-support`); `fastify` promovido
+  a dependência explícita (usado direto para tipos, só vinha transitivo).
+  Os **7 DTOs órfãos de `tenant/dto/`** continuam de propósito — ligados ao
+  corte do `Tenant` do ADR 0003 abaixo, remoção fica pra 7.B. Checkpoint
+  completo (tsc/lint/test) verde nos dois projetos; e2e não roda nesta sessão
+  (Docker indisponível no ambiente).
+- [ ] `frontend/src/modules/_template/README.md` (descreve arquitetura que
+  não existe mais — ativamente enganoso) — ainda pendente, fica pra 7.E
+  junto da reescrita da estrutura (faz mais sentido reescrever junto do
+  gerador/estrutura nova do que corrigir 2x).
+- [x] ADR novo `docs/adr/0003-tenant-generico.md` (2026-10-16, mesmo formato
+  dos 2 ADRs existentes) definindo o corte do `Tenant`: fica
+  `id`/`legalName`/`slug`/`status`/timestamps/relações genéricas; sai os
+  ~30 campos de ONG + relações `serviceAreas`/`boardTerms`/`boardMembers`/
+  `documents`/`people`/`reports`/`tasks` + os 11 enums associados só usados
+  por elas. Cita `docs/historico/Alicerce v1.0.md` como precedente da
+  decisão de remover `Task`. Execução (apagar/recriar migration) fica pra
+  7.B, este ADR só registra o quê/porquê.
+- [x] Movidos para `docs/historico/` os 8 docs obsoletos da raiz de `docs/`
+  (`Alicerce Final.md`, `plan.md`, `prompt.md`, `revew.md`, `erro_role.md`,
+  `Plano Reestruturação do backend.md`, `CURSO_TYPESCRIPT_REACT_BACKEND_DEV.md`,
+  `Alicerce v1.0.md`) via `git mv`. Mantidos na raiz `api.md`/`ai-context.md`
+  (ainda válidos).
+
+### 7.B — Backend: remover domínio de ONG (Fase 2, metade backend)
+
+Achado-chave: menor que o nome sugere — `Person`/`Address`/`Contact`/
+`PersonDocument`/`Report` não têm nenhum módulo Nest (só schema); frontend já
+desconectado de `Task` de propósito.
+
+- [x] Apagado `prisma/models/features/{person,report,task}.prisma`;
+  `src/modules/task/` inteiro (nenhum outro módulo dependia, confirmado);
+  os 7 DTOs órfãos de `tenant/dto/` (7.A); `TenantArea`/`TenantBoardMember`/
+  `TenantBoardTerm`/`TenantDocument`; aplicado o corte do `Tenant` do ADR
+  0003 (`tenant.prisma` reescrito: fica `id`/`legalName`/`slug`/`status`/
+  timestamps/relações genéricas). `access.prisma`: removidas as relações
+  `person`/`tasksCreated`/`tasksAssignedTo` de `User`. 13 enums de ONG
+  removidos de `schema.prisma` (`ContactType`, `ReportType`, `DocumentType`,
+  `AddressType`, `TaskStatus`, `TaskPriority`, `TenantCategory`,
+  `TenantServiceArea`, `PartnershipType`, `CoverageArea`,
+  `OrganizationSize`, `BoardRoleType`, `TenantDocumentType`).
+  `create-tenant.dto.ts` reescrito (só `legalName`/`slug`); `tenant.service.ts`
+  simplificado (sem `foundedAt`/`closedAt`, sem filtro `tradeName` na busca);
+  `tenant-business-rules.ts`/`tenant-error-codes.ts` perderam
+  `parseDate`/`validateDateRange`/`DATE_RANGE_INVALID` (ficaram mortos com os
+  campos). `AuthService.signUpPublic` simplificado (sem
+  `tradeName`/`registrationNumber`/`category`/`primaryServiceArea`, sem o
+  helper `buildRegistrationNumber`).
+- [x] `core/prisma/extensions/tenant-rls.extension.ts`: `TENANT_SCOPED_MODELS`
+  reduzido a `User`/`Role`/`Permission`/`UserRole`/`RolePermission`/`Audit`/
+  `Favorite`/`FavoriteNote`/`RefreshToken` (9 models — removidos
+  `Report`/`Task`/`TenantArea`/`TenantBoardMember`/`TenantBoardTerm`/
+  `TenantDocument`/`Person`).
+- [x] `modules/user/{dto/create-user.dto.ts,dto/update-user.dto.ts,user.service.ts}`:
+  removido `personId`/`connect: { id: personId }`.
+- [x] `core/authorization/permission-catalog.ts`: removidas as 4 entradas
+  `task.*`.
+- [x] Corrigido de passagem um bug real achado no `RolesPermissionsGuard`
+  durante o `knip` da 7.A (strings literais `'roles'`/`'permissions'` em vez
+  de `ROLES_KEY`/`PERMISSIONS_KEY`) — não é deste item, já estava feito na
+  7.A, citado aqui só pra não se perder no histórico.
+- [x] Apagado `prisma/migrations/` (8 migrations antigas) e recriado do zero
+  contra o Postgres local real (`localhost:5432`) — **confirmado
+  explicitamente pelo usuário em duas camadas** (pergunta direta antes do
+  comando + consentimento textual exigido pelo próprio gate de segurança do
+  Prisma CLI pra agentes de IA). O comando `prisma migrate reset`/`db
+  execute DROP SCHEMA` em si foi bloqueado pelo classificador do Claude
+  Code — o usuário rodou `npx prisma migrate dev --name init` no próprio
+  terminal (interativo, confirmou o reset ali). Resultado: migration
+  `20261016024433_init` limpa a partir do schema novo. Recriadas também
+  (SQL idêntico ao original, só com a lista de tabelas trimada) as
+  migrations `add_app_runtime_role` e `add_tenant_rls` — a segunda agora só
+  com as 9 tabelas que sobraram em `TENANT_SCOPED_MODELS`. RLS validado de
+  verdade: `pg_policies`/`pg_class.relrowsecurity` confirmam as 9 tabelas
+  certas com `tenant_isolation` ativa, `tenants` de fora (raiz da isolação).
+- [x] `prisma/generated/` pro `.gitignore` (corrigido também um path antigo
+  errado que já estava lá, `/src/core/generated/prisma`, nunca batia com o
+  caminho real) + `git rm --cached` dos 29 arquivos que estavam versionados
+  + script `postinstall: "prisma generate"` no `package.json`. `knip.json`
+  e `eslint.config.mjs` (`ignores`) atualizados pra não analisar/lintar
+  `src/core/prisma/generated/**` — sem isso o lint falhava com erros de
+  Prettier nos arquivos regenerados.
+- [x] `prisma/seed.ts`: upsert do tenant simplificado pra
+  `legalName`/`slug`/`status` — roda limpo contra o banco novo (confirmado
+  rodando de verdade).
+- [x] `app.module.ts`: removido import e uso do `TaskModule`.
+
+Checkpoint completo rodado contra o Postgres real (não só unit): `tsc`
+--noEmit limpo, lint limpo (109 testes unitários + 11 e2e passando,
+incluindo `user-tenant-isolation.e2e-spec.ts` e
+`roles.attach-detach.e2e-spec.ts` — RLS/isolação validados ponta a ponta de
+verdade, não só por leitura de código), `npm run build` limpo, seed rodando
+e `knip` sem achados (exceto 2 hints informativos, não-erros).
+
+Checkpoint: `tsc`/lint/testes/e2e/build do backend + seed limpo contra
+Postgres real + RLS validado pros models remanescentes.
+
+### 7.C — Backend: contrato de módulo (Fase 3, metade backend)
+
+Achado-chave: zero helper reutilizável hoje — "buscar→comparar tenantId→404"
+e cálculo de paginação+count copiados e colados em `favorites`/`role`/
+`permission`/`user`/`tenant`.service.ts; `sort`/`filters`/`groupBy` do
+`SearchBaseDto` são aceitos e nunca lidos em nenhum `search()`.
+
+- [x] Corrigidos os 2 bugs reais: `FavoriteNotesService.remove` lançava
+  `new Error()` cru (virou `NotFoundException` via `findOneOrThrow`);
+  `favorites/dto/search-favorite.dto.ts` não estendia `SearchBaseDto`
+  (agora `export class SearchFavoritesDto extends SearchBaseDto {}`).
+- [x] Criado o helper tenant-scoped como **funções puras** (decisão
+  tomada: classe abstrata descartada — o escopo de comparação varia por
+  módulo — `tenantId`/`tenantId`+`userId`/`tenantId`+`deletedAt` — e vários
+  services tocam mais de um model Prisma, não um "model delegate" único).
+  `core/common/utils/find-one-or-throw.util.ts` (`findOneOrThrow(entity,
+  isInScope, message)`); `core/common/utils/tenant-search.util.ts`
+  (`resolvePagination`, `buildSearchTextWhere`, `buildWhitelistedFilters`,
+  `buildWhitelistedOrderBy` — `filters`/`sort` agora implementados de
+  verdade, com whitelist por módulo declarada em cada `*.service.ts`;
+  campo fora da whitelist = `BadRequestException`, não ignorado
+  silenciosamente).
+- [x] Migrados `favorites`/`notes` + `role`/`permission` pro helper.
+  Bug real achado de passagem: `PermissionsController`/`Service` —
+  `findOne`/`update`/`remove` não recebiam nem comparavam `tenantId`
+  nenhuma (RLS cobria no Postgres, mas a checagem na aplicação tinha
+  sumido — exatamente o cenário que o comentário do
+  `tenant-rls.extension.ts` descreve). Adicionado `@TenantId()` nos 3
+  endpoints do controller + comparação no service, igual aos demais
+  módulos. `RoleRepository.search` ganhou `orderBy` opcional pra suportar
+  o sort whitelisted.
+  `user`/`tenant` ficam de propósito fora desta migração (critério de
+  aceite era provar que generaliza com 2 exemplos, não migrar os 5;
+  `tenant.service.ts` em particular compara `id !== requestTenantId`, não
+  `tenantId` — padrão diferente que não se beneficia do mesmo predicado).
+- [x] `groupBy` continua declarado e não lido — nenhuma view do frontend
+  agrupa hoje (Fase 5, fora de escopo); documentado como deferred, não
+  esquecido.
+- [x] Documentado em `docs/features/Completo/TenantScopedQuery.md` (novo
+  doc — `MODULES.md` é um transcript narrativo de uma etapa anterior sobre
+  um assunto adjacente, não fazia sentido misturar).
+
+Checkpoint: `tsc --noEmit` limpo, lint limpo, `knip` sem achados, 109
+testes unitários + 11 e2e passando contra o Postgres real (1 assert de
+teste ajustado em `roles.service.spec.ts` pela nova assinatura de
+`RoleRepository.search`, 3 asserts ajustados em
+`permissions.service.spec.ts` pela nova assinatura com `tenantId`
+obrigatório — nenhuma quebra de comportamento real).
+
+### 7.D — Backend: `favorites`→`examples` + Fase 6 (segurança)
+
+- [x] Renomeado `favorites`→`examples` de ponta a ponta: model Prisma
+  (`Favorite`→`Example`, `FavoriteNote`→`ExampleNote`, tabelas `examples`/
+  `example_notes`), controller/service/DTOs/módulo, permissões
+  (`favorite.*`→`example.*`, resource `favorites`→`examples`), rotas
+  (`/examples`, `/examples/:exampleId/notes`). `notes` virou Feature
+  estruturada (`modules/examples/features/notes/`, por `AGENTS.md` §3.3).
+  Migrations: tabelas antigas estavam vazias (confirmado antes de aplicar),
+  então o diff padrão do Prisma (DROP+CREATE) foi aplicado direto sem
+  precisar de migration de rename manual; RLS recriado nas tabelas novas
+  (`add_rls_to_examples`) e validado de verdade (`pg_policies`/
+  `app_runtime` grants nas 2 tabelas). **Frontend sincronizado no mínimo**
+  (decisão confirmada com o usuário: só as strings de rota — `favorites`→
+  `examples` em `provider.ts`/`notes-provider.ts` — não a reestruturação
+  completa do módulo, que fica pra 7.F; `model`/nomes de componente/pasta
+  continuam "favorites" de propósito, são só chave de registry interna, não
+  tocam o backend).
+- [x] Validação de env com zod (`core/config/env.schema.ts`, `validateEnv`
+  plugado em `ConfigModule.forRoot({validate})`): `DATABASE_URL`,
+  `APP_DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `COOKIE_SECRET`,
+  `CORS_ORIGINS` obrigatórias, `PORT`/`NODE_ENV` com default — boot falha
+  com mensagem clara se faltar algo.
+- [x] Rate limit (`@nestjs/throttler` v6, `ThrottlerGuard` global via
+  `APP_GUARD`): 60/min default em toda rota; `/auth/login` e
+  `/auth/register` sobrescrevem para 5/min via `@Throttle()`. Validado de
+  verdade contra servidor real: 6ª tentativa em 1 min devolve 429.
+- [x] Health check (`@nestjs/terminus` v12, API nova por builder —
+  `HealthIndicatorService.check(key).up()/.degraded()`, não o
+  `HealthCheckError` antigo que não existe mais nesta versão):
+  `/health` — Postgres via `PrismaHealthIndicator.pingCheck` (bloqueante,
+  `down` derruba o endpoint); Redis com indicador próprio usando `degraded`
+  em vez de `down` (non-blocking — `/health` fica 200 mesmo com Redis fora
+  do ar, confirmado contra servidor real).
+- [x] **Bug real sério achado via smoke test manual (não coberto por
+  nenhum e2e existente — todos mockam `PermissionCacheService` ou
+  `PrismaService`)**: `RolesPermissionsGuard` é um Guard; Guards rodam
+  ANTES de Interceptors no pipeline do Nest. `RequestContextInterceptor` é
+  quem popula o `AsyncLocalStorage` que a extension de RLS do Prisma usa
+  pra descobrir o tenant. Resultado: toda vez que `PermissionCacheService.
+  getFreshPermissions` caía pro Postgres (cache Redis frio — o caso comum,
+  não a exceção, já que Redis nem está no ar neste ambiente de dev), a
+  query de permissões rodava sem contexto de tenant, a policy de RLS
+  filtrava TODAS as linhas, e qualquer usuário recém-registrado recebia
+  403 em toda rota protegida por permissão, sempre. Corrigido com
+  `runWithTenantContext` novo em `core/common/context/request-context.ts`
+  (usado por `PermissionCacheService.reloadPermissions`) — precisou do
+  padrão exato (callback `async` passado a `.run()`, não uma arrow síncrona
+  retornando a Promise) já documentado em `RequestContextInterceptor`;
+  confirmado via comparação lado a lado contra o Postgres real que o padrão
+  síncrono realmente perde a propagação do contexto e o padrão async não.
+  **Gap de cobertura de teste identificado e deixado documentado, não
+  resolvido nesta rodada**: tentei escrever um e2e de regressão real (sem
+  mockar nada) e bati num problema não-relacionado — `PrismaBootstrapService`
+  (usado só por `AuthService.signUpPublic`) falha com
+  `TypeError: Cannot read properties of undefined (reading 'findFirst')`
+  especificamente quando instanciado via `Test.createTestingModule` sob o
+  Jest com `--experimental-vm-modules` (reproduzido isolado, não é
+  interação com outros specs) — provável incompatibilidade entre o
+  generator `prisma-client` (preview) e como o ts-jest/VM-modules carrega
+  o client gerado; não reproduz no servidor real (`nest start`), só sob
+  Jest. Descartei o teste em vez de forçar algo frágil; o fix em si foi
+  validado exaustivamente contra o servidor real (múltiplas rodadas de
+  registro→criar→listar→deletar `examples`, antes e depois do fix,
+  logs do servidor conferindo "Falha ao ler cache... consultando o banco"
+  seguido de sucesso). Fica como item futuro: nenhum e2e hoje exercita RLS
+  de verdade (todos mockam Prisma ou o guard) — esta classe de bug não tem
+  rede de segurança automatizada ainda.
+
+Checkpoint: `tsc`/lint/`knip`/testes unitários (109)/e2e (11, baseline
+inalterado) /build limpos. Smoke test manual real e repetido contra
+`nest start` de verdade (não só e2e mockado): registro→login→criar/listar/
+deletar `example` funcionando ponta a ponta; rate-limit bloqueando de fato
+(429 na 6ª tentativa/min); `/health` 200 com Postgres up e Redis degraded.
+
+### 7.E — Frontend: estrutura (Fase 2, metade frontend)
+
+Achado-chave: quase nenhuma UI de domínio pra limpar (só 2 menções a
+`Person` em texto de doc interna `/develop`, zero código real) — trabalho é
+estrutural, não remoção de lógica de negócio.
+
+- [x] Criado `frontend/src/core/` (`git mv`, preservando histórico):
+  `components/{DetailView,Layout}/`, `registry/` (de `lib/registry/`),
+  `data-provider/` (de `lib/data-provider/`), `screens/`. Alias `@core/*`
+  novo no `tsconfig.json` + restrição `@/core/*` no `eslint.config.mjs`
+  (mesmo padrão de `@lib`/`@modules`/`@components`). 44 arquivos com import
+  reescrito (`@components/DetailView`→`@core/components/DetailView`,
+  `@components/Layout`→`@core/components/Layout`, `@lib/registry`→
+  `@core/registry`, `@lib/data-provider`→`@core/data-provider`,
+  `@/screens/`→`@core/screens/`).
+- [x] **Achado durante o move**: `registry/bootstrap.ts` importa
+  `@modules/<nome>/config/contract` de 6 módulos — ao entrar em `core/`,
+  isso quebra a fronteira "core/ nunca importa de modules/" que o
+  `eslint.config.mjs` já tinha pré-configurado pra `src/core/**`
+  (preparado numa etapa anterior, antes de `core/` existir de fato).
+  Resolvido movendo `bootstrap.ts` pra `src/bootstrap.ts` (raiz, fora de
+  `core/`) — ele é um composition-root que amarra módulos ao registry, não
+  motor de UI puro; nunca deveria estar sujeito à mesma fronteira que o
+  resto de `core/`. Import em `app/(app)/layout.tsx` ajustado pra `@/bootstrap`.
+- [x] Cortado `RelationTablePanel.tsx` → `@modules/favorites/config/notes-provider`:
+  `createNoteFn`/`deleteNoteFn` agora obrigatórios (sem `?`), removido o
+  fallback `createNoteFn ?? createFavoriteNote`. Único call site
+  (`modules/favorites/config/contract.tsx`) atualizado pra passar
+  `createFavoriteNote`/`deleteFavoriteNote` explicitamente.
+- [x] `modules/_template/README.md` reescrito do zero — descreve a
+  estrutura real atual (`config/{contract.tsx,provider.ts}`, `components/`,
+  `types/`, `actions/` opcional) em vez da arquitetura antiga
+  (`DetailShell`/`PainelSearchShell`, `useAuth()`+localStorage,
+  `apiRequest`); aponta pra `/develop` (tutorial completo) e
+  `modules/roles/README.md` (exemplo real). Esqueleto de pastas corrigido
+  junto: `hooks/`/`services/` (não é convenção real) apagados, `config/`
+  (que faltava) criado.
+- [x] Ajustados os 2 trechos com `Person` em
+  `modules/develop/content/{part2-rbac,part3-modulos}.tsx` — trocados por
+  nota explícita de que "Extensão de Módulo" ainda não tem exemplo real no
+  projeto (em vez de inventar outra entidade). De passagem, corrigidas mais
+  5 referências a símbolos renomeados na 7.D que ficariam enganosas no
+  mesmo arquivo/vizinho (`favorites.service.ts`→`examples.service.ts`,
+  `SearchFavoritesDto`→`SearchExamplesDto`, o model de exemplo
+  `Favorite`→`Example`, e o snippet de `part1-fundamentos.tsx` que ainda
+  mostrava o padrão pré-7.C de `throw new Error()` cru — atualizado pra
+  `findOneOrThrow`). `lib/registry/bootstrap.ts` citado como caminho em 2
+  lugares de `part3-modulos.tsx` — corrigido pra `src/bootstrap.ts`.
+
+Checkpoint: `tsc`/lint/`knip`/testes (22)/`next build` (19 rotas, incluindo
+`/develop` e `/favorites`) limpos.
+
+### 7.F — Frontend: contrato de módulo + paginação real + TanStack Table v9
+
+Achado-chave: paginação **quebrada de forma visível hoje**, não só
+incompleta — `ListView.tsx` busca página real do servidor mas aplica uma
+SEGUNDA paginação client-side com `pageSize: 10` fixo desconectada da URL;
+"Página X de Y" não corresponde ao `total` real do backend.
+
+- [ ] Upgrade TanStack Table 8→9 (branch `chore/upgrade-tanstack-table-9`):
+  `useReactTable`→`useTable`, `getCoreRowModel`/`getSortedRowModel`/
+  `getPaginationRowModel`→`createCoreRowModel`/`createSortedRowModel`/
+  `createPaginatedRowModel` (v9 exige declarar features explicitamente),
+  nunca destruturar métodos de instância de `row`/`cell`. Toca
+  `ListView.tsx`, `RelationCrudHost.tsx`, `RelationTablePanel.tsx`.
+- [ ] Na mesma leva: reescrever `ListView.tsx` pra paginação/ordenação 100%
+  servidor — remover `useState` de paginação local, usar `result.pagination`
+  real, next/prev via `serializeListState` (já existe, só não é chamado pra
+  isso); `sorting` também vai pra URL/servidor.
+- [ ] Criar `createRestDataHandlers(resource, opts?)` (`core/data-provider/`)
+  encapsulando o `search/read/create/update/delete` repetido byte-a-byte em
+  cada `modules/*/config/provider.ts`; absorver `normalizeEntityList`
+  duplicado 3x (`users`/`roles`/`permissions`). Migrar `examples` + pelo
+  menos `roles`/`permissions`/`users`.
+- [ ] `cache()` do React em `createDataProvider()` (mesmo padrão de
+  `lib/auth-server.ts`).
+- [ ] `defineModuleManifest` + `alicerce.config.ts` — substitui as 4 edições
+  manuais hoje dispersas (`bootstrap.ts`, `AppSidebar.tsx` `MODULE_ICONS`,
+  `lib/authz.ts` `ROUTE_RULES`) por um registro único.
+- [ ] `modules/audit/config/provider.ts`: mandar paginação real ao backend
+  em vez de buscar tudo e fatiar em memória (precisa endpoint de search real
+  pra `Audit`).
+
+Checkpoint: `tsc`/lint/testes/build; clicar página 2/3 reflete dados reais do
+servidor; rodapé de contagem bate com o total real.
+
+### 7.G — Gerador (Fase 4)
+
+Depende de 7.A–7.F fechados (usa o contrato final, o padrão final de
+permissões/RLS).
+
+- [ ] Decidir mecanismo: script Node simples (copiar template + substituir
+  placeholders) vs. Nest Schematics completo — recomendado o script simples
+  (mais barato de manter num template).
+- [ ] Templates de módulo: backend (model stub + module/controller/service/
+  dto do contrato 7.C) e frontend (contract.tsx/provider.ts usando
+  `createRestDataHandlers` de 7.F).
+- [ ] Criar `package.json` raiz mínimo (hoje não existe, cada projeto é
+  independente) só pra hospedar `npm run new:module <nome>` + um `dev` que
+  sobe os dois.
+- [ ] O gerador precisa tocar todos os pontos manuais hoje dispersos:
+  `permission-catalog.ts`, `TENANT_SCOPED_MODELS` + gerar a migration SQL de
+  RLS correspondente (esquecer isso hoje falha silenciosamente — sem RLS,
+  sem erro), `alicerce.config.ts`.
+- [ ] Gerar também um teste smoke automático para o módulo novo.
+
+Checkpoint/critério de aceite da fase: criar um módulo de teste do zero só
+com `npm run new:module` e confirmar que funciona na UI (lista, criar,
+editar, RLS, permissão) sem edição manual além do que o gerador perguntar.
 
 ---
 
@@ -1689,6 +2085,13 @@ Fazer quando a ferramenta estiver disponível, não bloqueia nenhuma etapa acima
   P15 branding mínimo no `SidebarHeader` (flexível, pode ser feito em qualquer ponto).
   Recomendação: priorizar a Trilha B primeiro (demanda explícita mais recente do
   usuário), Trilha A em paralelo ou imediatamente depois.
+- **Escopo da Etapa 7 (2026-10-16)**: os 3 itens de segurança da Fase 6 do
+  `AGENTS.md` (validação de env com zod, rate-limit, health check) entram na
+  Etapa 7 ("v1 seguro"), em vez de ficar só documentados como pendência —
+  confirmado com o usuário por serem baratos e não dependerem da limpeza de
+  domínio. O upgrade do TanStack Table 8→9 entra junto com a correção do bug
+  de paginação do `ListView.tsx` (7.F) em vez de ficar isolado como os
+  outros 4 majors da Etapa 4 — mesmo arquivo seria tocado duas vezes.
 
 ---
 
