@@ -1,14 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { PrismaBootstrapService } from '@core/prisma/prisma-bootstrap.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { I18nService } from 'nestjs-i18n';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { AuditService } from '@modules/audit/audit.service';
 
 describe('AuthService', () => {
   let service: AuthService;
+  let auditService: { register: jest.Mock };
   let prisma: {
     refreshToken: {
       findUnique: jest.Mock;
@@ -22,15 +25,26 @@ describe('AuthService', () => {
     user: { findUnique: jest.Mock };
   };
 
-  const baseUser = {
-    id: 'user-1',
-    email: 'user@example.com',
-    tenantId: 'tenant-1',
-    roles: [],
-    tenant: { id: 'tenant-1', legalName: 'Tenant 1', slug: 'tenant-1' },
+  const correctPassword = 'correct-password';
+  let baseUser: {
+    id: string;
+    email: string;
+    password: string;
+    tenantId: string;
+    roles: unknown[];
+    tenant: { id: string; legalName: string; slug: string };
   };
 
   beforeEach(async () => {
+    baseUser = {
+      id: 'user-1',
+      email: 'user@example.com',
+      password: await bcrypt.hash(correctPassword, 4),
+      tenantId: 'tenant-1',
+      roles: [],
+      tenant: { id: 'tenant-1', legalName: 'Tenant 1', slug: 'tenant-1' },
+    };
+
     prisma = {
       refreshToken: {
         findUnique: jest.fn(),
@@ -45,6 +59,8 @@ describe('AuthService', () => {
       user: { findUnique: jest.fn().mockResolvedValue(baseUser) },
     };
 
+    auditService = { register: jest.fn().mockResolvedValue(undefined) };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
@@ -54,15 +70,45 @@ describe('AuthService', () => {
           useValue: { signAsync: jest.fn().mockResolvedValue('token') },
         },
         { provide: ConfigService, useValue: {} },
-        { provide: I18nService, useValue: {} },
+        {
+          provide: I18nService,
+          useValue: { translate: jest.fn().mockReturnValue('mocked message') },
+        },
         {
           provide: PermissionCacheService,
           useValue: { setPermissions: jest.fn().mockResolvedValue(undefined) },
         },
+        { provide: AuditService, useValue: auditService },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
+  });
+
+  describe('signIn', () => {
+    it('registers a LOGIN_FAILED audit entry when the password is wrong (user exists)', async () => {
+      await expect(
+        service.signIn({ email: baseUser.email, password: 'wrong-password' }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+
+      expect(auditService.register).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tenantId: baseUser.tenantId,
+          userId: baseUser.id,
+          type: 'LOGIN_FAILED',
+        }),
+      );
+    });
+
+    it('does not register any audit entry when the e-mail does not exist', async () => {
+      prisma.user.findUnique.mockResolvedValueOnce(null);
+
+      await expect(
+        service.signIn({ email: 'ghost@example.com', password: 'whatever' }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+
+      expect(auditService.register).not.toHaveBeenCalled();
+    });
   });
 
   it('should be defined', () => {

@@ -8,7 +8,7 @@
 // pro code-splitting funcionar, não dá pra tornar isso dinâmico a partir
 // de dado de config sem arriscar quebrar o bundling.
 import type { LucideIcon } from "lucide-react";
-import { Users, Star, Building2, KeyRound, Shield, FileText } from "lucide-react";
+import { Users, Building2, KeyRound, Shield, FileText, Package } from "lucide-react";
 
 export type ModuleManifestEntry = {
     /** Bate com o `model` de `defineRecordModule` e com o resource da API. */
@@ -54,15 +54,6 @@ export const alicerceModules = defineModuleManifest([
         actionPermissions: { create: "tenant.update", update: "tenant.update", delete: "tenant.update" },
     },
     {
-        key: "favorites",
-        title: "Favoritos",
-        icon: Star,
-        basePath: "/favorites",
-        permission: "user.read",
-        navGroup: "permissoes",
-        actionPermissions: {},
-    },
-    {
         key: "roles",
         title: "Papéis",
         icon: KeyRound,
@@ -88,5 +79,14 @@ export const alicerceModules = defineModuleManifest([
         permission: "audit.read",
         navGroup: "permissoes",
         actionPermissions: { refresh: "audit.read" },
+    },
+    {
+        key: "feedbacks",
+        title: "Feedbacks",
+        icon: Package,
+        basePath: "/feedbacks",
+        permission: "feedback.read",
+        navGroup: "permissoes",
+        actionPermissions: { create: "feedback.create", update: "feedback.update", delete: "feedback.delete" },
     },
 ] as const);

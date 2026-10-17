@@ -32,7 +32,7 @@ Build sem erro de tipagem é pré-condição para qualquer merge.
 ```bash
 src/
 ├── app/
-│   ├── (app)/      # rotas autenticadas — users, roles, permissions, tenants, audit, favorites, dashboard, develop
+│   ├── (app)/      # rotas autenticadas — users, roles, permissions, tenants, audit, feedbacks, dashboard, develop
 │   ├── (public)/   # auth/login, auth/register
 │   └── api/        # Route Handlers: auth/* (BFF) e proxy/[...path] (reverse proxy autenticado)
 ├── components/
@@ -46,7 +46,7 @@ src/
 │   ├── authz.ts            # regras de acesso por rota/ação
 │   ├── registry/           # registro de módulos (defineRecordModule/registerModule)
 │   └── data-provider/      # contrato SearchArgs/SearchResult/DataProvider
-└── modules/          # um diretório por módulo de domínio (favorites, users, roles, permissions, tenants, audit)
+└── modules/          # um diretório por módulo de domínio (feedbacks, users, roles, permissions, tenants, audit)
 ```
 
 Cada módulo de domínio segue o mesmo contrato — ver `src/modules/_template/README.md`
@@ -92,7 +92,7 @@ Até a suíte crescer, a validação de PR também inclui verificação manual:
 ### Checklist de smoke visual
 
 Nas rotas afetadas pela mudança (`/users`, `/roles`, `/permissions`, `/tenants`,
-`/favorites`, `/audit`, `/dashboard`):
+`/feedbacks`, `/audit`, `/dashboard`):
 
 1. Header e shells com espaçamento/contraste consistente, claro e escuro.
 2. Estados de carregamento/vazio renderizando a mensagem esperada.

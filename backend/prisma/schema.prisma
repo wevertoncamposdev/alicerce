@@ -36,7 +36,13 @@ enum AuditType {
   DATA_CHANGE
   PERMISSION_CHANGE
   // Tentativa de acesso negada por falta de permissão (403) — só esse caso,
-  // não 401: tenantId/userId são obrigatórios no model Audit, e um 401
-  // (token ausente/inválido) não tem usuário identificável para registrar.
+  // não 401 em geral: tenantId/userId são obrigatórios no model Audit, e um
+  // 401 de token ausente/inválido não tem usuário identificável para
+  // registrar.
   ACCESS_DENIED
+  // Login com senha errada para um e-mail que existe — aqui sim há
+  // tenantId/userId (o usuário foi encontrado, só a senha não bateu). Login
+  // com e-mail inexistente continua sem auditoria: não há tenant/usuário a
+  // quem atribuir o evento (ver AuthService.signIn).
+  LOGIN_FAILED
 }

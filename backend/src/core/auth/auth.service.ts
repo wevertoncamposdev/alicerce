@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaBootstrapService } from '@core/prisma/prisma-bootstrap.service';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { AuditService } from '@modules/audit/audit.service';
 import { SignUpPublicDto } from './dto/sign-up-public.dto';
 import { RoleType } from '@core/prisma/generated/enums';
 import { I18nService } from 'nestjs-i18n';
@@ -57,6 +58,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly i18n: I18nService,
     private readonly permissionCache: PermissionCacheService,
+    private readonly auditService: AuditService,
   ) {}
 
   private async getAuthUserByEmail(email: string) {
@@ -419,6 +421,22 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
+      // Diferente de um 401 genérico (token ausente/inválido): aqui o
+      // usuário foi encontrado, então há tenantId/userId pra atribuir o
+      // evento — ver AuditType.LOGIN_FAILED. E-mail inexistente (branch
+      // acima) continua sem auditoria: não há tenant a quem atribuir.
+      void this.auditService
+        .register({
+          tenantId: user.tenantId,
+          userId: user.id,
+          type: 'LOGIN_FAILED',
+          action: 'POST',
+          entity: 'auth',
+        })
+        .catch(() => {
+          // Auditoria não deve interromper o fluxo de login (nem seu erro).
+        });
+
       const message = this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
         lang: 'pt-BR',
       });

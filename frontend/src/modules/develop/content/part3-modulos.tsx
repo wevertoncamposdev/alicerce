@@ -26,7 +26,7 @@ export function TaxonomiaSection() {
                         path: "Módulo",
                         guard: "modules/<nome>/",
                         description:
-                            "Entidade independente, com SEARCH e listagem próprias. Ganha rota /nome e /nome/[id]. Ex.: Role, Permission, Example.",
+                            "Entidade independente, com SEARCH e listagem próprias. Ganha rota /nome e /nome/[id]. Ex.: Role, Permission, Feedback.",
                     },
                     {
                         method: "SEARCH",
@@ -68,7 +68,7 @@ export function GuiaCriarModuloSection() {
             <DocP>
                 Este roteiro assume um <strong>Módulo</strong> independente (o caso mais completo). Para
                 Feature/Extensão/Módulo Relacionado, pule as etapas de rota e registry — elas não se aplicam.
-                Use sempre <code>favorites</code> como referência lado a lado.
+                Use sempre <code>feedback</code> como referência lado a lado.
             </DocP>
 
             <div className="space-y-4">
@@ -104,7 +104,7 @@ export function GuiaCriarModuloSection() {
                         Três DTOs mínimos: <code>create-widget.dto.ts</code>,{" "}
                         <code>update-widget.dto.ts</code> (geralmente <code>PartialType</code> do create) e{" "}
                         <code>search-widget.dto.ts</code> (searchText, pagination, sort, filters, groupBy —
-                        mesmo formato usado por <code>SearchExamplesDto</code>).
+                        mesmo formato usado por <code>SearchFeedbacksDto</code>).
                     </DocP>
                     <DocCode label="dto/create-widget.dto.ts">
                         {`export class CreateWidgetDto {
@@ -119,8 +119,8 @@ export function GuiaCriarModuloSection() {
                         O service nunca confia em <code>tenantId</code>/<code>userId</code> vindos do body —
                         eles chegam como parâmetro, injetados pelos decorators do controller. Todo{" "}
                         <code>findUnique</code> por id é seguido de uma checagem manual de posse (
-                        <code>tenantId</code>/<code>userId</code>) antes de update/delete, como em{" "}
-                        <code>examples.service.ts</code>.
+                        <code>tenantId</code>) antes de update/delete, como em{" "}
+                        <code>feedbacks.service.ts</code>.
                     </DocP>
                     <DocCode label="widget.service.ts (search — paginação padrão)">
                         {`async search(query: SearchWidgetDto, tenantId: string) {
@@ -292,19 +292,19 @@ export const widgetModule = defineRecordModule<WidgetEntity>({
 registerModule(widgetModule);`}
                     </DocCode>
                     <DocCallout type="info" title="views é por módulo, não um conjunto fixo">
-                        Nem todo módulo precisa de todas as views. Hoje só <code>favorites</code> usa{" "}
-                        <code>cards</code>/<code>graph</code> — faz sentido lá (favoritos têm uma
-                        dimensão temporal/visual que vale um gráfico); roles/users/tenants/permissions só
-                        declaram <code>list</code>+<code>form</code> porque é o que o domínio deles pede.
-                        Adicionar <code>cards</code>/<code>graph</code> a um módulo novo só porque{" "}
-                        <code>favorites</code> tem é padronizar por padronizar — decida pelo que os dados
-                        daquele módulo realmente precisam mostrar.
+                        Nem todo módulo precisa de todas as views. Hoje todos os módulos (roles, users,
+                        tenants, permissions, feedbacks) declaram só <code>list</code>+<code>form</code>,
+                        porque é o que o domínio deles pede — <code>cards</code>/<code>graph</code>
+                        existem no core (<code>CardsView</code>/<code>GraphView</code>) para quando um
+                        módulo futuro tiver uma dimensão visual/temporal que justifique. Adicionar
+                        views a mais só por padronizar não é a ideia — decida pelo que os dados daquele
+                        módulo realmente precisam mostrar.
                     </DocCallout>
                 </DocStep>
 
                 <DocStep n={9} title="Registrar no bootstrap (src/bootstrap.ts)">
                     <DocCode label="src/bootstrap.ts">
-                        {`import "@modules/favorites/config/contract";
+                        {`import "@modules/feedbacks/config/contract";
 // ...
 import "@modules/widget/config/contract"; // <- adicionar aqui`}
                     </DocCode>

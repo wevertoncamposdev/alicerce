@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { RoleRepository } from './persistence/role.repository';
 import { PrismaService } from '@core/prisma/prisma.service';
@@ -14,7 +14,12 @@ const prismaMock = {
     deleteMany: jest.fn(),
     findMany: jest.fn(),
   },
-  userRole: { upsert: jest.fn(), deleteMany: jest.fn(), findMany: jest.fn() },
+  userRole: {
+    upsert: jest.fn(),
+    deleteMany: jest.fn(),
+    findMany: jest.fn(),
+    count: jest.fn(),
+  },
 };
 
 const roleRepositoryMock = {
@@ -322,6 +327,12 @@ describe('RolesService', () => {
     });
 
     it('detachUser: invalidates only the detached user', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        type: 'USER',
+        deletedAt: null,
+      });
       prismaMock.userRole.deleteMany.mockResolvedValueOnce({ count: 1 });
 
       await service.detachUser('role-1', 't1', 'user-1');
@@ -388,6 +399,89 @@ describe('RolesService', () => {
       expect(permissionCacheMock.invalidateUsers).toHaveBeenCalledWith('t1', [
         'user-4',
       ]);
+    });
+  });
+
+  // C4: o tenant nunca pode ficar sem admin, nem um admin remover a própria
+  // role ADMIN (ver FECHAMENTO.md e RolesService.hasOtherActiveAdmin).
+  describe('admin lockout protection (C4)', () => {
+    it('detachUser: blocks a user from removing their own admin access, even with other admins around', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        type: 'ADMIN',
+        deletedAt: null,
+      });
+
+      await expect(
+        service.detachUser('role-1', 't1', 'user-1', 'user-1'),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(prismaMock.userRole.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it('detachUser: blocks removing the last active admin of the tenant', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        type: 'ADMIN',
+        deletedAt: null,
+      });
+      prismaMock.userRole.count.mockResolvedValueOnce(0);
+
+      await expect(
+        service.detachUser('role-1', 't1', 'user-1', 'current-admin'),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(prismaMock.userRole.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it('detachUser: allows removing an admin role when another active admin remains', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        type: 'ADMIN',
+        deletedAt: null,
+      });
+      prismaMock.userRole.count.mockResolvedValueOnce(1);
+      prismaMock.userRole.deleteMany.mockResolvedValueOnce({ count: 1 });
+
+      const result = await service.detachUser(
+        'role-1',
+        't1',
+        'user-1',
+        'current-admin',
+      );
+
+      expect(result).toEqual({ removed: true });
+    });
+
+    it('remove: blocks deleting the only admin role of the tenant', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        type: 'ADMIN',
+        deletedAt: null,
+      });
+      prismaMock.userRole.count.mockResolvedValueOnce(0);
+
+      await expect(service.remove('role-1', 't1')).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
+      expect(prismaMock.role.update).not.toHaveBeenCalled();
+    });
+
+    it('remove: allows deleting an admin role when another admin role still has active users', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        type: 'ADMIN',
+        deletedAt: null,
+      });
+      prismaMock.userRole.count.mockResolvedValueOnce(1);
+      prismaMock.role.update.mockResolvedValueOnce({ id: 'role-1' });
+
+      const result = await service.remove('role-1', 't1');
+
+      expect(result).toEqual({ id: 'role-1' });
     });
   });
 });

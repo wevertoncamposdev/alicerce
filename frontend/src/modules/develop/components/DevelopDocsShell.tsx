@@ -33,7 +33,7 @@ export function DevelopDocsShell() {
                     <p className="mb-8 max-w-2xl text-sm text-muted-foreground">
                         Guia de manutenção e evolução do Alicerce: como o framework funciona por baixo dos
                         panos (tenant, autenticação, RBAC) e como estender o sistema com módulos novos
-                        seguindo os mesmos padrões do módulo <code>favorites</code>.
+                        seguindo os mesmos padrões do módulo <code>feedback</code>.
                     </p>
 
                     <VisaoGeralSection />

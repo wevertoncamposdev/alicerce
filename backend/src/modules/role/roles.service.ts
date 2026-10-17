@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -86,12 +86,44 @@ export class RolesService {
     });
   }
 
+  // Admin de um tenant não pode virar zero: ver RolesService.hasOtherActiveAdmin.
+  // Usada aqui (apagar a role ADMIN) e em detachUser (tirar a role de um
+  // usuário) — as duas formas de "o tenant ficar sem admin". UsersService
+  // usa o mesmo método para bloquear desativar/remover o último admin.
+  async hasOtherActiveAdmin(
+    tenantId: string,
+    opts: { excludeUserId?: string; excludeRoleId?: string } = {},
+  ): Promise<boolean> {
+    const count = await this.prisma.userRole.count({
+      where: {
+        tenantId,
+        userId: opts.excludeUserId ? { not: opts.excludeUserId } : undefined,
+        roleId: opts.excludeRoleId ? { not: opts.excludeRoleId } : undefined,
+        role: { type: 'ADMIN', deletedAt: null },
+        user: { deletedAt: null, status: 'ACTIVE' },
+      },
+    });
+
+    return count > 0;
+  }
+
   async remove(id: string, tenantId: string) {
     const existing = findOneOrThrow(
       await this.prisma.role.findUnique({ where: { id } }),
       (role) => !role.deletedAt && role.tenantId === tenantId,
       'Role nao encontrada',
     );
+
+    if (existing.type === 'ADMIN') {
+      const hasOther = await this.hasOtherActiveAdmin(tenantId, {
+        excludeRoleId: existing.id,
+      });
+      if (!hasOther) {
+        throw new ForbiddenException(
+          'Não é possível remover a única role de administrador do tenant.',
+        );
+      }
+    }
 
     const result = await this.prisma.role.update({
       where: { id: existing.id },
@@ -155,7 +187,35 @@ export class RolesService {
     return userRole;
   }
 
-  async detachUser(roleId: string, tenantId: string, userId: string) {
+  async detachUser(
+    roleId: string,
+    tenantId: string,
+    userId: string,
+    currentUserId?: string,
+  ) {
+    const role = findOneOrThrow(
+      await this.prisma.role.findUnique({ where: { id: roleId } }),
+      (r) => !r.deletedAt && r.tenantId === tenantId,
+      'Role nao encontrada',
+    );
+
+    if (role.type === 'ADMIN') {
+      if (currentUserId && currentUserId === userId) {
+        throw new ForbiddenException(
+          'Você não pode remover sua própria permissão de administrador.',
+        );
+      }
+
+      const hasOther = await this.hasOtherActiveAdmin(tenantId, {
+        excludeUserId: userId,
+      });
+      if (!hasOther) {
+        throw new ForbiddenException(
+          'Não é possível remover o último administrador do tenant.',
+        );
+      }
+    }
+
     const result = await this.prisma.userRole.deleteMany({
       where: {
         tenantId,

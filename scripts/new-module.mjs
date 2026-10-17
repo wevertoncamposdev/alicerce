@@ -409,18 +409,18 @@ describe('${pascalPlural}Service', () => {
 
   editExisting(
     join(BACKEND, "prisma", "models", "main", "tenant.prisma"),
-    "    exampleNotes    ExampleNote[]\n",
+    "    feedbackComments FeedbackComment[]\n",
     `    ${camelPlural}        ${pascalSingular}[]\n`,
   );
 
   editExisting(
     join(BACKEND, "src", "app.module.ts"),
-    "import { ExamplesModule } from './modules/examples/examples.module';\n",
+    "import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';\n",
     `import { ${pascalPlural}Module } from './modules/${kebabPlural}/${kebabPlural}.module';\n`,
   );
   editExisting(
     join(BACKEND, "src", "app.module.ts"),
-    "    ExamplesModule,\n",
+    "    FeedbacksModule,\n",
     `    ${pascalPlural}Module,\n`,
   );
 
@@ -457,7 +457,7 @@ describe('${pascalPlural}Service', () => {
 
   editExisting(
     join(BACKEND, "src", "core", "prisma", "extensions", "tenant-rls.extension.ts"),
-    "  'ExampleNote',\n",
+    "  'FeedbackComment',\n",
     `  '${pascalSingular}',\n`,
   );
 }
@@ -728,7 +728,7 @@ function generateMigrations() {
     return false;
   }
 
-  const rlsSql = `-- RLS pra "${kebabPlural}" — mesmo padrão de add_tenant_rls/add_rls_to_examples.
+  const rlsSql = `-- RLS pra "${kebabPlural}" — mesmo padrão de add_tenant_rls/add_rls_to_feedbacks.
 DO $$
 BEGIN
   EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', '${snakeCasePlural}');
