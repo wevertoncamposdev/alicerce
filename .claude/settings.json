@@ -1,0 +1,18 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash(npx tsc --noEmit)",
+            "Bash(npm run lint)",
+            "Bash(npm test)",
+            "Bash(npm run test:e2e)",
+            "Bash(npm run build)",
+            "Bash(git status)",
+            "Bash(git diff:*)"
+        ],
+        "deny": [
+            "Read(./.env)",
+            "Read(./backend/.env)",
+            "Read(./frontend/.env)"
+        ]
+    }
+}
