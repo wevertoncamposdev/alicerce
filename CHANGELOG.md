@@ -6,7 +6,7 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 ---
 
-## [1.0.0] - 2026-10-17
+## [Unreleased]
 
 ### Added
 
@@ -18,29 +18,13 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 - Padronização da documentação de setup e referência do projeto para o estado v1.
 
+### Fixed
+
+- Ajuste de encoding dos arquivos de histórico para evitar que fiquem como binários no diff.
+
 ### Removed
 
 - Templates antigos e documentos obsoletos em `docs/` e `REVISAO.md` movido para histórico.
-
----
-
-## [Unreleased]
-
-### Added
-
-- added
-
-### Changed
-
-- changed
-
-### Fixed
-
-- fixed
-
-### Removed
-
-- removed
 
 ---
 

@@ -6,7 +6,8 @@
 - `files` — upload, storage abstrato, vínculo com qualquer entidade.
 - `analytics` — eventos de produto gravados no servidor, métricas por tenant, dashboard; integração opcional com PostHog/Umami via adapter.
 - `management` — back-office do dono da plataforma (super admin): tenants, usuários, planos, uso, impersonação auditada, feature flags.
-- `feedback` — widget in-app, NPS/CSAT, sugestões com votos, status (recebido → planejado → entregue).
+- `feedback` — a versão simples (sugestão, status, comentários) já existe como
+  módulo de exemplo. Futuro, sob demanda: widget in-app, NPS/CSAT, votos.
 - `support` — tickets com mensagens, anexos, prioridade, SLA, atribuição, base de conhecimento simples.
 - `announcements` — changelog e avisos in-app por tenant/plano.
 
@@ -20,15 +21,14 @@
 - Segurança: nunca armazenar dados de cartão; o checkout é sempre do gateway. Valores em centavos (`Int`), nunca `Float`.
 - Ambientes de teste dos gateways configurados por env; seed com planos de exemplo.
 
-## Roadmap funcional
+## Outras funcionalidades sob demanda
 
-- Segurança e sessão: correções e validação manual com navegador.
-- Ferramentas: limpar o template, padronizar fluxos e suporte à arquitetura base.
-- Limpeza para template: remover domínio de exemplo, recriar migrations e seed, remover código morto e unificar shell/core.
-- Contrato de módulo: backend e frontend padronizados para criação e evolução de módulos.
-- Gerador: suportar geração real de módulos e continuar evoluindo a funcionalidade de feature generation.
-- Componentes portados da referência: formulários ricos, filtros avançados, views e estados de interface.
-- Core de plataforma: request-context, rate-limit, validação de env, logger, health check, auditoria, files, notifications e e-mail.
-- Sustentação: `management`, `analytics`, `feedback`, `support`, `announcements`.
-- Cobrança: entidades, gateways, assinaturas, doações, webhooks e entitlements.
-- Produto "template": GitHub Template, `npm run init:app`, documentação e deploy de referência.
+- Componentes portados da referência (via `/portar-componente`): campos de
+  formulário ricos, filtros avançados avaliados no backend, views kanban,
+  calendário e timeline, `loading.tsx`/`error.tsx`/`not-found.tsx`.
+- Fluxos de conta que dependem de e-mail: esqueci/redefinir senha, convite de
+  usuário.
+- Gerador: `--feature-of <pai>` para gerar Feature em vez de Módulo.
+- Seletor de tenant, i18n com troca de idioma, tema claro/escuro.
+- Produto "template": marcar como GitHub Template, `npm run init:app`,
+  deploy de referência documentado.

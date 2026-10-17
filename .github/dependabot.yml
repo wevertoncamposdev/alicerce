@@ -9,8 +9,8 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    # Majors ficam fora do grupo acima de propósito — AGENTS.md §6.1 pede uma PR
-    # isolada por major (branch chore/upgrade-<pacote>-<versão>), nunca em lote.
+    # Majors ficam fora do grupo acima de propósito — a skill /upgrade-deps
+    # pede uma PR por major, em branch própria.
     open-pull-requests-limit: 10
 
   - package-ecosystem: "npm"
