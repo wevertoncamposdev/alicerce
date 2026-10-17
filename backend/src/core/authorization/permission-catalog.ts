@@ -124,6 +124,36 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
     description: 'Remover exemplos',
   },
   {
+    name: 'feedback.create',
+    type: 'WRITE',
+    resource: 'feedbacks',
+    description: 'Criar feedbacks',
+  },
+  {
+    name: 'feedback.read',
+    type: 'READ',
+    resource: 'feedbacks',
+    description: 'Consultar feedbacks',
+  },
+  {
+    name: 'feedback.update',
+    type: 'WRITE',
+    resource: 'feedbacks',
+    description: 'Atualizar feedbacks',
+  },
+  {
+    name: 'feedback.delete',
+    type: 'DELETE',
+    resource: 'feedbacks',
+    description: 'Remover feedbacks',
+  },
+  {
+    name: 'feedback.manage',
+    type: 'WRITE',
+    resource: 'feedbacks',
+    description: 'Mudar o status de um feedback',
+  },
+  {
     name: 'audit.read',
     type: 'READ',
     resource: 'audit',

@@ -20,6 +20,8 @@ model Tenant {
     audits          Audit[]
     examples        Example[]
     exampleNotes    ExampleNote[]
+    feedbacks        Feedback[]
+    feedbackComments FeedbackComment[]
 
     @@index([slug])
     @@index([status])

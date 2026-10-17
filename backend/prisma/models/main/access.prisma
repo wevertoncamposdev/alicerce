@@ -18,6 +18,8 @@ model User {
     examples      Example[]
     refreshTokens RefreshToken[]
     exampleNotes  ExampleNote[]
+    feedbacks        Feedback[]
+    feedbackComments FeedbackComment[]
 
     @@map("users")
 }

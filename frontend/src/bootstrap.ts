@@ -15,3 +15,4 @@ import "@modules/users/config/contract";
 import "@modules/roles/config/contract";
 import "@modules/permissions/config/contract";
 import "@modules/audit/config/contract";
+import "@modules/feedbacks/config/contract";
