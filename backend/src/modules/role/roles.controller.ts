@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
+import { CurrentUserId } from '@core/common/decorators/current-user-id.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 
 import { Roles } from '@core/common/decorators/roles.decorator';
@@ -86,8 +87,9 @@ export class RolesController {
     @Param('id') id: string,
     @Param('userId') userId: string,
     @TenantId() tenantId: string,
+    @CurrentUserId() currentUserId: string,
   ) {
-    return this.rolesService.detachUser(id, tenantId, userId);
+    return this.rolesService.detachUser(id, tenantId, userId, currentUserId);
   }
 
   @Post(':id/permissions')

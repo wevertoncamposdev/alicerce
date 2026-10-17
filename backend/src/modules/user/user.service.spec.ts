@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@core/prisma/generated/client';
 import { UsersService } from './user.service';
 import { UserMapper } from './mappers/user.mapper';
@@ -7,6 +11,7 @@ import { UserBusinessRules } from './domain/rules/user-business-rules';
 import { UserErrorMapper } from './mappers/user-error.mapper';
 import { UserRepository } from './persistence/repository/user.repository';
 import { PrismaService } from '@core/prisma/prisma.service';
+import { RolesService } from '../role/roles.service';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn().mockResolvedValue('hashed-password'),
@@ -33,8 +38,19 @@ describe('UsersService', () => {
     mapToResponseDtoArray: jest.fn(),
   };
 
+  const prismaMock = {
+    userRole: { findMany: jest.fn(), count: jest.fn().mockResolvedValue(0) },
+    rolePermission: { findMany: jest.fn() },
+  };
+
+  const rolesServiceMock = {
+    hasOtherActiveAdmin: jest.fn().mockResolvedValue(true),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
+    prismaMock.userRole.count.mockResolvedValue(0);
+    rolesServiceMock.hasOtherActiveAdmin.mockResolvedValue(true);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -51,10 +67,11 @@ describe('UsersService', () => {
         },
         {
           provide: PrismaService,
-          useValue: {
-            userRole: { findMany: jest.fn() },
-            rolePermission: { findMany: jest.fn() },
-          },
+          useValue: prismaMock,
+        },
+        {
+          provide: RolesService,
+          useValue: rolesServiceMock,
         },
       ],
     }).compile();
@@ -211,6 +228,72 @@ describe('UsersService', () => {
       await service.findAllWithValidation(ownTenantId);
 
       expect(repository.findManyActive).toHaveBeenCalledWith(ownTenantId);
+    });
+  });
+
+  // C4: desativar ou remover o último admin do tenant é bloqueado (ver
+  // FECHAMENTO.md e RolesService.hasOtherActiveAdmin, reaproveitado aqui).
+  describe('admin lockout protection (C4)', () => {
+    const ownTenantId = 'tenant-own';
+    const userId = 'adf4f488-faa3-4fca-946e-522f7c2d4976';
+    const ownUser = {
+      id: userId,
+      email: 'admin@example.com',
+      tenantId: ownTenantId,
+      password: 'hashed-password',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null,
+    };
+
+    it('update: blocks deactivating the last admin of the tenant', async () => {
+      repository.findById.mockResolvedValueOnce(ownUser as never);
+      prismaMock.userRole.count.mockResolvedValueOnce(1); // é admin
+      rolesServiceMock.hasOtherActiveAdmin.mockResolvedValueOnce(false);
+
+      await expect(
+        service.update(userId, { status: 'INACTIVE' }, ownTenantId),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(repository.updateById).not.toHaveBeenCalled();
+    });
+
+    it('update: allows deactivating an admin when another active admin remains', async () => {
+      repository.findById.mockResolvedValueOnce(ownUser as never);
+      prismaMock.userRole.count.mockResolvedValueOnce(1);
+      rolesServiceMock.hasOtherActiveAdmin.mockResolvedValueOnce(true);
+      repository.updateById.mockResolvedValueOnce({
+        ...ownUser,
+        status: 'INACTIVE',
+      } as never);
+
+      await service.update(userId, { status: 'INACTIVE' }, ownTenantId);
+
+      expect(repository.updateById).toHaveBeenCalled();
+    });
+
+    it('update: never checks admin lockout for a non-admin user', async () => {
+      repository.findById.mockResolvedValueOnce(ownUser as never);
+      prismaMock.userRole.count.mockResolvedValueOnce(0); // não é admin
+      repository.updateById.mockResolvedValueOnce({
+        ...ownUser,
+        status: 'INACTIVE',
+      } as never);
+
+      await service.update(userId, { status: 'INACTIVE' }, ownTenantId);
+
+      expect(rolesServiceMock.hasOtherActiveAdmin).not.toHaveBeenCalled();
+      expect(repository.updateById).toHaveBeenCalled();
+    });
+
+    it('remove: blocks removing the last admin of the tenant', async () => {
+      repository.findById.mockResolvedValueOnce(ownUser as never);
+      prismaMock.userRole.count.mockResolvedValueOnce(1);
+      rolesServiceMock.hasOtherActiveAdmin.mockResolvedValueOnce(false);
+
+      await expect(service.remove(userId, ownTenantId)).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
+      expect(repository.softDeleteById).not.toHaveBeenCalled();
     });
   });
 });

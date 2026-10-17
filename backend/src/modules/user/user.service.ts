@@ -1,5 +1,9 @@
 //@Lib
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 //@Core
@@ -23,6 +27,8 @@ import { UserErrorCode } from './domain/errors/user-error-codes';
 //@Repository
 import { UserRepository } from './persistence/repository/user.repository';
 
+import { RolesService } from '../role/roles.service';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -31,7 +37,35 @@ export class UsersService {
     private readonly userBusinessRules: UserBusinessRules,
     private readonly userErrorMapper: UserErrorMapper,
     private readonly prisma: PrismaService,
+    private readonly rolesService: RolesService,
   ) {}
+
+  // Rule C4: desativar/remover o último admin do tenant é bloqueado, mesmo
+  // que quem esteja fazendo a ação seja outro admin ou o próprio usuário. Só
+  // importa se ESTE usuário for admin — se não for, não há o que checar.
+  private async assertNotLastActiveAdmin(userId: string, tenantId: string) {
+    const isCurrentlyAdmin = await this.prisma.userRole.count({
+      where: {
+        tenantId,
+        userId,
+        role: { type: 'ADMIN', deletedAt: null },
+      },
+    });
+
+    if (isCurrentlyAdmin === 0) {
+      return;
+    }
+
+    const hasOther = await this.rolesService.hasOtherActiveAdmin(tenantId, {
+      excludeUserId: userId,
+    });
+
+    if (!hasOther) {
+      throw new ForbiddenException(
+        'Não é possível desativar ou remover o último administrador do tenant.',
+      );
+    }
+  }
 
   async create(
     createUserDto: CreateUserDto,
@@ -70,6 +104,10 @@ export class UsersService {
         });
       }
 
+      if (updateUserDto.status && updateUserDto.status !== 'ACTIVE') {
+        await this.assertNotLastActiveAdmin(id, tenantId);
+      }
+
       const { password, ...rest } = updateUserDto;
       const data: Prisma.UserUpdateInput = { ...rest };
 
@@ -95,6 +133,8 @@ export class UsersService {
           details: { id },
         });
       }
+
+      await this.assertNotLastActiveAdmin(id, tenantId);
 
       return await this.userRepository.softDeleteById(id);
     } catch (error) {
