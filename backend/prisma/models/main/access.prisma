@@ -15,9 +15,7 @@ model User {
     tenant        Tenant         @relation(fields: [tenantId], references: [id])
     roles         UserRole[]
     audits        Audit[]
-    examples      Example[]
     refreshTokens RefreshToken[]
-    exampleNotes  ExampleNote[]
     feedbacks        Feedback[]
     feedbackComments FeedbackComment[]
 

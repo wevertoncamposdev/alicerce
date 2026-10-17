@@ -26,8 +26,8 @@ roles/
 
 ## Pontos específicos deste módulo
 
-- **`views: ["list"]`** em `contract.tsx` — não usa `cards`/`graph` (só
-  `favorites` usa essas duas hoje; não é um padrão obrigatório, é por módulo).
+- **`views: ["list"]`** em `contract.tsx` — não usa `cards`/`graph` (nenhum
+  módulo atual usa essas duas; não é um padrão obrigatório, é por módulo).
   "Criar" não é mais uma view (`?view=form`) desde o P13 — é o botão "+ Novo"
   que abre um `Sheet`, ver `CreateRecordSheet.tsx`.
 - **Relações são bidirecionais nos dois sentidos, mas só um lado é editável**: as abas

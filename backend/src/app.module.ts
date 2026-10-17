@@ -30,7 +30,6 @@ import { AuditModule } from '@modules/audit/audit.module';
 
 import { UsersModule } from '@modules/user/user.module';
 import { TenantModule } from '@modules/tenant/tenant.module';
-import { ExamplesModule } from './modules/examples/examples.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 
 import { RoleModule } from '@modules/role/role.module';
@@ -54,7 +53,6 @@ import { PermissionModule } from '@modules/permission/permission.module';
     AuthModule,
     TenantModule,
     AuditModule,
-    ExamplesModule,
     FeedbacksModule,
     I18nModule.forRoot({
       fallbackLanguage: 'pt',

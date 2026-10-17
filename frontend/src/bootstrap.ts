@@ -9,7 +9,6 @@ import "server-only";
 // partir de alicerce.config.ts em runtime sem arriscar quebrar o bundling —
 // um módulo novo ainda precisa de uma linha aqui, além de uma entrada no
 // config.
-import "@modules/favorites/config/contract";
 import "@modules/tenants/config/contract";
 import "@modules/users/config/contract";
 import "@modules/roles/config/contract";

@@ -18,8 +18,6 @@ model Tenant {
     rolePermissions RolePermission[]
     permissions     Permission[]
     audits          Audit[]
-    examples        Example[]
-    exampleNotes    ExampleNote[]
     feedbacks        Feedback[]
     feedbackComments FeedbackComment[]
 

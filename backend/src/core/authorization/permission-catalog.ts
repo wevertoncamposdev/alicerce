@@ -100,30 +100,6 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
     description: 'Remover permissões',
   },
   {
-    name: 'example.create',
-    type: 'WRITE',
-    resource: 'examples',
-    description: 'Criar exemplos',
-  },
-  {
-    name: 'example.read',
-    type: 'READ',
-    resource: 'examples',
-    description: 'Consultar exemplos',
-  },
-  {
-    name: 'example.update',
-    type: 'WRITE',
-    resource: 'examples',
-    description: 'Atualizar exemplos',
-  },
-  {
-    name: 'example.delete',
-    type: 'DELETE',
-    resource: 'examples',
-    description: 'Remover exemplos',
-  },
-  {
     name: 'feedback.create',
     type: 'WRITE',
     resource: 'feedbacks',
