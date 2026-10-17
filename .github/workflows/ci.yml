@@ -111,7 +111,7 @@ jobs:
         run: npm --prefix backend run export:openapi
         continue-on-error: true
       - name: Upload OpenAPI
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: openapi-json
           path: backend/openapi.json
