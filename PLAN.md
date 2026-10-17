@@ -5,10 +5,8 @@
 
 ## Agora
 
-- [ ] Sessão de fechamento da v1 (`FECHAMENTO.md`), blocos A a D
-
-## Próximo
-
+- [x] Sessão de fechamento da v1 (blocos A a D) — concluída em 2026-10-17.
+      Base congelada; `feedback` é o módulo canônico de exemplo.
 - [ ] Primeiro módulo de domínio com `/novo-modulo`
 
 ## Pendências conhecidas (não bloqueiam)
