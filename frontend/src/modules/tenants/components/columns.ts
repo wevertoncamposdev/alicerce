@@ -1,7 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import type { AppTableFeatures } from "@core/table-features";
 import type { TenantEntity } from "../types/types";
 
-export const tenantColumns: ColumnDef<TenantEntity>[] = [
+export const tenantColumns: ColumnDef<AppTableFeatures, TenantEntity>[] = [
     { accessorKey: "legalName", header: "Razão Social" },
     { accessorKey: "slug", header: "Slug" },
     { accessorKey: "email", header: "E-mail" },

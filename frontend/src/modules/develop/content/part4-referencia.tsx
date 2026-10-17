@@ -9,6 +9,54 @@ import {
     DocCallout,
 } from "@modules/develop/components/DocBlocks";
 
+export function ConvencoesUiSection() {
+    return (
+        <DocSection id="convencoes-ui" kicker="Referência" title="Convenções de UI">
+            <DocP>
+                Convenção fixada em 2026-10-14 (bloco P11 do <code>PLAN.md</code>), a partir do uso
+                dominante que já existia no código — não é um redesign, é documentar o que estava
+                disperso e alinhar os poucos pontos que usavam variantes de forma intercambiável.
+            </DocP>
+
+            <DocSubTitle>Variantes de botão (components/ui/button.tsx)</DocSubTitle>
+            <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-foreground/90">
+                <li>
+                    <code>save</code> — ação primária de submit/autosave (criar registro, salvar campo).
+                    É a variante dominante hoje em <code>FormView.tsx</code> — manter, não trocar por{" "}
+                    <code>default</code>.
+                </li>
+                <li>
+                    <code>default</code> — ação primária fora de um formulário (ex.: botão &quot;+ Novo&quot;
+                    que abre o Sheet de criação, ver <code>ViewSwitcher.tsx</code>).
+                </li>
+                <li>
+                    <code>outline</code> — ação secundária com borda (cancelar, fechar um overlay).
+                </li>
+                <li>
+                    <code>ghost</code> — ação terciária ou ícone solto em contexto denso (linha de
+                    tabela, trigger de dropdown, ação dentro de um painel de relação).
+                </li>
+                <li>
+                    <code>destructive</code> — qualquer ação irreversível (excluir, revogar).
+                </li>
+                <li>
+                    <code>link</code> — navegação leve dentro de uma lista/tabela (ex.: &quot;Associar&quot;
+                    no <code>RelationPicker</code>), nunca para submeter dados.
+                </li>
+            </ul>
+
+            <DocCallout type="rule" title="outline vs. ghost não são intercambiáveis">
+                Antes desta rodada, <code>outline</code> e <code>ghost</code> eram usados para o mesmo
+                papel (ação secundária) em arquivos diferentes, sem critério. A partir de agora:{" "}
+                <code>outline</code> quando a ação tem peso visual próprio (cancelar um formulário,
+                fechar um dialog) e precisa ser vista; <code>ghost</code> quando a ação é incidental
+                dentro de um contexto já denso de informação (célula de tabela, barra de ferramentas
+                com vários ícones) e não deve competir visualmente com o conteúdo.
+            </DocCallout>
+        </DocSection>
+    );
+}
+
 export function ArmadilhasSection() {
     return (
         <DocSection id="armadilhas" kicker="Referência" title="Armadilhas conhecidas">
@@ -50,25 +98,32 @@ export function EstadoAtualSection() {
     return (
         <DocSection id="estado-atual" kicker="Referência" title="Estado atual do repositório (pendências)">
             <DocP>
-                Snapshot das pendências conhecidas no fechamento da v1.0 — útil para não reintroduzir os
-                mesmos bugs em módulos novos e para saber onde tocar com cuidado extra.
+                Revisado em 2026-10-13 contra o código real (a lista anterior, do fechamento da v1.0,
+                estava com a maioria dos itens já resolvidos e não refletia mais a realidade). O backlog
+                tático completo e priorizado vive em <code>PLAN.md</code>, na raiz do repositório — esta
+                seção é só um resumo rápido do que ainda falta tocar neste motor de UI especificamente.
             </DocP>
             <DocCode label="pendências abertas">
-                {`1. RolesController / PermissionsController sem @Get(':id') + findOne no service
-   -> causa raiz das telas de detalhe quebradas de Role e Permission
-2. readRolePermissions / readRoleUsers não enviam tenantId
-   -> risco de vazamento de dado entre tenants
-3. RolePermissionsHost / RoleUsersHost em modules/roles/ ainda importam de
-   @/features/roles/services/roleService (pasta legada) — bloqueia a remoção de features/
-4. Extrair mutações de role para modules/roles/config/client-actions.ts
-5. Construir painel reverso em permissions (GET :id/roles)
-6. Construir módulo audit completo (backend: SearchAuditDto + @Search(); frontend: somente leitura/listagem)
-7. Remover features/ legado e components/shells/ (exceto SideShell, que migra para components/Layout/)`}
+                {`1. Padronizar o backend de audit no mesmo contrato dos outros módulos
+   (SearchAuditDto + @Search()) — hoje funciona via GET com query params,
+   só não segue o padrão formal que roles/users/permissions/tenants seguem.
+2. Views Kanban e Calendar aparecem no ViewSwitcher mas não têm componente
+   implementado — decidir se entram ou se o ícone sai do switcher.`}
             </DocCode>
             <DocCallout type="info">
-                Estas notas refletem o estado do repositório no momento em que esta página foi escrita.
-                Atualize esta seção conforme os itens forem resolvidos — ela deve sempre espelhar a
-                realidade do código, não um plano estático.
+                <code>features/</code> legado foi totalmente removido em 2026-10-13 (os itens antigos #1,
+                #2, #3, #5 desta lista — telas de detalhe de Role/Permission quebradas, tenantId ausente em
+                <code>readRolePermissions</code>/<code>readRoleUsers</code>, import de pasta legada, painel
+                reverso de permissions — já estavam resolvidos; o antigo item #4, &quot;extrair mutações
+                para <code>config/client-actions.ts</code>&quot;, foi resolvido na direção oposta: esse
+                arquivo era um rascunho duplicado sem uso e foi removido —{" "}
+                <code>actions/roleService.ts</code> é o lugar definitivo). <code>components/shells/</code>
+                legado (<code>RelationShell</code>, <code>PainelSearchShell</code>, <code>SideShell</code>)
+                também foi removido em 2026-10-13 — <code>audit/page.tsx</code> passou a usar{" "}
+                <code>TypeViewScreen</code> como todo módulo real (ele já tinha contrato registrado e nunca
+                era usado), e <code>SideShell</code> migrou para <code>components/Layout/SideShell.tsx</code>{" "}
+                com os tokens atuais. Atualize esta seção conforme os itens acima forem resolvidos — ela deve
+                sempre espelhar a realidade do código, não um plano estático.
             </DocCallout>
 
             <DocSubTitle>Licenciamento</DocSubTitle>

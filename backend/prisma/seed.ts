@@ -3,6 +3,10 @@ import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Prisma, PrismaClient } from '@core/prisma/generated/client';
 import * as bcrypt from 'bcrypt';
+import {
+  PERMISSION_CATALOG,
+  TENANT_ADMIN_PERMISSION_NAMES,
+} from '@core/authorization/permission-catalog';
 
 const connectionString = `${process.env.DATABASE_URL}`;
 const pool = new Pool({ connectionString });
@@ -15,12 +19,7 @@ async function main() {
     update: {},
     create: {
       legalName: 'Tenant Exemplo',
-      tradeName: 'Tenant Exemplo',
-      registrationNumber: '12345678000199',
       slug: 'tenant-exemplo',
-      category: 'ASSOCIATION',
-      primaryServiceArea: 'EDUCATION',
-      partnershipType: 'NONE',
       status: 'ACTIVE',
     },
   });
@@ -41,33 +40,24 @@ async function main() {
     });
   }
 
-  const permissionSeeds: Prisma.PermissionCreateManyInput[] = [
-    { tenantId: tenant.id, name: 'user.create', type: 'WRITE', resource: 'users', description: 'Criar usuários' },
-    { tenantId: tenant.id, name: 'user.read', type: 'READ', resource: 'users', description: 'Consultar usuários' },
-    { tenantId: tenant.id, name: 'user.update', type: 'WRITE', resource: 'users', description: 'Atualizar usuários' },
-    { tenantId: tenant.id, name: 'user.delete', type: 'DELETE', resource: 'users', description: 'Remover usuários' },
-    { tenantId: tenant.id, name: 'role.create', type: 'WRITE', resource: 'roles', description: 'Criar papéis' },
-    { tenantId: tenant.id, name: 'role.read', type: 'READ', resource: 'roles', description: 'Consultar papéis' },
-    { tenantId: tenant.id, name: 'role.update', type: 'WRITE', resource: 'roles', description: 'Atualizar papéis' },
-    { tenantId: tenant.id, name: 'role.delete', type: 'DELETE', resource: 'roles', description: 'Remover papéis' },
-    { tenantId: tenant.id, name: 'role.assign', type: 'WRITE', resource: 'roles', description: 'Gerenciar associação de papéis' },
-    { tenantId: tenant.id, name: 'permission.create', type: 'WRITE', resource: 'permissions', description: 'Criar permissões' },
-    { tenantId: tenant.id, name: 'permission.read', type: 'READ', resource: 'permissions', description: 'Consultar permissões' },
-    { tenantId: tenant.id, name: 'permission.update', type: 'WRITE', resource: 'permissions', description: 'Atualizar permissões' },
-    { tenantId: tenant.id, name: 'permission.delete', type: 'DELETE', resource: 'permissions', description: 'Remover permissões' },
-    { tenantId: tenant.id, name: 'favorite.create', type: 'WRITE', resource: 'favorites', description: 'Criar favoritos' },
-    { tenantId: tenant.id, name: 'favorite.read', type: 'READ', resource: 'favorites', description: 'Consultar favoritos' },
-    { tenantId: tenant.id, name: 'favorite.update', type: 'WRITE', resource: 'favorites', description: 'Atualizar favoritos' },
-    { tenantId: tenant.id, name: 'favorite.delete', type: 'DELETE', resource: 'favorites', description: 'Remover favoritos' },
-  ];
+  const permissionSeeds: Prisma.PermissionCreateManyInput[] =
+    PERMISSION_CATALOG.map((permission) => ({
+      tenantId: tenant.id,
+      name: permission.name,
+      type: permission.type,
+      resource: permission.resource,
+      description: permission.description,
+    }));
 
   await prisma.permission.createMany({
     data: permissionSeeds,
     skipDuplicates: true,
   });
 
-  const allPermissions = await prisma.permission.findMany({ where: { tenantId: tenant.id } });
-  for (const permission of allPermissions) {
+  const tenantAdminPermissions = await prisma.permission.findMany({
+    where: { tenantId: tenant.id, name: { in: [...TENANT_ADMIN_PERMISSION_NAMES] } },
+  });
+  for (const permission of tenantAdminPermissions) {
     const exists = await prisma.rolePermission.findFirst({
       where: {
         tenantId: tenant.id,
@@ -89,7 +79,7 @@ async function main() {
 
   const passwordHash = await bcrypt.hash('admin123', 10);
   const user = await prisma.user.upsert({
-    where: { tenantId_email: { tenantId: tenant.id, email: 'admin@exemplo.com' } },
+    where: { email: 'admin@exemplo.com' },
     update: {
       password: passwordHash,
       status: 'ACTIVE',

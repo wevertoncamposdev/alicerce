@@ -1,7 +1,7 @@
-import { defineRecordModule, registerModule } from "@lib/registry";
-import type { DetailLayout, ListLayout } from "@lib/registry/types";
+import { defineRecordModule, registerModule } from "@core/registry";
+import type { DetailLayout, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
-import { createRecordFormAction } from "@lib/registry/actions";
+import { createRecordFormAction } from "@core/registry/actions";
 
 import { RolesListView } from "@modules/roles/components/RoleListView";
 import { FormView } from "@components/TypeView/FormView/FormView";
@@ -25,10 +25,10 @@ const formFields = [
 
 const { parseListState, serializeListState } = createListQueryState();
 
-const createRoleAction = createRecordFormAction.bind(null, "roles", formFields.map((f) => f.name));
+const createRoleAction = createRecordFormAction.bind(null, "roles", formFields);
 
 const rolesListLayout: ListLayout<RoleEntity> = {
-    list: ({ data }) => <RolesListView data={data} />,
+    list: ({ data, pagination, searchArgs }) => <RolesListView data={data} pagination={pagination} sort={searchArgs.sort} />,
     form: () => (
         <FormView<RoleEntity>
             mode="create"
@@ -71,7 +71,7 @@ function loadRoleContext(record: RoleEntity): ContextItem[] {
 export const rolesModule = defineRecordModule<RoleEntity>({
     model: "roles",
     label: "Roles",
-    views: ["list", "form"],
+    views: ["list"],
     defaultView: "list",
     dataHandlers: { search: searchRoles, read: readRole, create: createRole, update: updateRole, delete: deleteRole },
     formFields,

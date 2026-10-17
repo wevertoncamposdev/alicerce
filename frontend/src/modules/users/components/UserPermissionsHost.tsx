@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { PermissionEntity } from "@/modules/permissions/types/types";
+import type { PermissionEntity } from "@modules/permissions/types/types";
+import { EmptyState } from "@components/ui/empty-state";
 
 export function UserPermissionsHost({ items }: { items: PermissionEntity[] }) {
     return (
@@ -23,8 +24,8 @@ export function UserPermissionsHost({ items }: { items: PermissionEntity[] }) {
                     <tbody>
                         {items.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className="px-3 py-4 text-center text-muted-foreground">
-                                    Nenhuma permission associada.
+                                <td colSpan={4}>
+                                    <EmptyState title="Nenhuma permission associada." className="py-4" />
                                 </td>
                             </tr>
                         ) : (
@@ -43,5 +44,3 @@ export function UserPermissionsHost({ items }: { items: PermissionEntity[] }) {
         </div>
     );
 }
-
-export default UserPermissionsHost;

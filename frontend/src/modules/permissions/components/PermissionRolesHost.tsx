@@ -1,11 +1,12 @@
 "use client";
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { RoleEntity } from "@/modules/roles/types/types";
-import { createRelationHost } from "@/lib/registry/relation-host";
+import type { AppTableFeatures } from "@core/table-features";
+import type { RoleEntity } from "@modules/roles/types/types";
+import { RelationHost, type RelationHostConfig } from "@core/registry/relation-host";
 
-export function PermissionRolesHost({ items }: { items: RoleEntity[] }) {
-    const columns = React.useMemo<ColumnDef<RoleEntity>[]>(
+function PermissionRolesHost({ items }: { items: RoleEntity[] }) {
+    const columns = React.useMemo<ColumnDef<AppTableFeatures, RoleEntity>[]>(
         () => [
             { accessorKey: "name", header: "Nome" },
             { accessorKey: "type", header: "Tipo", cell: ({ row }) => row.original.type ?? "—" },
@@ -13,21 +14,17 @@ export function PermissionRolesHost({ items }: { items: RoleEntity[] }) {
         [],
     );
 
-    const RelationHost = React.useMemo(
-        () => createRelationHost<RoleEntity>({
+    const config = React.useMemo<RelationHostConfig<RoleEntity>>(
+        () => ({
             title: "Usado pelos roles",
             columns,
             initialData: items,
             idAccessor: (r) => r.id,
+            emptyMessage: "Nenhum role usa esta permissão ainda.",
         }),
         [columns, items],
     );
 
-    return (
-        <>
-            <RelationHost initial={items} />
-            {items.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum role usa esta permissão ainda.</p> : null}
-        </>
-    );
+    return <RelationHost config={config} initial={items} />;
 }
 export default PermissionRolesHost;

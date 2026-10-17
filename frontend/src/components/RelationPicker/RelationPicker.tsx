@@ -1,6 +1,24 @@
 "use client";
 import * as React from "react";
 import { apiClient } from "@lib/api-client";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@components/ui/dialog";
+import { Input } from "@components/ui/input";
+import { Button } from "@components/ui/button";
+import { Skeleton } from "@components/ui/skeleton";
+import { EmptyState } from "@components/ui/empty-state";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@components/ui/table";
 
 type Entity = { id: string; name?: string; email?: string; type?: string; resource?: string };
 
@@ -31,12 +49,19 @@ export default function RelationPicker({
         return () => clearTimeout(t);
     }, [q]);
 
-    // load when kind, tenantId or term changes -> reset page
-    React.useEffect(() => {
+    // load when kind, tenantId or term changes -> reset page.
+    // Ajuste de estado durante o render (não um useEffect) — mesmo padrão já
+    // usado em relation-host.tsx: compara a chave atual com a anterior e
+    // reseta síncrono, sem o render em cascata extra de um setState dentro
+    // de efeito (ver "Adjusting state based on a prop change" na doc do React).
+    const resetKey = `${kind}:${tenantId ?? ""}:${term}`;
+    const [prevResetKey, setPrevResetKey] = React.useState(resetKey);
+    if (resetKey !== prevResetKey) {
+        setPrevResetKey(resetKey);
         setPage(0);
         setHasMore(true);
         setItems([]);
-    }, [kind, tenantId, term]);
+    }
 
     React.useEffect(() => {
         let mounted = true;
@@ -83,68 +108,69 @@ export default function RelationPicker({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-md p-4 w-[720px] max-w-full shadow-lg">
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-medium">Buscar {kind}</h3>
-                    <button onClick={onClose} className="text-sm text-muted-foreground">Fechar</button>
-                </div>
+        <Dialog open onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="w-full sm:max-w-[720px]">
+                <DialogHeader>
+                    <DialogTitle>Buscar {kind}</DialogTitle>
+                </DialogHeader>
 
-                <div className="mb-3">
-                    <input
-                        value={q}
-                        onChange={(e) => setQ(e.target.value)}
-                        placeholder={`Pesquisar ${kind}`}
-                        className="w-full border rounded px-2 py-1"
-                    />
-                </div>
+                <Input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder={`Pesquisar ${kind}`}
+                />
 
                 <div className="max-h-64 overflow-auto">
                     {loading && items.length === 0 ? (
-                        <p>Carregando...</p>
+                        <div className="space-y-2 py-1">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <Skeleton key={i} className="h-8 w-full" />
+                            ))}
+                        </div>
                     ) : items.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Nenhum item encontrado.</p>
+                        <EmptyState title="Nenhum item encontrado." className="py-6" />
                     ) : (
                         <>
-                            <table className="w-full table-auto">
-                                <thead>
-                                    <tr>
-                                        <th className="text-left">Nome / E-mail</th>
-                                        <th className="text-left">Tipo</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Nome / E-mail</TableHead>
+                                        <TableHead>Tipo</TableHead>
+                                        <TableHead />
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                     {items.map((it) => (
-                                        <tr key={it.id}>
-                                            <td>{it.name ?? it.email ?? it.id}</td>
-                                            <td>{it.type ?? it.resource ?? "—"}</td>
-                                            <td className="text-right">
-                                                <button
-                                                    className="text-sm text-primary"
+                                        <TableRow key={it.id}>
+                                            <TableCell>{it.name ?? it.email ?? it.id}</TableCell>
+                                            <TableCell>{it.type ?? it.resource ?? "—"}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    variant="link"
+                                                    size="sm"
                                                     onClick={() => {
                                                         onSelect(it);
                                                         onClose();
                                                     }}
                                                 >
                                                     Associar
-                                                </button>
-                                            </td>
-                                        </tr>
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
                                     ))}
-                                </tbody>
-                            </table>
-                            <div className="py-2 text-center">
-                                {hasMore ? (
-                                    <button className="text-sm text-primary" onClick={loadMore} disabled={loading}>
+                                </TableBody>
+                            </Table>
+                            {hasMore ? (
+                                <div className="py-2 text-center">
+                                    <Button variant="link" size="sm" onClick={loadMore} disabled={loading}>
                                         {loading ? "Carregando..." : "Carregar mais"}
-                                    </button>
-                                ) : null}
-                            </div>
+                                    </Button>
+                                </div>
+                            ) : null}
                         </>
                     )}
                 </div>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 }

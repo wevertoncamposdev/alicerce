@@ -9,7 +9,7 @@
 import "server-only";
 import { cache } from "react";
 import { getSessionTenantId, getSessionToken } from "@lib/session";
-import type { AuthUserProfile } from "@/lib/auth-types";
+import type { AuthUserProfile } from "@lib/auth-types";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL ?? "http://localhost:5000/api";
 
@@ -40,10 +40,6 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
     return { user, tenantId };
 });
-
-export function hasPermission(currentUser: CurrentUser | null, permission: string): boolean {
-    return Boolean(currentUser?.user.permissions?.includes(permission));
-}
 
 export function hasRole(currentUser: CurrentUser | null, role: string): boolean {
     return Boolean(currentUser?.user.roles?.includes(role));

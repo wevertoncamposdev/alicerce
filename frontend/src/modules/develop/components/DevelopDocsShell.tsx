@@ -2,7 +2,7 @@
 // Composição da página de documentação. Server Component — todo o conteúdo é estático
 // e renderiza no servidor; apenas a navegação lateral (scroll-spy) é client.
 
-import { AppTopbar } from "@/components/Layout/AppTopbar";
+import { AppTopbar } from "@core/components/Layout/AppTopbar";
 import { DevelopDocsNav } from "@modules/develop/components/DevelopDocsNav";
 import { DEVELOP_DOC_NAV } from "@modules/develop/content/nav-config";
 import {
@@ -17,6 +17,7 @@ import {
     ChecklistSection,
 } from "@modules/develop/content/part3-modulos";
 import {
+    ConvencoesUiSection,
     ArmadilhasSection,
     EstadoAtualSection,
     GlossarioSection,
@@ -32,7 +33,7 @@ export function DevelopDocsShell() {
                     <p className="mb-8 max-w-2xl text-sm text-muted-foreground">
                         Guia de manutenção e evolução do Alicerce: como o framework funciona por baixo dos
                         panos (tenant, autenticação, RBAC) e como estender o sistema com módulos novos
-                        seguindo os mesmos padrões do módulo <code>favorites</code>.
+                        seguindo os mesmos padrões do módulo <code>feedback</code>.
                     </p>
 
                     <VisaoGeralSection />
@@ -44,6 +45,7 @@ export function DevelopDocsShell() {
                     <GuiaCriarModuloSection />
                     <ChecklistSection />
 
+                    <ConvencoesUiSection />
                     <ArmadilhasSection />
                     <EstadoAtualSection />
                     <GlossarioSection />

@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { UsersController } from './user.controller';
 
@@ -23,8 +23,7 @@ import { RoleModule } from '../role/role.module';
     UserBusinessRules,
     UserRepository,
     UserErrorMapper,
-
   ],
   exports: [UsersService],
 })
-export class UsersModule { }
+export class UsersModule {}

@@ -20,15 +20,15 @@ class ApiError extends Error {
         this.status = status;
         this.data = data;
         // try to extract a code if present
-        if (data && typeof data === 'object' && 'code' in (data as any)) {
-            this.code = String((data as any).code);
+        if (data && typeof data === 'object' && 'code' in data) {
+            this.code = String((data as Record<string, unknown>).code);
         }
     }
 
     friendlyMessage() {
         // common NestJS error shapes: { statusCode, message, error }
         if (this.data && typeof this.data === 'object') {
-            const d: any = this.data;
+            const d = this.data as Record<string, unknown>;
             if (Array.isArray(d.message)) return d.message.join('; ');
             if (typeof d.message === 'string') return d.message;
             if (typeof d.error === 'string') return d.error;
@@ -62,7 +62,7 @@ async function request<T>(
     if (!response.ok) {
         let message: string;
         if (typeof data === 'object' && data && 'message' in data) {
-            const m = (data as any).message;
+            const m = (data as Record<string, unknown>).message;
             message = Array.isArray(m) ? m.join('; ') : String(m);
         } else if (typeof data === 'string') {
             message = data;

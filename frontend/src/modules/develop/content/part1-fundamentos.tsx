@@ -56,16 +56,16 @@ export function VisaoGeralSection() {
             />
             <DocP>
                 Esses conceitos foram estudados e implementados em 8 fases (todas concluídas) e validados no
-                módulo <code>favorites</code>, usado como sandbox de referência ao longo desta página — sempre
-                que você vir um exemplo de código aqui, ele foi tirado (ou é equivalente) ao módulo real{" "}
-                <code>frontend/src/modules/favorites</code> e <code>backend/src/modules/favorites</code>.
+                módulo <code>feedback</code>, o módulo canônico de exemplo da base — sempre que você vir um
+                exemplo de código aqui, ele foi tirado (ou é equivalente) ao módulo real{" "}
+                <code>frontend/src/modules/feedbacks</code> e <code>backend/src/modules/feedbacks</code>.
             </DocP>
 
             <DocCallout type="rule" title="Regra de ouro da fronteira Server/Client">
                 Objetos <code>ColumnDef</code> (TanStack Table) contêm funções de render (<code>cell</code>) e{" "}
                 <strong>não podem</strong> atravessar a fronteira Server → Client como props. Cada módulo tem
                 seu próprio wrapper de lista com <code>&quot;use client&quot;</code> (ex.:{" "}
-                <code>FavoritesListView.tsx</code>) que importa as colunas internamente. Nunca passe colunas
+                <code>FeedbacksListView.tsx</code>) que importa as colunas internamente. Nunca passe colunas
                 como prop vindas de um Server Component.
             </DocCallout>
         </DocSection>
@@ -123,18 +123,15 @@ export function MultiTenantSection() {
             <DocP>
                 Nunca use <code>include: {"{ user: true }"}</code> puro — isso serializa todos os campos do
                 usuário relacionado, inclusive hash de senha e outros campos sensíveis. Use sempre{" "}
-                <code>select</code> explícito, como no exemplo de <code>favorites.service.ts</code>:
+                <code>select</code> explícito, como no exemplo de <code>feedback-comments.service.ts</code>:
             </DocP>
-            <DocCode label="modules/favorites/favorites.service.ts (findOne)">
-                {`const favorite = await this.prisma.favorite.findUnique({
-  where: { id },
-  include: {
-    user: { select: { id: true, email: true } },
-    tenant: { select: { id: true, legalName: true } },
-  },
-});
-if (!favorite || favorite.tenantId !== tenantId || favorite.userId !== userSub) {
-  throw new Error('Favorite not found or access denied');
+            <DocCode label="modules/feedbacks/features/comments/feedback-comments.service.ts (findAll)">
+                {`async findAll(feedbackId: string, tenantId: string) {
+  return this.prisma.feedbackComment.findMany({
+    where: { feedbackId, tenantId },
+    orderBy: { createdAt: 'desc' },
+    include: { user: { select: { id: true, email: true } } },
+  });
 }`}
             </DocCode>
         </DocSection>

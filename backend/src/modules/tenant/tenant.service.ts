@@ -16,26 +16,11 @@ export class TenantService {
     private readonly tenantBusinessRules: TenantBusinessRules,
     private readonly tenantErrorMapper: TenantErrorMapper,
     private readonly prisma: PrismaService,
-  ) { }
+  ) {}
 
   async create(createTenantDto: CreateTenantDto) {
     try {
-      const {
-        foundedAt: foundedAtRaw,
-        closedAt: closedAtRaw,
-        ...rest
-      } = createTenantDto;
-
-      const foundedAt = this.tenantBusinessRules.parseDate(foundedAtRaw);
-      const closedAt = this.tenantBusinessRules.parseDate(closedAtRaw);
-
-      this.tenantBusinessRules.validateDateRange(foundedAt, closedAt);
-
-      const data: Prisma.TenantCreateInput = {
-        ...rest,
-        foundedAt,
-        closedAt,
-      };
+      const data: Prisma.TenantCreateInput = { ...createTenantDto };
 
       return await this.tenantRepository.create(data);
     } catch (error) {
@@ -51,8 +36,19 @@ export class TenantService {
     }
   }
 
-  async findOne(id: string) {
+  private assertOwnTenant(id: string, requestTenantId: string) {
+    if (id !== requestTenantId) {
+      throw new NotFoundException({
+        message: 'Tenant não encontrado',
+        code: TenantErrorCode.NOT_FOUND,
+        details: { id },
+      });
+    }
+  }
+
+  async findOne(id: string, requestTenantId: string) {
     this.tenantBusinessRules.validateTenantId(id);
+    this.assertOwnTenant(id, requestTenantId);
 
     try {
       const tenant = await this.tenantRepository.findById(id);
@@ -71,26 +67,16 @@ export class TenantService {
     }
   }
 
-  async update(id: string, updateTenantDto: UpdateTenantDto) {
+  async update(
+    id: string,
+    updateTenantDto: UpdateTenantDto,
+    requestTenantId: string,
+  ) {
     this.tenantBusinessRules.validateTenantId(id);
+    this.assertOwnTenant(id, requestTenantId);
 
     try {
-      const {
-        foundedAt: foundedAtRaw,
-        closedAt: closedAtRaw,
-        ...rest
-      } = updateTenantDto;
-
-      const foundedAt = this.tenantBusinessRules.parseDate(foundedAtRaw);
-      const closedAt = this.tenantBusinessRules.parseDate(closedAtRaw);
-
-      this.tenantBusinessRules.validateDateRange(foundedAt, closedAt);
-
-      const data: Prisma.TenantUpdateInput = {
-        ...rest,
-        foundedAt,
-        closedAt,
-      };
+      const data: Prisma.TenantUpdateInput = { ...updateTenantDto };
 
       return await this.tenantRepository.updateById(id, data);
     } catch (error) {
@@ -113,17 +99,19 @@ export class TenantService {
   }
 
   async search(query: SearchTenantsDto) {
-    const page = query.pagination?.pageIndex !== undefined ? query.pagination.pageIndex + 1 : 1;
+    const page =
+      query.pagination?.pageIndex !== undefined
+        ? query.pagination.pageIndex + 1
+        : 1;
     const limit = query.pagination?.pageSize ?? 20;
 
     const where: Prisma.TenantWhereInput = query.searchText
       ? {
-        OR: [
-          { legalName: { contains: query.searchText, mode: 'insensitive' } },
-          { tradeName: { contains: query.searchText, mode: 'insensitive' } },
-          { slug: { contains: query.searchText, mode: 'insensitive' } },
-        ],
-      }
+          OR: [
+            { legalName: { contains: query.searchText, mode: 'insensitive' } },
+            { slug: { contains: query.searchText, mode: 'insensitive' } },
+          ],
+        }
       : {};
 
     const [items, total] = await Promise.all([
@@ -134,14 +122,18 @@ export class TenantService {
     return { items, total, page, limit };
   }
 
-  async findUsersOfTenant(tenantId: string) {
+  async findUsersOfTenant(tenantId: string, requestTenantId: string) {
+    this.assertOwnTenant(tenantId, requestTenantId);
+
     return this.prisma.user.findMany({
       where: { tenantId, deletedAt: null },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async findRolesOfTenant(tenantId: string) {
+  async findRolesOfTenant(tenantId: string, requestTenantId: string) {
+    this.assertOwnTenant(tenantId, requestTenantId);
+
     return this.prisma.role.findMany({
       where: { tenantId, deletedAt: null },
       orderBy: { createdAt: 'desc' },

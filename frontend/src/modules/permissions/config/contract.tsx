@@ -1,7 +1,7 @@
-import { defineRecordModule, registerModule } from "@lib/registry";
-import type { DetailLayout, ListLayout } from "@lib/registry/types";
+import { defineRecordModule, registerModule } from "@core/registry";
+import type { DetailLayout, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
-import { createRecordFormAction } from "@lib/registry/actions";
+import { createRecordFormAction } from "@core/registry/actions";
 
 import { PermissionsListView } from "@modules/permissions/components/PermissionsListView";
 import { FormView } from "@components/TypeView/FormView/FormView";
@@ -24,7 +24,7 @@ const formFields = [
 
 const { parseListState, serializeListState } = createListQueryState();
 
-const createPermissionAction = createRecordFormAction.bind(null, "permissions", formFields.map((f) => f.name));
+const createPermissionAction = createRecordFormAction.bind(null, "permissions", formFields);
 
 const permissionsListLayout: ListLayout<PermissionEntity> = {
     list: ({ data }) => <PermissionsListView data={data} />,
@@ -66,7 +66,7 @@ function loadPermissionContext(record: PermissionEntity): ContextItem[] {
 export const permissionsModule = defineRecordModule<PermissionEntity>({
     model: "permissions",
     label: "Permissions",
-    views: ["list", "form"],
+    views: ["list"],
     defaultView: "list",
     dataHandlers: { search: searchPermissions, read: readPermission, create: createPermission, update: updatePermission, delete: deletePermission },
     formFields,

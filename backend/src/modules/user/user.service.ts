@@ -1,9 +1,13 @@
 //@Lib
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 //@Core
-import { Prisma } from '@core/prisma/generated/client';
+import { Prisma, Permission } from '@core/prisma/generated/client';
 import { PrismaService } from '@core/prisma/prisma.service';
 
 //@DTO
@@ -22,10 +26,8 @@ import { UserErrorCode } from './domain/errors/user-error-codes';
 
 //@Repository
 import { UserRepository } from './persistence/repository/user.repository';
-import { TenantId } from '@src/core/common/decorators/tenant-id.decorator';
 
-
-
+import { RolesService } from '../role/roles.service';
 
 @Injectable()
 export class UsersService {
@@ -35,11 +37,45 @@ export class UsersService {
     private readonly userBusinessRules: UserBusinessRules,
     private readonly userErrorMapper: UserErrorMapper,
     private readonly prisma: PrismaService,
-  ) { }
+    private readonly rolesService: RolesService,
+  ) {}
 
-  async create(createUserDto: CreateUserDto, tenantId: string): Promise<UserResponseDto> {
+  // Rule C4: desativar/remover o último admin do tenant é bloqueado, mesmo
+  // que quem esteja fazendo a ação seja outro admin ou o próprio usuário. Só
+  // importa se ESTE usuário for admin — se não for, não há o que checar.
+  private async assertNotLastActiveAdmin(userId: string, tenantId: string) {
+    const isCurrentlyAdmin = await this.prisma.userRole.count({
+      where: {
+        tenantId,
+        userId,
+        role: { type: 'ADMIN', deletedAt: null },
+      },
+    });
+
+    if (isCurrentlyAdmin === 0) {
+      return;
+    }
+
+    const hasOther = await this.rolesService.hasOtherActiveAdmin(tenantId, {
+      excludeUserId: userId,
+    });
+
+    if (!hasOther) {
+      throw new ForbiddenException(
+        'Não é possível desativar ou remover o último administrador do tenant.',
+      );
+    }
+  }
+
+  async create(
+    createUserDto: CreateUserDto,
+    tenantId: string,
+  ): Promise<UserResponseDto> {
     try {
-      const { personId, tenantId: _tenantId, ...rest } = createUserDto;
+      // tenantId do body nunca é usado — vem do contexto autenticado
+      // (parâmetro `tenantId` desta função), nunca do payload do cliente.
+      const { tenantId: _tenantId, ...rest } = createUserDto;
+      void _tenantId;
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
       const user = await this.userRepository.create({
         ...rest,
@@ -47,11 +83,6 @@ export class UsersService {
         tenant: {
           connect: { id: tenantId },
         },
-        person: personId
-          ? {
-            connect: { id: personId },
-          }
-          : undefined,
       });
 
       return this.userMapper.mapToResponseDto(user);
@@ -60,21 +91,28 @@ export class UsersService {
     }
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto, tenantId: string) {
     this.userBusinessRules.validateUserId(id);
 
     try {
-      const { personId, password, ...rest } = updateUserDto;
+      const existing = await this.userRepository.findById(id);
+      if (!existing || existing.tenantId !== tenantId) {
+        throw new NotFoundException({
+          message: 'Usuario nao encontrado',
+          code: UserErrorCode.NOT_FOUND,
+          details: { id },
+        });
+      }
+
+      if (updateUserDto.status && updateUserDto.status !== 'ACTIVE') {
+        await this.assertNotLastActiveAdmin(id, tenantId);
+      }
+
+      const { password, ...rest } = updateUserDto;
       const data: Prisma.UserUpdateInput = { ...rest };
 
       if (password) {
         data.password = await bcrypt.hash(password, 10);
-      }
-
-      if (personId) {
-        data.person = {
-          connect: { id: personId },
-        };
       }
 
       return await this.userRepository.updateById(id, data);
@@ -83,17 +121,28 @@ export class UsersService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, tenantId: string) {
     this.userBusinessRules.validateUserId(id);
 
     try {
+      const existing = await this.userRepository.findById(id);
+      if (!existing || existing.tenantId !== tenantId) {
+        throw new NotFoundException({
+          message: 'Usuario nao encontrado',
+          code: UserErrorCode.NOT_FOUND,
+          details: { id },
+        });
+      }
+
+      await this.assertNotLastActiveAdmin(id, tenantId);
+
       return await this.userRepository.softDeleteById(id);
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'remove');
     }
   }
 
-  async findAll(tenantId?: string) {
+  async findAll(tenantId: string) {
     try {
       const users = await this.userRepository.findManyActive(tenantId);
       return users;
@@ -102,13 +151,13 @@ export class UsersService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, tenantId: string) {
     this.userBusinessRules.validateUserId(id);
 
     try {
       const user = await this.userRepository.findById(id);
 
-      if (!user) {
+      if (!user || user.tenantId !== tenantId) {
         throw new NotFoundException({
           message: 'Usuario nao encontrado',
           code: UserErrorCode.NOT_FOUND,
@@ -130,7 +179,7 @@ export class UsersService {
     }
   }
 
-  async findAllWithValidation(tenantId?: string): Promise<UserResponseDto[]> {
+  async findAllWithValidation(tenantId: string): Promise<UserResponseDto[]> {
     try {
       const users = await this.userRepository.findManyActive(tenantId);
       return this.userMapper.mapToResponseDtoArray(users);
@@ -139,8 +188,11 @@ export class UsersService {
     }
   }
 
-  async getAdultUserStats(search: string): Promise<UserResponseDto[]> {
-    const users = await this.findAllWithValidation();
+  async getAdultUserStats(
+    search: string,
+    tenantId: string,
+  ): Promise<UserResponseDto[]> {
+    const users = await this.findAllWithValidation(tenantId);
     return this.userBusinessRules.filterUsersBySearch(users, search);
   }
 
@@ -153,13 +205,18 @@ export class UsersService {
   }
 
   async search(query: SearchUsersDto, tenantId: string) {
-    const page = query.pagination?.pageIndex !== undefined ? query.pagination.pageIndex + 1 : 1;
+    const page =
+      query.pagination?.pageIndex !== undefined
+        ? query.pagination.pageIndex + 1
+        : 1;
     const limit = query.pagination?.pageSize ?? 20;
 
     const where: Prisma.UserWhereInput = {
       tenantId,
       deletedAt: null,
-      ...(query.searchText ? { email: { contains: query.searchText, mode: 'insensitive' } } : {}),
+      ...(query.searchText
+        ? { email: { contains: query.searchText, mode: 'insensitive' } }
+        : {}),
     };
 
     const [items, total] = await Promise.all([
@@ -184,7 +241,7 @@ export class UsersService {
       include: { permission: true },
     });
 
-    const uniquePermissions = new Map<string, any>();
+    const uniquePermissions = new Map<string, Permission>();
     for (const item of rolePermissions) {
       if (item.permission && !uniquePermissions.has(item.permission.id)) {
         uniquePermissions.set(item.permission.id, item.permission);

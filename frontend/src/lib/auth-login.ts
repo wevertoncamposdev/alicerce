@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from "next/navigation";
-import { setSessionCookies } from "@lib/session";
+import { setSessionCookies, extractSetCookieValue, REFRESH_COOKIE } from "@lib/session";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL ?? "http://localhost:5000/api";
 
@@ -18,7 +18,17 @@ export async function loginWithCredentials(email: string, password: string) {
         throw new Error(payload?.message ?? "Credenciais inválidas.");
     }
 
-    return payload as {
+    // O Nest manda o refresh token só via Set-Cookie, nunca no corpo (ver
+    // session.ts/extractSetCookieValue) — payload.refresh_token não existe.
+    const refreshToken = extractSetCookieValue(res.headers.getSetCookie(), REFRESH_COOKIE);
+    if (!refreshToken) {
+        throw new Error("Falha ao obter o refresh token da sessão.");
+    }
+
+    return {
+        ...payload,
+        refresh_token: refreshToken,
+    } as {
         access_token: string;
         refresh_token: string;
         user: unknown;

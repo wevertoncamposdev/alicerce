@@ -1,5 +1,5 @@
 // app/(app)/tenants/page.tsx
-import { TypeViewScreen } from "@/screens/TypeViewScreen";
+import { TypeViewScreen } from "@core/screens/TypeViewScreen";
 
 export default function TenantPage({
     searchParams,

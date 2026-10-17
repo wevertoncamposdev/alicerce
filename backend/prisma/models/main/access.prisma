@@ -12,17 +12,13 @@ model User {
     updatedAt DateTime  @updatedAt
     deletedAt DateTime?
 
-    tenant          Tenant         @relation(fields: [tenantId], references: [id])
-    roles           UserRole[]
-    audits          Audit[]
-    person          Person?
-    tasksCreated    Task[]         @relation("taskCreator")
-    tasksAssignedTo Task[]         @relation("taskAssignedTo")
-    favorites       Favorite[]
-    refreshTokens   RefreshToken[]
-    favoriteNotes   FavoriteNote[]
+    tenant        Tenant         @relation(fields: [tenantId], references: [id])
+    roles         UserRole[]
+    audits        Audit[]
+    refreshTokens RefreshToken[]
+    feedbacks        Feedback[]
+    feedbackComments FeedbackComment[]
 
-    @@unique([tenantId, email])
     @@map("users")
 }
 
@@ -43,6 +39,7 @@ model Role {
     users       UserRole[]
     permissions RolePermission[]
 
+    @@index([tenantId])
     @@map("roles")
 }
 
@@ -60,6 +57,7 @@ model UserRole {
     role   Role   @relation(fields: [roleId], references: [id])
 
     @@unique([userId, roleId])
+    @@index([tenantId])
     @@map("user_roles")
 }
 
@@ -78,6 +76,8 @@ model Permission {
     tenant Tenant           @relation(fields: [tenantId], references: [id])
     roles  RolePermission[]
 
+    // @@unique já começa por tenantId, então também serve de índice para
+    // consultas que filtram só por tenantId — não precisa de @@index extra.
     @@unique([tenantId, name, resource])
     @@map("permissions")
 }
@@ -94,6 +94,7 @@ model RolePermission {
     permission Permission @relation(fields: [permissionId], references: [id])
 
     @@unique([roleId, permissionId, resource])
+    @@index([tenantId])
     @@map("role_permissions")
 }
 
@@ -115,5 +116,10 @@ model Audit {
     tenant Tenant @relation(fields: [tenantId], references: [id])
     user   User   @relation(fields: [userId], references: [id])
 
+    // Cobre os dois jeitos que AuditService.findAll consulta: trilha geral
+    // do tenant ordenada por data, e trilha filtrada por entidade/registro
+    // (usada pela aba de auditoria do DetailView no frontend).
+    @@index([tenantId, createdAt])
+    @@index([tenantId, entity, entityId])
     @@map("audits")
 }

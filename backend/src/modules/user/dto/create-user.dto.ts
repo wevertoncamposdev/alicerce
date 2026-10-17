@@ -30,9 +30,4 @@ export class CreateUserDto {
   @IsOptional()
   @IsBoolean()
   mfaEnabled?: boolean;
-
-  @ApiPropertyOptional({ format: 'uuid' })
-  @IsOptional()
-  @IsUUID()
-  personId?: string;
 }

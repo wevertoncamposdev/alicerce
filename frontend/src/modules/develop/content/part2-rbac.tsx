@@ -27,7 +27,10 @@ export function RbacSection() {
 Permission   -> Módulo independente (própria rota /permissions, SEARCH, CRUD)
 RolePermission -> Módulo Relacionado (N:N Role<->Permission) -> RelationShell dentro de /roles/[id]
 UserRole       -> Módulo Relacionado (N:N User<->Role)       -> RelationShell dentro de /users/[id]
-Person         -> Extensão de Módulo (1:1 com User)          -> seção/aba dentro de /users/[id]`}
+
+(Extensão de Módulo — complemento 1:1 do módulo pai, renderizado como seção
+do form de detalhe — ainda não tem exemplo real neste projeto; o padrão
+existe na taxonomia pra quando surgir um caso de uso.)`}
             </DocCode>
 
             <DocSubTitle>Backend — decorators de autorização</DocSubTitle>
@@ -88,7 +91,7 @@ const ACTION_PERMISSION_RULES = {
             <DocSubTitle>Pendências conhecidas neste ponto do projeto</DocSubTitle>
             <DocP>
                 Ao mexer em Roles/Permissions, esteja ciente do estado atual do repositório (ver também a
-                seção &quot;Armadilhas conhecidas&quot;): faltam rotas <code>@Get(':id')</code> e{" "}
+                seção &quot;Armadilhas conhecidas&quot;): faltam rotas <code>@Get(&apos;:id&apos;)</code> e{" "}
                 <code>findOne</code> em <code>RolesController</code>/<code>PermissionsController</code>, e{" "}
                 <code>readRolePermissions</code>/<code>readRoleUsers</code> ainda não enviam{" "}
                 <code>tenantId</code> — isso é exatamente o tipo de vazamento descrito na seção de

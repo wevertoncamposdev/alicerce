@@ -1,9 +1,8 @@
-import { defineRecordModule, registerModule } from "@lib/registry";
-import type { DetailLayout, ListLayout } from "@lib/registry/types";
+import { defineRecordModule, registerModule } from "@core/registry";
+import type { DetailLayout, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
-import { createRecordFormAction } from "@lib/registry/actions";
+import { createRecordFormAction } from "@core/registry/actions";
 
-import { ListView } from "@components/TypeView/ListView/ListView";
 import { FormView } from "@components/TypeView/FormView/FormView";
 import { TenantsListView } from "@modules/tenants/components/TenantsListView";
 import { TenantUsersHost } from "@modules/tenants/components/TenantUsersHost";
@@ -25,11 +24,11 @@ const { parseListState, serializeListState } = createListQueryState();
 const createTenantAction = createRecordFormAction.bind(
     null,
     "tenants",
-    formFields.map((f) => f.name)
+    formFields,
 );
 
 const tenantsListLayout: ListLayout<TenantEntity> = {
-    list: ({ data }) => <TenantsListView data={data} />,
+    list: ({ data, pagination, searchArgs }) => <TenantsListView data={data} pagination={pagination} sort={searchArgs.sort} />,
     form: () => (
         <FormView<TenantEntity>
             mode="create"
@@ -65,7 +64,7 @@ function loadTenantContext(record: TenantEntity): ContextItem[] {
 export const tenantsModule = defineRecordModule<TenantEntity>({
     model: "tenants",
     label: "Tenants",
-    views: ["list", "form"],
+    views: ["list"],
     defaultView: "list",
     dataHandlers: { search: searchTenants, read: readTenant, create: createTenant, update: updateTenant, delete: deleteTenant },
     formFields,

@@ -1,41 +1,38 @@
+import { alicerceModules } from "@/alicerce.config";
+
 export type RouteAccessMeta = {
     prefix: string;
     permission: string;
-    module: 'users' | 'roles' | 'permissions' | 'audit' | 'tenants' | 'tasks' | 'favorites';
+    module: (typeof alicerceModules)[number]["key"];
     title: string;
 };
 
-const ROUTE_RULES: ReadonlyArray<RouteAccessMeta> = [
-    { prefix: '/users', permission: 'user.read', module: 'users', title: 'Usuarios' },
-    { prefix: '/favorites', permission: 'user.read', module: 'favorites', title: 'Favoritos' },
-    { prefix: '/roles', permission: 'role.read', module: 'roles', title: 'Papeis' },
-    { prefix: '/permissions', permission: 'permission.read', module: 'permissions', title: 'Permissoes' },
-    { prefix: '/audit', permission: 'audit.read', module: 'audit', title: 'Auditoria' },
-    { prefix: '/tenants', permission: 'tenant.read', module: 'tenants', title: 'Tenants' },
-    { prefix: '/tasks', permission: 'task.read', module: 'tasks', title: 'Tarefas' },
-];
+const ROUTE_RULES: ReadonlyArray<RouteAccessMeta> = alicerceModules.map((mod) => ({
+    prefix: mod.basePath,
+    permission: mod.permission,
+    module: mod.key,
+    title: mod.title,
+}));
 
-const ACTION_PERMISSION_RULES = {
-    'users.create': 'user.create',
-    'users.update': 'user.update',
-    'users.delete': 'user.delete',
-    'roles.create': 'role.create',
-    'roles.update': 'role.update',
-    'roles.delete': 'role.delete',
-    'roles.assign': 'role.assign',
-    'permissions.create': 'permission.create',
-    'permissions.update': 'permission.update',
-    'permissions.delete': 'permission.delete',
-    'audit.refresh': 'audit.read',
-    'tenants.create': 'tenant.update',
-    'tenants.update': 'tenant.update',
-    'tenants.delete': 'tenant.update',
-    'tasks.create': 'task.create',
-    'tasks.update': 'task.update',
-    'tasks.delete': 'task.delete',
-} as const;
+const ACTION_PERMISSION_RULES: Record<string, string> = Object.fromEntries(
+    alicerceModules.flatMap((mod) =>
+        Object.entries(mod.actionPermissions ?? {}).map(
+            ([action, permission]): [string, string] => [`${mod.key}.${action}`, permission],
+        ),
+    ),
+);
 
-export type AuthAction = keyof typeof ACTION_PERMISSION_RULES;
+// `Object.fromEntries` sempre larga pra `Record<string, string>` (limitação
+// conhecida do TS) — reconstrói a union literal exata (`"users.create" |
+// "roles.assign" | ...`) direto de `alicerceModules`, sem precisar repetir
+// as chaves à mão.
+type ModuleActionKeys<M> = M extends { key: infer K extends string; actionPermissions?: infer A }
+    ? A extends Record<string, string>
+        ? `${K}.${Extract<keyof A, string>}`
+        : never
+    : never;
+
+export type AuthAction = ModuleActionKeys<(typeof alicerceModules)[number]>;
 
 export function listRouteRules(): ReadonlyArray<RouteAccessMeta> {
     return ROUTE_RULES;

@@ -25,6 +25,12 @@ export function useAutoSaveController<TDraft extends object>({
         draftRef.current = draft;
     }, [draft]);
 
+    // Drena a fila com um loop, não recursão — chamar a própria função
+    // memoizada de dentro dela mesma impede o React Compiler de otimizar o
+    // hook (ele não consegue provar que a referência capturada no closure
+    // continua a mesma após a otimização). O loop alcança exatamente o
+    // mesmo efeito (reprocessa o que foi enfileirado durante o save
+    // anterior, inclusive depois de um erro) sem a auto-referência.
     const commitDraftAsync = React.useCallback(async () => {
         if (!enabled) return;
         const candidate = draftRef.current;
@@ -40,22 +46,21 @@ export function useAutoSaveController<TDraft extends object>({
 
         savingRef.current = true;
         setSaving(true);
-        try {
-            const saved = await onSave(candidate);
-            lastSavedRef.current = saved;
-        } catch (error) {
-            onError?.(error);
-        } finally {
-            savingRef.current = false;
-            setSaving(false);
 
-            if (queuedRef.current) {
-                const next = queuedRef.current;
-                queuedRef.current = null;
-                draftRef.current = next;
-                void commitDraftAsync();
+        let current: TDraft | null = candidate;
+        while (current) {
+            try {
+                const saved = await onSave(current);
+                lastSavedRef.current = saved;
+            } catch (error) {
+                onError?.(error);
             }
+            current = queuedRef.current;
+            queuedRef.current = null;
         }
+
+        savingRef.current = false;
+        setSaving(false);
     }, [enabled, onSave, onError]);
 
     const commitField = React.useCallback(() => {

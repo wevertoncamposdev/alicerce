@@ -1,13 +1,13 @@
-import { defineRecordModule, registerModule } from "@lib/registry";
-import type { ListLayout } from "@lib/registry/types";
+import { defineRecordModule, registerModule } from "@core/registry";
+import type { ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
 
-import { AuditListView } from "@/modules/audit/components/AuditListView";
-import { readAuditEntry, searchAuditEntries } from "@/modules/audit/config/provider";
-import type { AuditEntry } from "@/modules/audit/types/types";
+import { AuditListView } from "@modules/audit/components/AuditListView";
+import { readAuditEntry, searchAuditEntries } from "@modules/audit/config/provider";
+import type { AuditEntry } from "@modules/audit/types/types";
 
 const auditListLayout: ListLayout<AuditEntry> = {
-    list: ({ data }) => <AuditListView data={data} />,
+    list: ({ data, pagination }) => <AuditListView data={data} pagination={pagination} />,
 };
 
 const { parseListState, serializeListState } = createListQueryState();

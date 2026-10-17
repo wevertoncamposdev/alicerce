@@ -1,6 +1,9 @@
 /plan
-/docs
 /agent
 
-AGENTS.md
 study.code-workspace
+
+# package.json raiz (scripts/new-module.mjs) — não é workspace, mas ainda
+# instala node_modules/lockfile próprios.
+/node_modules
+/package-lock.json

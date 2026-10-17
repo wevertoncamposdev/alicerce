@@ -1,5 +1,5 @@
 // components/TypeView/TypeView.tsx
-import type { ListLayout, ListContext } from "@lib/registry/types";
+import type { ListLayout, ListContext } from "@core/registry/types";
 
 export type TypeViewMode = string;
 

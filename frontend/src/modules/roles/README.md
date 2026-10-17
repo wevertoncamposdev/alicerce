@@ -1,221 +1,54 @@
-# Template de Módulo Frontend
+# Módulo `roles`
 
-Este diretório é um template de estrutura para novos módulos/features do frontend.
+Módulo de domínio para gestão de papéis (roles) do tenant. Serve como referência de
+um módulo com **duas relações N:N geridas no próprio DetailView** (Role↔User,
+Role↔Permission) — veja `frontend/src/modules/develop` (rota `/develop` da aplicação)
+para o guia completo de como criar um módulo novo; este README só documenta o que
+existe especificamente aqui.
 
-## Estrutura
+## Estrutura real
 
 ```bash
-_template/
-├── actions/        # Serviços de API - Actions Forms
-├── components/     # Componentes React da feature
-├── config/         # Configuração do Módulo, contract, providers...
-├── hooks/          # Custom hooks da feature
-├── services/       # Serviços de API
-├── types/          # Tipos/Interfaces da feature
-├── constants/      # Constantes e valores padrão
-└── README.md       # Documentação específica da feature
+roles/
+├── config/
+│   ├── contract.tsx      # defineRecordModule + registerModule — ligação ao registry
+│   └── provider.ts       # dataHandlers (search/read/create/update/delete) via apiServer
+├── actions/
+│   └── roleService.ts    # Server Actions para atar/desatar usuário e permissão ao role
+├── components/
+│   ├── RoleListView.tsx       # "use client" — wrapper de ColumnDef para a TypeView (list)
+│   ├── RolePermissionsHost.tsx # aba "Permissions" do DetailView — attach/detach com picker
+│   ├── RoleUsersHost.tsx       # aba "Users" do DetailView — attach/detach com picker
+│   └── columns.ts              # ColumnDef da tabela de listagem
+├── types/types.ts        # RoleEntity, CreateRolePayload, UpdateRolePayload, ContextItem
+└── constants/.gitkeep    # sem constantes próprias ainda
 ```
 
-## Como usar
+## Pontos específicos deste módulo
 
-1. **Copie esta estrutura** para `src/modules/[novo-modulo]/`.
-2. **Renomeie ou crie** arquivos conforme necessário dentro de cada diretório.
-3. **Implemente os padrões** descritos abaixo.
-4. **Siga as convenções** do projeto antes de criar um PR.
+- **`views: ["list"]`** em `contract.tsx` — não usa `cards`/`graph` (nenhum
+  módulo atual usa essas duas; não é um padrão obrigatório, é por módulo).
+  "Criar" não é mais uma view (`?view=form`) desde o P13 — é o botão "+ Novo"
+  que abre um `Sheet`, ver `CreateRecordSheet.tsx`.
+- **Relações são bidirecionais nos dois sentidos, mas só um lado é editável**: as abas
+  `users`/`permissions` aqui em `RoleUsersHost`/`RolePermissionsHost` usam
+  `RelationHost` (`lib/registry/relation-host.tsx`) com attach/detach completo
+  (picker + toast + indicador de autosave). Os lados reversos
+  (`modules/users/components/UserRolesHost.tsx`,
+  `modules/permissions/components/PermissionRolesHost.tsx`) são só leitura — é o Role
+  que administra a relação, por decisão de produto, não uma limitação técnica.
+- **`provider.ts`** usa `apiServer` (nunca `fetch` direto) e resolve `tenantId` via
+  `getSessionTenantId()` só para as duas leituras de relação
+  (`readRolePermissions`/`readRoleUsers`) — os demais handlers recebem `tenantId` do
+  próprio contexto da sessão no `apiServer`.
+- **`actions/roleService.ts`** (não `config/client-actions.ts` — esse arquivo existiu
+  como um rascunho duplicado e foi removido) é o único lugar com as Server Actions de
+  attach/detach; `RoleUsersHost`/`RolePermissionsHost`/`UserRolesHost` importam dele.
 
-## Padrões por arquivo
+## Ao modificar este módulo
 
-### `types/*.ts`
-
-Define tipos/interfaces da feature. Exemplo:
-
-```typescript
-export interface EntityData {
-  id: string;
-  name: string;
-  createdAt: string;
-}
-
-export interface EntityPayload {
-  name: string;
-}
-```
-
-### `constants/*.ts`
-
-Constantes, valores padrão e mapeamentos. Exemplo:
-
-```typescript
-export const ENTITY_INITIAL_VALUES = { name: '' };
-
-export const ENTITY_STATUS_OPTIONS = [
-  { label: 'Ativo', value: 'ACTIVE' },
-  { label: 'Inativo', value: 'INACTIVE' },
-];
-```
-
-### `services/*.ts`
-
-Serviços de API usando `apiRequest`. Exemplo:
-
-```typescript
-import { apiRequest } from '@/lib/api-client';
-
-export async function fetchEntities(token: string) {
-  return apiRequest<EntityData[]>('/entities', {
-    method: 'GET',
-    token,
-  });
-}
-```
-
-### `hooks/*.ts`
-
-Custom hooks que gerenciam estado e lógica da feature. Exemplo:
-
-```typescript
-export function useEntities() {
-  const [entities, setEntities] = useState<EntityData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    try {
-      const data = await fetchEntities(token);
-      setEntities(data);
-    } catch (err) {
-      setError(toErrorMessage(err, 'Erro ao carregar.'));
-    }
-  }, [token]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  return { entities, loading, error, reload: load };
-}
-```
-
-Padrão de estados:
-
-- `loading`: booleano para carregamento inicial
-- `saving`: booleano para mutações (create, update, delete)
-- `error`: string | null com mensagem de erro
-- `reload`: função async para recarregar dados
-
-### `components/*.tsx`
-
-Componentes React que consomem hooks e shells. Exemplo:
-
-```typescript
-export default function EntityList() {
-  const { entities, loading, error, reload } = useEntities();
-
-  return (
-    <DetailShell title="Entities" error={error}>
-      <PainelSearchShell
-        actions={<Button onClick={() => void reload()}>Atualizar</Button>}
-      >
-        <TypeView
-          mode="table"
-          data={entities}
-          columns={columns}
-          isLoading={loading}
-        />
-      </PainelSearchShell>
-    </DetailShell>
-  );
-}
-```
-
-## Checklist de implementação
-
-- [ ] Tipos definidos em `types/`
-- [ ] Constantes em `constants/`
-- [ ] Serviços de API em `services/`
-- [ ] Hooks customizados em `hooks/`
-- [ ] Componentes React em `components/`
-- [ ] Página roteada em `app/main/[feature]/page.tsx`
-- [ ] Build sem erro de tipagem
-- [ ] Testes de fluxos críticos (opcional para MVP)
-
-## Padrões do projeto
-
-### Role-aware
-
-Sempre passar `tenantId` em contexto via localStorage ou props:
-
-```typescript
-const { currentTenantId, token } = useAuth();
-
-const data = await fetchData({ token, tenantId: currentTenantId });
-```
-
-### Autorizacao
-
-Sempre validar permissões em componentes antes de renderizar ações:
-
-```typescript
-const { hasPermission } = useAuth();
-
-if (!hasPermission('entity.create')) {
-  return <div>Sem permissão</div>;
-}
-```
-
-### Estados async
-
-Sempre retornar `{ loading, saving, error, reload }` dos hooks:
-
-```typescript
-export function useEntity() {
-  return {
-    data: [],
-    loading: false,
-    saving: false,
-    error: null,
-    reload: async () => {},
-  };
-}
-```
-
-### Composição de telas
-
-Usar shells padrão (`DetailShell`, `PainelSearchShell`, `SideShell`) para consistência:
-
-```typescript
-<DetailShell title="Feature" error={error}>
-  <PainelSearchShell actions={<Button>Action</Button>}>
-    {/* conteudo */}
-  </PainelSearchShell>
-</DetailShell>
-```
-
-## Exemplos completos
-
-Veja os módulos existentes:
-
-- `src/modules/users/` - Exemplo completo de CRUD com usuários
-- `src/modules/roles/` - Exemplo com relações (Role-User, Role-Permission)
-- `src/modules/tenants/` - Exemplo com contexto de tenant
-
-## Troubleshooting
-
-### Erro: "Sem permissão para criar"
-
-- Verifique se o usuário tem a permissão no backend
-- Valide `hasPermission()` antes de renderizar o botão
-
-### Dados não atualizam ao trocar tenant
-
-- Verifique se `reload()` eh chamado quando `currentTenantId` muda
-- Use `useCallback` com dependências corretas
-
-### TypeScript error em tipos
-
-- Certifique-se de que tipos sao exportados corretamente
-- Verifique imports em `types/*.ts`
-
----
-
-Dúvidas? Revise o README do frontend em `frontend/README.md` ou os critérios de smoke visual em `plan/Plan_Fase2_Hardening_UX.md`.
+- Formulário (`formFields` em `contract.tsx`) e `types/types.ts` precisam ficar em
+  sincronia com `CreateRoleDto`/`UpdateRoleDto` do backend
+  (`backend/src/modules/role/dto/`).
+- Qualquer permissão nova referenciada aqui (`role.*`) precisa existir no catálogo
+  central do backend (`backend/src/core/authorization/permission-catalog.ts`).

@@ -3,6 +3,7 @@ import "@/app/globals.css";
 import { IntlProvider } from 'react-intl';
 import locale from '@/locales/pt.json';
 import { AuthProvider } from "@/contexts/auth-context";
+import { Toaster } from "@components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "SaaS Multi-Tenant Base",
@@ -19,6 +20,7 @@ export default function RootLayout({
       <IntlProvider locale="pt-BR" messages={locale}>
         <body className="min-h-full flex flex-col">
           <AuthProvider>{children}</AuthProvider>
+          <Toaster />
         </body>
       </IntlProvider>
     </html>

@@ -8,15 +8,16 @@ import { ConfigService } from '@nestjs/config';
 import { SignInDto } from './dto/sign-in.dto';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { PrismaService } from '@core/prisma/prisma.service';
+import { PrismaBootstrapService } from '@core/prisma/prisma-bootstrap.service';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { AuditService } from '@modules/audit/audit.service';
 import { SignUpPublicDto } from './dto/sign-up-public.dto';
-import {
-  PermissionType,
-  RoleType,
-  TenantCategory,
-  TenantServiceArea,
-} from '@core/prisma/generated/enums';
+import { RoleType } from '@core/prisma/generated/enums';
 import { I18nService } from 'nestjs-i18n';
+import {
+  PERMISSION_CATALOG,
+  TENANT_ADMIN_PERMISSION_NAMES,
+} from '@core/authorization/permission-catalog';
 
 export interface AuthUserContext {
   id: string;
@@ -40,41 +41,28 @@ export interface AuthSessionResponse {
 // Duração do refresh token: 7 dias em ms
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
+// Janela de tolerância para reuso de refresh token já revogado: cobre
+// requisições paralelas (duas abas, retry de rede) que chegam quase juntas
+// e tentam rotacionar o mesmo token. Fora dessa janela, reuso é tratado
+// como roubo de token.
+const REFRESH_TOKEN_REUSE_GRACE_MS = 10 * 1000;
+
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
+    // Role owner (ignora RLS) — ver PrismaBootstrapService: todas as
+    // consultas deste service são inerentemente cross-tenant (login por
+    // email, refresh token por hash, criação do tenant no signup).
+    private readonly prismaBootstrap: PrismaBootstrapService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly i18n: I18nService,
-  ) { }
-
-  private mapPermissionType(permissionName: string): PermissionType {
-    if (permissionName.endsWith('.read')) {
-      return 'READ';
-    }
-
-    if (permissionName.endsWith('.delete')) {
-      return 'DELETE';
-    }
-
-    return 'WRITE';
-  }
-
-  private buildRegistrationNumber(tenantSlug: string) {
-    const normalized = tenantSlug
-      .replace(/[^a-z0-9]/gi, '')
-      .slice(0, 8)
-      .toUpperCase();
-
-    return `${normalized || 'TENANT'}${Date.now().toString().slice(-10)}`.slice(
-      0,
-      20,
-    );
-  }
+    private readonly permissionCache: PermissionCacheService,
+    private readonly auditService: AuditService,
+  ) {}
 
   private async getAuthUserByEmail(email: string) {
-    return this.prisma.user.findUnique({
+    return this.prismaBootstrap.user.findUnique({
       where: { email },
       include: {
         tenant: true,
@@ -96,7 +84,7 @@ export class AuthService {
   }
 
   private async getAuthUserById(id: string) {
-    return this.prisma.user.findUnique({
+    return this.prismaBootstrap.user.findUnique({
       where: { id },
       include: {
         tenant: true,
@@ -117,7 +105,9 @@ export class AuthService {
     });
   }
 
-  private mapAuthUserContext(user: NonNullable<Awaited<ReturnType<AuthService['getAuthUserById']>>>) {
+  private async mapAuthUserContext(
+    user: NonNullable<Awaited<ReturnType<AuthService['getAuthUserById']>>>,
+  ) {
     const roleNames = Array.from(
       new Set(user.roles.map((item) => item.role.type)),
     );
@@ -136,6 +126,14 @@ export class AuthService {
       roles: roleNames,
       permissions: permissionNames,
     };
+
+    // Popula o cache de permissões já aqui (ver P7.5/PermissionCacheService)
+    // — evita um miss garantido na primeira requisição autenticada da sessão.
+    await this.permissionCache.setPermissions(
+      user.tenantId,
+      user.id,
+      permissionNames,
+    );
 
     return authUserContext;
   }
@@ -173,7 +171,7 @@ export class AuthService {
       .update(rawToken)
       .digest('hex');
 
-    await this.prisma.refreshToken.create({
+    await this.prismaBootstrap.refreshToken.create({
       data: {
         token: tokenHash,
         userId,
@@ -203,7 +201,7 @@ export class AuthService {
       .update(rawToken)
       .digest('hex');
 
-    const storedToken = await this.prisma.refreshToken.findUnique({
+    const storedToken = await this.prismaBootstrap.refreshToken.findUnique({
       where: { token: tokenHash },
     });
 
@@ -212,31 +210,42 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token inválido ou expirado');
     }
 
-    // ⚠️  Reuso detectado: token já foi revogado mas alguém está tentando usá-lo.
-    // Isso indica que o token pode ter sido roubado. A decisão mais segura
-    // é revogar toda a família — forçando novo login para todos.
     if (storedToken.revokedAt !== null) {
-      await this.prisma.refreshToken.updateMany({
-        where: { familyId: storedToken.familyId },
+      const revokedWithinGraceWindow =
+        Date.now() - storedToken.revokedAt.getTime() <
+        REFRESH_TOKEN_REUSE_GRACE_MS;
+
+      // Dentro da janela de tolerância: provável corrida de requisições
+      // paralelas que rotacionaram o mesmo token quase ao mesmo tempo (não é
+      // reuso malicioso). Deixa passar e emite um novo par normalmente,
+      // sem punir a família nem revogar de novo o token já revogado.
+      if (!revokedWithinGraceWindow) {
+        // ⚠️  Reuso fora da janela de tolerância: o token já tinha sido
+        // revogado há tempo e alguém está tentando usá-lo de novo. Isso
+        // indica que o token pode ter sido roubado. A decisão mais segura
+        // é revogar toda a família — forçando novo login para todos.
+        await this.prismaBootstrap.refreshToken.updateMany({
+          where: { familyId: storedToken.familyId },
+          data: { revokedAt: new Date() },
+        });
+        throw new UnauthorizedException(
+          'Sessão inválida. Faça login novamente.',
+        );
+      }
+    } else {
+      // Revoga o token atual antes de emitir o próximo
+      await this.prismaBootstrap.refreshToken.update({
+        where: { id: storedToken.id },
         data: { revokedAt: new Date() },
       });
-      throw new UnauthorizedException(
-        'Sessão inválida. Faça login novamente.',
-      );
     }
-
-    // Revoga o token atual antes de emitir o próximo
-    await this.prisma.refreshToken.update({
-      where: { id: storedToken.id },
-      data: { revokedAt: new Date() },
-    });
 
     const user = await this.getAuthUserById(storedToken.userId);
     if (!user) {
       throw new UnauthorizedException('Usuário não encontrado');
     }
 
-    const mappedUser = this.mapAuthUserContext(user);
+    const mappedUser = await this.mapAuthUserContext(user);
     const [access_token, refresh_token] = await Promise.all([
       this.signToken(mappedUser),
       // Herda o mesmo familyId — a "linhagem" da sessão original
@@ -269,20 +278,20 @@ export class AuthService {
       .update(rawToken)
       .digest('hex');
 
-    const storedToken = await this.prisma.refreshToken.findUnique({
+    const storedToken = await this.prismaBootstrap.refreshToken.findUnique({
       where: { token: tokenHash },
     });
 
     if (!storedToken) return; // Token inválido — logout silencioso
 
-    await this.prisma.refreshToken.updateMany({
+    await this.prismaBootstrap.refreshToken.updateMany({
       where: { familyId: storedToken.familyId },
       data: { revokedAt: new Date() },
     });
   }
 
   async signUpPublic(dto: SignUpPublicDto): Promise<AuthSessionResponse> {
-    const existingByEmail = await this.prisma.user.findUnique({
+    const existingByEmail = await this.prismaBootstrap.user.findUnique({
       where: { email: dto.email },
     });
 
@@ -290,7 +299,7 @@ export class AuthService {
       throw new ConflictException('Ja existe usuario com este email');
     }
 
-    const existingBySlug = await this.prisma.tenant.findFirst({
+    const existingBySlug = await this.prismaBootstrap.tenant.findFirst({
       where: { slug: dto.tenantSlug },
     });
 
@@ -298,40 +307,13 @@ export class AuthService {
       throw new ConflictException('Ja existe tenant com este slug');
     }
 
-    const basePermissions = [
-      'user.create',
-      'user.read',
-      'user.update',
-      'user.delete',
-      'role.create',
-      'role.read',
-      'role.update',
-      'role.delete',
-      'role.assign',
-      'permission.create',
-      'permission.read',
-      'permission.update',
-      'permission.delete',
-      'audit.read',
-      'tenant.read',
-      'tenant.update',
-      'task.create',
-      'task.read',
-      'task.update',
-      'task.delete',
-    ];
-
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
-    const created = await this.prisma.$transaction(async (tx) => {
+    const created = await this.prismaBootstrap.$transaction(async (tx) => {
       const tenant = await tx.tenant.create({
         data: {
           legalName: dto.tenantName,
-          tradeName: dto.tenantName,
-          registrationNumber: this.buildRegistrationNumber(dto.tenantSlug),
           slug: dto.tenantSlug,
-          category: TenantCategory.OTHER,
-          primaryServiceArea: TenantServiceArea.OTHER,
           status: 'ACTIVE',
         },
       });
@@ -347,16 +329,21 @@ export class AuthService {
       });
 
       await tx.permission.createMany({
-        data: basePermissions.map((name) => ({
+        data: PERMISSION_CATALOG.map((permission) => ({
           tenantId: tenant.id,
-          name,
-          type: this.mapPermissionType(name),
+          name: permission.name,
+          type: permission.type,
+          resource: permission.resource,
+          description: permission.description,
         })),
         skipDuplicates: true,
       });
 
       const permissions = await tx.permission.findMany({
-        where: { tenantId: tenant.id, name: { in: basePermissions } },
+        where: {
+          tenantId: tenant.id,
+          name: { in: [...TENANT_ADMIN_PERMISSION_NAMES] },
+        },
       });
 
       await tx.rolePermission.createMany({
@@ -395,11 +382,15 @@ export class AuthService {
       throw new UnauthorizedException('Falha ao carregar sessao de onboarding');
     }
 
-    const mappedUser = this.mapAuthUserContext(user);
+    const mappedUser = await this.mapAuthUserContext(user);
     const familyId = crypto.randomUUID();
     const [access_token, refresh_token] = await Promise.all([
       this.signToken(mappedUser),
-      this.createRefreshToken({ userId: user.id, tenantId: user.tenantId, familyId }),
+      this.createRefreshToken({
+        userId: user.id,
+        tenantId: user.tenantId,
+        familyId,
+      }),
     ]);
 
     return {
@@ -418,26 +409,49 @@ export class AuthService {
     const user = await this.getAuthUserByEmail(signInDto.email);
 
     if (!user) {
-      const message = await this.i18n.translate('messages.USER.NOT_FOUND', {
+      const message = this.i18n.translate('messages.USER.NOT_FOUND', {
         lang: 'pt-BR',
       });
       throw new UnauthorizedException(message);
     }
 
-    const isPasswordValid = await bcrypt.compare(signInDto.password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      signInDto.password,
+      user.password,
+    );
 
     if (!isPasswordValid) {
-      const message = await this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
+      // Diferente de um 401 genérico (token ausente/inválido): aqui o
+      // usuário foi encontrado, então há tenantId/userId pra atribuir o
+      // evento — ver AuditType.LOGIN_FAILED. E-mail inexistente (branch
+      // acima) continua sem auditoria: não há tenant a quem atribuir.
+      void this.auditService
+        .register({
+          tenantId: user.tenantId,
+          userId: user.id,
+          type: 'LOGIN_FAILED',
+          action: 'POST',
+          entity: 'auth',
+        })
+        .catch(() => {
+          // Auditoria não deve interromper o fluxo de login (nem seu erro).
+        });
+
+      const message = this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
         lang: 'pt-BR',
       });
       throw new UnauthorizedException(message);
     }
 
-    const mappedUser = this.mapAuthUserContext(user);
+    const mappedUser = await this.mapAuthUserContext(user);
     const familyId = crypto.randomUUID();
     const [access_token, refresh_token] = await Promise.all([
       this.signToken(mappedUser),
-      this.createRefreshToken({ userId: user.id, tenantId: user.tenantId, familyId }),
+      this.createRefreshToken({
+        userId: user.id,
+        tenantId: user.tenantId,
+        familyId,
+      }),
     ]);
 
     return {

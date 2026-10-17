@@ -15,4 +15,4 @@ import { TenantRepository } from './persistence/repository/tenant.repository';
   ],
   exports: [TenantService],
 })
-export class TenantModule { }
+export class TenantModule {}

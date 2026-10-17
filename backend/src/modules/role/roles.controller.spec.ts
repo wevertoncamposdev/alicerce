@@ -1,52 +1,84 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RolesController } from './roles.controller';
 import { RolesService } from './roles.service';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
 describe('RolesController', () => {
-    let controller: RolesController;
-    let service: jest.Mocked<RolesService>;
+  let controller: RolesController;
+  let service: jest.Mocked<RolesService>;
 
-    const rolesServiceMock = {
-        create: jest.fn(),
-        findAll: jest.fn(),
-        findOne: jest.fn(),
-        update: jest.fn(),
-        remove: jest.fn(),
-        attachUser: jest.fn(),
-        detachUser: jest.fn(),
-        attachPermission: jest.fn(),
-        detachPermission: jest.fn(),
-        search: jest.fn(),
-        findPermissionsOfRole: jest.fn(),
-        findUsersOfRole: jest.fn(),
-    };
+  const rolesServiceMock = {
+    create: jest.fn(),
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    update: jest.fn(),
+    remove: jest.fn(),
+    attachUser: jest.fn(),
+    detachUser: jest.fn(),
+    attachPermission: jest.fn(),
+    detachPermission: jest.fn(),
+    search: jest.fn(),
+    findPermissionsOfRole: jest.fn(),
+    findUsersOfRole: jest.fn(),
+  };
 
-    beforeEach(async () => {
-        jest.clearAllMocks();
+  beforeEach(async () => {
+    jest.clearAllMocks();
 
-        const module: TestingModule = await Test.createTestingModule({
-            controllers: [RolesController],
-            providers: [{ provide: RolesService, useValue: rolesServiceMock }],
-        }).compile();
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [RolesController],
+      providers: [
+        { provide: RolesService, useValue: rolesServiceMock },
+        {
+          provide: PermissionCacheService,
+          useValue: { getFreshPermissions: jest.fn() },
+        },
+      ],
+    }).compile();
 
-        controller = module.get<RolesController>(RolesController);
-        service = module.get(RolesService);
-    });
+    controller = module.get<RolesController>(RolesController);
+    service = module.get(RolesService);
+  });
 
-    it('should ignore tenantId from payload and use request tenant context when attaching a user', async () => {
-        service.attachUser.mockResolvedValueOnce({ ok: true } as never);
+  it('should ignore tenantId from payload and use request tenant context when attaching a user', async () => {
+    service.attachUser.mockResolvedValueOnce({ ok: true } as never);
 
-        const dto = { tenantId: 'tenant-malicious', userId: 'user-1' };
-        await controller.attachUser('role-1', dto, 'tenant-safe');
+    const dto = { tenantId: 'tenant-malicious', userId: 'user-1' };
+    await controller.attachUser('role-1', dto, 'tenant-safe');
 
-        expect(service.attachUser).toHaveBeenCalledWith('role-1', 'tenant-safe', 'user-1');
-    });
+    expect(service.attachUser).toHaveBeenCalledWith(
+      'role-1',
+      'tenant-safe',
+      'user-1',
+    );
+  });
 
-    it('should use request tenant context when listing users of a role', async () => {
-        service.findUsersOfRole.mockResolvedValueOnce([] as never);
+  it('should pass the request tenant context through to findOne/update/remove', async () => {
+    service.findOne.mockResolvedValueOnce({ id: 'role-1' } as never);
+    service.update.mockResolvedValueOnce({ id: 'role-1' } as never);
+    service.remove.mockResolvedValueOnce({ id: 'role-1' } as never);
 
-        await controller.listUsers('role-1', 'tenant-safe');
+    await controller.findOne('role-1', 'tenant-safe');
+    await controller.update('role-1', { name: 'Admin' }, 'tenant-safe');
+    await controller.remove('role-1', 'tenant-safe');
 
-        expect(service.findUsersOfRole).toHaveBeenCalledWith('role-1', 'tenant-safe');
-    });
+    expect(service.findOne).toHaveBeenCalledWith('role-1', 'tenant-safe');
+    expect(service.update).toHaveBeenCalledWith(
+      'role-1',
+      { name: 'Admin' },
+      'tenant-safe',
+    );
+    expect(service.remove).toHaveBeenCalledWith('role-1', 'tenant-safe');
+  });
+
+  it('should use request tenant context when listing users of a role', async () => {
+    service.findUsersOfRole.mockResolvedValueOnce([] as never);
+
+    await controller.listUsers('role-1', 'tenant-safe');
+
+    expect(service.findUsersOfRole).toHaveBeenCalledWith(
+      'role-1',
+      'tenant-safe',
+    );
+  });
 });

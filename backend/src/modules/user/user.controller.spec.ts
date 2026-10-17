@@ -5,6 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { randomUUID } from 'crypto';
 import { RolesService } from '../role/roles.service';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -37,6 +38,10 @@ describe('UsersController', () => {
           provide: RolesService,
           useValue: {},
         },
+        {
+          provide: PermissionCacheService,
+          useValue: { getFreshPermissions: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -50,74 +55,78 @@ describe('UsersController', () => {
 
   describe('POST /users', () => {
     it('should call create on service', async () => {
+      const tenantId = randomUUID();
       const dto: CreateUserDto = {
-        tenantId: randomUUID(),
+        tenantId,
         email: 'john@example.com',
         password: '123456',
       };
       const expected = { id: 'user-id', ...dto };
       service.create.mockResolvedValueOnce(expected as never);
 
-      const result = await controller.create(dto, dto.tenantId);
+      const result = await controller.create(dto, tenantId);
 
       expect(result).toEqual(expected);
-      expect(service.create).toHaveBeenCalledWith(dto, dto.tenantId);
+      expect(service.create).toHaveBeenCalledWith(dto, tenantId);
     });
   });
 
   describe('GET /users', () => {
-    it('should call findAllWithValidation on service', async () => {
+    it('should call findAllWithValidation on service scoped to the request tenant', async () => {
+      const tenantId = randomUUID();
       const expected = [
         { id: '1', email: 'john@example.com', name: 'John', isAdult: true },
         { id: '2', email: 'jane@example.com', name: 'Jane', isAdult: false },
       ];
       service.findAllWithValidation.mockResolvedValueOnce(expected as never);
 
-      const result = await controller.findAll();
+      const result = await controller.findAll(tenantId);
 
       expect(result).toEqual(expected);
-      expect(service.findAllWithValidation).toHaveBeenCalledTimes(1);
+      expect(service.findAllWithValidation).toHaveBeenCalledWith(tenantId);
     });
   });
 
-
   describe('GET /users/:id', () => {
-    it('should call findOne on service with correct id', async () => {
+    it('should call findOne on service with the id and the request tenant', async () => {
       const id = 'adf4f488-faa3-4fca-946e-522f7c2d4976';
+      const tenantId = randomUUID();
       const expected = { id, email: 'john@example.com' };
       service.findOne.mockResolvedValueOnce(expected as never);
 
-      const result = await controller.findOne(id);
+      const result = await controller.findOne(id, tenantId);
 
       expect(result).toEqual(expected);
-      expect(service.findOne).toHaveBeenCalledWith(id);
+      expect(service.findOne).toHaveBeenCalledWith(id, tenantId);
     });
   });
 
   describe('PATCH /users/:id', () => {
-    it('should call update on service with correct parameters', async () => {
+    it('should call update on service with the id, dto and the request tenant', async () => {
       const id = 'adf4f488-faa3-4fca-946e-522f7c2d4976';
+      const tenantId = randomUUID();
       const dto: UpdateUserDto = { email: 'newjohn@example.com' };
       const expected = { id, email: 'john@example.com' };
       service.update.mockResolvedValueOnce(expected as never);
 
-      const result = await controller.update(id, dto);
+      const result = await controller.update(id, dto, tenantId);
 
       expect(result).toEqual(expected);
-      expect(service.update).toHaveBeenCalledWith(id, dto);
+      expect(service.update).toHaveBeenCalledWith(id, dto, tenantId);
     });
   });
 
   describe('DELETE /users/:id', () => {
-    it('should call remove on service', async () => {
+    it('should call remove on service with the id and the request tenant', async () => {
       const id = 'adf4f488-faa3-4fca-946e-522f7c2d4976';
+      const tenantId = randomUUID();
       const expected = { id, email: 'john@example.com' };
       service.remove.mockResolvedValueOnce(expected as never);
 
-      const result = await controller.remove(id);
+      const result = await controller.remove(id, tenantId);
 
       expect(result).toEqual(expected);
-      expect(service.remove).toHaveBeenCalledWith(id);
+      expect(service.remove).toHaveBeenCalledWith(id, tenantId);
     });
   });
 });

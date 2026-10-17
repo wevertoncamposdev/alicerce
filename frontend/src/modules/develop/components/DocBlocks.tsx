@@ -6,7 +6,6 @@
 import type { ReactNode } from "react";
 import { Card } from "@components/ui/card";
 import { Badge } from "@components/ui/badge";
-import { Separator } from "@components/ui/separator";
 import { cn } from "@lib/utils";
 
 // ------------------------------------------------------------
@@ -190,8 +189,4 @@ export function DocBadgeRow({ items }: { items: string[] }) {
             ))}
         </div>
     );
-}
-
-export function DocDivider() {
-    return <Separator className="my-8" />;
 }

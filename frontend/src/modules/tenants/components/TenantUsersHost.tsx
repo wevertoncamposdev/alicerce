@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { UserEntity } from "@/modules/users/types/types";
+import type { UserEntity } from "@modules/users/types/types";
+import { EmptyState } from "@components/ui/empty-state";
 
 export function TenantUsersHost({ items }: { items: UserEntity[] }) {
     return (
@@ -22,8 +23,8 @@ export function TenantUsersHost({ items }: { items: UserEntity[] }) {
                     <tbody>
                         {items.length === 0 ? (
                             <tr>
-                                <td colSpan={3} className="px-3 py-4 text-center text-muted-foreground">
-                                    Nenhum usuário associado.
+                                <td colSpan={3}>
+                                    <EmptyState title="Nenhum usuário associado." className="py-4" />
                                 </td>
                             </tr>
                         ) : (
@@ -41,5 +42,3 @@ export function TenantUsersHost({ items }: { items: UserEntity[] }) {
         </div>
     );
 }
-
-export default TenantUsersHost;

@@ -3,7 +3,6 @@ import {
   IsEmail,
   IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -23,10 +22,6 @@ export class UpdateUserDto {
   @IsOptional()
   @IsBoolean()
   mfaEnabled?: boolean;
-
-  @IsOptional()
-  @IsUUID()
-  personId?: string;
 
   @IsOptional()
   @IsString()

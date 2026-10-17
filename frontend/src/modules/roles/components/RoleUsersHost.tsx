@@ -2,22 +2,22 @@
 
 import * as React from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { UserEntity } from "@/modules/users/types/types";
-import * as roleService from "@/modules/roles/actions/roleService";
-import RelationPicker from "@/components/RelationPicker/RelationPicker";
-import { useToast } from "@components/ui/toast";
+import { UserEntity } from "@modules/users/types/types";
+import * as roleService from "@modules/roles/actions/roleService";
+import RelationPicker from "@components/RelationPicker/RelationPicker";
+import { toast } from "sonner";
 import useApiError from "@/hooks/useApiError";
-import { createRelationHost } from "@/lib/registry/relation-host";
+import { RelationHost, type RelationHostConfig } from "@core/registry/relation-host";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { AppTableFeatures } from "@core/table-features";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 
-export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: UserEntity[] }) {
+function RoleUsersHost({ roleId, initial }: { roleId: string; initial: UserEntity[] }) {
     const { currentTenantId } = useAuth();
-    const toast = useToast();
     const formatError = useApiError();
     const { setStatus } = useAutoSaveStatus();
 
-    const columns = React.useMemo<ColumnDef<UserEntity>[]>(
+    const columns = React.useMemo<ColumnDef<AppTableFeatures, UserEntity>[]>(
         () => [
             { accessorKey: "email", header: "E-mail" },
             { accessorKey: "status", header: "Status" },
@@ -26,16 +26,19 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
         [],
     );
 
-    const RelationHost = React.useMemo(
-        () => createRelationHost<UserEntity>({
+    const config = React.useMemo<RelationHostConfig<UserEntity>>(
+        () => ({
             title: "Usuários",
             columns,
             initialData: initial,
             idAccessor: (u) => u.id,
             rowLink: (u) => `/users/${u.id}`,
-            onAttach: async (item: any) => {
+            emptyMessage: "Nenhum usuário associado a esta role.",
+            confirmDetachTitle: "Remover usuário desta role?",
+            confirmDetachDescription: "O usuário perde imediatamente as permissões associadas a essa role.",
+            onAttach: async (item: UserEntity) => {
                 if (!currentTenantId) {
-                    toast.show({ title: "Tenant indisponível", description: "Recarregue a página e tente novamente." });
+                    toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
                     return;
                 }
 
@@ -43,18 +46,17 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
                 try {
                     await roleService.attachRoleUser({ roleId, tenantId: currentTenantId, userId: item.id });
                     setStatus("saved");
-                    toast.show({ title: "Usuário associado" });
+                    toast("Usuário associado");
                 } catch (err) {
                     console.error("failed to attach user", err);
                     setStatus("error", "Falha ao associar o usuário.");
-                    toast.show({ title: "Falha ao associar usuário", description: formatError(err) });
+                    toast("Falha ao associar usuário", { description: formatError(err) });
                     throw err;
                 }
             },
             onDetach: async (userId: string) => {
-                if (!window.confirm("Remover usuário deste role?")) return;
                 if (!currentTenantId) {
-                    toast.show({ title: "Tenant indisponível", description: "Recarregue a página e tente novamente." });
+                    toast("Tenant indisponível", { description: "Recarregue a página e tente novamente." });
                     return;
                 }
 
@@ -62,11 +64,11 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
                 try {
                     await roleService.detachRoleUser({ roleId, tenantId: currentTenantId, userId });
                     setStatus("saved");
-                    toast.show({ title: "Usuário removido" });
+                    toast("Usuário removido");
                 } catch (err) {
                     console.error("failed to detach user", err);
                     setStatus("error", "Falha ao remover o usuário.");
-                    toast.show({ title: "Falha ao remover usuário", description: formatError(err) });
+                    toast("Falha ao remover usuário", { description: formatError(err) });
                     throw err;
                 }
             },
@@ -74,15 +76,19 @@ export function RoleUsersHost({ roleId, initial }: { roleId: string; initial: Us
                 <RelationPicker
                     kind="users"
                     tenantId={currentTenantId}
-                    onSelect={onSelect}
+                    // RelationPicker busca pela própria API e tipa o resultado
+                    // como `Entity` (forma mínima genérica p/ renderizar a
+                    // lista) — em runtime o endpoint de users retorna o
+                    // UserEntity completo, só não declarado nesse tipo.
+                    onSelect={(item) => onSelect(item as unknown as UserEntity)}
                     onClose={onClose}
                 />
             ),
         }),
-        [columns, currentTenantId, formatError, initial, roleId, toast],
+        [columns, currentTenantId, formatError, initial, roleId, setStatus],
     );
 
-    return <RelationHost initial={initial} />;
+    return <RelationHost config={config} initial={initial} />;
 }
 
 export default RoleUsersHost;

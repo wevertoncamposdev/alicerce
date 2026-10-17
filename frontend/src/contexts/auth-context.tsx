@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
-import type { AuthUserProfile, RegisterInput } from "@/lib/auth-types";
+import type { AuthUserProfile, RegisterInput } from "@lib/auth-types";
 import { toErrorMessage } from "@/types/api";
 
 const TENANT_COOKIE = "session_tenant";

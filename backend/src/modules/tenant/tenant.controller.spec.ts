@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TenantController } from './tenant.controller';
 import { TenantService } from './tenant.service';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
 describe('TenantController', () => {
   let controller: TenantController;
@@ -18,6 +19,10 @@ describe('TenantController', () => {
             update: jest.fn(),
             remove: jest.fn(),
           },
+        },
+        {
+          provide: PermissionCacheService,
+          useValue: { getFreshPermissions: jest.fn() },
         },
       ],
     }).compile();

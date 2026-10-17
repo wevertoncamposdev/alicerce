@@ -30,142 +30,19 @@ enum PermissionType {
   DELETE
 }
 
-enum ContactType {
-  EMAIL
-  PHONE
-  SOCIAL
-}
-
 enum AuditType {
   LOGIN
   LOGOUT
   DATA_CHANGE
   PERMISSION_CHANGE
-}
-
-enum ReportType {
-  BUG
-  FEATURE_REQUEST
-  OTHER
-  REPORT
-  ANALYTICS
-  QUALITY
-  QUANTITY
-}
-
-enum DocumentType {
-  CPF
-  RG
-  CNH
-  NIS
-  PIS
-  PASEP
-  TITULO_ELEITOR
-  CERTIDAO_NASCIMENTO
-  CERTIDAO_CASAMENTO
-  PASSAPORTE
-  CARTEIRA_TRABALHO
-  RESERVISTA
-  RNE
-  CPF_RESPONSAVEL
-}
-
-enum AddressType {
-  HOME
-  WORK
-}
-
-/// Status of a task lifecycle.
-enum TaskStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-/// Priority level of a task.
-enum TaskPriority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
-
-/// Defines the legal/institutional nature of the tenant.
-enum TenantCategory {
-  ASSOCIATION
-  FOUNDATION
-  RELIGIOUS_ORGANIZATION
-  SOCIAL_COOPERATIVE
-  OTHER
-}
-
-/// Defines the tenant's main area of activity.
-enum TenantServiceArea {
-  SOCIAL_ASSISTANCE
-  EDUCATION
-  HEALTH
-  RIGHTS_ADVOCACY
-  CULTURE
-  ENVIRONMENT
-  ADVISORY_SUPPORT
-  ECONOMIC_DEVELOPMENT
-  PROFESSIONAL_TRAINING
-  OTHER
-}
-
-/// Defines the type of partnership the tenant has with public institutions.
-enum PartnershipType {
-  NONE
-  COLLABORATION_TERM
-  FOMENT_TERM
-  COOPERATION_AGREEMENT
-}
-
-/// Defines the geographic scope of the tenant's activity.
-enum CoverageArea {
-  NEIGHBORHOOD
-  MUNICIPAL
-  INTERCITY
-  STATE
-  REGIONAL
-  NATIONAL
-  INTERNATIONAL
-}
-
-/// Defines the approximate organizational size.
-enum OrganizationSize {
-  MICRO
-  SMALL
-  MEDIUM
-  LARGE
-}
-
-/// Defines the role a person occupies in the tenant's board structure.
-enum BoardRoleType {
-  PRESIDENT
-  VICE_PRESIDENT
-  SECRETARY
-  VICE_SECRETARY
-  TREASURER
-  VICE_TREASURER
-  BOARD_MEMBER
-  FISCAL_COUNCIL_MEMBER
-  LEGAL_REPRESENTATIVE
-  OTHER
-}
-
-/// Defines the institutional or regulatory document type of a tenant.
-enum TenantDocumentType {
-  BYLAWS
-  MEETING_MINUTES
-  ELECTION_MINUTES
-  APPOINTMENT_TERM
-  REGISTRATION_CERTIFICATE
-  TAX_DOCUMENT
-  FINANCIAL_STATEMENT
-  ACCOUNTABILITY_REPORT
-  ANNUAL_REPORT
-  INTERNAL_REGULATION
-  OTHER
+  // Tentativa de acesso negada por falta de permissão (403) — só esse caso,
+  // não 401 em geral: tenantId/userId são obrigatórios no model Audit, e um
+  // 401 de token ausente/inválido não tem usuário identificável para
+  // registrar.
+  ACCESS_DENIED
+  // Login com senha errada para um e-mail que existe — aqui sim há
+  // tenantId/userId (o usuário foi encontrado, só a senha não bateu). Login
+  // com e-mail inexistente continua sem auditoria: não há tenant/usuário a
+  // quem atribuir o evento (ver AuthService.signIn).
+  LOGIN_FAILED
 }

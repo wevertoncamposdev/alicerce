@@ -3,7 +3,6 @@
 
 import {
     DocSection,
-    DocSubTitle,
     DocP,
     DocCode,
     DocCallout,
@@ -27,7 +26,7 @@ export function TaxonomiaSection() {
                         path: "Módulo",
                         guard: "modules/<nome>/",
                         description:
-                            "Entidade independente, com SEARCH e listagem próprias. Ganha rota /nome e /nome/[id]. Ex.: Role, Permission, Favorite.",
+                            "Entidade independente, com SEARCH e listagem próprias. Ganha rota /nome e /nome/[id]. Ex.: Role, Permission, Feedback.",
                     },
                     {
                         method: "SEARCH",
@@ -41,14 +40,14 @@ export function TaxonomiaSection() {
                         path: "Feature",
                         guard: "modules/<pai>/features/<feature>/",
                         description:
-                            "Sub-recurso dependente (1:N, cascade delete). Vive dentro da pasta do módulo pai, sem rota de listagem própria. Ex.: notas de um favorito.",
+                            "Sub-recurso dependente (1:N, cascade delete). Vive dentro da pasta do módulo pai, sem rota de listagem própria. Ex.: notas de um example.",
                     },
                     {
                         method: "PATCH",
                         path: "Extensão de Módulo",
                         guard: "aba/seção no DetailView",
                         description:
-                            "Complemento 1:1 do módulo pai, renderizado como seção do form de detalhe. Ex.: Person é extensão de User.",
+                            "Complemento 1:1 do módulo pai, renderizado como seção do form de detalhe. Ainda sem exemplo real neste projeto.",
                     },
                 ]}
             />
@@ -69,7 +68,7 @@ export function GuiaCriarModuloSection() {
             <DocP>
                 Este roteiro assume um <strong>Módulo</strong> independente (o caso mais completo). Para
                 Feature/Extensão/Módulo Relacionado, pule as etapas de rota e registry — elas não se aplicam.
-                Use sempre <code>favorites</code> como referência lado a lado.
+                Use sempre <code>feedback</code> como referência lado a lado.
             </DocP>
 
             <div className="space-y-4">
@@ -105,7 +104,7 @@ export function GuiaCriarModuloSection() {
                         Três DTOs mínimos: <code>create-widget.dto.ts</code>,{" "}
                         <code>update-widget.dto.ts</code> (geralmente <code>PartialType</code> do create) e{" "}
                         <code>search-widget.dto.ts</code> (searchText, pagination, sort, filters, groupBy —
-                        mesmo formato usado por <code>SearchFavoritesDto</code>).
+                        mesmo formato usado por <code>SearchFeedbacksDto</code>).
                     </DocP>
                     <DocCode label="dto/create-widget.dto.ts">
                         {`export class CreateWidgetDto {
@@ -120,8 +119,8 @@ export function GuiaCriarModuloSection() {
                         O service nunca confia em <code>tenantId</code>/<code>userId</code> vindos do body —
                         eles chegam como parâmetro, injetados pelos decorators do controller. Todo{" "}
                         <code>findUnique</code> por id é seguido de uma checagem manual de posse (
-                        <code>tenantId</code>/<code>userId</code>) antes de update/delete, como em{" "}
-                        <code>favorites.service.ts</code>.
+                        <code>tenantId</code>) antes de update/delete, como em{" "}
+                        <code>feedbacks.service.ts</code>.
                     </DocP>
                     <DocCode label="widget.service.ts (search — paginação padrão)">
                         {`async search(query: SearchWidgetDto, tenantId: string) {
@@ -153,7 +152,7 @@ export function GuiaCriarModuloSection() {
                     />
                     <DocCallout type="warning">
                         Todo controller novo precisa ter <strong>as seis rotas acima</strong>. É exatamente a
-                        ausência de <code>@Get(':id')</code> + <code>findOne</code> que hoje quebra a tela de
+                        ausência de <code>@Get(&apos;:id&apos;)</code> + <code>findOne</code> que hoje quebra a tela de
                         detalhe de Role/Permission — não repita esse gap em módulos novos.
                     </DocCallout>
                     <DocCode label="widget.module.ts">
@@ -190,8 +189,8 @@ export class WidgetModule {}
                     </DocP>
                     <DocCode label="modules/widget/config/provider.ts">
                         {`import { apiServer } from "@lib/api-server";
-import type { SearchArgs, SearchResult } from "@lib/data-provider/types";
-import type { WidgetEntity } from "@/modules/widget/types/types";
+import type { SearchArgs, SearchResult } from "@core/data-provider/types";
+import type { WidgetEntity } from "@modules/widget/types/types";
 
 export async function searchWidgets(args: SearchArgs): Promise<SearchResult<WidgetEntity>> {
   const response = await apiServer.search<{ items: WidgetEntity[]; total: number; page: number; limit: number }>(
@@ -230,7 +229,7 @@ export async function deleteWidget(id: string) {
                     </DocCallout>
                     <DocCode label="modules/widget/components/columns.tsx">
                         {`import type { ColumnDef } from "@tanstack/react-table";
-import type { WidgetEntity } from "@/modules/widget/types/types";
+import type { WidgetEntity } from "@modules/widget/types/types";
 
 export const widgetColumns: ColumnDef<WidgetEntity>[] = [
   { accessorKey: "title", header: "Título" },
@@ -241,8 +240,8 @@ export const widgetColumns: ColumnDef<WidgetEntity>[] = [
                     <DocCode label="modules/widget/components/WidgetListView.tsx">
                         {`"use client";
 import { widgetColumns } from "./columns";
-import { ListView } from "@/components/TypeView/ListView/ListView";
-import type { WidgetEntity } from "@/modules/widget/types/types";
+import { ListView } from "@components/TypeView/ListView/ListView";
+import type { WidgetEntity } from "@modules/widget/types/types";
 
 export function WidgetListView({ data }: { data: WidgetEntity[] }) {
   return <ListView columns={widgetColumns} data={data} />;
@@ -257,12 +256,12 @@ export function WidgetListView({ data }: { data: WidgetEntity[] }) {
                         <code>registerModule</code>.
                     </DocP>
                     <DocCode label="modules/widget/config/contract.tsx">
-                        {`import { defineRecordModule, registerModule } from "@lib/registry";
+                        {`import { defineRecordModule, registerModule } from "@core/registry";
 import { createListQueryState } from "@lib/query-state/list-query-state";
-import { FormView } from "@/components/TypeView/FormView/FormView";
+import { FormView } from "@components/TypeView/FormView/FormView";
 import { WidgetListView } from "@modules/widget/components/WidgetListView";
 import { searchWidgets, readWidget, createWidget, updateWidget, deleteWidget } from "./provider";
-import type { WidgetEntity } from "@/modules/widget/types/types";
+import type { WidgetEntity } from "@modules/widget/types/types";
 
 const formFields = [
   { name: "title" as const, label: "Título", type: "text" as const, required: true },
@@ -292,11 +291,20 @@ export const widgetModule = defineRecordModule<WidgetEntity>({
 
 registerModule(widgetModule);`}
                     </DocCode>
+                    <DocCallout type="info" title="views é por módulo, não um conjunto fixo">
+                        Nem todo módulo precisa de todas as views. Hoje todos os módulos (roles, users,
+                        tenants, permissions, feedbacks) declaram só <code>list</code>+<code>form</code>,
+                        porque é o que o domínio deles pede — <code>cards</code>/<code>graph</code>
+                        existem no core (<code>CardsView</code>/<code>GraphView</code>) para quando um
+                        módulo futuro tiver uma dimensão visual/temporal que justifique. Adicionar
+                        views a mais só por padronizar não é a ideia — decida pelo que os dados daquele
+                        módulo realmente precisam mostrar.
+                    </DocCallout>
                 </DocStep>
 
-                <DocStep n={9} title="Registrar no bootstrap (lib/registry/bootstrap.ts)">
-                    <DocCode label="lib/registry/bootstrap.ts">
-                        {`import "@modules/favorites/config/contract";
+                <DocStep n={9} title="Registrar no bootstrap (src/bootstrap.ts)">
+                    <DocCode label="src/bootstrap.ts">
+                        {`import "@modules/feedbacks/config/contract";
 // ...
 import "@modules/widget/config/contract"; // <- adicionar aqui`}
                     </DocCode>
@@ -308,14 +316,14 @@ import "@modules/widget/config/contract"; // <- adicionar aqui`}
 
                 <DocStep n={10} title="Rotas (app/(app)/widget/page.tsx e [id]/page.tsx)">
                     <DocCode label="app/(app)/widget/page.tsx">
-                        {`import { TypeViewScreen } from "@/screens/TypeViewScreen";
+                        {`import { TypeViewScreen } from "@core/screens/TypeViewScreen";
 
 export default function WidgetPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   return <TypeViewScreen moduleName="widget" searchParams={searchParams} />;
 }`}
                     </DocCode>
                     <DocCode label="app/(app)/widget/[id]/page.tsx">
-                        {`import { DetailViewScreen } from "@/screens/DetailViewScreen";
+                        {`import { DetailViewScreen } from "@core/screens/DetailViewScreen";
 
 export default async function WidgetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -351,7 +359,7 @@ export function ChecklistSection() {
 [ ] provider.ts com uma função por operação, usando apiServer
 [ ] columns.tsx + <Modulo>ListView.tsx ("use client", colunas não cruzam a fronteira RSC)
 [ ] contract.tsx com defineRecordModule + registerModule
-[ ] import do contract.tsx em lib/registry/bootstrap.ts
+[ ] import do contract.tsx em src/bootstrap.ts
 [ ] app/(app)/<modulo>/page.tsx e [id]/page.tsx
 [ ] entrada em lib/authz.ts (ROUTE_RULES e, se preciso, ACTION_PERMISSION_RULES)
 [ ] ícone em AppSidebar.tsx

@@ -1,9 +1,8 @@
-import { defineRecordModule, registerModule } from "@lib/registry";
-import type { DetailLayout, ListLayout } from "@lib/registry/types";
+import { defineRecordModule, registerModule } from "@core/registry";
+import type { DetailLayout, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
-import { createRecordFormAction } from "@lib/registry/actions";
+import { createRecordFormAction } from "@core/registry/actions";
 
-import { ListView } from "@components/TypeView/ListView/ListView";
 import { FormView } from "@components/TypeView/FormView/FormView";
 import UserRolesHost from "@modules/users/components/UserRolesHost";
 import { UserPermissionsHost } from "@modules/users/components/UserPermissionsHost";
@@ -45,11 +44,11 @@ const { parseListState, serializeListState } = createListQueryState();
 const createUserAction = createRecordFormAction.bind(
     null,
     "users",
-    formFields.map((f) => f.name)
+    formFields,
 );
 
 const usersListLayout: ListLayout<UserEntity> = {
-    list: ({ data }) => <UsersListView data={data} />,
+    list: ({ data, pagination, searchArgs }) => <UsersListView data={data} pagination={pagination} sort={searchArgs.sort} />,
     form: () => (
         <FormView<UserEntity>
             mode="create"
@@ -86,7 +85,7 @@ function loadUserContext(record: UserEntity): ContextItem[] {
 export const usersModule = defineRecordModule<UserEntity>({
     model: "users",
     label: "Users",
-    views: ["list", "form"],
+    views: ["list"],
     defaultView: "list",
     dataHandlers: { search: searchUsers, read: readUser, create: createUser, update: updateUser, delete: deleteUser },
     formFields,

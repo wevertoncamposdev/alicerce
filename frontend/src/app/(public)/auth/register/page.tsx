@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { Button, Input } from "@components/ui/index";
-import { SideShell } from "@/components/shells";
+import { SideShell } from "@core/components/Layout/SideShell";
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -39,17 +39,17 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-zinc-900">SaaS Admin</h1>
-          <p className="mt-2 text-sm text-zinc-600">Crie sua conta e comece a gerenciar tenants</p>
+          <h1 className="text-3xl font-bold text-foreground">Alicerce</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Crie sua conta e comece a gerenciar tenants</p>
         </div>
 
         <SideShell title="Registro" description="Crie sua conta e o tenant inicial em um unico fluxo.">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="tenantName" className="text-sm font-medium text-zinc-700">
+              <label htmlFor="tenantName" className="text-sm font-medium text-foreground">
                 Nome do Tenant
               </label>
               <Input
@@ -64,7 +64,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="tenantSlug" className="text-sm font-medium text-zinc-700">
+              <label htmlFor="tenantSlug" className="text-sm font-medium text-foreground">
                 Slug do Tenant
               </label>
               <Input
@@ -79,7 +79,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-zinc-700">
+              <label htmlFor="email" className="text-sm font-medium text-foreground">
                 E-mail
               </label>
               <Input
@@ -95,7 +95,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-zinc-700">
+              <label htmlFor="password" className="text-sm font-medium text-foreground">
                 Senha
               </label>
               <Input
@@ -111,7 +111,7 @@ export default function RegisterPage() {
             </div>
 
             {error ? (
-              <div className="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                 {error}
               </div>
             ) : null}
@@ -121,10 +121,10 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          <div className="mt-6 border-t pt-4">
-            <p className="text-center text-sm text-zinc-600">
+          <div className="mt-6 border-t border-border pt-4">
+            <p className="text-center text-sm text-muted-foreground">
               Ja tem conta?{" "}
-              <Link href="/auth/login" className="font-medium text-zinc-900 hover:underline">
+              <Link href="/auth/login" className="font-medium text-foreground hover:underline">
                 Faca login
               </Link>
             </p>

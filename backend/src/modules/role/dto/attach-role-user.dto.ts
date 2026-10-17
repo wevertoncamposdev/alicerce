@@ -1,9 +1,9 @@
 import { IsUUID } from 'class-validator';
 
 export class AttachRoleUserDto {
-    @IsUUID()
-    tenantId!: string;
+  @IsUUID()
+  tenantId!: string;
 
-    @IsUUID()
-    userId!: string;
+  @IsUUID()
+  userId!: string;
 }

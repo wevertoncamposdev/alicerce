@@ -1,9 +1,3 @@
-export interface ApiErrorPayload {
-    message?: string | string[];
-    error?: string;
-    statusCode?: number;
-}
-
 export class ApiError extends Error {
     status: number;
     details?: unknown;

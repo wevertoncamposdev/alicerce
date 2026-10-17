@@ -8,8 +8,11 @@
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.ts$": "ts-jest"
   },
+  "transformIgnorePatterns": [
+    "/node_modules/(?!(@nestjs)/)"
+  ],
   "setupFilesAfterEnv": [
     "<rootDir>/src/jest-setup.ts"
   ],
