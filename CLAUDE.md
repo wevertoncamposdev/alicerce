@@ -17,3 +17,6 @@
 - Explique o porquê só em decisões de arquitetura novas; mudanças mecânicas não precisam.
 - Relatório final curto: o que mudou, como testar, pendências. Sem seções longas de "achados".
 - `docs/historico/` é registro do passado, não instrução.
+- Comentários no código que citam "PLAN.md, Etapa X" ou "Fase N" apontam para
+  `docs/historico/PLAN-v0.md` e `docs/historico/AGENTS-v0.md`. São contexto
+  histórico, não tarefa pendente.

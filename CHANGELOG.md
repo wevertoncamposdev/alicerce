@@ -6,6 +6,24 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 ---
 
+## [1.0.0] - 2026-10-17
+
+### Added
+
+- Estrutura de instruções reescrita em `AGENTS.md`, `CLAUDE.md` e `PLAN.md`.
+- Roadmap de funcionalidades sob demanda em `docs/roadmap.md`.
+- Histórico restaurado em `docs/historico/PLAN-v0.md` e `docs/historico/AGENTS-v0.md`.
+
+### Changed
+
+- Padronização da documentação de setup e referência do projeto para o estado v1.
+
+### Removed
+
+- Templates antigos e documentos obsoletos em `docs/` e `REVISAO.md` movido para histórico.
+
+---
+
 ## [Unreleased]
 
 ### Added

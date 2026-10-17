@@ -17,7 +17,7 @@ apresente o plano completo (use o plan mode) e espere minha aprovação.
 - Refatorar, renomear ou reorganizar pastas/arquivos que já funcionam.
 - Upgrades de dependências (nenhum `npm update`, nenhum bump de versão).
 - Polimento visual, novos tokens, novas primitivas de UI, ajuste de estilo.
-- Trabalhar em itens das Fases 5 a 9 do `AGENTS.md` (campos ricos, kanban,
+- Trabalhar em qualquer item de `docs/roadmap.md` (campos ricos, kanban,
   notifications, files, billing, management, etc.).
 - Estender o gerador (`scripts/new-module.mjs`), exceto para corrigir um bug
   que impeça gerar o módulo Feedback.
@@ -161,30 +161,23 @@ incluindo um teste com dois tenants e um usuário sem permissão.
 
 ---
 
-## Bloco D — Fechamento da documentação e congelamento da base
+## Bloco D — Fechamento da documentação
 
-- Apagar `frontend/src/modules/_template/` se não for usado pelo gerador;
-  se for, reescrever o README dele em poucas linhas.
-- Mover o `PLAN.md` atual para `docs/historico/PLAN-v0.md` e criar um
-  `PLAN.md` novo com no máximo 30 linhas, só com o que vem depois da v1.
-- Reescrever o `AGENTS.md` de forma enxuta (mire em até 150 linhas),
-  mantendo: intenção, stack, restrições duras de arquitetura (§3),
-  contrato de módulo (§5.1) e método de trabalho resumido. O roadmap das
-  Fases 5 a 9 vira uma lista "sob demanda", sem ordem e sem caixas.
-- Substituir o §9 ("Como começar uma sessão") por esta regra:
+A estrutura de instruções (`AGENTS.md`, `CLAUDE.md`, `PLAN.md`, skills,
+`docs/roadmap.md`) já foi reescrita. **Não reescreva esses arquivos.** Apenas:
 
-  > A base está congelada na v1. O trabalho padrão é criar e evoluir
-  > módulos de domínio. A base só muda quando um módulo real precisar de
-  > algo que ela não oferece; nesse caso, registrar o motivo num ADR antes
-  > de alterar o core. Upgrades de dependência só na janela mensal, em
-  > branch própria, nunca no meio de uma feature.
+- Atualize os exemplos que citem `favorites`/`examples` nesses arquivos para
+  `feedback`, se houver.
+- Apague `frontend/src/modules/_template/` se o gerador não o usar; se usar,
+  reescreva o README dele em poucas linhas.
+- Atualize o site interno `frontend/src/modules/develop/` para citar o módulo
+  `feedback` em vez de `favorites`/`examples`.
+- Crie `docs/guia-novo-modulo.md` (ver Bloco B).
+- Atualize o `CHANGELOG.md` com a entrada `1.0.0`.
+- Atualize o `PLAN.md` marcando o fechamento como concluído.
+- Ao final, apague o próprio `FECHAMENTO.md`.
 
-- Atualizar o `CLAUDE.md` para refletir isso e remover referências a
-  documentos aposentados.
-- Atualizar o `CHANGELOG.md` com a entrada `1.0.0`.
-
-Não crie a tag; ao final, me diga o comando para eu criar a `v1.0.0` depois
-do merge.
+Não crie a tag; me diga o comando para eu criar a `v1.0.0` depois do merge.
 
 ---
 
