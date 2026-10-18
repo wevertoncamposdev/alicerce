@@ -15,14 +15,29 @@ import {
     Briefcase,
     FileText,
     Tag as TagIcon,
+    Wallet,
 } from "lucide-react";
 import { defineRecordModule, registerModule } from "@core/registry";
 import type { DetailLayout, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
 import { Badge } from "@components/ui/badge";
+import { ShowcaseRelationTable } from "./ShowcaseRelationTable";
 
 import { searchShowcase, readShowcase } from "./provider";
 import type { ShowcaseEntity } from "./types";
+
+const DOCUMENTS = [
+    { nome: "RG.pdf", tipo: "Documento pessoal", emissao: "12/03/2025", status: "Válido" },
+    { nome: "CPF.pdf", tipo: "Documento pessoal", emissao: "12/03/2025", status: "Válido" },
+    { nome: "Comprovante de residência.pdf", tipo: "Comprovante", emissao: "05/05/2025", status: "Válido" },
+];
+
+const INVOICES = [
+    { descricao: "Mensalidade — março", valor: "R$ 120,00", vencimento: "10/03/2025", status: "Pago" },
+    { descricao: "Mensalidade — abril", valor: "R$ 120,00", vencimento: "10/04/2025", status: "Pago" },
+];
+
+const PROJECTS = [{ nome: "Projeto Futuro", descricao: "Reforço escolar e inclusão digital", status: "Ativo" }];
 
 const formFields = [
     { name: "name" as const, label: "Nome completo", type: "text" as const, required: true },
@@ -122,6 +137,67 @@ const showcaseDetailLayout: DetailLayout<ShowcaseEntity> = {
                         </Badge>
                     ))}
                 </div>
+            ),
+        },
+    ],
+    relations: () => [
+        {
+            key: "documentos",
+            label: "Documentos",
+            icon: FileText,
+            count: DOCUMENTS.length,
+            content: (
+                <ShowcaseRelationTable
+                    columns={[
+                        { key: "nome", header: "Nome do documento" },
+                        { key: "tipo", header: "Tipo" },
+                        { key: "emissao", header: "Data de emissão" },
+                        { key: "status", header: "Status" },
+                    ]}
+                    rows={DOCUMENTS}
+                    searchPlaceholder="Pesquisar documentos"
+                    addLabel="Novo documento"
+                    emptyMessage="Nenhum documento encontrado."
+                />
+            ),
+        },
+        {
+            key: "financeiro",
+            label: "Financeiro",
+            icon: Wallet,
+            count: INVOICES.length,
+            content: (
+                <ShowcaseRelationTable
+                    columns={[
+                        { key: "descricao", header: "Descrição" },
+                        { key: "valor", header: "Valor" },
+                        { key: "vencimento", header: "Vencimento" },
+                        { key: "status", header: "Status" },
+                    ]}
+                    rows={INVOICES}
+                    searchPlaceholder="Pesquisar lançamentos"
+                    addLabel="Novo lançamento"
+                    emptyMessage="Nenhum lançamento encontrado."
+                />
+            ),
+        },
+        {
+            key: "projetos",
+            label: "Projetos vinculados",
+            icon: Briefcase,
+            count: PROJECTS.length,
+            content: (
+                <ShowcaseRelationTable
+                    columns={[
+                        { key: "nome", header: "Projeto" },
+                        { key: "descricao", header: "Descrição" },
+                        { key: "status", header: "Status" },
+                    ]}
+                    rows={PROJECTS}
+                    searchPlaceholder="Pesquisar projetos"
+                    addLabel="Vincular projeto"
+                    emptyMessage="Nenhum projeto vinculado."
+                />
             ),
         },
     ],

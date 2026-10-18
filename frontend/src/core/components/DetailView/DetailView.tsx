@@ -5,7 +5,7 @@ import type { ContextItem, AuditFeedItem } from "@core/components/DetailView/Met
 import { DetailShell } from "@core/components/DetailView/DetailShell";
 import { DetailHeader } from "@core/components/DetailView/DetailHeader";
 import { DetailSections } from "@core/components/DetailView/DetailSections";
-import { RelationShell } from "@core/components/DetailView/RelationView/RelationShell";
+import { RelationCard } from "@core/components/DetailView/RelationView/RelationCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 
 interface DetailViewProps<T> {
@@ -54,7 +54,7 @@ export function DetailView<T>({
 
     const context: DetailContext<T> = { record, contextItems, auditItems };
     const relationTabs = layout.relations?.(context) ?? [];
-    const relationsSlot = relationTabs.length > 0 ? <RelationShell tabs={relationTabs} /> : null;
+    const relationsSlot = relationTabs.length > 0 ? <RelationCard tabs={relationTabs} /> : null;
 
     if (layout.header) {
         const headerConfig = layout.header(context);
