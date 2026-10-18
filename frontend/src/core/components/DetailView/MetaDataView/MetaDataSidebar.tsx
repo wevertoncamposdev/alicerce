@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from "react";
-import { ChevronRight, X } from "lucide-react";
+import { PanelRight, X } from "lucide-react";
 import { Button } from "@components/ui/button";
 import {
     Drawer,
@@ -11,17 +11,11 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@components/ui/drawer";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
 
 const defaultTrigger = (
-    <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="w-full justify-between"
-        aria-label="Abrir metadados"
-    >
-        <span>Metadados</span>
-        <ChevronRight className="size-4" />
+    <Button type="button" variant="outline" size="icon" aria-label="Metadados">
+        <PanelRight className="size-4" />
     </Button>
 );
 
@@ -30,14 +24,24 @@ export function MetaDataSidebar({
     trigger = defaultTrigger,
 }: {
     children: React.ReactNode;
-    /** Modo compacto (ícone, no header da detail page) substitui o botão padrão de texto. */
+    /** Sobrescreve o botão-ícone padrão, se algum chamador precisar de outro gatilho. */
     trigger?: React.ReactNode;
 }) {
     const [open, setOpen] = React.useState(false);
 
     return (
         <Drawer open={open} onOpenChange={setOpen} direction="right">
-            <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+            {/* Tooltip precisa envolver o DrawerTrigger (não o contrário): `asChild` só repassa
+                onClick/ref pro elemento real quando encadeado nessa ordem — um Provider/Tooltip
+                dentro do `trigger` não tem nó DOM próprio pra receber o clique do Drawer. */}
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>Metadados</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
             <DrawerContent className="sm:max-w-[400px]">
                 <DrawerHeader className="flex items-center justify-between gap-2">

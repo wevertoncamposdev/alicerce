@@ -42,7 +42,6 @@ export type DetailHeaderConfig = {
     avatar?: { src?: string; fallback: string };
     status?: React.ReactNode;
     contacts?: { icon: LucideIcon; text: string; href?: string }[];
-    actions?: React.ReactNode;
 };
 
 export type DetailSection<T> = {
@@ -67,6 +66,8 @@ export type DetailLayout<T> = {
     header?: (ctx: DetailContext<T>) => DetailHeaderConfig;
     sections?: DetailSection<T>[];
     tabs?: DetailTab<T>[];
+    /** Ações da tela de detalhe, renderizadas no AppTopbar antes do botão de metadados. */
+    toolbar?: (ctx: DetailContext<T>) => React.ReactNode;
     // EXISTENTE — continua funcionando
     main?: (ctx: DetailContext<T>) => React.ReactNode;
     side?: (ctx: DetailContext<T>) => React.ReactNode;

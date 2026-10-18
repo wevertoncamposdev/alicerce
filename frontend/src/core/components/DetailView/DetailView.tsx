@@ -16,12 +16,8 @@ interface DetailViewProps<T> {
     auditItems: AuditFeedItem[];
     /** título da página já fica no AppTopbar — aqui só ações secundárias da tela de detalhe. */
     toolbar?: React.ReactNode;
-    /** Permissão de update já resolvida pelo chamador — liga o botão "Editar" do header. */
-    canEdit?: boolean;
     /** `?mode=edit` já resolvido pelo chamador — troca as seções `editable` pelo FormView. */
     isEditing?: boolean;
-    /** Trigger do MetaDataSidebar no formato ícone, pro header (só usado quando `header` existe). */
-    metadataSidebar?: React.ReactNode;
 }
 
 const OVERVIEW_TAB_KEY = "overview";
@@ -39,9 +35,7 @@ export async function DetailView<T>({
     contextItems,
     auditItems,
     toolbar,
-    canEdit,
     isEditing,
-    metadataSidebar,
 }: DetailViewProps<T>) {
     const layout = moduleDefinition.detailLayout;
 
@@ -81,10 +75,6 @@ export async function DetailView<T>({
                 <Tabs defaultValue={OVERVIEW_TAB_KEY}>
                     <DetailHeader
                         config={headerConfig}
-                        moduleLabel={moduleDefinition.label}
-                        editHref={canEdit ? (isEditing ? "?" : "?mode=edit") : undefined}
-                        isEditing={isEditing}
-                        metadataSidebar={metadataSidebar}
                         tabsList={
                             extraTabs.length > 0 ? (
                                 <TabsList variant="line" className="w-full justify-start">
