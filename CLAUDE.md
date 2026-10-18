@@ -4,8 +4,13 @@
 
 ## Específico do Claude Code
 
-- A base está congelada na v1. Se uma tarefa exigir mudar `backend/src/core/`
-  ou `frontend/src/core/`, pare, explique o motivo e espere aprovação.
+- A base evolui pelas fases do `Plano Base.md` (raiz do repo), autorizado pelo
+  ADR 0006. Numa etapa listada lá, mudar `backend/src/core/` ou
+  `frontend/src/core/` é permitido só no escopo exato que a etapa descreve ou
+  que o ADR citado por ela autoriza (ex.: ADR 0004/0005 para a Fase 8, ADR 0007
+  para a Fase 3, ADR 0008 para a Fase 6, ADR 0009 para a Fase 7). Fora dessas
+  fases, ou para tocar `core/` além do escopo autorizado, pare, explique o
+  motivo e espere aprovação.
 - Tarefas grandes começam em plan mode; só edite depois que eu aprovar.
 - Módulo novo: use a skill `/novo-modulo`.
 - Upgrade de dependência: só quando eu chamar `/upgrade-deps`. Nunca por iniciativa própria.
