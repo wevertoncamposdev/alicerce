@@ -20,6 +20,8 @@ export type FormFieldConfig<T> = {
     required?: boolean;
     createOnly?: boolean;
     options?: Array<string | { label: string; value: string }>;
+    /** Campo que dispara a criação no Detail (`createMode: "detail"`). Um por módulo. */
+    primary?: boolean;
 };
 
 export type DetailContext<T> = {
@@ -42,7 +44,6 @@ export type DetailHeaderConfig = {
     avatar?: { src?: string; fallback: string };
     status?: React.ReactNode;
     contacts?: { icon: LucideIcon; text: string; href?: string }[];
-    actions?: React.ReactNode;
 };
 
 export type DetailSection<T> = {
@@ -67,6 +68,8 @@ export type DetailLayout<T> = {
     header?: (ctx: DetailContext<T>) => DetailHeaderConfig;
     sections?: DetailSection<T>[];
     tabs?: DetailTab<T>[];
+    /** Ações da tela de detalhe, renderizadas no AppTopbar antes do botão de metadados. */
+    toolbar?: (ctx: DetailContext<T>) => React.ReactNode;
     // EXISTENTE — continua funcionando
     main?: (ctx: DetailContext<T>) => React.ReactNode;
     side?: (ctx: DetailContext<T>) => React.ReactNode;
@@ -118,6 +121,14 @@ export type RecordModuleDefinition<T = unknown> = {
     defaultView: string;
     dataHandlers: RecordModuleDataHandlers<T>;
     formFields: FormFieldConfig<T>[];
+    /**
+     * Prefixo de permissão usado pelas seções `editable` do detail (vira
+     * `${permission}.update`). Default: resolução atual de `${model}.update`
+     * via `resolveActionPermission` (lib/authz.ts).
+     */
+    permission?: string;
+    /** "sheet" (default, Sheet de criação) ou "detail" ("Novo" abre o Detail em rascunho). */
+    createMode?: "sheet" | "detail";
     parseListState: (searchParams: Record<string, string | string[] | undefined>) => SearchArgs;
     serializeListState: (current: URLSearchParams, patch: Record<string, unknown>) => URLSearchParams;
 

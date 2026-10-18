@@ -8,7 +8,9 @@ O conteúdo da imagem (Pessoa, CPF, Tags...) é exemplo; o Alicerce é genérico
 > **Autorização:** tarefas que citam este documento estão autorizadas a alterar
 > `frontend/src/core/components/DetailView/**`, `frontend/src/core/screens/DetailViewScreen.tsx`
 > e `frontend/src/core/registry/types.ts` (exceção explícita ao congelamento da v1).
-> Nada fora dessa lista em `core/` sem perguntar.
+> O ADR 0005 amplia essa lista (`AppTopbar.tsx`, `Breadcrumbs.tsx`, `TypeViewScreen.tsx`,
+> `DetailCreateScreen.tsx`, `registry/actions.ts`) para o fluxo de autosave sempre ativo e criação
+> pelo Detail. Nada fora dessas listas em `core/` sem perguntar.
 
 ---
 
@@ -22,7 +24,7 @@ O conteúdo da imagem (Pessoa, CPF, Tags...) é exemplo; o Alicerce é genérico
 | Contrato | `core/registry/types.ts` → `DetailLayout<T>` | `main/side/bottom/relations`. **Estender (aditivo).** |
 | Metadados | `MetaDataView/MetaDataSidebar.tsx` (Drawer direita) + `MetaDataView/index.tsx` (Tabs) | Já é drawer. Mantém e melhora o conteúdo. |
 | Relações | `RelationView/RelationShell.tsx` (Tabs `line`) + `RelationTablePanel.tsx` | Mantém; ganha card, contador e toolbar. |
-| Campos | `FormView mode="edit"` (autosave inline, `variant: "inline-detail"`) | Fica restrito ao **modo edição** (ver §4). |
+| Campos | `FormView mode="edit"` (autosave inline, `layout="inline"`) | Sempre ativo por permissão, sem toggle (ver §4). |
 
 Usam `detailLayout` hoje: `feedbacks`, `users`, `roles`, `permissions`, `tenants`.
 **Os cinco precisam continuar funcionando sem alteração** até serem migrados (ver §6).
@@ -32,12 +34,11 @@ Usam `detailLayout` hoje: `feedbacks`, `users`, `roles`, `permissions`, `tenants
 ## 2. Anatomia
 
 ```
-AppTopbar (já existe: título do módulo, busca, sino, avatar)
+AppTopbar: breadcrumb (Feedbacks / <título>)      [toolbar do módulo][Metadados]
 ──────────────────────────────────────────────────────────────
-Breadcrumb   Feedbacks / <título>
 ┌────────────────────────────────────────────────────────────┐
 │ HEADER CARD                                                │
-│ [Avatar 80]  Título  [StatusBadge]     [Editar][Imprimir][⋯][Metadados]
+│ [Avatar 80]  Título  [StatusBadge]                          │
 │              meta • meta • meta                            │
 │              ◦ ícone+texto   ◦ ícone+texto  (opcional)     │
 │ ────────────────────────────────────────────────────────── │
@@ -54,8 +55,10 @@ Breadcrumb   Feedbacks / <título>
 │ tabela · rodapé "Mostrando X de Y" + paginação             │
 └────────────────────────────────────────────────────────────┘
 
-METADATA = Drawer lateral direito (MetaDataSidebar), aberto pelo botão "Metadados".
-NUNCA é coluna do grid. O corpo da página usa 100% da largura.
+METADATA = Drawer lateral direito (MetaDataSidebar), aberto pelo botão-ícone "Metadados" no
+AppTopbar. NUNCA é coluna do grid. O corpo da página usa 100% da largura.
+Breadcrumb e ações (toolbar do módulo + Metadados) vivem SÓ no AppTopbar — o header card não
+renderiza nenhum dos dois.
 ```
 
 ## 3. Regras de layout (Tailwind)
@@ -66,10 +69,16 @@ NUNCA é coluna do grid. O corpo da página usa 100% da largura.
   - Título `text-2xl font-semibold tracking-tight`; badge ao lado (`gap-3`, `items-center`).
   - Meta: `text-sm text-muted-foreground`, itens separados por `•` (`mx-2`).
   - Contatos: `flex flex-wrap gap-x-6 gap-y-1 text-sm`, ícone lucide `size-4 text-muted-foreground`.
-  - Ações: `ml-auto flex gap-2`. Primária `Button` default; Imprimir `variant="outline"`;
-    `⋯` `variant="outline" size="icon"`; Metadados `variant="outline" size="icon"` com ícone `PanelRight`.
+  - Sem ações no header card — ver "AppTopbar" abaixo.
   - Abas: `mt-6 -mb-6 border-t` com `TabsList variant="line"`, ícone `size-4` + label.
     Sem abas extras declaradas → a barra não aparece.
+- **AppTopbar:** quando a tela de detalhe declara `header`, o topbar troca o `title` de texto pelo
+  `Breadcrumbs` (`core/components/Layout/Breadcrumbs.tsx`): `[{ label: módulo, href: /<módulo> },
+  { label: título do registro }]`, último item `text-page-title truncate`, anteriores `Link`
+  `text-muted-foreground hover:text-foreground`, separador `ChevronRight size-4`; `< sm` mostra só
+  o último item. `actions` do topbar recebe, nessa ordem: `DetailLayout.toolbar` do módulo (se
+  houver) e o botão-ícone de Metadados (`Button variant="outline" size="icon"` com `PanelRight`,
+  `aria-label="Metadados"`, envolto em `Tooltip`).
 - **Seções:** `grid grid-cols-1 gap-4 lg:grid-cols-{n} items-start`,
   onde `n` = número de colunas efetivamente usadas (1–3). Cada coluna é `flex flex-col gap-4`.
   **Nunca renderizar coluna vazia.**
@@ -82,8 +91,12 @@ NUNCA é coluna do grid. O corpo da página usa 100% da largura.
 - **Relation card:** `Card p-0`; header `px-5 pt-5`; `TabsList variant="line"` com contador
   `ml-1.5 text-xs tabular-nums text-muted-foreground` → `(3)`; conteúdo `p-5`.
   Toolbar: `flex flex-wrap items-center gap-2`, busca `Input` com ícone `Search` à esquerda e `max-w-sm flex-1`.
-- **Responsivo:** `< lg` tudo em 1 coluna; ações do header quebram para baixo do título
-  (`flex-col sm:flex-row`); botões viram só ícone abaixo de `sm`.
+  **Relações como links:** toda relação cujo item é um registro com Detail próprio renderiza a
+  primeira coluna como `Link` (`rowLink`) para `/<módulo>/<id>`, classes
+  `font-medium text-foreground hover:underline`; a linha não vira clicável inteira (ações como
+  remover continuam fora do link). Itens sem Detail (ex.: comentários) não têm link.
+- **Responsivo:** `< lg` tudo em 1 coluna; `< sm` o breadcrumb do topbar mostra só o último item;
+  o botão de Metadados já é só ícone em qualquer largura.
 
 ### Tokens
 
@@ -100,18 +113,51 @@ Nada de cor hexadecimal solta. Badges de status por mapa semântico:
 
 Tags (quando existirem): `Badge rounded-full` com as mesmas classes semânticas.
 
-## 4. Leitura × edição
+## 4. Autosave sempre ativo
 
-O mockup mostra **leitura por padrão** + botão **Editar**. Regra:
+> Substitui o antigo modelo "leitura por padrão + botão Editar" (ver ADR 0005, que supersede o
+> item 3 do ADR 0004). **Não existe modo leitura nem botão Editar.**
 
-- Padrão: seções renderizam `dl` somente leitura (§3). **Proibido input/textarea em modo leitura.**
-- "Editar" (só se o usuário tem permissão de update) troca as seções editáveis para
-  `FormView mode="edit"` (autosave inline atual, sem mudar o hook). O botão vira "Concluir".
-- Estado em `?mode=edit` na URL (mesmo padrão do `list-query-state`), para sobreviver a refresh.
+- Seção com `editable: true`: quem tem a permissão `${permission}.update` (`RecordModuleDefinition
+  .permission`, default = resolução atual de permissão da ação) vê `FormView mode="edit"
+  layout="inline"` direto — autosave por blur, sem toggle, sem `?mode=edit` na URL. Quem não tem a
+  permissão vê `FieldList` somente leitura (§3). **Proibido input/textarea pra quem não tem
+  permissão.**
+- Seção sem `editable: true` é sempre `FieldList`, independente de permissão.
+- A checagem de permissão por seção é client-side (`useAuth().hasPermission`), já que não há mais
+  um botão único "Editar" pra gatear no servidor — o backend segue validando toda escrita
+  independente do que a UI mostra (AGENTS.md §4.2.6).
+- Depois de um save bem-sucedido, `router.refresh()` (client-side, não chama `revalidatePath` —
+  AGENTS §4.1.8) atualiza título do header/breadcrumb/auditoria sem resetar o formulário.
+- Várias seções `editable` = vários `FormView` independentes; cada um salva só os campos da sua
+  própria seção (`fields` filtra `formFields` antes de chegar no form).
 - Ações que exigem outra permissão (ex.: status do Feedback → `feedback.manage`)
   ficam no header (badge clicável / `FeedbackStatusControl`), não no formulário.
 
-## 5. Contrato (extensão aditiva de `DetailLayout<T>`)
+## 5. Criação pelo Detail
+
+Módulo com `createMode: "detail"` (`RecordModuleDefinition.createMode`, default `"sheet"` —
+comportamento atual preservado pra quem não optar) troca o botão "Novo" da lista: em vez de abrir
+`CreateRecordSheet`, navega para `/<módulo>/new`.
+
+- `/<módulo>/new` renderiza `DetailCreateScreen`: mesmo casco do Detail (`AppTopbar` com
+  breadcrumb `Módulo / Novo registro`, indicador de autosave), **sem** botão de Metadados; header
+  card com título placeholder "Novo registro" em `text-muted-foreground`; seções com
+  `FormView mode="draft"`; card de Relacionamentos desabilitado com "Salve o registro para
+  adicionar relacionamentos." (sem abas). Módulo sem `sections` → um único card com todos os
+  `formFields`; campos `createOnly` entram no rascunho (único momento em que podem ser
+  preenchidos).
+- O campo marcado `FormFieldConfig.primary: true` (um por módulo) é o gatilho: nenhum request
+  acontece até ele ter valor não vazio. No primeiro commit (blur/Enter) de qualquer campo depois
+  disso, valida os campos obrigatórios e cria via `createRecordDraftAction` — a partir daí vira o
+  autosave normal (PATCH), e a URL troca para `/<módulo>/<id>` com o foco indo pro próximo campo
+  (`?focus=`, removido da URL sem novo request depois de aplicado).
+- Sair da tela sem preencher o campo `primary` não cria nada (sem registro órfão).
+- Módulos que não tornam seu `primary` opcional-tolerante na criação (ex.: campo único que exige
+  outro obrigatório junto, como senha) ficam em `createMode: "sheet"` — é uma decisão por módulo,
+  não automática.
+
+## 6. Contrato (extensão aditiva de `DetailLayout<T>` e `RecordModuleDefinition<T>`)
 
 ```ts
 export type DetailHeaderConfig = {
@@ -120,7 +166,7 @@ export type DetailHeaderConfig = {
   avatar?: { src?: string; fallback: string };
   status?: React.ReactNode;                  // ex.: <FeedbackStatusControl />
   contacts?: { icon: LucideIcon; text: string; href?: string }[];
-  actions?: React.ReactNode;                 // ações extras do módulo (entram antes do ⋯)
+  // `actions` foi removido (ADR 0005) — use `DetailLayout.toolbar`, que vai pro AppTopbar.
 };
 
 export type DetailSection<T> = {
@@ -128,7 +174,7 @@ export type DetailSection<T> = {
   title: string;
   icon?: LucideIcon;
   column?: 1 | 2 | 3;                        // default 1
-  editable?: boolean;                        // participa do modo Editar
+  editable?: boolean;                        // autosave sempre ativo pra quem tem permissão (§4)
   fields?: (keyof T & string)[];             // renderização padrão (dl) a partir de formFields
   render?: (ctx: DetailContext<T>) => React.ReactNode; // escape hatch
 };
@@ -140,36 +186,51 @@ export type DetailTab<T> = {
 
 export type RelationTabConfig = {
   key: string; label: string; content: React.ReactNode;
-  icon?: LucideIcon;                         // NOVO, opcional
-  count?: number;                            // NOVO, opcional
+  icon?: LucideIcon;
+  count?: number;
 };
 
 export type DetailLayout<T> = {
-  // NOVO (todos opcionais)
   header?: (ctx: DetailContext<T>) => DetailHeaderConfig;
   sections?: DetailSection<T>[];             // conteúdo da aba "Visão geral"
   tabs?: DetailTab<T>[];                     // abas extras no header
+  toolbar?: (ctx: DetailContext<T>) => React.ReactNode; // NOVO (ADR 0005): ações no AppTopbar, antes do botão de Metadados
   // EXISTENTE — continua funcionando
   main?: (ctx: DetailContext<T>) => React.ReactNode;   // passa a opcional
   side?: (ctx: DetailContext<T>) => React.ReactNode;   // deprecated: ignorado se `sections` existir
   bottom?: (ctx: DetailContext<T>) => React.ReactNode;
   relations?: (ctx: DetailContext<T>) => RelationTabConfig[];
 };
+
+export type RecordModuleDefinition<T> = {
+  // ...
+  permission?: string;                       // NOVO (ADR 0005): prefixo de permissão (ex. "feedback"); default = resolução atual
+  createMode?: "sheet" | "detail";            // NOVO (ADR 0005): default "sheet" — ver §5
+};
+
+export type FormFieldConfig<T> = {
+  // ...
+  primary?: boolean;                         // NOVO (ADR 0005): campo que dispara a criação no Detail (§5); um por módulo
+};
 ```
 
 Regras do motor (`DetailView.tsx`):
 - `header` ausente → header mínimo: título = `record.title ?? record.name ?? mod.label`, sem avatar.
 - `sections` presente → grid de §3; senão → renderiza `main` como hoje (módulos não migrados).
-- `relations` → sempre dentro do Relation card de §3.
+- `relations` → sempre dentro do Relation card de §3; itens cujo módulo tem Detail recebem `rowLink`
+  (§3, "Relações como links") — passado como prop direta em `RelationCrudHost`/`RelationTablePanel`,
+  não faz parte do tipo `RelationTabConfig`.
 - Metadados continuam vindo de `detailConfig` (audit/context). O módulo não monta drawer.
 
-Componentes novos ficam em `core/components/DetailView/`:
-`DetailHeader.tsx`, `DetailSections.tsx`, `SectionCard.tsx`, `FieldList.tsx`, `RelationCard.tsx`.
+Componentes em `core/components/DetailView/`:
+`DetailHeader.tsx`, `DetailSections.tsx`, `SectionCard.tsx`, `FieldList.tsx`, `EditableSection.tsx`
+(NOVO — decide `FormView mode="edit"` vs `FieldList` por permissão, client), `RelationCard.tsx`.
+`core/components/Layout/Breadcrumbs.tsx` (NOVO) e `core/screens/DetailCreateScreen.tsx` (NOVO).
 Primitivas só do `components/ui` existente (Card, Tabs, Badge, Avatar, Button, Drawer, Table).
 
-## 6. Metadata Drawer
+## 7. Metadata Drawer
 
-Mantém `MetaDataSidebar` (Drawer `direction="right"`), trigger vira o botão-ícone do header.
+Mantém `MetaDataSidebar` (Drawer `direction="right"`), trigger vira o botão-ícone do AppTopbar (§3).
 Largura `sm:max-w-[400px]`, altura total (sem `max-h-[80vh]`).
 Abas: **Auditoria** (primeira e default) · Contexto. `tags/notes/attachments` continuam reservadas (não renderizar aba vazia).
 
@@ -182,32 +243,41 @@ Aba Auditoria, de cima para baixo:
 
 Datas sempre `pt-BR` (`dd/MM/yyyy • HH:mm`), nunca ISO cru.
 
-## 7. Feedback (primeiro consumidor)
+## 8. Feedback (primeiro consumidor)
 
 - `header`: title, status = `<FeedbackStatusControl />`, subtitle = ["Criado em dd/MM/yyyy"].
 - `sections`: uma seção "Detalhes" (`FileText`), `fields: ["title","description"]`, `editable: true`, `column: 1`.
   Com uma só coluna usada, o grid é 1 coluna (largura total), sem buraco.
 - Comentários saem do `bottom` e viram `relations` → aba "Comentários" com `count`, usando o `RelationTablePanel` atual.
 - `side` removido.
+- `title` tem `primary: true`, `description` tem `required: false`; `createMode: "detail"` — é o
+  único módulo com o fluxo de criação do §5 nesta tarefa.
 
-## 8. Showcase (referência de validação)
+## 9. Showcase (referência de validação)
 
 Rota `app/(app)/develop/detail-showcase/page.tsx` com módulo fictício em memória
 (`modules/develop/showcase/`) imitando a Pessoa do mockup: avatar, 3 colunas,
 ~6 seções, 2 abas extras, 3 relações com contador, audit com 4 entradas.
 Sem backend. Serve só para comparar com a imagem. O Feedback é magro demais para validar layout.
+Relação "Familiares" (lista de pessoas em memória, nome como `rowLink` para
+`/develop/detail-showcase/<id>`) é o caso de validação de "Relações como links" (§3): abrir
+Pessoa 1 → clicar em Pessoa 2 → Detail de Pessoa 2 com breadcrumb "Showcase / Pessoa 2".
 
-## 9. Critérios de aceite
+## 10. Critérios de aceite
 
 - [ ] `/develop/detail-showcase` em 1440px é visualmente equivalente à referência (zonas, proporções, densidade).
 - [ ] `/feedbacks/[id]`: sem área vazia, sem textarea em leitura, comentários no Relation card com contador.
+- [ ] Breadcrumb e ações só no AppTopbar; nenhum botão Editar; seções editáveis são autosave sempre.
 - [ ] Metadados só no drawer; corpo em 100% da largura.
-- [ ] `users`, `roles`, `permissions`, `tenants` abrem sem erro e sem mudança de contrato.
+- [ ] `/feedbacks/new` cria o registro ao sair do campo `title`, troca pra `/feedbacks/<id>` com foco
+      na Descrição; sair sem preencher `title` não cria nada.
+- [ ] `users`, `roles`, `permissions`, `tenants` abrem sem erro, sem mudança de contrato e "Novo"
+      continua Sheet.
 - [ ] 375px: 1 coluna, sem scroll horizontal.
 - [ ] Dark mode correto (só tokens).
 - [ ] `npx tsc --noEmit && npm run lint && npm run build` no frontend.
 
-## 10. Como verificar visualmente
+## 11. Como verificar visualmente
 
 Ao fim de cada etapa: subir o front, abrir a rota com Playwright em 1440×900 e 375×812,
 salvar screenshot em `.claude/screenshots/<etapa>.png`, abrir a referência e o screenshot,

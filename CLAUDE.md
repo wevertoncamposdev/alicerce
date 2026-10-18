@@ -26,6 +26,13 @@
 - Qualquer mudança em tela de detalhe segue `docs/ui/detail-page.md` e a referência
   `docs/ui/reference/detail-layout.png`. Leia os dois antes de editar.
 - O ADR 0004 autoriza mudar `frontend/src/core/components/DetailView/**`,
-  `core/registry/types.ts` e `core/screens/DetailViewScreen.tsx` para isso. Nada além.
+  `core/registry/types.ts` e `core/screens/DetailViewScreen.tsx` para isso.
+- O ADR 0005 (autosave sempre ativo, breadcrumb/ações no topbar, criação pelo Detail) amplia a
+  lista: `core/components/Layout/AppTopbar.tsx`, `core/components/Layout/Breadcrumbs.tsx` (novo),
+  `core/screens/TypeViewScreen.tsx`, `core/screens/DetailCreateScreen.tsx` (novo),
+  `core/registry/actions.ts`, além dos arquivos já autorizados pelo ADR 0004. Fora de `core/`:
+  `components/TypeView/FormView/FormView.tsx`,
+  `core/components/DetailView/RelationView/RelationTablePanel.tsx`, `scripts/new-module.mjs` e o
+  módulo `feedbacks`. Nada além dessas duas listas em `core/`.
 - Mudança visual só está pronta depois do screenshot (Playwright, 1440 e 375) comparado
   com a referência, listando o que ainda diverge.

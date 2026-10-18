@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useTransition } from "react";
+import Link from "next/link";
 import {
     ColumnDef,
     flexRender,
@@ -32,6 +33,8 @@ type RelationTablePanelProps<T extends NoteRowLike> = {
     searchPlaceholder?: string;
     addLabel?: string;
     emptyMessage?: string;
+    /** Item aponta pra um registro com Detail próprio → primeira coluna vira link. */
+    rowLink?: (item: T) => string | undefined;
 };
 
 const defaultColumns = <T extends NoteRowLike>(): ColumnDef<AppTableFeatures, T>[] => [
@@ -58,6 +61,7 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
         searchPlaceholder = "Pesquisar notas",
         addLabel = "Nova nota",
         emptyMessage = "Nenhuma nota encontrada.",
+        rowLink,
     } = props;
     const [notes, setNotes] = React.useState<T[]>(initialNotes);
     const { confirm, dialog } = useConfirmDialog();
@@ -169,7 +173,7 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
             {filteredNotes.length === 0 ? (
                 <EmptyState title={emptyMessage} className="py-6" />
             ) : (
-                <div className="rounded-md border overflow-hidden">
+                <div className="overflow-x-auto rounded-md border">
                     <Table>
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
@@ -183,13 +187,30 @@ export function RelationTablePanel<T extends NoteRowLike>(props: RelationTablePa
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id}>
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                                    ))}
-                                </TableRow>
-                            ))}
+                            {table.getRowModel().rows.map((row) => {
+                                const rowPath = rowLink?.(row.original);
+
+                                return (
+                                    <TableRow key={row.id}>
+                                        {row.getVisibleCells().map((cell) => {
+                                            const rendered = flexRender(cell.column.columnDef.cell, cell.getContext());
+                                            const isFirstCell = cell.column.getIndex() === 0;
+
+                                            if (rowPath && isFirstCell) {
+                                                return (
+                                                    <TableCell key={cell.id}>
+                                                        <Link href={rowPath} className="font-medium text-foreground hover:underline">
+                                                            {rendered}
+                                                        </Link>
+                                                    </TableCell>
+                                                );
+                                            }
+
+                                            return <TableCell key={cell.id}>{rendered}</TableCell>;
+                                        })}
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 </div>

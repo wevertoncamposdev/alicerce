@@ -15,6 +15,7 @@ import {
     Briefcase,
     FileText,
     Tag as TagIcon,
+    Users as UsersIcon,
     Wallet,
 } from "lucide-react";
 import { defineRecordModule, registerModule } from "@core/registry";
@@ -24,7 +25,7 @@ import { createListQueryState } from "@lib/query-state/list-query-state";
 import { Badge } from "@components/ui/badge";
 import { ShowcaseRelationTable } from "./ShowcaseRelationTable";
 
-import { searchShowcase, readShowcase } from "./provider";
+import { searchShowcase, readShowcase, FAMILY_MEMBERS } from "./provider";
 import type { ShowcaseEntity } from "./types";
 
 const DOCUMENTS = [
@@ -178,7 +179,26 @@ const showcaseDetailLayout: DetailLayout<ShowcaseEntity> = {
             ),
         },
     ],
-    relations: () => [
+    relations: ({ record }) => [
+        {
+            key: "familiares",
+            label: "Familiares",
+            icon: UsersIcon,
+            count: (FAMILY_MEMBERS[record.id] ?? []).length,
+            content: (
+                <ShowcaseRelationTable
+                    columns={[
+                        { key: "nome", header: "Nome" },
+                        { key: "parentesco", header: "Parentesco" },
+                    ]}
+                    rows={FAMILY_MEMBERS[record.id] ?? []}
+                    linkKey="href"
+                    searchPlaceholder="Pesquisar familiares"
+                    addLabel="Vincular familiar"
+                    emptyMessage="Nenhum familiar vinculado."
+                />
+            ),
+        },
         {
             key: "documentos",
             label: "Documentos",

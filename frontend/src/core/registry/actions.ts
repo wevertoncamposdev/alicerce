@@ -71,6 +71,38 @@ export async function createRecordFormAction(
 }
 
 
+type CreateDraftResult = { ok: true; id: string } | { ok: false; message: string };
+
+/**
+ * Server Action pro fluxo de criação pelo Detail (ADR 0005, "Novo" com
+ * `createMode: "detail"`): cria o registro quando o campo `primary` perde o
+ * foco. Não valida o payload (igual `autoSaveRecord`) — quem chama
+ * (`FormView mode="draft"`) já validou via `validateFormPayload` antes.
+ */
+export async function createRecordDraftAction(
+    model: string,
+    payload: Record<string, unknown>,
+): Promise<CreateDraftResult> {
+    try {
+        const { dataHandlers } = getModule(model);
+
+        if (!dataHandlers.create) {
+            return { ok: false, message: `Módulo "${model}" é somente leitura.` };
+        }
+
+        const created = await dataHandlers.create(payload);
+        const id = (created as { id?: string }).id;
+        if (!id) {
+            return { ok: false, message: "Registro criado sem id — não é possível continuar a edição." };
+        }
+
+        return { ok: true, id };
+    } catch (err) {
+        console.error("[createRecordDraftAction]", err);
+        return { ok: false, message: resolveActionErrorMessage(err) };
+    }
+}
+
 /**
  * Server Action genérica para autosave de campo/registro.
  * Não é específica de "favorites" — qualquer módulo registrado
