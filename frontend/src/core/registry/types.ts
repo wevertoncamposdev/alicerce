@@ -20,6 +20,8 @@ export type FormFieldConfig<T> = {
     required?: boolean;
     createOnly?: boolean;
     options?: Array<string | { label: string; value: string }>;
+    /** Campo que dispara a criação no Detail (`createMode: "detail"`). Um por módulo. */
+    primary?: boolean;
 };
 
 export type DetailContext<T> = {
@@ -125,6 +127,8 @@ export type RecordModuleDefinition<T = unknown> = {
      * via `resolveActionPermission` (lib/authz.ts).
      */
     permission?: string;
+    /** "sheet" (default, Sheet de criação) ou "detail" ("Novo" abre o Detail em rascunho). */
+    createMode?: "sheet" | "detail";
     parseListState: (searchParams: Record<string, string | string[] | undefined>) => SearchArgs;
     serializeListState: (current: URLSearchParams, patch: Record<string, unknown>) => URLSearchParams;
 

@@ -1,8 +1,11 @@
 // screens/TypeViewScreen.tsx
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import { getModule } from "@core/registry";
 import { createDataProvider } from "@core/data-provider";
 import { ApiServerError } from "@lib/api-server";
 import { AppTopbar } from "@core/components/Layout/AppTopbar";
+import { Button } from "@components/ui/button";
 import { RecordListHost } from "@core/components/Layout/RecordListHost";
 import { RecordSearch } from "@core/components/Layout/RecordSearch";
 import { PermissionDeniedView } from "@core/components/Layout/PermissionDeniedView";
@@ -51,7 +54,14 @@ export async function TypeViewScreen({ moduleName, searchParams }: TypeViewScree
                 actions={
                     <>
                         <ViewSwitcher current={mode} views={mod.views} />
-                        {mod.listLayout.form ? (
+                        {mod.createMode === "detail" ? (
+                            <Button asChild size="sm" className="gap-1">
+                                <Link href={`/${moduleName}/new`}>
+                                    <Plus className="size-4" />
+                                    Novo
+                                </Link>
+                            </Button>
+                        ) : mod.listLayout.form ? (
                             <CreateRecordSheet label={mod.label}>
                                 {mod.listLayout.form(listContext)}
                             </CreateRecordSheet>

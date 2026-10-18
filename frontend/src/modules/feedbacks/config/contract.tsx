@@ -19,8 +19,15 @@ import type { FeedbackEntity, ContextItem } from "../types/types";
 // (ver FeedbackStatusControl), uma permissão separada de `feedback.update` —
 // não faz parte do formulário comum de edição.
 const formFields = [
-    { name: "title" as const, label: "Título", placeholder: "Digite o título", type: "text" as const, required: true },
-    { name: "description" as const, label: "Descrição", placeholder: "Descreva o feedback", type: "textarea" as const, required: true },
+    {
+        name: "title" as const,
+        label: "Título",
+        placeholder: "Digite o título",
+        type: "text" as const,
+        required: true,
+        primary: true,
+    },
+    { name: "description" as const, label: "Descrição", placeholder: "Descreva o feedback", type: "textarea" as const, required: false },
 ];
 
 const { parseListState, serializeListState } = createListQueryState();
@@ -95,6 +102,9 @@ export const feedbacksModule = defineRecordModule<FeedbackEntity>({
     label: "Feedbacks",
     views: ["list"],
     defaultView: "list",
+    // "Novo" abre o Detail em rascunho (ADR 0005) — único módulo com esse fluxo nesta
+    // tarefa; users/roles/permissions/tenants continuam no Sheet (default).
+    createMode: "detail",
     dataHandlers: {
         search: searchFeedbacks,
         read: readFeedback,
