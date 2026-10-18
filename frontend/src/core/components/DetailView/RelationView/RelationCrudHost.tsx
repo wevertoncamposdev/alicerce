@@ -103,7 +103,7 @@ function RelationCrudHost<T extends object>({
             ) : items.length === 0 ? (
                 <EmptyState title={emptyMessage} className="py-6" />
             ) : (
-                <div className="rounded-md border overflow-hidden">
+                <div className="overflow-x-auto rounded-md border">
                     <Table>
                         <TableHeader>
                             {table.getHeaderGroups().map((hg) => (
@@ -128,7 +128,7 @@ function RelationCrudHost<T extends object>({
                                             if (rowPath && isFirstCell) {
                                                 return (
                                                     <TableCell key={cell.id}>
-                                                        <Link href={rowPath} className="font-medium text-foreground hover:text-primary underline-offset-4 hover:underline">
+                                                        <Link href={rowPath} className="font-medium text-foreground hover:underline">
                                                             {rendered}
                                                         </Link>
                                                     </TableCell>

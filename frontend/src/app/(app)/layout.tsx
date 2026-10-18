@@ -36,7 +36,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <AppAccessGuard currentUser={currentUser.user}>
         <SidebarProvider>
           <AppSidebar userEmail={currentUser.user.email} tenantName={tenantName} />
-          <main className="flex-1">{children}</main>
+          {/* min-w-0: sem isso, um flex item com flex-1 nunca encolhe abaixo do conteúdo
+              mais largo (ex.: uma tabela) — a página inteira ganha scroll horizontal em
+              telas estreitas em vez do conteúdo largo rolar só dentro do seu próprio
+              container (overflow-x-auto). */}
+          <main className="min-w-0 flex-1">{children}</main>
         </SidebarProvider>
       </AppAccessGuard>
     </AuthProvider>

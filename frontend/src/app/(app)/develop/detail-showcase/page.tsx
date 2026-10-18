@@ -2,8 +2,8 @@
 //
 // Referência de validação do motor de DetailView (docs/ui/detail-page.md §8) — não é um
 // módulo de domínio navegável, só uma rota de desenvolvimento pra comparar com
-// docs/ui/reference/detail-layout.png a cada commit do ADR 0004.
-import "@modules/develop/showcase/contract";
+// docs/ui/reference/detail-layout.png a cada commit do ADR 0004. Registro do módulo fica
+// no layout.tsx (compartilhado com [id]/page.tsx — evita registrar duas vezes).
 import { DetailViewScreen } from "@core/screens/DetailViewScreen";
 
 export default function DetailShowcasePage() {
