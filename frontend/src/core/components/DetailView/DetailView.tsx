@@ -32,7 +32,7 @@ const OVERVIEW_TAB_KEY = "overview";
  * PERGUNTAR ao moduleDefinition.detailLayout o que colocar em cada slot,
  * e entregar esse resultado para o DetailShell (o "casco" visual da Fase 6/7).
  */
-export function DetailView<T>({
+export async function DetailView<T>({
     moduleDefinition,
     record,
     recordId,
@@ -53,7 +53,9 @@ export function DetailView<T>({
     }
 
     const context: DetailContext<T> = { record, contextItems, auditItems };
-    const relationTabs = layout.relations?.(context) ?? [];
+    // `relations` pode ser async (ex.: Feedback busca a contagem real de comentários pro
+    // badge da aba) — módulos com retorno síncrono continuam funcionando sem mudança.
+    const relationTabs = (await layout.relations?.(context)) ?? [];
     const relationsSlot = relationTabs.length > 0 ? <RelationCard tabs={relationTabs} /> : null;
 
     if (layout.header) {

@@ -1,3 +1,4 @@
+import { FileText, MessageSquare } from "lucide-react";
 import { defineRecordModule, registerModule } from "@core/registry";
 import type { DetailLayout, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
@@ -44,27 +45,48 @@ const feedbacksListLayout: ListLayout<FeedbackEntity> = {
 };
 
 const feedbacksDetailLayout: DetailLayout<FeedbackEntity> = {
-    main: ({ record }) => (
-        <FormView<FeedbackEntity>
-            mode="edit"
-            model="feedbacks"
-            recordId={record.id}
-            fields={formFields}
-            initialValues={record}
-        />
-    ),
-    side: ({ record }) => (
-        <div>
-            <h2 className="text-sm font-medium text-muted-foreground mb-2">Status</h2>
-            <FeedbackStatusControl feedback={record} />
-        </div>
-    ),
-    bottom: ({ record }) => <FeedbackCommentsSection feedbackId={record.id} />,
+    header: ({ record }) => ({
+        title: record.title,
+        subtitle: [`Criado em ${new Date(record.createdAt).toLocaleDateString("pt-BR")}`],
+        status: <FeedbackStatusControl feedback={record} />,
+    }),
+    sections: [
+        {
+            key: "details",
+            title: "Detalhes",
+            icon: FileText,
+            column: 1,
+            editable: true,
+            fields: ["title", "description"],
+        },
+    ],
+    relations: async ({ record }) => {
+        const comments = await listFeedbackComments(record.id);
+        return [
+            {
+                key: "comentarios",
+                label: "Comentários",
+                icon: MessageSquare,
+                count: comments.length,
+                content: (
+                    <RelationTablePanel
+                        favoriteId={record.id}
+                        initialNotes={comments}
+                        createNoteFn={createFeedbackComment}
+                        deleteNoteFn={deleteFeedbackComment}
+                        searchPlaceholder="Pesquisar comentários"
+                        addLabel="Novo comentário"
+                        emptyMessage="Nenhum comentário encontrado."
+                    />
+                ),
+            },
+        ];
+    },
 };
 
 function loadFeedbackContext(record: FeedbackEntity): ContextItem[] {
     return [
-        { key: "createdAt", label: "Criado em", value: record.createdAt.slice(0, 16).replace("T", ", ") },
+        { key: "createdAt", label: "Criado em", value: new Date(record.createdAt).toLocaleString("pt-BR") },
     ];
 }
 
@@ -89,21 +111,3 @@ export const feedbacksModule = defineRecordModule<FeedbackEntity>({
 });
 
 registerModule(feedbacksModule);
-
-async function FeedbackCommentsSection({ feedbackId }: { feedbackId: string }) {
-    const comments = await listFeedbackComments(feedbackId);
-    return (
-        <div>
-            <h2 className="text-sm font-medium text-muted-foreground mb-2">Comentários</h2>
-            <RelationTablePanel
-                favoriteId={feedbackId}
-                initialNotes={comments}
-                createNoteFn={createFeedbackComment}
-                deleteNoteFn={deleteFeedbackComment}
-                searchPlaceholder="Pesquisar comentários"
-                addLabel="Novo comentário"
-                emptyMessage="Nenhum comentário encontrado."
-            />
-        </div>
-    );
-}

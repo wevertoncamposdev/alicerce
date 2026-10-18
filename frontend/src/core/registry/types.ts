@@ -71,7 +71,7 @@ export type DetailLayout<T> = {
     main?: (ctx: DetailContext<T>) => React.ReactNode;
     side?: (ctx: DetailContext<T>) => React.ReactNode;
     bottom?: (ctx: DetailContext<T>) => React.ReactNode;
-    relations?: (ctx: DetailContext<T>) => RelationTabConfig[];
+    relations?: (ctx: DetailContext<T>) => RelationTabConfig[] | Promise<RelationTabConfig[]>;
 };
 
 // ============================================================
