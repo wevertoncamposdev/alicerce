@@ -544,7 +544,8 @@ export function ${pascalPlural}ListView({ data, pagination, sort }: ${pascalPlur
 
   writeNew(
     join(dir, "config", "contract.tsx"),
-    `import { defineRecordModule, registerModule } from "@core/registry";
+    `import { FileText } from "lucide-react";
+import { defineRecordModule, registerModule } from "@core/registry";
 import type { DetailLayout, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
 import { createRecordFormAction } from "@core/registry/actions";
@@ -557,12 +558,24 @@ import {
 } from "./provider";
 import type { ${pascalSingular}Entity, ContextItem } from "../types/types";
 
+// \`primary: true\` dispara a criação pelo Detail (createMode: "detail" abaixo, ver
+// docs/ui/detail-page.md §5) — um campo por módulo, geralmente o mesmo que vira o
+// título no header.
 const formFields = [
-    { name: "title" as const, label: "Título", placeholder: "Digite o título", type: "text" as const, required: true },
+    {
+        name: "title" as const,
+        label: "Título",
+        placeholder: "Digite o título",
+        type: "text" as const,
+        required: true,
+        primary: true,
+    },
 ];
 
 const { parseListState, serializeListState } = createListQueryState();
 
+// Sem uso enquanto createMode for "detail" (listLayout.form fica pronto caso você
+// volte pro fluxo de Sheet depois — não precisa remover).
 const create${pascalSingular}Action = createRecordFormAction.bind(
     null,
     "${kebabPlural}",
@@ -583,15 +596,20 @@ const ${camelPlural}ListLayout: ListLayout<${pascalSingular}Entity> = {
 };
 
 const ${camelPlural}DetailLayout: DetailLayout<${pascalSingular}Entity> = {
-    main: ({ record }) => (
-        <FormView<${pascalSingular}Entity>
-            mode="edit"
-            model="${kebabPlural}"
-            recordId={record.id}
-            fields={formFields}
-            initialValues={record}
-        />
-    ),
+    header: ({ record }) => ({
+        title: record.title,
+        subtitle: ["Criado em " + new Date(record.createdAt).toLocaleDateString("pt-BR")],
+    }),
+    sections: [
+        {
+            key: "details",
+            title: "Detalhes",
+            icon: FileText,
+            column: 1,
+            editable: true,
+            fields: ["title"],
+        },
+    ],
 };
 
 function load${pascalSingular}Context(record: ${pascalSingular}Entity): ContextItem[] {
@@ -605,6 +623,10 @@ export const ${camelPlural}Module = defineRecordModule<${pascalSingular}Entity>(
     label: "${label}",
     views: ["list"],
     defaultView: "list",
+    // "Novo" abre o Detail em rascunho (docs/ui/detail-page.md §5) — troque pra
+    // "sheet" (ou remova a linha, é o default) se o módulo não tolerar um registro
+    // incompleto até o campo primary ser preenchido.
+    createMode: "detail",
     dataHandlers: {
         search: search${pascalPlural},
         read: read${pascalSingular},
@@ -647,6 +669,17 @@ import { DetailViewScreen } from "@core/screens/DetailViewScreen";
 export default async function ${pascalSingular}DetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     return <DetailViewScreen moduleName="${kebabPlural}" id={id} />;
+}
+`,
+  );
+
+  writeNew(
+    join(FRONTEND, "src", "app", "(app)", kebabPlural, "new", "page.tsx"),
+    `// app/(app)/${kebabPlural}/new/page.tsx
+import { DetailCreateScreen } from "@core/screens/DetailCreateScreen";
+
+export default function New${pascalSingular}Page() {
+    return <DetailCreateScreen moduleName="${kebabPlural}" />;
 }
 `,
   );

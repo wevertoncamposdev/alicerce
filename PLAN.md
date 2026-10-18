@@ -7,6 +7,10 @@
 
 - [x] Sessão de fechamento da v1 (blocos A a D) — concluída em 2026-10-17.
       Base congelada; `feedback` é o módulo canônico de exemplo.
+- [x] Detail Page v2 (ADR 0005) — concluída em 2026-10-18. Breadcrumb/ações no
+      topbar, autosave sempre ativo, relações como links, "Novo" abre o
+      Detail (`feedback`, único módulo migrado); gerador já cria módulos
+      novos nesse formato.
 - [ ] Primeiro módulo de domínio com `/novo-modulo`
 
 ## Pendências conhecidas (não bloqueiam)
