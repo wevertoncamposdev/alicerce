@@ -16,8 +16,6 @@ interface DetailViewProps<T> {
     auditItems: AuditFeedItem[];
     /** título da página já fica no AppTopbar — aqui só ações secundárias da tela de detalhe. */
     toolbar?: React.ReactNode;
-    /** `?mode=edit` já resolvido pelo chamador — troca as seções `editable` pelo FormView. */
-    isEditing?: boolean;
 }
 
 const OVERVIEW_TAB_KEY = "overview";
@@ -35,7 +33,6 @@ export async function DetailView<T>({
     contextItems,
     auditItems,
     toolbar,
-    isEditing,
 }: DetailViewProps<T>) {
     const layout = moduleDefinition.detailLayout;
 
@@ -64,7 +61,7 @@ export async function DetailView<T>({
                 formFields={moduleDefinition.formFields}
                 model={moduleDefinition.model}
                 recordId={recordId}
-                isEditing={Boolean(isEditing)}
+                permission={moduleDefinition.permission}
             />
         ) : (
             (layout.main?.(context) ?? null)

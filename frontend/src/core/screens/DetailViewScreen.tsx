@@ -16,16 +16,12 @@ import type { DetailContext } from "@core/registry/types";
 export async function DetailViewScreen({
     moduleName,
     id,
-    searchParams,
 }: {
     moduleName: string;
     id: string;
-    /** Só módulos migrados pra `header`/`sections` consomem `?mode=edit` — os demais ignoram. */
-    searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
     const mod = getModule(moduleName);
     const dataProvider = createDataProvider();
-    const isEditing = (await searchParams)?.mode === "edit";
 
     let record: Record<string, unknown>;
     try {
@@ -79,7 +75,6 @@ export async function DetailViewScreen({
                     recordId={id}
                     contextItems={contextItems}
                     auditItems={auditItems}
-                    isEditing={isEditing}
                 />
             </div>
         </AutoSaveStatusProvider>

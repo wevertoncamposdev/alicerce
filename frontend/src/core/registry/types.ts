@@ -119,6 +119,12 @@ export type RecordModuleDefinition<T = unknown> = {
     defaultView: string;
     dataHandlers: RecordModuleDataHandlers<T>;
     formFields: FormFieldConfig<T>[];
+    /**
+     * Prefixo de permissão usado pelas seções `editable` do detail (vira
+     * `${permission}.update`). Default: resolução atual de `${model}.update`
+     * via `resolveActionPermission` (lib/authz.ts).
+     */
+    permission?: string;
     parseListState: (searchParams: Record<string, string | string[] | undefined>) => SearchArgs;
     serializeListState: (current: URLSearchParams, patch: Record<string, unknown>) => URLSearchParams;
 

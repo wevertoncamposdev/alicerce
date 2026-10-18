@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useActionState } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Input } from "@components/ui/input";
 import { Textarea } from "@components/ui/textarea";
@@ -31,6 +32,8 @@ type FormViewProps<T extends object> =
         model: string;
         recordId: string;
         initialValues: T;
+        /** `"inline"` usa o grid label-à-esquerda do FieldList (detail page). Default `"stacked"`. */
+        layout?: "stacked" | "inline";
     };
 
 export function FormView<T extends object>(props: FormViewProps<T>) {
@@ -43,6 +46,7 @@ export function FormView<T extends object>(props: FormViewProps<T>) {
             model={props.model}
             recordId={props.recordId}
             initialValues={props.initialValues}
+            layout={props.layout ?? "stacked"}
         />
     );
 }
@@ -93,9 +97,11 @@ function renderFieldInput<T extends object>(
         onBlur?: () => void;
         variant: "default" | "inline-detail";
         invalid?: boolean;
+        /** Textarea só: borda só em hover/focus + caixa compacta (sem rows fixo) — detail page inline. */
+        compactTextarea?: boolean;
     },
 ) {
-    const { value, defaultValue, onChange, onBlur, variant, invalid } = opts;
+    const { value, defaultValue, onChange, onBlur, variant, invalid, compactTextarea } = opts;
 
     if (field.type === "checkbox" || field.type === "switch") {
         return (
@@ -128,6 +134,15 @@ function renderFieldInput<T extends object>(
     };
 
     if (field.type === "textarea") {
+        if (compactTextarea) {
+            return (
+                <Textarea
+                    {...sharedProps}
+                    rows={1}
+                    className="min-h-[1.75rem] flex-1 min-w-0 resize-none rounded-none border-0 border-b border-transparent bg-transparent px-0 py-1 shadow-none hover:border-border/70 focus-visible:border-foreground focus-visible:ring-0"
+                />
+            );
+        }
         return <Textarea {...sharedProps} rows={4} />;
     }
 
@@ -208,15 +223,18 @@ function EditFormView<T extends object>({
     model,
     recordId,
     initialValues,
+    layout,
 }: {
     fields: FormFieldConfig<T>[];
     model: string;
     recordId: string;
     initialValues: T;
+    layout: "stacked" | "inline";
 }) {
     const [values, setValues] = React.useState<T>(initialValues);
     const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
     const { setStatus } = useAutoSaveStatus();
+    const router = useRouter();
 
     const editableFields = React.useMemo(() => fields.filter((field) => !field.createOnly), [fields]);
     const editableKeys = React.useMemo(() => editableFields.map((field) => field.name), [editableFields]);
@@ -244,6 +262,9 @@ function EditFormView<T extends object>({
             setStatus("saving");
             const updated = await autoSaveRecord<T>(model, recordId, draft);
             setStatus("saved");
+            // Client-side, não chama revalidatePath (AGENTS §4.1.8) — só atualiza título do
+            // header/breadcrumb/auditoria no servidor sem resetar o estado local do form.
+            router.refresh();
             return pickEditableFields(updated);
         },
         onError: (err) => {
@@ -260,6 +281,50 @@ function EditFormView<T extends object>({
             delete next[name];
             return next;
         });
+    }
+
+    if (layout === "inline") {
+        return (
+            <div className="grid grid-cols-[minmax(110px,40%)_1fr] items-start gap-x-4 gap-y-2.5 text-sm">
+                {fields.map((field) => {
+                    const error = fieldErrors[field.name];
+                    const input = renderFieldInput(field, {
+                        value: String((values[field.name] as string | number | undefined) ?? ""),
+                        variant: "inline-detail",
+                        invalid: Boolean(error),
+                        compactTextarea: field.type === "textarea",
+                        onChange: (value) => handleChange(field.name, value),
+                        onBlur: commitField,
+                    });
+                    const label = (
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Label htmlFor={field.name}>{field.label}</Label>
+                            {saving ? <Loader2 className="size-3.5 shrink-0 animate-spin" /> : null}
+                        </div>
+                    );
+
+                    if (field.type === "textarea") {
+                        return (
+                            <div key={field.name} className="col-span-2 space-y-1">
+                                {label}
+                                {input}
+                                <FieldErrorText error={error} />
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <React.Fragment key={field.name}>
+                            <div className="pt-1.5">{label}</div>
+                            <div className="space-y-1">
+                                {input}
+                                <FieldErrorText error={error} />
+                            </div>
+                        </React.Fragment>
+                    );
+                })}
+            </div>
+        );
     }
 
     return (

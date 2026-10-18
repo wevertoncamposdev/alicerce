@@ -3,7 +3,7 @@ import * as React from "react";
 import type { DetailContext, DetailSection, FormFieldConfig } from "@core/registry/types";
 import { SectionCard } from "@core/components/DetailView/SectionCard";
 import { FieldList } from "@core/components/DetailView/FieldList";
-import { FormView } from "@components/TypeView/FormView/FormView";
+import { EditableSection } from "@core/components/DetailView/EditableSection";
 
 type DetailSectionsProps<T> = {
     sections: DetailSection<T>[];
@@ -11,11 +11,11 @@ type DetailSectionsProps<T> = {
     formFields: FormFieldConfig<T>[];
     model: string;
     recordId: string;
-    isEditing: boolean;
+    permission?: string;
 };
 
 /** Grid de seções (docs/ui/detail-page.md §3) — `column` agrupa, nunca renderiza coluna vazia. */
-export function DetailSections<T>({ sections, context, formFields, model, recordId, isEditing }: DetailSectionsProps<T>) {
+export function DetailSections<T>({ sections, context, formFields, model, recordId, permission }: DetailSectionsProps<T>) {
     const columns = new Map<number, DetailSection<T>[]>();
     for (const section of sections) {
         const col = section.column ?? 1;
@@ -38,7 +38,7 @@ export function DetailSections<T>({ sections, context, formFields, model, record
                                 formFields={formFields}
                                 model={model}
                                 recordId={recordId}
-                                isEditing={isEditing}
+                                permission={permission}
                             />
                         </SectionCard>
                     ))}
@@ -54,28 +54,28 @@ function SectionBody<T>({
     formFields,
     model,
     recordId,
-    isEditing,
+    permission,
 }: {
     section: DetailSection<T>;
     context: DetailContext<T>;
     formFields: FormFieldConfig<T>[];
     model: string;
     recordId: string;
-    isEditing: boolean;
+    permission?: string;
 }) {
     if (section.render) return <>{section.render(context)}</>;
 
     const fields = section.fields ?? [];
 
-    if (isEditing && section.editable) {
-        const sectionFormFields = formFields.filter((field) => fields.includes(field.name));
+    if (section.editable) {
         return (
-            <FormView<Record<string, unknown>>
-                mode="edit"
+            <EditableSection
+                record={context.record}
+                fields={fields}
+                formFields={formFields}
                 model={model}
                 recordId={recordId}
-                fields={sectionFormFields as FormFieldConfig<Record<string, unknown>>[]}
-                initialValues={context.record as Record<string, unknown>}
+                permission={permission}
             />
         );
     }
