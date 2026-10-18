@@ -12,23 +12,32 @@ import {
     DrawerTrigger,
 } from "@components/ui/drawer";
 
-export function MetaDataSidebar({ children }: { children: React.ReactNode }) {
+const defaultTrigger = (
+    <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="w-full justify-between"
+        aria-label="Abrir metadados"
+    >
+        <span>Metadados</span>
+        <ChevronRight className="size-4" />
+    </Button>
+);
+
+export function MetaDataSidebar({
+    children,
+    trigger = defaultTrigger,
+}: {
+    children: React.ReactNode;
+    /** Modo compacto (ícone, no header da detail page) substitui o botão padrão de texto. */
+    trigger?: React.ReactNode;
+}) {
     const [open, setOpen] = React.useState(false);
 
     return (
         <Drawer open={open} onOpenChange={setOpen} direction="right">
-            <DrawerTrigger asChild>
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-between"
-                    aria-label="Abrir metadados"
-                >
-                    <span>Metadados</span>
-                    <ChevronRight className="size-4" />
-                </Button>
-            </DrawerTrigger>
+            <DrawerTrigger asChild>{trigger}</DrawerTrigger>
 
             <DrawerContent className="sm:max-w-md">
                 <DrawerHeader className="flex items-center justify-between gap-2">

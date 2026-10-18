@@ -1,8 +1,13 @@
 // screens/DetailViewScreen.tsx
+import { PanelRight } from "lucide-react";
 import { getModule } from "@core/registry";
 import { createDataProvider } from "@core/data-provider";
 import { getEntityAuditTrail } from "@core/data-provider/rest/audit";
 import { ApiServerError } from "@lib/api-server";
+import { getCurrentUser } from "@lib/auth-server";
+import { resolveActionPermission, type AuthAction } from "@lib/authz";
+import { alicerceModules } from "@/alicerce.config";
+import { Button } from "@components/ui/button";
 import { DetailView } from "@core/components/DetailView/DetailView";
 import { AppTopbar } from "@core/components/Layout/AppTopbar";
 import { PermissionDeniedView } from "@core/components/Layout/PermissionDeniedView";
@@ -31,10 +36,14 @@ export async function DetailViewScreen({ moduleName, id }: { moduleName: string;
         throw err;
     }
 
-    const [contextItems, auditItems] = await Promise.all([
+    const [contextItems, auditItems, canEdit] = await Promise.all([
         resolveContextItems(mod, record),
         resolveAuditItems(mod, moduleName, id),
+        resolveCanEdit(moduleName),
     ]);
+
+    const hasHeader = Boolean(mod.detailLayout?.header);
+    const metaDataContent = <MetaDataView contextItems={contextItems} auditItems={auditItems} />;
 
     return (
         <AutoSaveStatusProvider>
@@ -42,21 +51,51 @@ export async function DetailViewScreen({ moduleName, id }: { moduleName: string;
                 title={mod.label}
                 autosave={<AutoSaveIndicator />}
                 actions={
-                    <MetaDataSidebar>
-                        <MetaDataView contextItems={contextItems} auditItems={auditItems} />
-                    </MetaDataSidebar>
+                    hasHeader ? undefined : <MetaDataSidebar>{metaDataContent}</MetaDataSidebar>
                 }
             />
-            <div className="px-4 py-3">
+            <div className="mx-auto w-full max-w-[1400px] space-y-4 px-6 py-4">
                 <DetailView
                     moduleDefinition={mod}
                     record={record}
                     contextItems={contextItems}
                     auditItems={auditItems}
+                    canEdit={canEdit}
+                    metadataSidebar={
+                        hasHeader ? (
+                            <MetaDataSidebar
+                                trigger={
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        aria-label="Abrir metadados"
+                                    >
+                                        <PanelRight className="size-4" />
+                                    </Button>
+                                }
+                            >
+                                {metaDataContent}
+                            </MetaDataSidebar>
+                        ) : undefined
+                    }
                 />
             </div>
         </AutoSaveStatusProvider>
     );
+}
+
+async function resolveCanEdit(moduleName: string): Promise<boolean> {
+    // Módulos fora do manifesto real (ex.: fixture de `/develop/detail-showcase`) não têm
+    // permissão pra checar — ficam sempre editáveis, servem só pra revisão visual do layout.
+    const isRealModule = alicerceModules.some((entry) => entry.key === moduleName);
+    if (!isRealModule) return true;
+
+    const permission = resolveActionPermission(`${moduleName}.update` as AuthAction);
+    if (!permission) return false;
+
+    const currentUser = await getCurrentUser();
+    return currentUser?.user.permissions.includes(permission) ?? false;
 }
 
 async function resolveContextItems(mod: ReturnType<typeof getModule>, record: unknown): Promise<ContextItem[]> {

@@ -3,7 +3,9 @@ import * as React from "react";
 import type { RecordModuleDefinition, DetailContext } from "@core/registry/types";
 import type { ContextItem, AuditFeedItem } from "@core/components/DetailView/MetaDataView/types";
 import { DetailShell } from "@core/components/DetailView/DetailShell";
+import { DetailHeader } from "@core/components/DetailView/DetailHeader";
 import { RelationShell } from "@core/components/DetailView/RelationView/RelationShell";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 
 interface DetailViewProps<T> {
     moduleDefinition: RecordModuleDefinition<T>;
@@ -12,7 +14,13 @@ interface DetailViewProps<T> {
     auditItems: AuditFeedItem[];
     /** título da página já fica no AppTopbar — aqui só ações secundárias da tela de detalhe. */
     toolbar?: React.ReactNode;
+    /** Permissão de update já resolvida pelo chamador — liga o botão "Editar" do header. */
+    canEdit?: boolean;
+    /** Trigger do MetaDataSidebar no formato ícone, pro header (só usado quando `header` existe). */
+    metadataSidebar?: React.ReactNode;
 }
+
+const OVERVIEW_TAB_KEY = "overview";
 
 /**
  * Motor de composição da tela de detalhe.
@@ -26,6 +34,8 @@ export function DetailView<T>({
     contextItems,
     auditItems,
     toolbar,
+    canEdit,
+    metadataSidebar,
 }: DetailViewProps<T>) {
     const layout = moduleDefinition.detailLayout;
 
@@ -37,21 +47,69 @@ export function DetailView<T>({
     }
 
     const context: DetailContext<T> = { record, contextItems, auditItems };
+    const relationTabs = layout.relations?.(context) ?? [];
+    const relationsSlot = relationTabs.length > 0 ? <RelationShell tabs={relationTabs} /> : null;
 
-    // `sections` é o caminho novo (header/sections/relations); módulos que ainda não
-    // migraram continuam no caminho antigo via `main`. Renderização de `header`/`sections`
-    // chega nos próximos commits (ADR 0004) — por ora só mantém os dois caminhos compilando.
+    if (layout.header) {
+        const headerConfig = layout.header(context);
+        const extraTabs = layout.tabs ?? [];
+        // `main`/`sections` ainda não têm renderização própria (chegam nos próximos commits do
+        // ADR 0004) — por ora a aba "Visão geral" só reaproveita `main`, se o módulo o definir.
+        const overviewSlot = layout.main?.(context) ?? null;
+
+        return (
+            <DetailShell toolbar={toolbar}>
+                <Tabs defaultValue={OVERVIEW_TAB_KEY}>
+                    <DetailHeader
+                        config={headerConfig}
+                        moduleLabel={moduleDefinition.label}
+                        editHref={canEdit ? "?mode=edit" : undefined}
+                        metadataSidebar={metadataSidebar}
+                        tabsList={
+                            extraTabs.length > 0 ? (
+                                <TabsList variant="line" className="w-full justify-start">
+                                    <TabsTrigger value={OVERVIEW_TAB_KEY}>Visão geral</TabsTrigger>
+                                    {extraTabs.map((tab) => {
+                                        const Icon = tab.icon;
+                                        return (
+                                            <TabsTrigger key={tab.key} value={tab.key}>
+                                                {Icon ? <Icon className="size-4" /> : null}
+                                                {tab.label}
+                                            </TabsTrigger>
+                                        );
+                                    })}
+                                </TabsList>
+                            ) : undefined
+                        }
+                    />
+
+                    <div className="mt-4">
+                        <TabsContent value={OVERVIEW_TAB_KEY}>{overviewSlot}</TabsContent>
+                        {extraTabs.map((tab) => (
+                            <TabsContent key={tab.key} value={tab.key}>
+                                {tab.content(context)}
+                            </TabsContent>
+                        ))}
+                    </div>
+                </Tabs>
+
+                {relationsSlot}
+            </DetailShell>
+        );
+    }
+
+    // Caminho antigo — módulos que ainda não migraram para `header`/`sections` (users, roles,
+    // permissions, tenants): main/side/bottom como sempre, sem alteração de comportamento.
     const mainSlot = layout.main?.(context) ?? null;
     const sideSlot = layout.side?.(context) ?? null;
     const bottomSlot = layout.bottom?.(context) ?? null;
-    const relationTabs = layout.relations?.(context) ?? [];
 
     return (
         <DetailShell toolbar={toolbar}>
             <div className="flex flex-col gap-6 lg:flex-row">
                 <div className="flex-1 space-y-6">
                     {mainSlot}
-                    {relationTabs.length > 0 ? <RelationShell tabs={relationTabs} /> : null}
+                    {relationsSlot}
                     {bottomSlot}
                 </div>
 
