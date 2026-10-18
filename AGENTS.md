@@ -14,7 +14,9 @@ model Prisma, os campos e as colunas. **Zero** primitivas de UI novas, zero
 código de auth, zero código de tenant.
 
 **Um mecanismo para tudo:** toda entidade segue o mesmo fluxo de UX:
-`TypeView (lista) → DetailView (form com autosave + RelationShell + MetaData)`.
+`TypeView (lista) → DetailView (autosave sempre ativo + RelationShell + MetaData)`.
+"Novo" abre a `DetailView` em rascunho quando o módulo declara `createMode: "detail"`
+(ver ADR 0005); default continua sendo o Sheet de criação.
 
 ## 2. Estado do projeto: base congelada na v1
 
