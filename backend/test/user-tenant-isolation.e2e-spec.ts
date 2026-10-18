@@ -8,6 +8,7 @@ import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { buildUser, MockUser } from './helpers/fixtures';
 
 /**
  * Cobre a Fase 0 do AGENTS.md ("acesso cruzado entre tenants retorna
@@ -25,7 +26,7 @@ import { PermissionCacheService } from '@core/authorization/permission-cache.ser
  * `tenant-id.decorator.ts`).
  */
 class MockPrisma {
-  users = new Map<string, Record<string, unknown>>();
+  users = new Map<string, MockUser>();
 
   user = {
     findMany: ({ where }: { where: { tenantId?: string; deletedAt: null } }) =>
@@ -68,24 +69,22 @@ describe('User tenant isolation (e2e with mocked Prisma)', () => {
 
   beforeAll(async () => {
     mockPrisma = new MockPrisma();
-    mockPrisma.users.set(userOwnId, {
-      id: userOwnId,
-      tenantId: tenantOwn,
-      email: 'own@example.com',
-      status: 'ACTIVE',
-      deletedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    mockPrisma.users.set(userOtherId, {
-      id: userOtherId,
-      tenantId: tenantOther,
-      email: 'victim@example.com',
-      status: 'ACTIVE',
-      deletedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    mockPrisma.users.set(
+      userOwnId,
+      buildUser({
+        id: userOwnId,
+        tenantId: tenantOwn,
+        email: 'own@example.com',
+      }),
+    );
+    mockPrisma.users.set(
+      userOtherId,
+      buildUser({
+        id: userOtherId,
+        tenantId: tenantOther,
+        email: 'victim@example.com',
+      }),
+    );
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       // AuthorizationModule precisa estar no grafo para RolesService (puxado
