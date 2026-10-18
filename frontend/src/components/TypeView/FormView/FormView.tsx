@@ -155,7 +155,7 @@ function renderFieldInput<T extends object>(
                 <Textarea
                     {...sharedProps}
                     rows={1}
-                    className="min-h-[1.75rem] flex-1 min-w-0 resize-none rounded-none border-0 border-b border-transparent bg-transparent px-0 py-1 shadow-none hover:border-border/70 focus-visible:border-foreground focus-visible:ring-0"
+                    className="min-h-[1.75rem] flex-1 min-w-0 resize-none rounded-none border-0 border-b border-transparent bg-transparent px-0 py-1 shadow-none hover:border-border/70 focus-visible:border-foreground focus-visible:ring-0 dark:bg-transparent"
                 />
             );
         }
