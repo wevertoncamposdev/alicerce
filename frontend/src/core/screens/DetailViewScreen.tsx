@@ -48,7 +48,7 @@ export async function DetailViewScreen({
 
     const [contextItems, auditItems, canEdit] = await Promise.all([
         resolveContextItems(mod, record),
-        resolveAuditItems(mod, moduleName, id),
+        resolveAuditItems(mod, moduleName, id, record),
         resolveCanEdit(moduleName),
     ]);
 
@@ -125,7 +125,9 @@ async function resolveAuditItems(
     mod: ReturnType<typeof getModule>,
     moduleName: string,
     id: string,
+    record: unknown,
 ): Promise<AuditFeedItem[]> {
+    if (mod.detailConfig?.loadAudit) return mod.detailConfig.loadAudit(record);
     if (!mod.detailConfig?.auditEnabled) return [];
 
     const entityName = normalizeAuditEntityName(moduleName);

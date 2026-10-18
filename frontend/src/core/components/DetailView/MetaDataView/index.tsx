@@ -20,25 +20,34 @@ type MetaDataViewProps = {
 export function MetaDataView({
     contextItems,
     auditItems,
-    defaultTab = "context",
+    defaultTab,
     comments,
     notes,
     tags,
     attachments,
 }: MetaDataViewProps) {
     const tabs = React.useMemo(() => {
-        const list: { value: string; label: string; badge?: number; content: React.ReactNode }[] = [
-            { value: "context", label: "Contexto", content: <ContextPanel items={contextItems} /> },
-        ];
+        const list: { value: string; label: string; badge?: number; content: React.ReactNode }[] = [];
 
+        // Auditoria vem primeiro — docs/ui/detail-page.md §6: é a aba default do drawer.
         if (auditItems) {
             list.push({
                 value: "activity",
                 label: "Auditoria",
                 badge: auditItems.length || undefined,
-                content: <AuditPanel items={auditItems} />,
+                content: (
+                    <div className="space-y-6">
+                        <AuditPanel items={auditItems} />
+                        <div className="space-y-3">
+                            <div className="text-sm font-medium text-foreground">Informações adicionais</div>
+                            <ContextPanel items={contextItems} />
+                        </div>
+                    </div>
+                ),
             });
         }
+
+        list.push({ value: "context", label: "Contexto", content: <ContextPanel items={contextItems} /> });
 
         // comments / notes / tags / attachments: abas reservadas, ainda sem
         // dado real por trás (ver Fase 6, seção 2 — escopo). Quando o
@@ -51,8 +60,10 @@ export function MetaDataView({
         return list;
     }, [contextItems, auditItems, comments, notes, tags, attachments]);
 
+    const resolvedDefaultTab = defaultTab ?? (auditItems ? "activity" : "context");
+
     return (
-        <Tabs defaultValue={defaultTab} className="flex h-full min-h-0 flex-col">
+        <Tabs defaultValue={resolvedDefaultTab} className="flex h-full min-h-0 flex-col">
             <TabsList className="border-b border-border/60">
                 {tabs.map((tab) => (
                     <TabsTrigger key={tab.value} value={tab.value}>

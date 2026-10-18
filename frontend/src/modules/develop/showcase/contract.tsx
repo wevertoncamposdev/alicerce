@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { defineRecordModule, registerModule } from "@core/registry";
 import type { DetailLayout, ListLayout } from "@core/registry/types";
+import type { AuditFeedItem } from "@core/components/DetailView/MetaDataView/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
 import { Badge } from "@components/ui/badge";
 import { ShowcaseRelationTable } from "./ShowcaseRelationTable";
@@ -38,6 +39,43 @@ const INVOICES = [
 ];
 
 const PROJECTS = [{ nome: "Projeto Futuro", descricao: "Reforço escolar e inclusão digital", status: "Ativo" }];
+
+// Fixture de auditoria — alinhada ao `createdAt` do RECORD em provider.ts (criação em
+// 12/03/2025), pra "Registro criado em" bater com o evento POST mais antigo.
+const AUDIT_ITEMS: AuditFeedItem[] = [
+    {
+        id: "audit-1",
+        action: "POST",
+        createdAt: "2025-03-12T10:24:00.000Z",
+        userEmail: "ana.souza@exemplo.com",
+        tenantName: "Tenant Exemplo",
+        summary: "Registro criado",
+    },
+    {
+        id: "audit-2",
+        action: "PATCH",
+        createdAt: "2025-08-12T11:20:00.000Z",
+        userEmail: "ana.souza@exemplo.com",
+        tenantName: "Tenant Exemplo",
+        summary: "Inclusão de tag \"Música\"",
+    },
+    {
+        id: "audit-3",
+        action: "PATCH",
+        createdAt: "2025-09-28T16:42:00.000Z",
+        userEmail: "weverton.campos@exemplo.com",
+        tenantName: "Tenant Exemplo",
+        summary: "Atualização de dados pessoais",
+    },
+    {
+        id: "audit-4",
+        action: "PATCH",
+        createdAt: "2025-10-10T14:32:00.000Z",
+        userEmail: "weverton.campos@exemplo.com",
+        tenantName: "Tenant Exemplo",
+        summary: "Atualização de atendimento",
+    },
+];
 
 const formFields = [
     { name: "name" as const, label: "Nome completo", type: "text" as const, required: true },
@@ -239,6 +277,14 @@ export const showcaseModule = defineRecordModule<ShowcaseEntity>({
     serializeListState,
     listLayout: showcaseListLayout,
     detailLayout: showcaseDetailLayout,
+    detailConfig: {
+        loadAudit: () => AUDIT_ITEMS,
+        loadContext: (record) => [
+            { key: "id", label: "ID do registro", value: `#${record.id}` },
+            { key: "origin", label: "Origem do cadastro", value: "Formulário online" },
+            { key: "status", label: "Status do registro", value: STATUS_LABEL[record.status] },
+        ],
+    },
 });
 
 registerModule(showcaseModule);

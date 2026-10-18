@@ -39,7 +39,7 @@ export function MetaDataSidebar({
         <Drawer open={open} onOpenChange={setOpen} direction="right">
             <DrawerTrigger asChild>{trigger}</DrawerTrigger>
 
-            <DrawerContent className="sm:max-w-md">
+            <DrawerContent className="sm:max-w-[400px]">
                 <DrawerHeader className="flex items-center justify-between gap-2">
                     <div className="space-y-1">
                         <DrawerTitle>Metadados</DrawerTitle>
@@ -57,7 +57,7 @@ export function MetaDataSidebar({
                     </Button>
                 </DrawerHeader>
 
-                <div className="max-h-[80vh] overflow-y-auto px-4 pb-4">{children}</div>
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">{children}</div>
             </DrawerContent>
         </Drawer>
     );

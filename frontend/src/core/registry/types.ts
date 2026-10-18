@@ -97,13 +97,18 @@ export type ListLayout<T> = Partial<Record<string, (ctx: ListContext<T>) => Reac
 // ============================================================
 
 export type DetailConfig<T> = {
-    /** Se true, DetailViewScreen busca a trilha de auditoria automaticamente. */
+    /** Se true, DetailViewScreen busca a trilha de auditoria automaticamente (REST real). */
     auditEnabled?: boolean;
     /**
      * Constrói os ContextItem[] a partir do record já carregado.
      * Isso é conhecimento de domínio do módulo — não pertence à page.
      */
     loadContext?: (record: T) => ContextItem[] | Promise<ContextItem[]>;
+    /**
+     * Fornece a trilha de auditoria diretamente (bypassa o REST real) — só pra fixtures sem
+     * backend, como `modules/develop/showcase`. Módulo de domínio real usa `auditEnabled`.
+     */
+    loadAudit?: (record: T) => AuditFeedItem[] | Promise<AuditFeedItem[]>;
 };
 
 export type RecordModuleDefinition<T = unknown> = {
