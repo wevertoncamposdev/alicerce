@@ -38,7 +38,10 @@ export function DetailView<T>({
 
     const context: DetailContext<T> = { record, contextItems, auditItems };
 
-    const mainSlot = layout.main(context);
+    // `sections` é o caminho novo (header/sections/relations); módulos que ainda não
+    // migraram continuam no caminho antigo via `main`. Renderização de `header`/`sections`
+    // chega nos próximos commits (ADR 0004) — por ora só mantém os dois caminhos compilando.
+    const mainSlot = layout.main?.(context) ?? null;
     const sideSlot = layout.side?.(context) ?? null;
     const bottomSlot = layout.bottom?.(context) ?? null;
     const relationTabs = layout.relations?.(context) ?? [];

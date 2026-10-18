@@ -2,6 +2,7 @@
 import type { SearchArgs, SearchResult } from "@core/data-provider/types";
 import type { ContextItem, AuditFeedItem } from "@core/components/DetailView/MetaDataView/types";
 import type React from "react";
+import type { LucideIcon } from "lucide-react";
 
 export type RecordModuleDataHandlers<T> = {
     search: (args: SearchArgs) => Promise<SearchResult<T>>;
@@ -31,10 +32,43 @@ export type RelationTabConfig = {
     key: string;
     label: string;
     content: React.ReactNode;
+    icon?: LucideIcon;
+    count?: number;
+};
+
+export type DetailHeaderConfig = {
+    title: string;
+    subtitle?: string[];
+    avatar?: { src?: string; fallback: string };
+    status?: React.ReactNode;
+    contacts?: { icon: LucideIcon; text: string; href?: string }[];
+    actions?: React.ReactNode;
+};
+
+export type DetailSection<T> = {
+    key: string;
+    title: string;
+    icon?: LucideIcon;
+    column?: 1 | 2 | 3;
+    editable?: boolean;
+    fields?: (keyof T & string)[];
+    render?: (ctx: DetailContext<T>) => React.ReactNode;
+};
+
+export type DetailTab<T> = {
+    key: string;
+    label: string;
+    icon?: LucideIcon;
+    content: (ctx: DetailContext<T>) => React.ReactNode;
 };
 
 export type DetailLayout<T> = {
-    main: (ctx: DetailContext<T>) => React.ReactNode;
+    // NOVO (todos opcionais)
+    header?: (ctx: DetailContext<T>) => DetailHeaderConfig;
+    sections?: DetailSection<T>[];
+    tabs?: DetailTab<T>[];
+    // EXISTENTE — continua funcionando
+    main?: (ctx: DetailContext<T>) => React.ReactNode;
     side?: (ctx: DetailContext<T>) => React.ReactNode;
     bottom?: (ctx: DetailContext<T>) => React.ReactNode;
     relations?: (ctx: DetailContext<T>) => RelationTabConfig[];
