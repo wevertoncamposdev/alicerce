@@ -7,3 +7,5 @@ study.code-workspace
 # instala node_modules/lockfile próprios.
 /node_modules
 /package-lock.json
+
+/PROMPT.md
