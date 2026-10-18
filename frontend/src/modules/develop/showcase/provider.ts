@@ -14,6 +14,14 @@ const RECORD: ShowcaseEntity = {
     email: "ana.lima@exemplo.com",
     phone: "(11) 98888-7766",
     city: "São Paulo/SP",
+    document: "123.456.789-00",
+    birthDate: "14/03/2009 (16 anos)",
+    maritalStatus: "Solteira",
+    nationality: "Brasileira",
+    department: "Projetos Sociais",
+    notes:
+        "Participante ativa do projeto de reforço escolar. Demonstra interesse em tecnologia e música. Já participou de 12 atendimentos.",
+    tags: ["Reforço Escolar", "Tecnologia", "Música", "Família Unida"],
     createdAt: "2025-03-12T10:24:00.000Z",
 };
 

@@ -4,18 +4,22 @@ import type { RecordModuleDefinition, DetailContext } from "@core/registry/types
 import type { ContextItem, AuditFeedItem } from "@core/components/DetailView/MetaDataView/types";
 import { DetailShell } from "@core/components/DetailView/DetailShell";
 import { DetailHeader } from "@core/components/DetailView/DetailHeader";
+import { DetailSections } from "@core/components/DetailView/DetailSections";
 import { RelationShell } from "@core/components/DetailView/RelationView/RelationShell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 
 interface DetailViewProps<T> {
     moduleDefinition: RecordModuleDefinition<T>;
     record: T;
+    recordId: string;
     contextItems: ContextItem[];
     auditItems: AuditFeedItem[];
     /** título da página já fica no AppTopbar — aqui só ações secundárias da tela de detalhe. */
     toolbar?: React.ReactNode;
     /** Permissão de update já resolvida pelo chamador — liga o botão "Editar" do header. */
     canEdit?: boolean;
+    /** `?mode=edit` já resolvido pelo chamador — troca as seções `editable` pelo FormView. */
+    isEditing?: boolean;
     /** Trigger do MetaDataSidebar no formato ícone, pro header (só usado quando `header` existe). */
     metadataSidebar?: React.ReactNode;
 }
@@ -31,10 +35,12 @@ const OVERVIEW_TAB_KEY = "overview";
 export function DetailView<T>({
     moduleDefinition,
     record,
+    recordId,
     contextItems,
     auditItems,
     toolbar,
     canEdit,
+    isEditing,
     metadataSidebar,
 }: DetailViewProps<T>) {
     const layout = moduleDefinition.detailLayout;
@@ -53,9 +59,20 @@ export function DetailView<T>({
     if (layout.header) {
         const headerConfig = layout.header(context);
         const extraTabs = layout.tabs ?? [];
-        // `main`/`sections` ainda não têm renderização própria (chegam nos próximos commits do
-        // ADR 0004) — por ora a aba "Visão geral" só reaproveita `main`, se o módulo o definir.
-        const overviewSlot = layout.main?.(context) ?? null;
+        // `sections` é o caminho novo (grid de SectionCard); módulos com `header` mas sem
+        // `sections` (não deveria existir na prática, mas o tipo permite) caem em `main`.
+        const overviewSlot = layout.sections ? (
+            <DetailSections
+                sections={layout.sections}
+                context={context}
+                formFields={moduleDefinition.formFields}
+                model={moduleDefinition.model}
+                recordId={recordId}
+                isEditing={Boolean(isEditing)}
+            />
+        ) : (
+            (layout.main?.(context) ?? null)
+        );
 
         return (
             <DetailShell toolbar={toolbar}>
@@ -63,7 +80,8 @@ export function DetailView<T>({
                     <DetailHeader
                         config={headerConfig}
                         moduleLabel={moduleDefinition.label}
-                        editHref={canEdit ? "?mode=edit" : undefined}
+                        editHref={canEdit ? (isEditing ? "?" : "?mode=edit") : undefined}
+                        isEditing={isEditing}
                         metadataSidebar={metadataSidebar}
                         tabsList={
                             extraTabs.length > 0 ? (

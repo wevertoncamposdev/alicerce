@@ -6,5 +6,12 @@ export type ShowcaseEntity = {
     email: string;
     phone: string;
     city: string;
+    document: string;
+    birthDate: string;
+    maritalStatus: string;
+    nationality: string;
+    department: string;
+    notes: string;
+    tags: string[];
     createdAt: string;
 };

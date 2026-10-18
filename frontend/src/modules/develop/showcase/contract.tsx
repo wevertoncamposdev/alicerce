@@ -5,7 +5,17 @@
 // permissão. Serve só pra comparar o motor de DetailView com a referência visual
 // (docs/ui/reference/detail-layout.png) em `/develop/detail-showcase`, crescendo junto
 // com os commits do ADR 0004 (docs/ui/detail-page.md §8).
-import { Mail, Phone, MapPin, History, CalendarClock } from "lucide-react";
+import {
+    Mail,
+    Phone,
+    MapPin,
+    History,
+    CalendarClock,
+    IdCard,
+    Briefcase,
+    FileText,
+    Tag as TagIcon,
+} from "lucide-react";
 import { defineRecordModule, registerModule } from "@core/registry";
 import type { DetailLayout, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
@@ -20,6 +30,12 @@ const formFields = [
     { name: "email" as const, label: "E-mail", type: "email" as const },
     { name: "phone" as const, label: "Telefone", type: "text" as const },
     { name: "city" as const, label: "Cidade", type: "text" as const },
+    { name: "document" as const, label: "CPF", type: "text" as const },
+    { name: "birthDate" as const, label: "Data de nascimento", type: "text" as const },
+    { name: "maritalStatus" as const, label: "Estado civil", type: "text" as const },
+    { name: "nationality" as const, label: "Nacionalidade", type: "text" as const },
+    { name: "department" as const, label: "Área", type: "text" as const },
+    { name: "notes" as const, label: "Observações gerais", type: "textarea" as const },
 ];
 
 const { parseListState, serializeListState } = createListQueryState();
@@ -60,6 +76,55 @@ const showcaseDetailLayout: DetailLayout<ShowcaseEntity> = {
             { icon: MapPin, text: record.city },
         ],
     }),
+    sections: [
+        {
+            key: "personal",
+            title: "Dados pessoais",
+            icon: IdCard,
+            column: 1,
+            editable: true,
+            fields: ["document", "birthDate", "maritalStatus", "nationality"],
+        },
+        {
+            key: "contact",
+            title: "Contato",
+            icon: Phone,
+            column: 2,
+            editable: true,
+            fields: ["email", "phone", "city"],
+        },
+        {
+            key: "activity",
+            title: "Atividade",
+            icon: Briefcase,
+            column: 3,
+            editable: true,
+            fields: ["role", "department"],
+        },
+        {
+            key: "notes",
+            title: "Observações",
+            icon: FileText,
+            column: 1,
+            editable: true,
+            fields: ["notes"],
+        },
+        {
+            key: "tags",
+            title: "Tags",
+            icon: TagIcon,
+            column: 2,
+            render: ({ record }) => (
+                <div className="flex flex-wrap gap-1.5">
+                    {record.tags.map((tag) => (
+                        <Badge key={tag} variant="outline" className="rounded-full border-transparent bg-primary/10 text-primary">
+                            {tag}
+                        </Badge>
+                    ))}
+                </div>
+            ),
+        },
+    ],
     tabs: [
         {
             key: "historico",

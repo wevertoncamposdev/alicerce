@@ -17,9 +17,19 @@ import { MetaDataSidebar } from "@core/components/DetailView/MetaDataView/MetaDa
 import { MetaDataView } from "@core/components/DetailView/MetaDataView";
 import type { AuditFeedItem, ContextItem } from "@core/components/DetailView/MetaDataView/types";
 
-export async function DetailViewScreen({ moduleName, id }: { moduleName: string; id: string }) {
+export async function DetailViewScreen({
+    moduleName,
+    id,
+    searchParams,
+}: {
+    moduleName: string;
+    id: string;
+    /** Só módulos migrados pra `header`/`sections` consomem `?mode=edit` — os demais ignoram. */
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
     const mod = getModule(moduleName);
     const dataProvider = createDataProvider();
+    const isEditing = (await searchParams)?.mode === "edit";
 
     let record: Record<string, unknown>;
     try {
@@ -58,9 +68,11 @@ export async function DetailViewScreen({ moduleName, id }: { moduleName: string;
                 <DetailView
                     moduleDefinition={mod}
                     record={record}
+                    recordId={id}
                     contextItems={contextItems}
                     auditItems={auditItems}
                     canEdit={canEdit}
+                    isEditing={isEditing}
                     metadataSidebar={
                         hasHeader ? (
                             <MetaDataSidebar

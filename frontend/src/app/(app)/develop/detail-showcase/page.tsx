@@ -6,6 +6,10 @@
 import "@modules/develop/showcase/contract";
 import { DetailViewScreen } from "@core/screens/DetailViewScreen";
 
-export default function DetailShowcasePage() {
-    return <DetailViewScreen moduleName="develop-showcase" id="showcase-1" />;
+export default function DetailShowcasePage({
+    searchParams,
+}: {
+    searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+    return <DetailViewScreen moduleName="develop-showcase" id="showcase-1" searchParams={searchParams} />;
 }

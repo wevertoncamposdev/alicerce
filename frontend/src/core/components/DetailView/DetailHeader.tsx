@@ -1,7 +1,7 @@
 // components/DetailView/DetailHeader.tsx
 import * as React from "react";
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Pencil, Check } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Card } from "@components/ui/card";
 import { Button } from "@components/ui/button";
@@ -10,15 +10,17 @@ import type { DetailHeaderConfig } from "@core/registry/types";
 type DetailHeaderProps = {
     config: DetailHeaderConfig;
     moduleLabel: string;
-    /** Quando presente, renderiza o botão "Editar" apontando pra cá (gate de permissão já resolvido pelo chamador). */
+    /** Quando presente, renderiza o botão Editar/Concluir apontando pra cá (gate de permissão já resolvido pelo chamador). */
     editHref?: string;
+    /** `true` troca o rótulo/ícone pra "Concluir" (?mode=edit ativo) — o destino ainda vem de `editHref`. */
+    isEditing?: boolean;
     /** Trigger do MetaDataSidebar, já no formato ícone — entra depois de `actions`. */
     metadataSidebar?: React.ReactNode;
     /** `TabsList` pronto (Visão geral + abas do módulo) — o estado de aba é do Tabs que envolve este componente. */
     tabsList?: React.ReactNode;
 };
 
-export function DetailHeader({ config, moduleLabel, editHref, metadataSidebar, tabsList }: DetailHeaderProps) {
+export function DetailHeader({ config, moduleLabel, editHref, isEditing, metadataSidebar, tabsList }: DetailHeaderProps) {
     const { title, subtitle, avatar, status, contacts, actions } = config;
 
     return (
@@ -85,10 +87,10 @@ export function DetailHeader({ config, moduleLabel, editHref, metadataSidebar, t
 
                     <div className="flex flex-col items-start gap-2 sm:ml-auto sm:flex-row">
                         {editHref ? (
-                            <Button asChild size="sm">
+                            <Button asChild size="sm" variant={isEditing ? "outline" : "default"}>
                                 <Link href={editHref}>
-                                    <Pencil className="size-3.5" />
-                                    <span className="hidden sm:inline">Editar</span>
+                                    {isEditing ? <Check className="size-3.5" /> : <Pencil className="size-3.5" />}
+                                    <span className="hidden sm:inline">{isEditing ? "Concluir" : "Editar"}</span>
                                 </Link>
                             </Button>
                         ) : null}
