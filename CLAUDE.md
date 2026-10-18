@@ -20,3 +20,12 @@
 - Comentários no código que citam "PLAN.md, Etapa X" ou "Fase N" apontam para
   `docs/historico/PLAN-v0.md` e `docs/historico/AGENTS-v0.md`. São contexto
   histórico, não tarefa pendente.
+
+## UI — tela de detalhe
+
+- Qualquer mudança em tela de detalhe segue `docs/ui/detail-page.md` e a referência
+  `docs/ui/reference/detail-layout.png`. Leia os dois antes de editar.
+- O ADR 0004 autoriza mudar `frontend/src/core/components/DetailView/**`,
+  `core/registry/types.ts` e `core/screens/DetailViewScreen.tsx` para isso. Nada além.
+- Mudança visual só está pronta depois do screenshot (Playwright, 1440 e 375) comparado
+  com a referência, listando o que ainda diverge.
