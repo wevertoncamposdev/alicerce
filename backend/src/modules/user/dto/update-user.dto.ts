@@ -1,11 +1,12 @@
 import {
   IsBoolean,
   IsEmail,
+  IsIn,
   IsOptional,
   IsString,
   MaxLength,
-  MinLength,
 } from 'class-validator';
+import { IsStrongPassword } from '@core/common/validators/strong-password.validator';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -15,8 +16,8 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
-  @MinLength(6)
   @MaxLength(100)
+  @IsStrongPassword()
   password?: string;
 
   @IsOptional()
@@ -24,6 +25,6 @@ export class UpdateUserDto {
   mfaEnabled?: boolean;
 
   @IsOptional()
-  @IsString()
+  @IsIn(['ACTIVE', 'INACTIVE'])
   status?: 'ACTIVE' | 'INACTIVE';
 }

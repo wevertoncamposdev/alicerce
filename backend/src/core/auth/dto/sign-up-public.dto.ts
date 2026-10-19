@@ -6,6 +6,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { IsStrongPassword } from '@core/common/validators/strong-password.validator';
 
 export class SignUpPublicDto {
   @IsString()
@@ -27,7 +28,7 @@ export class SignUpPublicDto {
 
   @IsString()
   @IsNotEmpty()
-  @MinLength(6)
   @MaxLength(100)
+  @IsStrongPassword()
   password!: string;
 }

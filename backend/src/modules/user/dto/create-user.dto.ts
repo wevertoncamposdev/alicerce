@@ -5,9 +5,9 @@ import {
   IsString,
   IsUUID,
   MaxLength,
-  MinLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsStrongPassword } from '@core/common/validators/strong-password.validator';
 
 export class CreateUserDto {
   @ApiPropertyOptional({ format: 'uuid' })
@@ -20,10 +20,10 @@ export class CreateUserDto {
   @MaxLength(255)
   email!: string;
 
-  @ApiProperty({ minLength: 6, maxLength: 100 })
+  @ApiProperty({ minLength: 8, maxLength: 100 })
   @IsString()
-  @MinLength(6)
   @MaxLength(100)
+  @IsStrongPassword()
   password!: string;
 
   @ApiPropertyOptional()
