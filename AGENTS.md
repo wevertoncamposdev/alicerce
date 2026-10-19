@@ -70,6 +70,13 @@ docs/                  ADRs, roadmap, guia de novo módulo, histórico
 2. `apiServer` é `server-only`. Nunca importar em Client Component.
 3. Mutações via Server Actions que chamam o `DataProvider`, o **único caminho
    de escrita**. Dados de módulo via `createRestDataHandlers(resource)`.
+   Endpoint específico fora do CRUD padrão (status, attach/detach de
+   relação) também é Server Action, chamando `apiServer` direto (ex.:
+   `modules/feedbacks/config/status-action.ts`,
+   `modules/roles/actions/roleService.ts`). Lint (`no-restricted-imports`
+   em `eslint.config.mjs`) bloqueia `@lib/api-client` em `src/modules/**`,
+   `src/core/**` e `src/components/**` — `apiClient` é só para `src/lib/` e
+   `src/hooks/` (código que já roda no browser por natureza).
 4. `"use client"` só em ilhas interativas (inputs, tabela, drawer, autosave).
    Página, screen e layout são Server Components.
 5. `ColumnDef` com `cell` não atravessa a fronteira Server→Client: cada módulo
