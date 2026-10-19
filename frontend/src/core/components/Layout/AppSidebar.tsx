@@ -32,6 +32,7 @@ import {
   LogOut,
   ChevronsUpDown,
   Blocks,
+  UserRound,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
@@ -190,6 +191,10 @@ export function AppSidebar({
                   ) : null}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push("/perfil")}>
+                  <UserRound className="mr-2 h-4 w-4" />
+                  Perfil
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
                     signOut();

@@ -17,6 +17,11 @@ type ApiServerOptions = {
     body?: unknown;
     cache?: RequestCache;
     query?: Record<string, string | undefined>;
+    // Alguns endpoints (ex.: /me/password, /me/sessions) precisam do cookie
+    // de refresh token, que este cliente não envia por padrão (só o Bearer)
+    // — quem chama lê via lib/session.ts e repassa aqui, mesmo padrão manual
+    // de cookie já usado pelas Route Handlers de auth (ver session.ts).
+    headers?: Record<string, string>;
 };
 
 export class ApiServerError extends Error {
@@ -32,7 +37,7 @@ export class ApiServerError extends Error {
 }
 
 async function request<T>(path: string, options: ApiServerOptions = {}): Promise<T> {
-    const { method = "GET", body, cache = "no-store", query } = options;
+    const { method = "GET", body, cache = "no-store", query, headers: extraHeaders } = options;
 
     const token = await getSessionToken();
 
@@ -44,6 +49,7 @@ async function request<T>(path: string, options: ApiServerOptions = {}): Promise
 
     const headers: Record<string, string> = {
         Authorization: `Bearer ${token}`,
+        ...extraHeaders,
     };
 
     if (tenantId) headers["x-tenant-id"] = tenantId;
@@ -97,16 +103,22 @@ async function search<T>(path: string, body: unknown): Promise<T> {
 }
 
 
+type ExtraOptions = { headers?: Record<string, string> };
+
 export const apiServer = {
     search,
-    get: <T>(path: string, options?: { cache?: RequestCache, query?: Record<string, string | undefined> }) =>
-        request<T>(path, { method: "GET", cache: options?.cache, query: options?.query }),
+    get: <T>(path: string, options?: { cache?: RequestCache, query?: Record<string, string | undefined> } & ExtraOptions) =>
+        request<T>(path, { method: "GET", cache: options?.cache, query: options?.query, headers: options?.headers }),
 
-    post: <T>(path: string, body?: unknown) => request<T>(path, { method: "POST", body }),
+    post: <T>(path: string, body?: unknown, options?: ExtraOptions) =>
+        request<T>(path, { method: "POST", body, headers: options?.headers }),
 
-    put: <T>(path: string, body?: unknown) => request<T>(path, { method: "PUT", body }),
+    put: <T>(path: string, body?: unknown, options?: ExtraOptions) =>
+        request<T>(path, { method: "PUT", body, headers: options?.headers }),
 
-    patch: <T>(path: string, body?: unknown) => request<T>(path, { method: "PATCH", body }),
+    patch: <T>(path: string, body?: unknown, options?: ExtraOptions) =>
+        request<T>(path, { method: "PATCH", body, headers: options?.headers }),
 
-    delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
+    delete: <T>(path: string, options?: ExtraOptions) =>
+        request<T>(path, { method: "DELETE", headers: options?.headers }),
 };
