@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaBootstrapService } from '@core/prisma/prisma-bootstrap.service';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { RedisService } from '@core/redis/redis.service';
 import { AuditService } from '@modules/audit/audit.service';
 import { SignUpPublicDto } from './dto/sign-up-public.dto';
 import { RoleType } from '@core/prisma/generated/enums';
@@ -55,6 +56,11 @@ const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
   10,
 );
 
+// Bloqueio por conta (além do throttle por IP já existente no controller):
+// 5 falhas em 15 min bloqueiam qualquer tentativa pelo mesmo e-mail.
+const LOGIN_LOCKOUT_MAX_ATTEMPTS = 5;
+const LOGIN_LOCKOUT_WINDOW_SECONDS = 15 * 60;
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -67,7 +73,47 @@ export class AuthService {
     private readonly i18n: I18nService,
     private readonly permissionCache: PermissionCacheService,
     private readonly auditService: AuditService,
+    private readonly redis: RedisService,
   ) {}
+
+  private loginLockoutKey(email: string): string {
+    return `login:fail:${email}`;
+  }
+
+  // Fallback gracioso: Redis indisponível não bloqueia login (cai pro
+  // throttle por IP, que já existe) — mesmo padrão de
+  // PermissionCacheService.invalidateUser.
+  private async isAccountLockedOut(email: string): Promise<boolean> {
+    try {
+      const attempts = await this.redis.client.get(this.loginLockoutKey(email));
+      return (
+        attempts !== null && Number(attempts) >= LOGIN_LOCKOUT_MAX_ATTEMPTS
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  private async recordFailedLoginAttempt(email: string): Promise<void> {
+    try {
+      const key = this.loginLockoutKey(email);
+      const attempts = await this.redis.client.incr(key);
+      if (attempts === 1) {
+        await this.redis.client.expire(key, LOGIN_LOCKOUT_WINDOW_SECONDS);
+      }
+    } catch {
+      // Best-effort: sem contador, o login segue protegido só pelo throttle
+      // por IP.
+    }
+  }
+
+  private async clearFailedLoginAttempts(email: string): Promise<void> {
+    try {
+      await this.redis.client.del(this.loginLockoutKey(email));
+    } catch {
+      // Nada a fazer — a chave expira sozinha em 15min de qualquer forma.
+    }
+  }
 
   private async getAuthUserByEmail(email: string) {
     return this.prismaBootstrap.user.findUnique({
@@ -433,10 +479,35 @@ export class AuthService {
   async signIn(signInDto: SignInDto): Promise<AuthSessionResponse> {
     const user = await this.getAuthUserByEmail(signInDto.email);
 
+    if (await this.isAccountLockedOut(signInDto.email)) {
+      if (user) {
+        void this.auditService
+          .register({
+            tenantId: user.tenantId,
+            userId: user.id,
+            type: 'LOGIN_FAILED',
+            action: 'POST',
+            entity: 'auth',
+            payload: { reason: 'account_locked' },
+          })
+          .catch(() => {
+            // Auditoria não deve interromper o fluxo de login (nem seu erro).
+          });
+      }
+
+      // Mesma mensagem genérica — nunca "conta bloqueada", que revelaria
+      // que o e-mail existe.
+      const message = this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
+        lang: 'pt-BR',
+      });
+      throw new UnauthorizedException(message);
+    }
+
     if (!user) {
       // Mesmo tempo de resposta e mesma mensagem de uma senha errada: sem
       // isso, o tempo do bcrypt.compare real denunciaria se o e-mail existe.
       await bcrypt.compare(signInDto.password, DUMMY_PASSWORD_HASH);
+      await this.recordFailedLoginAttempt(signInDto.email);
 
       const message = this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
         lang: 'pt-BR',
@@ -450,6 +521,8 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
+      await this.recordFailedLoginAttempt(signInDto.email);
+
       // Diferente de um 401 genérico (token ausente/inválido): aqui o
       // usuário foi encontrado, então há tenantId/userId pra atribuir o
       // evento — ver AuditType.LOGIN_FAILED. E-mail inexistente (branch
@@ -471,6 +544,8 @@ export class AuthService {
       });
       throw new UnauthorizedException(message);
     }
+
+    await this.clearFailedLoginAttempts(signInDto.email);
 
     if (this.isUserOrTenantBlocked(user)) {
       // Senha correta, mas conta/tenant desativado ou excluído: mesma

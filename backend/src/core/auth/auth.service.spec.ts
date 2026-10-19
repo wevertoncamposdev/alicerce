@@ -7,12 +7,19 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { I18nService } from 'nestjs-i18n';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { RedisService } from '@core/redis/redis.service';
 import { AuditService } from '@modules/audit/audit.service';
 
 describe('AuthService', () => {
   let service: AuthService;
   let auditService: { register: jest.Mock };
   let i18nTranslate: jest.Mock;
+  let redisClient: {
+    get: jest.Mock;
+    incr: jest.Mock;
+    expire: jest.Mock;
+    del: jest.Mock;
+  };
   let prisma: {
     refreshToken: {
       findUnique: jest.Mock;
@@ -78,11 +85,18 @@ describe('AuthService', () => {
 
     auditService = { register: jest.fn().mockResolvedValue(undefined) };
     i18nTranslate = jest.fn().mockReturnValue('mocked message');
+    redisClient = {
+      get: jest.fn().mockResolvedValue(null),
+      incr: jest.fn().mockResolvedValue(1),
+      expire: jest.fn().mockResolvedValue(1),
+      del: jest.fn().mockResolvedValue(1),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: PrismaBootstrapService, useValue: prisma },
+        { provide: RedisService, useValue: { client: redisClient } },
         {
           provide: JwtService,
           useValue: { signAsync: jest.fn().mockResolvedValue('token') },
@@ -201,6 +215,80 @@ describe('AuthService', () => {
       await expect(
         service.signIn({ email: baseUser.email, password: correctPassword }),
       ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+  });
+
+  describe('account lockout (Redis)', () => {
+    it('increments the counter and sets a 15min TTL on the first failed attempt', async () => {
+      redisClient.get.mockResolvedValue(null);
+      redisClient.incr.mockResolvedValue(1);
+
+      await expect(
+        service.signIn({ email: baseUser.email, password: 'wrong-password' }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+
+      expect(redisClient.incr).toHaveBeenCalledWith(
+        `login:fail:${baseUser.email}`,
+      );
+      expect(redisClient.expire).toHaveBeenCalledWith(
+        `login:fail:${baseUser.email}`,
+        15 * 60,
+      );
+    });
+
+    it('does not reset the TTL on subsequent failed attempts', async () => {
+      redisClient.get.mockResolvedValue('2');
+      redisClient.incr.mockResolvedValue(3);
+
+      await expect(
+        service.signIn({ email: baseUser.email, password: 'wrong-password' }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+
+      expect(redisClient.expire).not.toHaveBeenCalled();
+    });
+
+    it('blocks with the generic message after 5 failed attempts, auditing the reason', async () => {
+      redisClient.get.mockResolvedValue('5');
+
+      await expect(
+        service.signIn({ email: baseUser.email, password: correctPassword }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+
+      expect(auditService.register).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'LOGIN_FAILED',
+          payload: { reason: 'account_locked' },
+        }),
+      );
+      expect(i18nTranslate).toHaveBeenCalledWith(
+        'messages.USER.INVALID_CREDENTIALS',
+        expect.anything(),
+      );
+    });
+
+    it('clears the counter on a successful login', async () => {
+      redisClient.get.mockResolvedValue('2');
+
+      await service.signIn({
+        email: baseUser.email,
+        password: correctPassword,
+      });
+
+      expect(redisClient.del).toHaveBeenCalledWith(
+        `login:fail:${baseUser.email}`,
+      );
+    });
+
+    it('fails open (does not block login) when Redis is unavailable', async () => {
+      redisClient.get.mockRejectedValue(new Error('connection lost'));
+      redisClient.incr.mockRejectedValue(new Error('connection lost'));
+
+      const result = await service.signIn({
+        email: baseUser.email,
+        password: correctPassword,
+      });
+
+      expect(result.access_token).toBe('token');
     });
   });
 

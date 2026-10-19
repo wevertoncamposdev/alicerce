@@ -10,6 +10,7 @@ import { TenantModule } from '@modules/tenant/tenant.module';
 import { AuthModule } from '@core/auth/auth.module';
 import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { PrismaModule } from '@core/prisma/prisma.module';
+import { RedisModule } from '@core/redis/redis.module';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
 /**
@@ -32,6 +33,7 @@ describe('POST /tenant não é mais público (e2e)', () => {
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         PrismaModule,
+        RedisModule,
         AuthorizationModule,
         AuthModule,
         TenantModule,
