@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/prisma/prisma.service';
-import { CreatePermissionDto } from './dto/create-permission.dto';
-import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { SearchPermissionDto } from './dto/search-permission.dto';
 import { Prisma } from '@core/prisma/generated/client';
-import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 import { findOneOrThrow } from '@core/common/utils/find-one-or-throw.util';
 import {
   resolvePagination,
@@ -20,27 +17,7 @@ const SORTABLE_FIELDS = ['name', 'type', 'resource', 'createdAt'] as const;
 
 @Injectable()
 export class PermissionsService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly permissionCache: PermissionCacheService,
-  ) {}
-
-  // Mudar/remover uma permissão afeta todo mundo que tem qualquer role que
-  // carregue essa permissão — fan-out permission → roles → usuários.
-  private async invalidatePermissionCacheForPermission(
-    permissionId: string,
-    tenantId: string,
-  ): Promise<void> {
-    const roles = await this.findRolesOfPermission(permissionId, tenantId);
-    const userRoles = await this.prisma.userRole.findMany({
-      where: { tenantId, roleId: { in: roles.map((r) => r.roleId) } },
-      select: { userId: true },
-    });
-    await this.permissionCache.invalidateUsers(
-      tenantId,
-      Array.from(new Set(userRoles.map((ur) => ur.userId))),
-    );
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   async findOne(id: string, tenantId: string) {
     return findOneOrThrow(
@@ -57,65 +34,6 @@ export class PermissionsService {
         deletedAt: null,
       },
       orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  async create(dto: CreatePermissionDto, tenantId?: string) {
-    if (!tenantId) {
-      throw new Error('TenantId is required to create a permission');
-    }
-
-    return this.prisma.permission.create({
-      data: {
-        tenantId,
-        name: dto.name,
-        type: dto.type,
-        resource: dto.resource,
-        description: dto.description,
-      },
-    });
-  }
-
-  async update(id: string, dto: UpdatePermissionDto, tenantId: string) {
-    const existing = findOneOrThrow(
-      await this.prisma.permission.findUnique({ where: { id } }),
-      (permission) => !permission.deletedAt && permission.tenantId === tenantId,
-      'Permissao nao encontrada',
-    );
-
-    const updated = await this.prisma.permission.update({
-      where: { id: existing.id },
-      data: {
-        name: dto.name,
-        type: dto.type,
-        resource: dto.resource,
-        description: dto.description,
-      },
-    });
-
-    // Sobretudo relevante se `name` mudou — a checagem em
-    // RolesPermissionsGuard compara por nome, então um cache com o nome
-    // antigo passaria a negar acesso que deveria ser concedido (ou o
-    // contrário, se o nome novo colidir com outra checagem existente).
-    await this.invalidatePermissionCacheForPermission(id, existing.tenantId);
-
-    return updated;
-  }
-
-  async remove(id: string, tenantId: string) {
-    const existing = findOneOrThrow(
-      await this.prisma.permission.findUnique({ where: { id } }),
-      (permission) => !permission.deletedAt && permission.tenantId === tenantId,
-      'Permissao nao encontrada',
-    );
-
-    await this.invalidatePermissionCacheForPermission(id, existing.tenantId);
-
-    return this.prisma.permission.update({
-      where: { id: existing.id },
-      data: {
-        deletedAt: new Date(),
-      },
     });
   }
 

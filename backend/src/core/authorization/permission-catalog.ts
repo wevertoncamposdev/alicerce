@@ -75,29 +75,15 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
     resource: 'roles',
     description: 'Gerenciar associação de papéis',
   },
-  {
-    name: 'permission.create',
-    type: 'WRITE',
-    resource: 'permissions',
-    description: 'Criar permissões',
-  },
+  // `permission.create/update/delete` não existem mais (ADR 0007 — o
+  // catálogo é a única fonte de permissões; não dá para criar/editar/
+  // remover uma via API). `permission.read` continua: alguém ainda precisa
+  // listar o catálogo (ex.: a matriz de permissões do papel).
   {
     name: 'permission.read',
     type: 'READ',
     resource: 'permissions',
     description: 'Consultar permissões',
-  },
-  {
-    name: 'permission.update',
-    type: 'WRITE',
-    resource: 'permissions',
-    description: 'Atualizar permissões',
-  },
-  {
-    name: 'permission.delete',
-    type: 'DELETE',
-    resource: 'permissions',
-    description: 'Remover permissões',
   },
   {
     name: 'feedback.create',

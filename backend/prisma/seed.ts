@@ -1,12 +1,10 @@
 import "dotenv/config";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { Prisma, PrismaClient } from '@core/prisma/generated/client';
+import { PrismaClient } from '@core/prisma/generated/client';
 import * as bcrypt from 'bcrypt';
-import {
-  PERMISSION_CATALOG,
-  TENANT_ADMIN_PERMISSION_NAMES,
-} from '@core/authorization/permission-catalog';
+import { TENANT_ADMIN_PERMISSION_NAMES } from '@core/authorization/permission-catalog';
+import { syncPermissionCatalog } from '@core/authorization/permission-catalog-sync';
 
 const connectionString = `${process.env.DATABASE_URL}`;
 const pool = new Pool({ connectionString });
@@ -40,19 +38,7 @@ async function main() {
     });
   }
 
-  const permissionSeeds: Prisma.PermissionCreateManyInput[] =
-    PERMISSION_CATALOG.map((permission) => ({
-      tenantId: tenant.id,
-      name: permission.name,
-      type: permission.type,
-      resource: permission.resource,
-      description: permission.description,
-    }));
-
-  await prisma.permission.createMany({
-    data: permissionSeeds,
-    skipDuplicates: true,
-  });
+  await syncPermissionCatalog(prisma);
 
   const tenantAdminPermissions = await prisma.permission.findMany({
     where: { tenantId: tenant.id, name: { in: [...TENANT_ADMIN_PERMISSION_NAMES] } },

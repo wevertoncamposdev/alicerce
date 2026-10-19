@@ -1,21 +1,10 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Search,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Search } from '@nestjs/common';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { UseGuards } from '@nestjs/common';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 import { PermissionsService } from './permissions.service';
-import { CreatePermissionDto } from './dto/create-permission.dto';
-import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { SearchPermissionDto } from './dto/search-permission.dto';
 
 @ApiTags('permissions')
@@ -34,28 +23,6 @@ export class PermissionsController {
   @Permissions('permission.read')
   findOne(@Param('id') id: string, @TenantId() tenantId: string) {
     return this.permissionsService.findOne(id, tenantId);
-  }
-
-  @Post()
-  @Permissions('permission.create')
-  create(@Body() dto: CreatePermissionDto, @TenantId() tenantId: string) {
-    return this.permissionsService.create(dto, tenantId);
-  }
-
-  @Patch(':id')
-  @Permissions('permission.update')
-  update(
-    @Param('id') id: string,
-    @Body() dto: UpdatePermissionDto,
-    @TenantId() tenantId: string,
-  ) {
-    return this.permissionsService.update(id, dto, tenantId);
-  }
-
-  @Delete(':id')
-  @Permissions('permission.delete')
-  remove(@Param('id') id: string, @TenantId() tenantId: string) {
-    return this.permissionsService.remove(id, tenantId);
   }
 
   @Search()
