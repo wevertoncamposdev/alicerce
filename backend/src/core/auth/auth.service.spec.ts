@@ -32,7 +32,15 @@ describe('AuthService', () => {
     password: string;
     tenantId: string;
     roles: unknown[];
-    tenant: { id: string; legalName: string; slug: string };
+    status: string;
+    deletedAt: Date | null;
+    tenant: {
+      id: string;
+      legalName: string;
+      slug: string;
+      status: string;
+      deletedAt: Date | null;
+    };
   };
 
   beforeEach(async () => {
@@ -42,7 +50,15 @@ describe('AuthService', () => {
       password: await bcrypt.hash(correctPassword, 4),
       tenantId: 'tenant-1',
       roles: [],
-      tenant: { id: 'tenant-1', legalName: 'Tenant 1', slug: 'tenant-1' },
+      status: 'ACTIVE',
+      deletedAt: null,
+      tenant: {
+        id: 'tenant-1',
+        legalName: 'Tenant 1',
+        slug: 'tenant-1',
+        status: 'ACTIVE',
+        deletedAt: null,
+      },
     };
 
     prisma = {
@@ -109,6 +125,58 @@ describe('AuthService', () => {
 
       expect(auditService.register).not.toHaveBeenCalled();
     });
+
+    it('rejects a correct password when the user is inactive, auditing LOGIN_FAILED', async () => {
+      prisma.user.findUnique.mockResolvedValueOnce({
+        ...baseUser,
+        status: 'INACTIVE',
+      });
+
+      await expect(
+        service.signIn({ email: baseUser.email, password: correctPassword }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+
+      expect(auditService.register).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tenantId: baseUser.tenantId,
+          userId: baseUser.id,
+          type: 'LOGIN_FAILED',
+        }),
+      );
+    });
+
+    it('rejects a correct password when the user is deleted', async () => {
+      prisma.user.findUnique.mockResolvedValueOnce({
+        ...baseUser,
+        deletedAt: new Date(),
+      });
+
+      await expect(
+        service.signIn({ email: baseUser.email, password: correctPassword }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('rejects a correct password when the tenant is inactive', async () => {
+      prisma.user.findUnique.mockResolvedValueOnce({
+        ...baseUser,
+        tenant: { ...baseUser.tenant, status: 'INACTIVE' },
+      });
+
+      await expect(
+        service.signIn({ email: baseUser.email, password: correctPassword }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('rejects a correct password when the tenant is deleted', async () => {
+      prisma.user.findUnique.mockResolvedValueOnce({
+        ...baseUser,
+        tenant: { ...baseUser.tenant, deletedAt: new Date() },
+      });
+
+      await expect(
+        service.signIn({ email: baseUser.email, password: correctPassword }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
   });
 
   it('should be defined', () => {
@@ -170,6 +238,42 @@ describe('AuthService', () => {
 
     it('rejects an expired or unknown token', async () => {
       prisma.refreshToken.findUnique.mockResolvedValue(null);
+
+      await expect(service.refreshTokens('raw-token')).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+    });
+
+    it('rejects a valid token when the user was deactivated since it was issued', async () => {
+      prisma.refreshToken.findUnique.mockResolvedValue({
+        id: 'rt-1',
+        familyId: 'family-1',
+        userId: baseUser.id,
+        revokedAt: null,
+        expiresAt: new Date(Date.now() + 1000 * 60),
+      });
+      prisma.user.findUnique.mockResolvedValueOnce({
+        ...baseUser,
+        status: 'INACTIVE',
+      });
+
+      await expect(service.refreshTokens('raw-token')).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+    });
+
+    it('rejects a valid token when the tenant was deactivated since it was issued', async () => {
+      prisma.refreshToken.findUnique.mockResolvedValue({
+        id: 'rt-1',
+        familyId: 'family-1',
+        userId: baseUser.id,
+        revokedAt: null,
+        expiresAt: new Date(Date.now() + 1000 * 60),
+      });
+      prisma.user.findUnique.mockResolvedValueOnce({
+        ...baseUser,
+        tenant: { ...baseUser.tenant, status: 'INACTIVE' },
+      });
 
       await expect(service.refreshTokens('raw-token')).rejects.toBeInstanceOf(
         UnauthorizedException,

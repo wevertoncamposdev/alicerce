@@ -105,6 +105,19 @@ export class AuthService {
     });
   }
 
+  // Usuário excluído/inativo ou tenant excluído/inativo não pode autenticar
+  // nem renovar sessão, mesmo com credenciais/refresh token válidos.
+  private isUserOrTenantBlocked(
+    user: NonNullable<Awaited<ReturnType<AuthService['getAuthUserById']>>>,
+  ): boolean {
+    return (
+      user.deletedAt !== null ||
+      user.status !== 'ACTIVE' ||
+      user.tenant.deletedAt !== null ||
+      user.tenant.status !== 'ACTIVE'
+    );
+  }
+
   private async mapAuthUserContext(
     user: NonNullable<Awaited<ReturnType<AuthService['getAuthUserById']>>>,
   ) {
@@ -243,6 +256,10 @@ export class AuthService {
     const user = await this.getAuthUserById(storedToken.userId);
     if (!user) {
       throw new UnauthorizedException('Usuário não encontrado');
+    }
+
+    if (this.isUserOrTenantBlocked(user)) {
+      throw new UnauthorizedException('Sessão inválida. Faça login novamente.');
     }
 
     const mappedUser = await this.mapAuthUserContext(user);
@@ -425,6 +442,28 @@ export class AuthService {
       // usuário foi encontrado, então há tenantId/userId pra atribuir o
       // evento — ver AuditType.LOGIN_FAILED. E-mail inexistente (branch
       // acima) continua sem auditoria: não há tenant a quem atribuir.
+      void this.auditService
+        .register({
+          tenantId: user.tenantId,
+          userId: user.id,
+          type: 'LOGIN_FAILED',
+          action: 'POST',
+          entity: 'auth',
+        })
+        .catch(() => {
+          // Auditoria não deve interromper o fluxo de login (nem seu erro).
+        });
+
+      const message = this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
+        lang: 'pt-BR',
+      });
+      throw new UnauthorizedException(message);
+    }
+
+    if (this.isUserOrTenantBlocked(user)) {
+      // Senha correta, mas conta/tenant desativado ou excluído: mesma
+      // auditoria e mesma mensagem genérica da senha errada — não damos
+      // nenhuma pista de que a senha estava certa.
       void this.auditService
         .register({
           tenantId: user.tenantId,
