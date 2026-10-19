@@ -61,7 +61,7 @@ export class UsersService {
       where: {
         tenantId,
         userId,
-        role: { type: 'ADMIN', deletedAt: null },
+        role: { isSystem: true, deletedAt: null },
       },
     });
 

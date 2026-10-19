@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { RoleRepository } from './persistence/role.repository';
 import { PrismaService } from '@core/prisma/prisma.service';
@@ -404,12 +408,15 @@ describe('RolesService', () => {
 
   // C4: o tenant nunca pode ficar sem admin, nem um admin remover a própria
   // role ADMIN (ver FECHAMENTO.md e RolesService.hasOtherActiveAdmin).
+  // Desde o ADR 0007 (etapa 3.4), o gatilho é `isSystem`, não mais
+  // `type === 'ADMIN'` — `type` continua no fixture só como metadado.
   describe('admin lockout protection (C4)', () => {
     it('detachUser: blocks a user from removing their own admin access, even with other admins around', async () => {
       prismaMock.role.findUnique.mockResolvedValueOnce({
         id: 'role-1',
         tenantId: 't1',
         type: 'ADMIN',
+        isSystem: true,
         deletedAt: null,
       });
 
@@ -424,6 +431,7 @@ describe('RolesService', () => {
         id: 'role-1',
         tenantId: 't1',
         type: 'ADMIN',
+        isSystem: true,
         deletedAt: null,
       });
       prismaMock.userRole.count.mockResolvedValueOnce(0);
@@ -439,6 +447,7 @@ describe('RolesService', () => {
         id: 'role-1',
         tenantId: 't1',
         type: 'ADMIN',
+        isSystem: true,
         deletedAt: null,
       });
       prismaMock.userRole.count.mockResolvedValueOnce(1);
@@ -454,34 +463,92 @@ describe('RolesService', () => {
       expect(result).toEqual({ removed: true });
     });
 
-    it('remove: blocks deleting the only admin role of the tenant', async () => {
+    it('remove: blocks deleting a system role, unconditionally (409)', async () => {
       prismaMock.role.findUnique.mockResolvedValueOnce({
         id: 'role-1',
         tenantId: 't1',
         type: 'ADMIN',
+        isSystem: true,
         deletedAt: null,
       });
-      prismaMock.userRole.count.mockResolvedValueOnce(0);
 
       await expect(service.remove('role-1', 't1')).rejects.toBeInstanceOf(
-        ForbiddenException,
+        ConflictException,
       );
       expect(prismaMock.role.update).not.toHaveBeenCalled();
     });
 
-    it('remove: allows deleting an admin role when another admin role still has active users', async () => {
+    it('remove: allows deleting a non-system role', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-2',
+        tenantId: 't1',
+        type: 'USER',
+        isSystem: false,
+        deletedAt: null,
+      });
+      prismaMock.role.update.mockResolvedValueOnce({ id: 'role-2' });
+
+      const result = await service.remove('role-2', 't1');
+
+      expect(result).toEqual({ id: 'role-2' });
+    });
+  });
+
+  describe('update: system role rename protection (ADR 0007)', () => {
+    it('blocks renaming a system role', async () => {
       prismaMock.role.findUnique.mockResolvedValueOnce({
         id: 'role-1',
         tenantId: 't1',
+        name: 'ADMIN',
         type: 'ADMIN',
+        isSystem: true,
         deletedAt: null,
       });
-      prismaMock.userRole.count.mockResolvedValueOnce(1);
+
+      await expect(
+        service.update('role-1', { name: 'Not Admin Anymore' }, 't1'),
+      ).rejects.toBeInstanceOf(ConflictException);
+      expect(prismaMock.role.update).not.toHaveBeenCalled();
+    });
+
+    it('allows updating other fields of a system role as long as the name is unchanged', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        name: 'ADMIN',
+        type: 'ADMIN',
+        isSystem: true,
+        deletedAt: null,
+      });
       prismaMock.role.update.mockResolvedValueOnce({ id: 'role-1' });
 
-      const result = await service.remove('role-1', 't1');
+      const result = await service.update(
+        'role-1',
+        { name: 'ADMIN', description: 'novo texto' },
+        't1',
+      );
 
       expect(result).toEqual({ id: 'role-1' });
+    });
+
+    it('allows renaming a non-system role', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-2',
+        tenantId: 't1',
+        name: 'Coordenador',
+        type: 'USER',
+        isSystem: false,
+        deletedAt: null,
+      });
+      prismaMock.role.update.mockResolvedValueOnce({ id: 'role-2' });
+
+      const result = await service.update(
+        'role-2',
+        { name: 'Coordenador Regional' },
+        't1',
+      );
+
+      expect(result).toEqual({ id: 'role-2' });
     });
   });
 });

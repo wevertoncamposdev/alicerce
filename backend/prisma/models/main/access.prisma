@@ -29,6 +29,10 @@ model Role {
     name        String
     type        RoleType
     description String?
+    // ADR 0007: substitui `type === 'ADMIN'` em toda checagem de autorização
+    // (último admin, bloqueio de exclusão/renomeação). `type`/`RoleType`
+    // continuam existindo só como metadado, não decidem mais acesso.
+    isSystem    Boolean   @default(false)
 
     status    Status    @default(ACTIVE)
     createdAt DateTime  @default(now())

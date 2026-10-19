@@ -11,7 +11,7 @@ async function run() {
     const service = app.get(PermissionCatalogSyncService);
     const result = await service.syncAll();
     console.log(
-      `syncPermissionCatalog: ${result.tenantsProcessed} tenant(s), ${result.permissionsCreated} permissão(ões) nova(s).`,
+      `syncPermissionCatalog: ${result.tenantsProcessed} tenant(s), ${result.permissionsCreated} permissão(ões) nova(s), ${result.systemRoleGrantsCreated} concessão(ões) de papel de sistema.`,
     );
   } finally {
     await app.close();

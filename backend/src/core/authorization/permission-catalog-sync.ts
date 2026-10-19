@@ -1,4 +1,7 @@
-import { PERMISSION_CATALOG } from '@core/authorization/permission-catalog';
+import {
+  PERMISSION_CATALOG,
+  TENANT_ADMIN_PERMISSION_NAMES,
+} from '@core/authorization/permission-catalog';
 import { PermissionType } from '@core/prisma/generated/enums';
 
 /**
@@ -25,19 +28,43 @@ export interface PermissionCatalogSyncClient {
       }>;
       skipDuplicates: true;
     }) => Promise<{ count: number }>;
+    findMany: (args: {
+      where: { tenantId: string; name: { in: string[] } };
+      select: { id: true };
+    }) => Promise<Array<{ id: string }>>;
+  };
+  role: {
+    findMany: (args: {
+      where: { tenantId: string; isSystem: true; deletedAt: null };
+      select: { id: true };
+    }) => Promise<Array<{ id: string }>>;
+  };
+  rolePermission: {
+    createMany: (args: {
+      data: Array<{
+        tenantId: string;
+        roleId: string;
+        permissionId: string;
+        resource: null;
+      }>;
+      skipDuplicates: true;
+    }) => Promise<{ count: number }>;
   };
 }
 
 export interface SyncPermissionCatalogResult {
   tenantsProcessed: number;
   permissionsCreated: number;
+  systemRoleGrantsCreated: number;
 }
 
 /**
- * Cria, em todo tenant existente, as permissões do catálogo que ainda não
- * existem (ADR 0007, etapa 3.3) — idempotente via `skipDuplicates`. Nunca
- * remove uma permissão: tirar algo do catálogo é sempre uma migration
- * explícita (ver etapa 3.3, remoção de `permission.create/update/delete`).
+ * Para cada tenant existente: (1) cria as permissões do catálogo que ainda
+ * não existem (ADR 0007, etapa 3.3); (2) garante que todo papel de sistema
+ * (`isSystem: true`, etapa 3.4) tenha todas as permissões concedíveis do
+ * catálogo (`TENANT_ADMIN_PERMISSION_NAMES`). Idempotente via
+ * `skipDuplicates` nos dois passos — nunca remove uma permissão ou uma
+ * concessão já existente, só adiciona o que falta.
  */
 export async function syncPermissionCatalog(
   prisma: PermissionCatalogSyncClient,
@@ -48,6 +75,7 @@ export async function syncPermissionCatalog(
   });
 
   let permissionsCreated = 0;
+  let systemRoleGrantsCreated = 0;
 
   for (const tenant of tenants) {
     const created = await prisma.permission.createMany({
@@ -61,7 +89,41 @@ export async function syncPermissionCatalog(
       skipDuplicates: true,
     });
     permissionsCreated += created.count;
+
+    const systemRoles = await prisma.role.findMany({
+      where: { tenantId: tenant.id, isSystem: true, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (systemRoles.length === 0) {
+      continue;
+    }
+
+    const adminPermissions = await prisma.permission.findMany({
+      where: {
+        tenantId: tenant.id,
+        name: { in: [...TENANT_ADMIN_PERMISSION_NAMES] },
+      },
+      select: { id: true },
+    });
+
+    for (const role of systemRoles) {
+      const grants = await prisma.rolePermission.createMany({
+        data: adminPermissions.map((permission) => ({
+          tenantId: tenant.id,
+          roleId: role.id,
+          permissionId: permission.id,
+          resource: null,
+        })),
+        skipDuplicates: true,
+      });
+      systemRoleGrantsCreated += grants.count;
+    }
   }
 
-  return { tenantsProcessed: tenants.length, permissionsCreated };
+  return {
+    tenantsProcessed: tenants.length,
+    permissionsCreated,
+    systemRoleGrantsCreated,
+  };
 }

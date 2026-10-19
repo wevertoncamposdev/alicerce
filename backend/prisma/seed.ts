@@ -3,7 +3,6 @@ import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from '@core/prisma/generated/client';
 import * as bcrypt from 'bcrypt';
-import { TENANT_ADMIN_PERMISSION_NAMES } from '@core/authorization/permission-catalog';
 import { syncPermissionCatalog } from '@core/authorization/permission-catalog-sync';
 
 const connectionString = `${process.env.DATABASE_URL}`;
@@ -34,34 +33,15 @@ async function main() {
         type: 'ADMIN',
         description: 'Administrador do sistema',
         status: 'ACTIVE',
+        isSystem: true,
       },
     });
   }
 
+  // Cria as permissões do catálogo que faltarem neste tenant e garante que
+  // todo papel `isSystem` (o ADMIN acima) tenha todas as concedíveis —
+  // substitui o loop manual de rolePermission que existia aqui antes.
   await syncPermissionCatalog(prisma);
-
-  const tenantAdminPermissions = await prisma.permission.findMany({
-    where: { tenantId: tenant.id, name: { in: [...TENANT_ADMIN_PERMISSION_NAMES] } },
-  });
-  for (const permission of tenantAdminPermissions) {
-    const exists = await prisma.rolePermission.findFirst({
-      where: {
-        tenantId: tenant.id,
-        roleId: adminRole.id,
-        permissionId: permission.id,
-      },
-    });
-
-    if (!exists) {
-      await prisma.rolePermission.create({
-        data: {
-          tenantId: tenant.id,
-          roleId: adminRole.id,
-          permissionId: permission.id,
-        },
-      });
-    }
-  }
 
   const passwordHash = await bcrypt.hash('admin123', 10);
   const user = await prisma.user.upsert({

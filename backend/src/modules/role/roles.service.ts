@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -76,6 +80,15 @@ export class RolesService {
       'Role nao encontrada',
     );
 
+    // Papel de sistema (ADR 0007, etapa 3.4): não pode ser renomeado.
+    // Outros campos (description, type — este último já não decide mais
+    // acesso) continuam editáveis.
+    if (existing.isSystem && dto.name && dto.name !== existing.name) {
+      throw new ConflictException(
+        'Não é possível renomear um papel de sistema.',
+      );
+    }
+
     return this.prisma.role.update({
       where: { id: existing.id },
       data: {
@@ -99,7 +112,7 @@ export class RolesService {
         tenantId,
         userId: opts.excludeUserId ? { not: opts.excludeUserId } : undefined,
         roleId: opts.excludeRoleId ? { not: opts.excludeRoleId } : undefined,
-        role: { type: 'ADMIN', deletedAt: null },
+        role: { isSystem: true, deletedAt: null },
         user: { deletedAt: null, status: 'ACTIVE' },
       },
     });
@@ -114,15 +127,12 @@ export class RolesService {
       'Role nao encontrada',
     );
 
-    if (existing.type === 'ADMIN') {
-      const hasOther = await this.hasOtherActiveAdmin(tenantId, {
-        excludeRoleId: existing.id,
-      });
-      if (!hasOther) {
-        throw new ForbiddenException(
-          'Não é possível remover a única role de administrador do tenant.',
-        );
-      }
+    // Papel de sistema nunca pode ser excluído (ADR 0007, etapa 3.4) — não
+    // é mais condicional a "é o último admin": é sempre bloqueado.
+    if (existing.isSystem) {
+      throw new ConflictException(
+        'Não é possível remover um papel de sistema.',
+      );
     }
 
     const result = await this.prisma.role.update({
@@ -199,7 +209,7 @@ export class RolesService {
       'Role nao encontrada',
     );
 
-    if (role.type === 'ADMIN') {
+    if (role.isSystem) {
       if (currentUserId && currentUserId === userId) {
         throw new ForbiddenException(
           'Você não pode remover sua própria permissão de administrador.',

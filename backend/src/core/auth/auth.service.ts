@@ -396,6 +396,7 @@ export class AuthService {
           type: RoleType.ADMIN,
           description: 'Administrador inicial do tenant',
           status: 'ACTIVE',
+          isSystem: true,
         },
       });
 
