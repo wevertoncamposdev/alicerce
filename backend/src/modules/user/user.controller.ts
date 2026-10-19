@@ -12,7 +12,6 @@ import {
 } from '@nestjs/common';
 
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
-import { Roles } from '@core/common/decorators/roles.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 
@@ -35,7 +34,6 @@ export class UsersController {
   ) {}
 
   @Post()
-  @Roles('ADMIN')
   @Permissions('user.create')
   async create(
     @Body() createUserDto: CreateUserDto,
@@ -46,14 +44,12 @@ export class UsersController {
   }
 
   @Get()
-  @Roles('ADMIN', 'USER')
   @Permissions('user.read')
   findAll(@TenantId() tenantId: string): Promise<UserResponseDto[]> {
     return this.usersService.findAllWithValidation(tenantId);
   }
 
   @Get(':id')
-  @Roles('ADMIN', 'USER')
   @Permissions('user.read')
   findOne(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -63,7 +59,6 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles('ADMIN')
   @Permissions('user.update')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -74,7 +69,6 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @Roles('ADMIN')
   @Permissions('user.delete')
   remove(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -84,14 +78,12 @@ export class UsersController {
   }
 
   @Search()
-  @Roles('ADMIN', 'USER')
   @Permissions('user.read')
   search(@Body() query: SearchUsersDto, @TenantId() tenantId: string) {
     return this.usersService.search(query, tenantId);
   }
 
   @Get(':id/roles')
-  @Roles('ADMIN')
   @Permissions('user.read')
   @ApiOperation({ summary: 'List roles of a user' })
   @ApiResponse({ status: 200, description: 'List of roles' })
@@ -100,7 +92,6 @@ export class UsersController {
   }
 
   @Get(':id/permissions')
-  @Roles('ADMIN', 'USER')
   @Permissions('user.read')
   @ApiOperation({ summary: 'List effective permissions of a user' })
   @ApiResponse({

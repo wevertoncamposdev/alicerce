@@ -13,7 +13,6 @@ import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { CurrentUserId } from '@core/common/decorators/current-user-id.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 
-import { Roles } from '@core/common/decorators/roles.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 
@@ -31,28 +30,24 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Get()
-  @Roles('ADMIN')
   @Permissions('role.read')
   findAll(@TenantId() tenantId: string) {
     return this.rolesService.findAll(tenantId);
   }
 
   @Get(':id')
-  @Roles('ADMIN')
   @Permissions('role.read')
   findOne(@Param('id') id: string, @TenantId() tenantId: string) {
     return this.rolesService.findOne(id, tenantId);
   }
 
   @Post()
-  @Roles('ADMIN')
   @Permissions('role.create')
   create(@Body() dto: CreateRoleDto, @TenantId() tenantId: string) {
     return this.rolesService.create(dto, tenantId);
   }
 
   @Patch(':id')
-  @Roles('ADMIN')
   @Permissions('role.update')
   update(
     @Param('id') id: string,
@@ -63,14 +58,12 @@ export class RolesController {
   }
 
   @Delete(':id')
-  @Roles('ADMIN')
   @Permissions('role.delete')
   remove(@Param('id') id: string, @TenantId() tenantId: string) {
     return this.rolesService.remove(id, tenantId);
   }
 
   @Post(':id/users')
-  @Roles('ADMIN')
   @Permissions('role.assign')
   attachUser(
     @Param('id') id: string,
@@ -81,7 +74,6 @@ export class RolesController {
   }
 
   @Delete(':id/users/:userId')
-  @Roles('ADMIN')
   @Permissions('role.assign')
   detachUser(
     @Param('id') id: string,
@@ -93,7 +85,6 @@ export class RolesController {
   }
 
   @Post(':id/permissions')
-  @Roles('ADMIN')
   @Permissions('role.assign')
   attachPermission(
     @Param('id') id: string,
@@ -109,7 +100,6 @@ export class RolesController {
   }
 
   @Delete(':id/permissions/:permissionId')
-  @Roles('ADMIN')
   @Permissions('role.assign')
   detachPermission(
     @Param('id') id: string,
@@ -120,7 +110,6 @@ export class RolesController {
   }
 
   @Search()
-  @Roles('ADMIN')
   @Permissions('role.read')
   @ApiOperation({ summary: 'Search roles' })
   @ApiResponse({ status: 200, description: 'Search results' })
@@ -130,7 +119,6 @@ export class RolesController {
   }
 
   @Get(':id/permissions')
-  @Roles('ADMIN')
   @Permissions('role.read')
   @ApiOperation({ summary: 'List permissions of a role' })
   @ApiResponse({ status: 200, description: 'List of permissions' })
@@ -139,7 +127,6 @@ export class RolesController {
   }
 
   @Get(':id/users')
-  @Roles('ADMIN')
   @Permissions('role.read')
   @ApiOperation({ summary: 'List users of a role' })
   @ApiResponse({ status: 200, description: 'List of users' })

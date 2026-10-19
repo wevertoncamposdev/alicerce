@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { Roles } from '@core/common/decorators/roles.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { UseGuards } from '@nestjs/common';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
@@ -26,28 +25,24 @@ export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) {}
 
   @Get()
-  @Roles('ADMIN')
   @Permissions('permission.read')
   findAll(@TenantId() tenantId: string) {
     return this.permissionsService.findAll(tenantId);
   }
 
   @Get(':id')
-  @Roles('ADMIN')
   @Permissions('permission.read')
   findOne(@Param('id') id: string, @TenantId() tenantId: string) {
     return this.permissionsService.findOne(id, tenantId);
   }
 
   @Post()
-  @Roles('ADMIN')
   @Permissions('permission.create')
   create(@Body() dto: CreatePermissionDto, @TenantId() tenantId: string) {
     return this.permissionsService.create(dto, tenantId);
   }
 
   @Patch(':id')
-  @Roles('ADMIN')
   @Permissions('permission.update')
   update(
     @Param('id') id: string,
@@ -58,14 +53,12 @@ export class PermissionsController {
   }
 
   @Delete(':id')
-  @Roles('ADMIN')
   @Permissions('permission.delete')
   remove(@Param('id') id: string, @TenantId() tenantId: string) {
     return this.permissionsService.remove(id, tenantId);
   }
 
   @Search()
-  @Roles('ADMIN')
   @Permissions('permission.read')
   @ApiOperation({ summary: 'Search permissions' })
   @ApiResponse({ status: 200, description: 'Search results' })
@@ -77,7 +70,6 @@ export class PermissionsController {
   //Roles
 
   @Get(':id/roles')
-  @Roles('ADMIN')
   @Permissions('permission.read')
   listRoles(@Param('id') id: string, @TenantId() tenantId: string) {
     return this.permissionsService.findRolesOfPermission(id, tenantId);
