@@ -16,18 +16,15 @@ import { SignInDto } from './dto/sign-in.dto';
 import { Public } from './auth.guard';
 import { SignUpPublicDto } from './dto/sign-up-public.dto';
 import { JwtPayload } from '@core/common/types/http.types';
+import {
+  REFRESH_COOKIE,
+  COOKIE_PATH,
+  COOKIE_MAX_AGE_MS,
+} from './cookie.constants';
 
 // Superfície de brute-force (login/registro) — bem mais estrito que o
 // throttle global (`default`, 60/min em app.module.ts).
 const BRUTE_FORCE_THROTTLE = { default: { limit: 5, ttl: 60_000 } };
-
-// Nome do cookie que transporta o refresh token entre BFF e Nest.
-// O access token nunca viaja em cookie para o Nest — ele vem como Bearer no header.
-const REFRESH_COOKIE = 'refresh_token';
-
-// Opções de cookie compartilhadas entre set e clear
-const COOKIE_PATH = '/api/auth';
-const COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias
 
 // refresh_token nunca sai no JSON — fica só no cookie httpOnly.
 function omitRefreshToken(session: AuthSessionResponse) {

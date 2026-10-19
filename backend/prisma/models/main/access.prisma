@@ -5,6 +5,8 @@ model User {
     email    String  @unique @db.VarChar(255)
     password String  @db.VarChar(100)
     name     String? @db.VarChar(255)
+    theme    String? @db.VarChar(20)
+    locale   String? @db.VarChar(10)
 
     mfaEnabled Boolean @default(false)
 
