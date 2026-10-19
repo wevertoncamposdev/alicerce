@@ -23,7 +23,7 @@ interface RegisterAuditInput {
 }
 
 const AUDIT_INCLUDE = {
-  user: { select: { id: true, email: true } }, // nunca inclua "password" aqui
+  user: { select: { id: true, email: true, name: true } }, // nunca inclua "password" aqui
   tenant: { select: { id: true, legalName: true } },
 } as const;
 

@@ -87,9 +87,11 @@ function getInitials(email: string): string {
 
 export function AppSidebar({
   userEmail,
+  userName,
   tenantName,
 }: {
   userEmail?: string;
+  userName?: string | null;
   tenantName?: string | null;
 }) {
   const { signOut, hasPermission } = useAuth();
@@ -172,7 +174,7 @@ export function AppSidebar({
                     </AvatarFallback>
                   </Avatar>
                   <span className="flex min-w-0 flex-1 flex-col text-left">
-                    <span className="truncate text-sm">{userEmail ?? "Usuário"}</span>
+                    <span className="truncate text-sm">{userName ?? userEmail ?? "Usuário"}</span>
                     {tenantName ? (
                       <span className="truncate text-xs text-muted-foreground">{tenantName}</span>
                     ) : null}
@@ -182,7 +184,7 @@ export function AppSidebar({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56">
                 <DropdownMenuLabel className="flex flex-col">
-                  <span className="truncate text-sm font-medium">{userEmail ?? "Usuário"}</span>
+                  <span className="truncate text-sm font-medium">{userName ?? userEmail ?? "Usuário"}</span>
                   {tenantName ? (
                     <span className="truncate text-xs text-muted-foreground">{tenantName}</span>
                   ) : null}

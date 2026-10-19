@@ -23,6 +23,7 @@ import {
 export interface AuthUserContext {
   id: string;
   email: string;
+  name: string | null;
   tenantId: string;
   permissions: string[];
 }
@@ -185,6 +186,7 @@ export class AuthService {
     const authUserContext: AuthUserContext = {
       id: user.id,
       email: user.email,
+      name: user.name,
       tenantId: user.tenantId,
       permissions: permissionNames,
     };
@@ -426,6 +428,7 @@ export class AuthService {
         data: {
           tenantId: tenant.id,
           email: dto.email,
+          name: dto.name,
           password: passwordHash,
           status: 'ACTIVE',
         },

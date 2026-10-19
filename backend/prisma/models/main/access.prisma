@@ -1,9 +1,10 @@
 // Modelos de controle de acesso
 model User {
-    id       String @id @default(uuid(7)) @db.Uuid
-    tenantId String @db.Uuid
-    email    String @unique @db.VarChar(255)
-    password String @db.VarChar(100)
+    id       String  @id @default(uuid(7)) @db.Uuid
+    tenantId String  @db.Uuid
+    email    String  @unique @db.VarChar(255)
+    password String  @db.VarChar(100)
+    name     String? @db.VarChar(255)
 
     mfaEnabled Boolean @default(false)
 

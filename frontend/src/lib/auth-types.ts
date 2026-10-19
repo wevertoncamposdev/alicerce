@@ -8,6 +8,7 @@ export interface RegisterInput {
 export interface AuthUserProfile {
     id: string;
     email: string;
+    name?: string | null;
     tenantId: string;
     permissions: string[];
 }

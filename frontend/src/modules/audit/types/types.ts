@@ -10,6 +10,7 @@ export type AuditEntry = {
     user?: {
         id: string;
         email: string;
+        name?: string | null;
     };
     tenant?: {
         id: string;

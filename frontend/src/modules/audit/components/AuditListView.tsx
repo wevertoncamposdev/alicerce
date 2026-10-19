@@ -54,7 +54,7 @@ export function AuditListView({ data, pagination }: AuditListViewProps) {
                                     <td className="px-3 py-2">{entry.action}</td>
                                     <td className="px-3 py-2">{entry.entity}</td>
                                     <td className="px-3 py-2">{entry.entityId ?? "—"}</td>
-                                    <td className="px-3 py-2">{entry.user?.email ?? entry.userId}</td>
+                                    <td className="px-3 py-2">{entry.user?.name ?? entry.user?.email ?? entry.userId}</td>
                                     <td className="px-3 py-2">{entry.createdAt?.slice(0, 16).replace("T", ", ") ?? "—"}</td>
                                 </tr>
                             ))

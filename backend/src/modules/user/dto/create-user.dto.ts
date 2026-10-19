@@ -20,6 +20,12 @@ export class CreateUserDto {
   @MaxLength(255)
   email!: string;
 
+  @ApiPropertyOptional({ maxLength: 255 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  name?: string;
+
   @ApiProperty({ minLength: 8, maxLength: 100 })
   @IsString()
   @MaxLength(100)

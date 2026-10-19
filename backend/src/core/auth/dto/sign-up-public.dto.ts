@@ -1,6 +1,7 @@
 import {
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
@@ -25,6 +26,11 @@ export class SignUpPublicDto {
   @IsEmail()
   @IsNotEmpty()
   email!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  name?: string;
 
   @IsString()
   @IsNotEmpty()

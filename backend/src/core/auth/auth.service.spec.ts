@@ -37,6 +37,7 @@ describe('AuthService', () => {
   let baseUser: {
     id: string;
     email: string;
+    name: string | null;
     password: string;
     tenantId: string;
     roles: unknown[];
@@ -55,6 +56,7 @@ describe('AuthService', () => {
     baseUser = {
       id: 'user-1',
       email: 'user@example.com',
+      name: 'Usuário de Teste',
       password: await bcrypt.hash(correctPassword, 4),
       tenantId: 'tenant-1',
       roles: [],
