@@ -85,6 +85,37 @@ export class FilesService {
     return { url, expiresAt: new Date(Date.now() + 3600 * 1000).toISOString() };
   }
 
+  // Resolver avatarUrl/logoUrl pra exibição não deve derrubar a página com
+  // 404 se o File referenciado tiver sido removido depois de anexado —
+  // só não mostra imagem nesse caso raro.
+  async getSignedUrlOrNull(
+    id: string,
+    tenantId: string,
+  ): Promise<string | null> {
+    try {
+      const { url } = await this.getSignedUrl(id, tenantId);
+      return url;
+    } catch {
+      return null;
+    }
+  }
+
+  // Usada por quem ANEXA um arquivo a outra entidade (avatar do usuário,
+  // logo da instituição) — garante que só quem enviou o arquivo pode
+  // reaproveitá-lo dessa forma (ver ADR 0010).
+  async assertUploadedBy(
+    id: string,
+    tenantId: string,
+    userId: string,
+  ): Promise<void> {
+    const file = await this.getFileOrThrow(id, tenantId);
+    if (file.uploadedById !== userId) {
+      throw new BadRequestException(
+        'Só é possível usar um arquivo que você mesmo enviou',
+      );
+    }
+  }
+
   async remove(id: string, tenantId: string, requesterId: string) {
     const file = await this.getFileOrThrow(id, tenantId);
 

@@ -1,4 +1,4 @@
-import { Building2, Contact, MapPin } from "lucide-react";
+import { Building2, Contact, MapPin, Image as ImageIcon } from "lucide-react";
 import { defineRecordModule, registerModule } from "@core/registry";
 import type { DetailLayout, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
@@ -32,7 +32,18 @@ const formFields = [
     { name: "addressCity" as const, label: "Cidade", type: "text" as const },
     { name: "addressState" as const, label: "UF", type: "text" as const },
     { name: "addressZipCode" as const, label: "CEP", type: "text" as const },
+    {
+        name: "logoFileId" as const,
+        label: "Logo",
+        type: "image" as const,
+        previewUrl: (record: TenantProfile) => record.logoUrl,
+        uploadOwnerType: "tenant.logo",
+    },
 ];
+
+function initials(record: TenantProfile): string {
+    return record.legalName.slice(0, 2).toUpperCase();
+}
 
 // Stubs — "instituicao" não tem rota de lista (mesmo padrão de ADR 0009),
 // nunca exercitados.
@@ -42,8 +53,18 @@ const instituicaoDetailLayout: DetailLayout<TenantProfile> = {
     header: ({ record }) => ({
         title: record.legalName,
         subtitle: [record.slug],
+        avatar: { src: record.logoUrl ?? undefined, fallback: initials(record) },
     }),
     sections: [
+        {
+            key: "logo",
+            title: "Logo",
+            icon: ImageIcon,
+            column: 1,
+            render: ({ record }) => (
+                <InstitutionFormSection fields={["logoFileId"]} record={record} formFields={formFields} />
+            ),
+        },
         {
             key: "identificacao",
             title: "Identificação",

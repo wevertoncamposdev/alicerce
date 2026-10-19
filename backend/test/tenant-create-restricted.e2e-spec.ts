@@ -12,6 +12,7 @@ import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { PrismaModule } from '@core/prisma/prisma.module';
 import { RedisModule } from '@core/redis/redis.module';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { FilesService } from '@core/files/file.service';
 
 /**
  * Cobre a etapa 1.4 do Plano Base.md: `POST /tenant` deixou de ser público
@@ -49,6 +50,11 @@ describe('POST /tenant não é mais público (e2e)', () => {
         getFreshPermissions: jest
           .fn()
           .mockResolvedValue(['tenant.read', 'tenant.update', 'tenant.manage']),
+      })
+      .overrideProvider(FilesService)
+      .useValue({
+        getSignedUrlOrNull: () => Promise.resolve(null),
+        assertUploadedBy: () => Promise.resolve(undefined),
       })
       .compile();
 

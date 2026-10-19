@@ -1,4 +1,4 @@
-import { User as UserIcon, Shield, SlidersHorizontal, Mail, Monitor } from "lucide-react";
+import { User as UserIcon, Shield, SlidersHorizontal, Mail, Monitor, Image as ImageIcon } from "lucide-react";
 import { defineRecordModule, registerModule } from "@core/registry";
 import type { DetailLayout, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
@@ -24,7 +24,19 @@ const formFields = [
         ],
     },
     { name: "locale" as const, label: "Idioma", placeholder: "pt-BR", type: "text" as const },
+    {
+        name: "avatarFileId" as const,
+        label: "Foto",
+        type: "image" as const,
+        previewUrl: (record: MeProfile) => record.avatarUrl,
+        uploadOwnerType: "user.avatar",
+    },
 ];
+
+function initials(record: MeProfile): string {
+    const source = record.name ?? record.email;
+    return source.slice(0, 2).toUpperCase();
+}
 
 // Stubs — "perfil" não tem rota de lista (ver ADR 0009), nunca exercitados.
 const { parseListState, serializeListState } = createListQueryState();
@@ -32,6 +44,7 @@ const { parseListState, serializeListState } = createListQueryState();
 const perfilDetailLayout: DetailLayout<MeProfile> = {
     header: ({ record }) => ({
         title: record.name ?? record.email,
+        avatar: { src: record.avatarUrl ?? undefined, fallback: initials(record) },
         contacts: [{ icon: Mail, text: record.email }],
     }),
     sections: [
@@ -42,6 +55,15 @@ const perfilDetailLayout: DetailLayout<MeProfile> = {
             column: 1,
             render: ({ record }) => (
                 <ProfileFormSection fields={["name"]} record={record} formFields={formFields} />
+            ),
+        },
+        {
+            key: "foto",
+            title: "Foto",
+            icon: ImageIcon,
+            column: 1,
+            render: ({ record }) => (
+                <ProfileFormSection fields={["avatarFileId"]} record={record} formFields={formFields} />
             ),
         },
         {

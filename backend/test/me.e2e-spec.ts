@@ -20,6 +20,7 @@ import { PermissionCacheService } from '@core/authorization/permission-cache.ser
 import { RedisModule } from '@core/redis/redis.module';
 import { RedisService } from '@core/redis/redis.service';
 import { AuditService } from '@modules/audit/audit.service';
+import { FilesService } from '@core/files/file.service';
 
 interface MockUserRow {
   id: string;
@@ -29,6 +30,7 @@ interface MockUserRow {
   locale: string | null;
   password: string;
   tenantId: string;
+  avatarFileId?: string | null;
 }
 
 interface MockRefreshTokenRow {
@@ -165,6 +167,11 @@ describe('Endpoints /me (e2e)', () => {
   const currentFamilyId = randomUUID();
   const otherFamilyId = randomUUID();
 
+  const mockFilesService = {
+    getSignedUrlOrNull: jest.fn<Promise<string | null>, [string, string]>(),
+    assertUploadedBy: jest.fn<Promise<void>, [string, string, string]>(),
+  };
+
   beforeAll(async () => {
     currentPasswordHash = await bcrypt.hash(currentPassword, 4);
 
@@ -200,6 +207,8 @@ describe('Endpoints /me (e2e)', () => {
       .useValue({ setPermissions: () => Promise.resolve(undefined) })
       .overrideProvider(AuditService)
       .useValue({ register: () => Promise.resolve(undefined) })
+      .overrideProvider(FilesService)
+      .useValue(mockFilesService)
       .compile();
 
     mockPrisma = moduleFixture.get<MockPrismaService>(PrismaService);
@@ -225,6 +234,9 @@ describe('Endpoints /me (e2e)', () => {
   });
 
   beforeEach(() => {
+    mockFilesService.getSignedUrlOrNull.mockReset().mockResolvedValue(null);
+    mockFilesService.assertUploadedBy.mockReset().mockResolvedValue(undefined);
+
     mockPrisma.users.clear();
     mockPrisma.users.set(userId, {
       id: userId,
@@ -234,6 +246,7 @@ describe('Endpoints /me (e2e)', () => {
       locale: null,
       password: currentPasswordHash,
       tenantId,
+      avatarFileId: null,
     });
 
     const now = new Date();
@@ -364,5 +377,38 @@ describe('Endpoints /me (e2e)', () => {
     const other = mockPrisma.tokens.find((t) => t.familyId === otherFamilyId);
     expect(current?.revokedAt).toBeNull();
     expect(other?.revokedAt).not.toBeNull();
+  });
+
+  it('PATCH /me com avatarFileId confere posse via FilesService antes de salvar', async () => {
+    const fileId = randomUUID();
+    mockFilesService.assertUploadedBy.mockRejectedValueOnce(
+      new Error('não é seu arquivo'),
+    );
+
+    await authed('patch', '/me').send({ avatarFileId: fileId }).expect(500); // erro genérico do mock — só interessa que foi chamado e propagado
+
+    expect(mockFilesService.assertUploadedBy).toHaveBeenCalledWith(
+      fileId,
+      tenantId,
+      userId,
+    );
+  });
+
+  it('GET /me devolve avatarUrl resolvido quando avatarFileId está setado', async () => {
+    const fileId = randomUUID();
+    mockPrisma.users.get(userId)!.avatarFileId = fileId;
+    mockFilesService.getSignedUrlOrNull.mockResolvedValueOnce(
+      'https://storage.example.com/avatar-signed-url',
+    );
+
+    const res = await authed('get', '/me').expect(200);
+
+    expect(mockFilesService.getSignedUrlOrNull).toHaveBeenCalledWith(
+      fileId,
+      tenantId,
+    );
+    expect((res.body as { avatarUrl: string }).avatarUrl).toBe(
+      'https://storage.example.com/avatar-signed-url',
+    );
   });
 });

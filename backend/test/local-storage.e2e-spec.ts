@@ -7,7 +7,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import request from 'supertest';
-import { LocalStorageController } from '@modules/file/local-storage.controller';
+import { LocalStorageController } from '@core/files/local-storage.controller';
 import { signLocalKey } from '@core/storage/local-signed-url.util';
 
 /**

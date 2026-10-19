@@ -31,12 +31,12 @@ export class MeController {
 
   @Get()
   getMe(@Request() req: AuthenticatedRequest) {
-    return this.meService.getMe(req.user.sub);
+    return this.meService.getMe(req.user.sub, req.user.tenantId);
   }
 
   @Patch()
   updateMe(@Request() req: AuthenticatedRequest, @Body() dto: UpdateMeDto) {
-    return this.meService.updateMe(req.user.sub, dto);
+    return this.meService.updateMe(req.user.sub, req.user.tenantId, dto);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)

@@ -13,6 +13,7 @@ import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { RedisModule } from '@core/redis/redis.module';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { FilesService } from '@core/files/file.service';
 
 interface MockTenantRow {
   id: string;
@@ -84,6 +85,11 @@ describe('GET/PATCH /tenant/current (e2e)', () => {
             };
             return Promise.resolve(permissionsByUser[userId] ?? []);
           }),
+      })
+      .overrideProvider(FilesService)
+      .useValue({
+        getSignedUrlOrNull: () => Promise.resolve(null),
+        assertUploadedBy: () => Promise.resolve(undefined),
       })
       .compile();
 

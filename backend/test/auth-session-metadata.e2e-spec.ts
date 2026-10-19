@@ -18,6 +18,7 @@ import { PermissionCacheService } from '@core/authorization/permission-cache.ser
 import { RedisModule } from '@core/redis/redis.module';
 import { RedisService } from '@core/redis/redis.service';
 import { AuditService } from '@modules/audit/audit.service';
+import { FilesService } from '@core/files/file.service';
 
 interface StoredRefreshToken {
   id: string;
@@ -138,6 +139,11 @@ describe('Metadados de sessão no refresh token (e2e)', () => {
       .useValue({ setPermissions: () => Promise.resolve(undefined) })
       .overrideProvider(AuditService)
       .useValue({ register: () => Promise.resolve(undefined) })
+      .overrideProvider(FilesService)
+      .useValue({
+        getSignedUrlOrNull: () => Promise.resolve(null),
+        assertUploadedBy: () => Promise.resolve(undefined),
+      })
       .compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(

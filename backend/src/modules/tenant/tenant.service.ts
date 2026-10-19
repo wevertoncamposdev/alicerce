@@ -8,6 +8,7 @@ import { TenantErrorCode } from './domain/errors/tenant-error-codes';
 import { TenantErrorMapper } from './mappers/tenant-error.mapper';
 import { TenantRepository } from './persistence/repository/tenant.repository';
 import { SearchTenantsDto } from './dto/search-tenant.dto';
+import { FilesService } from '@core/files/file.service';
 
 @Injectable()
 export class TenantService {
@@ -16,6 +17,7 @@ export class TenantService {
     private readonly tenantBusinessRules: TenantBusinessRules,
     private readonly tenantErrorMapper: TenantErrorMapper,
     private readonly prisma: PrismaService,
+    private readonly filesService: FilesService,
   ) {}
 
   async create(createTenantDto: CreateTenantDto) {
@@ -61,19 +63,39 @@ export class TenantService {
         });
       }
 
-      return tenant;
+      const logoUrl = tenant.logoFileId
+        ? await this.filesService.getSignedUrlOrNull(
+            tenant.logoFileId,
+            requestTenantId,
+          )
+        : null;
+
+      return { ...tenant, logoUrl };
     } catch (error) {
       this.tenantErrorMapper.mapAndThrow(error, 'findOne');
     }
   }
 
+  // `requesterId` só vem de /tenant/current (ver TenantController) — a
+  // checagem de posse do `logoFileId` (ver ADR 0010) só se aplica ao
+  // self-service; a rota admin /tenant/:id (reservada pro management
+  // futuro, Fase 11) não passa esse parâmetro.
   async update(
     id: string,
     updateTenantDto: UpdateTenantDto,
     requestTenantId: string,
+    requesterId?: string,
   ) {
     this.tenantBusinessRules.validateTenantId(id);
     this.assertOwnTenant(id, requestTenantId);
+
+    if (updateTenantDto.logoFileId && requesterId) {
+      await this.filesService.assertUploadedBy(
+        updateTenantDto.logoFileId,
+        requestTenantId,
+        requesterId,
+      );
+    }
 
     try {
       const data: Prisma.TenantUpdateInput = { ...updateTenantDto };

@@ -15,6 +15,7 @@ import { PermissionCacheService } from '@core/authorization/permission-cache.ser
 import { RedisModule } from '@core/redis/redis.module';
 import { RedisService } from '@core/redis/redis.service';
 import { AuditService } from '@modules/audit/audit.service';
+import { FilesService } from '@core/files/file.service';
 
 /**
  * Cobre a etapa 1.6 do Plano Base.md: 5 falhas de login em 15min bloqueiam
@@ -110,6 +111,11 @@ describe('Bloqueio por conta após falhas repetidas (e2e)', () => {
       .useValue({ setPermissions: () => Promise.resolve(undefined) })
       .overrideProvider(AuditService)
       .useValue({ register: () => Promise.resolve(undefined) })
+      .overrideProvider(FilesService)
+      .useValue({
+        getSignedUrlOrNull: () => Promise.resolve(null),
+        assertUploadedBy: () => Promise.resolve(undefined),
+      })
       .compile();
 
     app = moduleFixture.createNestApplication();

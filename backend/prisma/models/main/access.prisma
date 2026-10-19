@@ -8,6 +8,11 @@ model User {
     theme    String? @db.VarChar(20)
     locale   String? @db.VarChar(10)
 
+    // Fase 6 — avatar (Plano Base.md 6.4). Posse validada em quem anexa
+    // (MeService.updateMe), não aqui — ver ADR 0010.
+    avatarFileId String? @db.Uuid
+    avatar       File?   @relation("UserAvatar", fields: [avatarFileId], references: [id])
+
     mfaEnabled Boolean @default(false)
 
     status    Status    @default(ACTIVE)
@@ -21,7 +26,7 @@ model User {
     refreshTokens RefreshToken[]
     feedbacks        Feedback[]
     feedbackComments FeedbackComment[]
-    uploadedFiles    File[]
+    uploadedFiles    File[]            @relation("UploadedFiles")
 
     @@map("users")
 }

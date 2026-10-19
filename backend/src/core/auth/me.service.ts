@@ -3,6 +3,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { findOneOrThrow } from '@core/common/utils/find-one-or-throw.util';
+import { FilesService } from '@core/files/file.service';
 import { UpdateMeDto } from './dto/update-me.dto';
 import { ChangeMyPasswordDto } from './dto/change-my-password.dto';
 
@@ -21,6 +22,7 @@ const ME_SELECT = {
   name: true,
   theme: true,
   locale: true,
+  avatarFileId: true,
 } as const;
 
 /**
@@ -30,7 +32,10 @@ const ME_SELECT = {
  */
 @Injectable()
 export class MeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly filesService: FilesService,
+  ) {}
 
   private hashToken(rawToken: string): string {
     return crypto.createHash('sha256').update(rawToken).digest('hex');
@@ -52,8 +57,8 @@ export class MeService {
     return storedToken?.familyId;
   }
 
-  async getMe(userId: string) {
-    return findOneOrThrow(
+  async getMe(userId: string, tenantId: string) {
+    const user = findOneOrThrow(
       await this.prisma.user.findUnique({
         where: { id: userId },
         select: ME_SELECT,
@@ -61,14 +66,34 @@ export class MeService {
       () => true,
       'Usuário não encontrado',
     );
+
+    const avatarUrl = user.avatarFileId
+      ? await this.filesService.getSignedUrlOrNull(user.avatarFileId, tenantId)
+      : null;
+
+    return { ...user, avatarUrl };
   }
 
-  async updateMe(userId: string, dto: UpdateMeDto) {
-    return this.prisma.user.update({
+  async updateMe(userId: string, tenantId: string, dto: UpdateMeDto) {
+    if (dto.avatarFileId) {
+      await this.filesService.assertUploadedBy(
+        dto.avatarFileId,
+        tenantId,
+        userId,
+      );
+    }
+
+    const user = await this.prisma.user.update({
       where: { id: userId },
       data: dto,
       select: ME_SELECT,
     });
+
+    const avatarUrl = user.avatarFileId
+      ? await this.filesService.getSignedUrlOrNull(user.avatarFileId, tenantId)
+      : null;
+
+    return { ...user, avatarUrl };
   }
 
   async changePassword(

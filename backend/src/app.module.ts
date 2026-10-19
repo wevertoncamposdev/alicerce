@@ -31,7 +31,7 @@ import { AuditModule } from '@modules/audit/audit.module';
 
 import { UsersModule } from '@modules/user/user.module';
 import { TenantModule } from '@modules/tenant/tenant.module';
-import { FileModule } from '@modules/file/file.module';
+import { FileModule } from '@core/files/file.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 
 import { RoleModule } from '@modules/role/role.module';

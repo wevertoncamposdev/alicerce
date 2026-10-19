@@ -15,4 +15,6 @@ export type TenantProfile = {
     addressCity?: string | null;
     addressState?: string | null;
     addressZipCode?: string | null;
+    logoFileId?: string | null;
+    logoUrl?: string | null;
 };

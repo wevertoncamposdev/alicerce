@@ -17,6 +17,7 @@ import {
 import {
   Avatar,
   AvatarFallback,
+  AvatarImage,
 } from "@components/ui/avatar";
 import {
   DropdownMenu,
@@ -90,11 +91,15 @@ function getInitials(email: string): string {
 export function AppSidebar({
   userEmail,
   userName,
+  userAvatarUrl,
   tenantName,
+  tenantLogoUrl,
 }: {
   userEmail?: string;
   userName?: string | null;
+  userAvatarUrl?: string | null;
   tenantName?: string | null;
+  tenantLogoUrl?: string | null;
 }) {
   const { signOut, hasPermission } = useAuth();
   const router = useRouter();
@@ -106,14 +111,18 @@ export function AppSidebar({
   return (
     <Sidebar>
       <SidebarHeader>
-        {/* Placeholder de marca — este é um template sem logo real. Troque o
-            quadrado+ícone por um <img> da logo do produto quando houver uma;
-            o nome "Alicerce" também é só o nome do template. Não é um botão
-            (nada para clicar aqui) — por isso não usa SidebarMenuButton. */}
+        {/* Sem logo da instituição (Fase 6), mostra o placeholder de marca do
+            template — "Alicerce" também é só o nome do template. Não é um
+            botão (nada para clicar aqui) — por isso não usa SidebarMenuButton. */}
         <div className="flex items-center gap-2 p-2">
-          <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Blocks className="size-3.5" />
-          </span>
+          {tenantLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- logo enviado pelo usuário, não é um asset do Next
+            <img src={tenantLogoUrl} alt="" className="size-6 shrink-0 rounded-md object-cover" />
+          ) : (
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <Blocks className="size-3.5" />
+            </span>
+          )}
           <span className="text-page-title">Alicerce</span>
         </div>
       </SidebarHeader>
@@ -171,6 +180,7 @@ export function AppSidebar({
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton className="h-auto">
                   <Avatar className="size-6">
+                    {userAvatarUrl ? <AvatarImage src={userAvatarUrl} alt="" /> : null}
                     <AvatarFallback className="text-[0.65rem]">
                       {userEmail ? getInitials(userEmail) : "?"}
                     </AvatarFallback>

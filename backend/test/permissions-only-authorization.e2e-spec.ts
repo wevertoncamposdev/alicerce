@@ -15,6 +15,7 @@ import { PrismaModule } from '@core/prisma/prisma.module';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { RedisModule } from '@core/redis/redis.module';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { FilesService } from '@core/files/file.service';
 
 /**
  * Cobre a etapa 3.2 do Plano Base.md: `@Roles(...)` saiu de todos os
@@ -77,6 +78,11 @@ describe('Rotas checam só permissões, não mais roles (e2e)', () => {
         getFreshPermissions: jest
           .fn()
           .mockResolvedValue(['feedback.read', 'user.read']),
+      })
+      .overrideProvider(FilesService)
+      .useValue({
+        getSignedUrlOrNull: () => Promise.resolve(null),
+        assertUploadedBy: () => Promise.resolve(undefined),
       })
       .compile();
 

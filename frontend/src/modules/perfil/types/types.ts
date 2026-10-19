@@ -4,6 +4,8 @@ export type MeProfile = {
     name?: string | null;
     theme?: string | null;
     locale?: string | null;
+    avatarFileId?: string | null;
+    avatarUrl?: string | null;
 };
 
 export type MeSession = {

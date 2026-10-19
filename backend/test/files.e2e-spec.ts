@@ -12,7 +12,7 @@ import { I18nModule } from 'nestjs-i18n';
 import request from 'supertest';
 import { AuthModule } from '@core/auth/auth.module';
 import { AuthorizationModule } from '@core/authorization/authorization.module';
-import { FileModule } from '@modules/file/file.module';
+import { FileModule } from '@core/files/file.module';
 import { StorageModule } from '@core/storage/storage.module';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { PrismaBootstrapService } from '@core/prisma/prisma-bootstrap.service';

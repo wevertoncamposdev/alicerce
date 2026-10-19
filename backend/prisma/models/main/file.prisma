@@ -19,8 +19,14 @@ model File {
     createdAt DateTime  @default(now())
     deletedAt DateTime?
 
-    tenant     Tenant @relation(fields: [tenantId], references: [id])
-    uploadedBy User   @relation(fields: [uploadedById], references: [id])
+    tenant     Tenant @relation("TenantFiles", fields: [tenantId], references: [id])
+    uploadedBy User   @relation("UploadedFiles", fields: [uploadedById], references: [id])
+
+    // Segunda relação entre File e User/Tenant (a primeira é
+    // tenantId/uploadedById acima) — Prisma exige nome explícito nas duas
+    // quando há mais de uma relação entre o mesmo par de models.
+    avatarOfUsers  User[]   @relation("UserAvatar")
+    logoOfTenants  Tenant[] @relation("TenantLogo")
 
     @@index([tenantId])
     @@index([ownerType, ownerId])

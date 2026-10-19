@@ -3,6 +3,7 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -107,4 +108,13 @@ export class CreateTenantDto {
   @IsString()
   @MaxLength(10)
   addressZipCode?: string;
+
+  // Posse validada em TenantService.update (ver ADR 0010) — só aceita um
+  // File que o próprio usuário enviou. Não entra na criação (onboarding
+  // público não tem logo ainda) — só fica aqui porque UpdateTenantDto
+  // deriva deste DTO (ver update-tenant.dto.ts).
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
+  @IsUUID()
+  logoFileId?: string;
 }

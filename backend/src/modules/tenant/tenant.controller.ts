@@ -21,6 +21,7 @@ import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { SearchTenantsDto } from './dto/search-tenant.dto';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
+import { CurrentUserId } from '@core/common/decorators/current-user-id.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 
@@ -51,8 +52,12 @@ export class TenantController {
 
   @Patch('current')
   @Permissions('tenant.update')
-  updateCurrent(@Body() dto: UpdateTenantDto, @TenantId() tenantId: string) {
-    return this.tenantService.update(tenantId, dto, tenantId);
+  updateCurrent(
+    @Body() dto: UpdateTenantDto,
+    @TenantId() tenantId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    return this.tenantService.update(tenantId, dto, tenantId, userId);
   }
 
   @Get(':id')
