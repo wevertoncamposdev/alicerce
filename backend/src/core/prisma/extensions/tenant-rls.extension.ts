@@ -16,6 +16,7 @@ const TENANT_SCOPED_MODELS = new Set<Prisma.ModelName>([
   'Feedback',
   'FeedbackComment',
   'RefreshToken',
+  'File',
 ]);
 
 /**

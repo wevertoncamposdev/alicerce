@@ -22,6 +22,24 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(1, 'JWT_SECRET é obrigatória'),
   COOKIE_SECRET: z.string().min(1, 'COOKIE_SECRET é obrigatória'),
   CORS_ORIGINS: z.string().min(1, 'CORS_ORIGINS é obrigatória'),
+
+  // Storage (Fase 6, ADR 0010) — driver local tem defaults utilizáveis em
+  // dev; variáveis de S3 ficam opcionais aqui e são exigidas em runtime só
+  // quando STORAGE_DRIVER=s3 (mesmo padrão de falha de RedisService: lança
+  // no momento de uso, não no boot, pra não quebrar quem nunca usa S3).
+  STORAGE_DRIVER: z.enum(['local', 's3']).default('local'),
+  STORAGE_LOCAL_PATH: z.string().default('./storage'),
+  STORAGE_LOCAL_PUBLIC_URL: z.string().default('http://localhost:5000'),
+  UPLOAD_MAX_SIZE_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(5 * 1024 * 1024),
+  S3_BUCKET: z.string().optional(),
+  S3_REGION: z.string().optional(),
+  S3_ENDPOINT: z.string().optional(),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

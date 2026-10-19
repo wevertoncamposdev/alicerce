@@ -23,6 +23,7 @@ import { HealthModule } from '@core/health/health.module';
 
 import { PrismaModule } from '@core/prisma/prisma.module';
 import { RedisModule } from '@core/redis/redis.module';
+import { StorageModule } from '@core/storage/storage.module';
 import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { AuthModule } from '@core/auth/auth.module';
 import { TenantMiddleware } from '@core/common/middleware/tenant.middleware';
@@ -30,6 +31,7 @@ import { AuditModule } from '@modules/audit/audit.module';
 
 import { UsersModule } from '@modules/user/user.module';
 import { TenantModule } from '@modules/tenant/tenant.module';
+import { FileModule } from '@modules/file/file.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 
 import { RoleModule } from '@modules/role/role.module';
@@ -45,6 +47,7 @@ import { PermissionModule } from '@modules/permission/permission.module';
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 60 }]),
     PrismaModule,
     RedisModule,
+    StorageModule,
     HealthModule,
     AuthorizationModule,
     UsersModule,
@@ -54,6 +57,7 @@ import { PermissionModule } from '@modules/permission/permission.module';
     TenantModule,
     AuditModule,
     FeedbacksModule,
+    FileModule,
     I18nModule.forRoot({
       fallbackLanguage: 'pt',
       loaderOptions: {

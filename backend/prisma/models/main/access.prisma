@@ -21,6 +21,7 @@ model User {
     refreshTokens RefreshToken[]
     feedbacks        Feedback[]
     feedbackComments FeedbackComment[]
+    uploadedFiles    File[]
 
     @@map("users")
 }

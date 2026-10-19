@@ -6,6 +6,7 @@ import {
 import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
 import helmet from '@fastify/helmet';
+import multipart from '@fastify/multipart';
 import { ValidationPipe } from '@nestjs/common/pipes/validation.pipe';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from '@nestjs/common';
@@ -61,6 +62,13 @@ async function bootstrap() {
 
   await app.register(cookie, {
     secret: process.env.COOKIE_SECRET, // assina cookies, evita tampering
+  });
+
+  // Upload de arquivo (Fase 6, ADR 0010) — limite de tamanho aqui é só uma
+  // rede de segurança no nível HTTP; o limite de verdade (configurável via
+  // UPLOAD_MAX_SIZE_BYTES) é checado em FilesService.upload.
+  await app.register(multipart, {
+    limits: { fileSize: 20 * 1024 * 1024 },
   });
 
   // Helmet para headers de segurança básicos (defesa em profundidade,

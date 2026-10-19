@@ -43,6 +43,7 @@ model Tenant {
     audits          Audit[]
     feedbacks        Feedback[]
     feedbackComments FeedbackComment[]
+    files            File[]
 
     @@index([slug])
     @@index([status])
