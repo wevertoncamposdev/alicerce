@@ -20,7 +20,6 @@ import { TenantService } from './tenant.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { SearchTenantsDto } from './dto/search-tenant.dto';
-import { Public } from '@core/auth/auth.guard';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
@@ -32,8 +31,12 @@ import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.gua
 export class TenantController {
   constructor(private readonly tenantService: TenantService) {}
 
-  @Public()
+  // `tenant.create` nunca entra no catálogo nem é concedida a nenhum papel
+  // (ver ADR 0006/Plano Base.md 1.4) — onboarding é só via `POST /auth/register`.
+  // Rota reservada para o futuro `management` (Fase 11), que terá seu
+  // próprio contexto de autenticação fora do RBAC por tenant.
   @Post()
+  @Permissions('tenant.create')
   create(@Body() dto: CreateTenantDto) {
     return this.tenantService.create(dto);
   }
