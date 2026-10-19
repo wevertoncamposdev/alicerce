@@ -11,7 +11,7 @@ import { Checkbox } from "@components/ui/checkbox";
 import { Switch } from "@components/ui/switch";
 import { Button } from "@components/ui/button";
 import { useAutoSaveController } from "@/hooks/use-autosave-controller";
-import { autoSaveRecord } from "@core/registry/actions";
+import { autoSaveRecord, uploadFileAction } from "@core/registry/actions";
 import { validateFormPayload } from "@core/registry/form-validation";
 import type { FormFieldConfig } from "@core/registry/types";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
@@ -88,6 +88,73 @@ function BooleanFieldInput({
     );
 }
 
+// Upload (Fase 6, ADR 0010): o campo guarda o `fileId` (FK), não a URL — o
+// preview vem de `field.previewUrl(record)` (resolvida pelo backend em
+// request-time). Só funciona no modo edit (precisa de `record`+`onChange`+
+// `onBlur`); `CreateFormView` não passa `record`, então o campo não
+// renderiza nada criável ainda (nenhum módulo usa "image" em criação nesta
+// fase).
+function ImageFieldInput<T extends object>({
+    field,
+    record,
+    onChange,
+    onBlur,
+    disabled,
+}: {
+    field: FormFieldConfig<T>;
+    record?: T;
+    onChange?: (value: string) => void;
+    onBlur?: () => void;
+    disabled?: boolean;
+}) {
+    const [uploading, setUploading] = React.useState(false);
+    const [error, setError] = React.useState<string | null>(null);
+    const previewUrl = record ? field.previewUrl?.(record) ?? undefined : undefined;
+
+    async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const file = event.target.files?.[0];
+        event.target.value = "";
+        if (!file) return;
+
+        setUploading(true);
+        setError(null);
+        try {
+            const formData = new FormData();
+            // `ownerType` precisa vir ANTES de `file` (ver file.controller.ts
+            // no backend — @fastify/multipart só acumula `.fields` com o que
+            // leu antes do primeiro arquivo).
+            if (field.uploadOwnerType) formData.append("ownerType", field.uploadOwnerType);
+            formData.append("file", file);
+
+            const uploaded = await uploadFileAction(formData);
+            onChange?.(uploaded.id);
+            onBlur?.();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Falha ao enviar arquivo.");
+        } finally {
+            setUploading(false);
+        }
+    }
+
+    return (
+        <div className="flex items-center gap-3">
+            {previewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- preview de upload, não é um asset estático do Next
+                <img src={previewUrl} alt="" className="size-12 rounded-full object-cover" />
+            ) : null}
+            <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                disabled={disabled || uploading || !record}
+                onChange={handleFileChange}
+                className="text-sm"
+            />
+            {uploading ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> : null}
+            {error ? <p className="text-xs text-destructive">{error}</p> : null}
+        </div>
+    );
+}
+
 function renderFieldInput<T extends object>(
     field: FormFieldConfig<T>,
     opts: {
@@ -99,9 +166,18 @@ function renderFieldInput<T extends object>(
         invalid?: boolean;
         /** Textarea só: borda só em hover/focus + caixa compacta (sem rows fixo) — detail page inline. */
         compactTextarea?: boolean;
+        /** Só "image": o registro completo, pra resolver `field.previewUrl(record)`. */
+        record?: T;
+        disabled?: boolean;
     },
 ) {
-    const { value, defaultValue, onChange, onBlur, variant, invalid, compactTextarea } = opts;
+    const { value, defaultValue, onChange, onBlur, variant, invalid, compactTextarea, record, disabled } = opts;
+
+    if (field.type === "image") {
+        return (
+            <ImageFieldInput field={field} record={record} onChange={onChange} onBlur={onBlur} disabled={disabled} />
+        );
+    }
 
     if (field.type === "checkbox" || field.type === "switch") {
         return (
@@ -193,6 +269,7 @@ function FieldErrorText({ error }: { error?: string }) {
 export function InlineFieldsGrid<T extends object>({
     fields,
     values,
+    record,
     fieldErrors,
     saving,
     onChange,
@@ -200,6 +277,8 @@ export function InlineFieldsGrid<T extends object>({
 }: {
     fields: FormFieldConfig<T>[];
     values: Record<string, string>;
+    /** Registro completo (não stringificado) — só usado por campos `type: "image"`, pra resolver `field.previewUrl(record)`. */
+    record?: T;
     fieldErrors: Record<string, string>;
     saving: boolean;
     onChange: (name: keyof T & string, value: string) => void;
@@ -216,6 +295,8 @@ export function InlineFieldsGrid<T extends object>({
                     variant: "inline-detail",
                     invalid: Boolean(error),
                     compactTextarea: field.type === "textarea",
+                    record,
+                    disabled: saving,
                     onChange: (value) => onChange(field.name, value),
                     onBlur: () => onBlur(field.name),
                 });
@@ -382,6 +463,7 @@ function EditFormView<T extends object>({
                 values={Object.fromEntries(
                     fields.map((field) => [field.name, String((values[field.name] as string | number | undefined) ?? "")]),
                 )}
+                record={values}
                 fieldErrors={fieldErrors}
                 saving={saving}
                 onChange={handleChange}
@@ -404,6 +486,8 @@ function EditFormView<T extends object>({
                             value: String((values[field.name] as string | number | undefined) ?? ""),
                             variant: "inline-detail",
                             invalid: Boolean(error),
+                            record: values,
+                            disabled: saving,
                             onChange: (value) => handleChange(field.name, value),
                             onBlur: commitField,
                         })}

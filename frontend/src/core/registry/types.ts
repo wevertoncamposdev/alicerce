@@ -16,12 +16,19 @@ export type FormFieldConfig<T> = {
     name: keyof T & string;
     label: string;
     placeholder?: string;
-    type: "text" | "email" | "password" | "url" | "number" | "textarea" | "select" | "checkbox" | "switch";
+    type: "text" | "email" | "password" | "url" | "number" | "textarea" | "select" | "checkbox" | "switch" | "image";
     required?: boolean;
     createOnly?: boolean;
     options?: Array<string | { label: string; value: string }>;
     /** Campo que dispara a criação no Detail (`createMode: "detail"`). Um por módulo. */
     primary?: boolean;
+    /**
+     * Só `type: "image"`: o campo guarda o `fileId` (FK), não a URL — de
+     * onde tirar a URL de preview já resolvida pelo backend (ver ADR 0010).
+     */
+    previewUrl?: (record: T) => string | null | undefined;
+    /** Só `type: "image"`: metadado repassado ao upload (ex.: "user.avatar"). */
+    uploadOwnerType?: string;
 };
 
 export type DetailContext<T> = {

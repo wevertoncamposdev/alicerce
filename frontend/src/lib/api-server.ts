@@ -102,11 +102,57 @@ async function search<T>(path: string, body: unknown): Promise<T> {
     });
 }
 
+// Upload multipart (ex.: POST /files) — não reusa `request()`: ela sempre
+// faz JSON.stringify(body) e força Content-Type: application/json quando
+// body !== undefined, o que corromperia um FormData. Aqui o fetch monta o
+// boundary multipart sozinho a partir do FormData — por isso NÃO setamos
+// Content-Type manualmente.
+async function upload<T>(path: string, formData: FormData): Promise<T> {
+    const token = await getSessionToken();
+
+    if (!token) {
+        throw new ApiServerError("Sessão não encontrada.", 401, null);
+    }
+
+    const tenantId = await getSessionTenantId();
+
+    const headers: Record<string, string> = {
+        Authorization: `Bearer ${token}`,
+    };
+    if (tenantId) headers["x-tenant-id"] = tenantId;
+
+    const cleanBase = INTERNAL_API_URL.replace(/\/+$/, "");
+    const cleanPath = path.replace(/^\/+/, "");
+
+    const response = await fetch(`${cleanBase}/${cleanPath}`, {
+        method: "POST",
+        headers,
+        body: formData,
+        cache: "no-store",
+    });
+
+    const contentType = response.headers.get("content-type") ?? "";
+    const isJson = contentType.includes("application/json");
+    const data = isJson ? await response.json().catch(() => null) : await response.text();
+
+    if (!response.ok) {
+        const message =
+            typeof data === "object" && data && "message" in data
+                ? String((data as { message: unknown }).message)
+                : `Request failed with status ${response.status}`;
+
+        throw new ApiServerError(message, response.status, data);
+    }
+
+    return data as T;
+}
+
 
 type ExtraOptions = { headers?: Record<string, string> };
 
 export const apiServer = {
     search,
+    upload,
     get: <T>(path: string, options?: { cache?: RequestCache, query?: Record<string, string | undefined> } & ExtraOptions) =>
         request<T>(path, { method: "GET", cache: options?.cache, query: options?.query, headers: options?.headers }),
 

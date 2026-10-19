@@ -5,6 +5,7 @@ import { getModule } from "@core/registry";
 import { validateFormPayload } from "@core/registry/form-validation";
 import type { FormFieldConfig } from "@core/registry/types";
 import type { SearchArgs, SearchResult } from "@core/data-provider/types";
+import { apiServer } from "@lib/api-server";
 
 type ActionState = { ok: boolean; message?: string; fieldErrors?: Record<string, string> };
 
@@ -129,4 +130,14 @@ export async function autoSaveRecord<T extends object>(
 export async function searchRecordsAction<T>(model: string, args: SearchArgs): Promise<SearchResult<T>> {
     const dataProvider = createDataProvider();
     return dataProvider.search<T>(model, args);
+}
+
+/**
+ * Server Action de upload (Fase 6, ADR 0010) — usada pelo campo `type:
+ * "image"` do FormView. `/files` é infraestrutura genérica (não um recurso
+ * por módulo), por isso chama `apiServer` direto daqui em vez de passar
+ * por um `config/provider.ts` de módulo.
+ */
+export async function uploadFileAction(formData: FormData): Promise<{ id: string; mime: string }> {
+    return apiServer.upload<{ id: string; mime: string }>("files", formData);
 }
