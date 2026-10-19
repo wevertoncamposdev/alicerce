@@ -81,18 +81,18 @@ export async function DetailViewScreen({
     );
 }
 
-async function resolveContextItems(mod: ReturnType<typeof getModule>, record: unknown): Promise<ContextItem[]> {
+export async function resolveContextItems(mod: ReturnType<typeof getModule>, record: unknown): Promise<ContextItem[]> {
     if (!mod.detailConfig?.loadContext) return [];
     return mod.detailConfig.loadContext(record);
 }
 
-function normalizeAuditEntityName(moduleName: string) {
+export function normalizeAuditEntityName(moduleName: string) {
     const trimmed = moduleName.trim();
     if (!trimmed) return trimmed;
     return trimmed.endsWith("s") ? trimmed.slice(0, -1) : trimmed;
 }
 
-async function resolveAuditItems(
+export async function resolveAuditItems(
     mod: ReturnType<typeof getModule>,
     moduleName: string,
     id: string,
