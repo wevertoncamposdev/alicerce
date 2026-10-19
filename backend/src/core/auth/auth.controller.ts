@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { Throttle } from '@nestjs/throttler';
-import { AuthService, AuthSessionResponse } from './auth.service';
+import { AuthService, AuthSessionResponse, SessionMeta } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { Public } from './auth.guard';
 import { SignUpPublicDto } from './dto/sign-up-public.dto';
@@ -45,9 +45,13 @@ export class AuthController {
   @Post('register')
   async signUp(
     @Body() signUpPublicDto: SignUpPublicDto,
+    @Request() req: FastifyRequest,
     @Res({ passthrough: true }) res: FastifyReply,
   ) {
-    const session = await this.authService.signUpPublic(signUpPublicDto);
+    const session = await this.authService.signUpPublic(
+      signUpPublicDto,
+      this.extractSessionMeta(req),
+    );
     this.setRefreshCookie(res, session.refresh_token);
 
     return omitRefreshToken(session);
@@ -59,9 +63,13 @@ export class AuthController {
   @Post('login')
   async signIn(
     @Body() signInDto: SignInDto,
+    @Request() req: FastifyRequest,
     @Res({ passthrough: true }) res: FastifyReply,
   ) {
-    const session = await this.authService.signIn(signInDto);
+    const session = await this.authService.signIn(
+      signInDto,
+      this.extractSessionMeta(req),
+    );
     this.setRefreshCookie(res, session.refresh_token);
 
     return omitRefreshToken(session);
@@ -89,7 +97,10 @@ export class AuthController {
       throw new UnauthorizedException('Refresh token ausente');
     }
 
-    const session = await this.authService.refreshTokens(rawToken);
+    const session = await this.authService.refreshTokens(
+      rawToken,
+      this.extractSessionMeta(req),
+    );
     this.setRefreshCookie(res, session.refresh_token);
 
     return omitRefreshToken(session);
@@ -124,6 +135,16 @@ export class AuthController {
   }
 
   // ------------------------------------------------------------------ helpers
+
+  // trustProxy: true (main.ts) já resolve req.ip pro IP real atrás de proxy.
+  private extractSessionMeta(req: FastifyRequest): SessionMeta {
+    const userAgent = req.headers['user-agent'] as
+      string | string[] | undefined;
+    return {
+      userAgent: Array.isArray(userAgent) ? userAgent[0] : userAgent,
+      ip: req.ip,
+    };
+  }
 
   private setRefreshCookie(res: FastifyReply, token: string) {
     res.setCookie(REFRESH_COOKIE, token, {

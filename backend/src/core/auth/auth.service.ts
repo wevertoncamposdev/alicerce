@@ -20,6 +20,11 @@ import {
   TENANT_ADMIN_PERMISSION_NAMES,
 } from '@core/authorization/permission-catalog';
 
+export interface SessionMeta {
+  userAgent?: string;
+  ip?: string;
+}
+
 export interface AuthUserContext {
   id: string;
   email: string;
@@ -223,11 +228,13 @@ export class AuthService {
     userId,
     tenantId,
     familyId,
+    userAgent,
+    ip,
   }: {
     userId: string;
     tenantId: string;
     familyId: string;
-  }): Promise<string> {
+  } & SessionMeta): Promise<string> {
     const rawToken = crypto.randomBytes(48).toString('hex');
     const tokenHash = crypto
       .createHash('sha256')
@@ -241,6 +248,9 @@ export class AuthService {
         tenantId,
         familyId,
         expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+        userAgent,
+        ip,
+        lastUsedAt: new Date(),
       },
     });
 
@@ -258,7 +268,10 @@ export class AuthService {
    * 4. Marca o token atual como revogado.
    * 5. Emite novo par com o mesmo familyId.
    */
-  async refreshTokens(rawToken: string): Promise<AuthSessionResponse> {
+  async refreshTokens(
+    rawToken: string,
+    meta?: SessionMeta,
+  ): Promise<AuthSessionResponse> {
     const tokenHash = crypto
       .createHash('sha256')
       .update(rawToken)
@@ -320,6 +333,8 @@ export class AuthService {
         userId: user.id,
         tenantId: user.tenantId,
         familyId: storedToken.familyId,
+        userAgent: meta?.userAgent,
+        ip: meta?.ip,
       }),
     ]);
 
@@ -357,7 +372,10 @@ export class AuthService {
     });
   }
 
-  async signUpPublic(dto: SignUpPublicDto): Promise<AuthSessionResponse> {
+  async signUpPublic(
+    dto: SignUpPublicDto,
+    meta?: SessionMeta,
+  ): Promise<AuthSessionResponse> {
     const existingByEmail = await this.prismaBootstrap.user.findUnique({
       where: { email: dto.email },
     });
@@ -459,6 +477,8 @@ export class AuthService {
         userId: user.id,
         tenantId: user.tenantId,
         familyId,
+        userAgent: meta?.userAgent,
+        ip: meta?.ip,
       }),
     ]);
 
@@ -474,7 +494,10 @@ export class AuthService {
     };
   }
 
-  async signIn(signInDto: SignInDto): Promise<AuthSessionResponse> {
+  async signIn(
+    signInDto: SignInDto,
+    meta?: SessionMeta,
+  ): Promise<AuthSessionResponse> {
     const user = await this.getAuthUserByEmail(signInDto.email);
 
     if (await this.isAccountLockedOut(signInDto.email)) {
@@ -575,6 +598,8 @@ export class AuthService {
         userId: user.id,
         tenantId: user.tenantId,
         familyId,
+        userAgent: meta?.userAgent,
+        ip: meta?.ip,
       }),
     ]);
 
