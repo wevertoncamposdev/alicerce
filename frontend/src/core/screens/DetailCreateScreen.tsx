@@ -5,14 +5,16 @@ import { AutoSaveStatusProvider } from "@/contexts/autosave-status-context";
 import { AutoSaveIndicator } from "@core/components/Layout/AutoSaveIndicator";
 import { Card } from "@components/ui/card";
 import { SectionCard } from "@core/components/DetailView/SectionCard";
-import { FormView } from "@components/TypeView/FormView/FormView";
+import { DraftProvider, DraftSectionFields } from "@core/components/DetailView/DraftProvider";
+import { groupSectionsByColumn } from "@core/components/DetailView/sectionGrid";
 import type { DetailSection, FormFieldConfig } from "@core/registry/types";
 
 /**
  * "Novo" com `createMode: "detail"` (ADR 0005): mesmo casco do Detail, mas o registro
  * ainda não existe. Sem botão de Metadados (nada pra ver ainda) e sem Relation card de
- * verdade (nada pra relacionar ainda). `FormView mode="draft"` cria o registro quando o
- * campo `primary` perde o foco — ver DraftFormView em components/TypeView/FormView.
+ * verdade (nada pra relacionar ainda). Um único `DraftProvider` (ver DraftProvider.tsx)
+ * envolve todas as seções — autosave único, dispara quando o campo `primary` perde o
+ * foco, independente de em qual seção ele esteja.
  */
 export function DetailCreateScreen({ moduleName }: { moduleName: string }) {
     const mod = getModule<Record<string, unknown>>(moduleName);
@@ -31,17 +33,15 @@ export function DetailCreateScreen({ moduleName }: { moduleName: string }) {
                     <h1 className="text-2xl font-semibold tracking-tight text-muted-foreground">Novo registro</h1>
                 </Card>
 
-                {sections && sections.length > 0 ? (
-                    <DraftSectionsGrid moduleName={moduleName} formFields={mod.formFields} sections={sections} />
-                ) : (
-                    <SectionCard title="Detalhes">
-                        <FormView<Record<string, unknown>>
-                            mode="draft"
-                            model={moduleName}
-                            fields={mod.formFields}
-                        />
-                    </SectionCard>
-                )}
+                <DraftProvider<Record<string, unknown>> model={moduleName} fields={mod.formFields}>
+                    {sections && sections.length > 0 ? (
+                        <DraftSectionsGrid formFields={mod.formFields} sections={sections} />
+                    ) : (
+                        <SectionCard title="Detalhes">
+                            <DraftSectionFields<Record<string, unknown>> fields={mod.formFields} />
+                        </SectionCard>
+                    )}
+                </DraftProvider>
 
                 <Card className="p-5 text-sm text-muted-foreground">
                     Salve o registro para adicionar relacionamentos.
@@ -52,23 +52,13 @@ export function DetailCreateScreen({ moduleName }: { moduleName: string }) {
 }
 
 function DraftSectionsGrid({
-    moduleName,
     formFields,
     sections,
 }: {
-    moduleName: string;
     formFields: FormFieldConfig<Record<string, unknown>>[];
     sections: DetailSection<Record<string, unknown>>[];
 }) {
-    const columns = new Map<number, DetailSection<Record<string, unknown>>[]>();
-    for (const section of sections) {
-        const col = section.column ?? 1;
-        if (!columns.has(col)) columns.set(col, []);
-        columns.get(col)!.push(section);
-    }
-    const usedColumns = [...columns.keys()].sort((a, b) => a - b);
-    const gridColsClass =
-        usedColumns.length >= 3 ? "lg:grid-cols-3" : usedColumns.length === 2 ? "lg:grid-cols-2" : "lg:grid-cols-1";
+    const { columns, usedColumns, gridColsClass } = groupSectionsByColumn(sections);
 
     return (
         <div className={`grid grid-cols-1 items-start gap-4 ${gridColsClass}`}>
@@ -79,11 +69,7 @@ function DraftSectionsGrid({
                         const sectionFormFields = formFields.filter((field) => fieldNames.includes(field.name));
                         return (
                             <SectionCard key={section.key} title={section.title} icon={section.icon}>
-                                <FormView<Record<string, unknown>>
-                                    mode="draft"
-                                    model={moduleName}
-                                    fields={sectionFormFields}
-                                />
+                                <DraftSectionFields<Record<string, unknown>> fields={sectionFormFields} />
                             </SectionCard>
                         );
                     })}

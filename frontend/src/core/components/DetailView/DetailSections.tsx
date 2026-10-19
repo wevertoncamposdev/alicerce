@@ -4,6 +4,7 @@ import type { DetailContext, DetailSection, FormFieldConfig } from "@core/regist
 import { SectionCard } from "@core/components/DetailView/SectionCard";
 import { FieldList } from "@core/components/DetailView/FieldList";
 import { EditableSection } from "@core/components/DetailView/EditableSection";
+import { groupSectionsByColumn } from "@core/components/DetailView/sectionGrid";
 
 type DetailSectionsProps<T> = {
     sections: DetailSection<T>[];
@@ -16,15 +17,7 @@ type DetailSectionsProps<T> = {
 
 /** Grid de seções (docs/ui/detail-page.md §3) — `column` agrupa, nunca renderiza coluna vazia. */
 export function DetailSections<T>({ sections, context, formFields, model, recordId, permission }: DetailSectionsProps<T>) {
-    const columns = new Map<number, DetailSection<T>[]>();
-    for (const section of sections) {
-        const col = section.column ?? 1;
-        if (!columns.has(col)) columns.set(col, []);
-        columns.get(col)!.push(section);
-    }
-    const usedColumns = [...columns.keys()].sort((a, b) => a - b);
-    const gridColsClass =
-        usedColumns.length >= 3 ? "lg:grid-cols-3" : usedColumns.length === 2 ? "lg:grid-cols-2" : "lg:grid-cols-1";
+    const { columns, usedColumns, gridColsClass } = groupSectionsByColumn(sections);
 
     return (
         <div className={`grid grid-cols-1 items-start gap-4 ${gridColsClass}`}>

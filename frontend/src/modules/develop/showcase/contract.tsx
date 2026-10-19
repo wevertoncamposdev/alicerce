@@ -25,7 +25,7 @@ import { createListQueryState } from "@lib/query-state/list-query-state";
 import { Badge } from "@components/ui/badge";
 import { ShowcaseRelationTable } from "./ShowcaseRelationTable";
 
-import { searchShowcase, readShowcase, FAMILY_MEMBERS } from "./provider";
+import { searchShowcase, readShowcase, createShowcase, FAMILY_MEMBERS } from "./provider";
 import type { ShowcaseEntity } from "./types";
 
 const DOCUMENTS = [
@@ -79,7 +79,10 @@ const AUDIT_ITEMS: AuditFeedItem[] = [
 ];
 
 const formFields = [
-    { name: "name" as const, label: "Nome completo", type: "text" as const, required: true },
+    // `primary`: etapa 2.6 do Plano Base.md precisa de um módulo com 2+ seções
+    // pra validar o DraftProvider — feedbacks (o único módulo real com
+    // createMode: "detail") só tem 1 seção.
+    { name: "name" as const, label: "Nome completo", type: "text" as const, required: true, primary: true },
     { name: "role" as const, label: "Função", type: "text" as const },
     { name: "email" as const, label: "E-mail", type: "email" as const },
     { name: "phone" as const, label: "Telefone", type: "text" as const },
@@ -137,7 +140,7 @@ const showcaseDetailLayout: DetailLayout<ShowcaseEntity> = {
             icon: IdCard,
             column: 1,
             editable: true,
-            fields: ["document", "birthDate", "maritalStatus", "nationality"],
+            fields: ["name", "document", "birthDate", "maritalStatus", "nationality"],
         },
         {
             key: "contact",
@@ -291,8 +294,10 @@ export const showcaseModule = defineRecordModule<ShowcaseEntity>({
     dataHandlers: {
         search: searchShowcase,
         read: readShowcase,
+        create: createShowcase,
     },
     formFields,
+    createMode: "detail",
     parseListState,
     serializeListState,
     listLayout: showcaseListLayout,

@@ -11,7 +11,7 @@ import { Checkbox } from "@components/ui/checkbox";
 import { Switch } from "@components/ui/switch";
 import { Button } from "@components/ui/button";
 import { useAutoSaveController } from "@/hooks/use-autosave-controller";
-import { autoSaveRecord, createRecordDraftAction } from "@core/registry/actions";
+import { autoSaveRecord } from "@core/registry/actions";
 import { validateFormPayload } from "@core/registry/form-validation";
 import type { FormFieldConfig } from "@core/registry/types";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
@@ -34,19 +34,11 @@ type FormViewProps<T extends object> =
         initialValues: T;
         /** `"inline"` usa o grid label-à-esquerda do FieldList (detail page). Default `"stacked"`. */
         layout?: "stacked" | "inline";
-    }
-    | {
-        mode: "draft";
-        fields: FormFieldConfig<T>[];
-        model: string;
     };
 
 export function FormView<T extends object>(props: FormViewProps<T>) {
     if (props.mode === "create") {
         return <CreateFormView fields={props.fields} action={props.createAction} />;
-    }
-    if (props.mode === "draft") {
-        return <DraftFormView fields={props.fields} model={props.model} />;
     }
     return (
         <EditFormView
@@ -197,8 +189,8 @@ function FieldErrorText({ error }: { error?: string }) {
 }
 
 /** Grid label-à-esquerda do FieldList (docs/ui/detail-page.md §3) — usado por `mode="edit"
- * layout="inline"` e por `mode="draft"`. */
-function InlineFieldsGrid<T extends object>({
+ * layout="inline"` e pelo `DraftProvider` (criação pelo Detail, ver DraftProvider.tsx). */
+export function InlineFieldsGrid<T extends object>({
     fields,
     values,
     fieldErrors,
@@ -423,96 +415,3 @@ function EditFormView<T extends object>({
     );
 }
 
-function nextFieldNameAfter<T extends object>(fields: FormFieldConfig<T>[], current: string | null): string | undefined {
-    if (!current) return undefined;
-    const index = fields.findIndex((field) => field.name === current);
-    if (index === -1) return undefined;
-    return fields[index + 1]?.name;
-}
-
-/**
- * Criação pelo Detail (ADR 0005, "Novo" com `createMode: "detail"`): nenhum request até o
- * campo `primary` ter valor não vazio. No primeiro commit (blur/Enter) depois disso que
- * passar na validação, cria o registro e troca a URL pro Detail de verdade — dali em diante
- * é o `EditFormView` normal que assume (`?focus=` foca o próximo campo).
- */
-function DraftFormView<T extends object>({ fields, model }: { fields: FormFieldConfig<T>[]; model: string }) {
-    const primaryField = React.useMemo(() => fields.find((field) => field.primary), [fields]);
-    const [values, setValues] = React.useState<Record<string, string>>(() =>
-        Object.fromEntries(fields.map((field) => [field.name, ""])),
-    );
-    const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
-    const { setStatus } = useAutoSaveStatus();
-    const router = useRouter();
-    const idRef = React.useRef<string | null>(null);
-    const lastFocusedFieldRef = React.useRef<string | null>(null);
-
-    const primaryFilled = Boolean(primaryField && values[primaryField.name]?.trim());
-
-    // Reaproveita a fila/dedup do useAutoSaveController pra "mudanças que chegam enquanto o
-    // create está em voo saem como PATCH assim que o id existir": o próprio hook serializa
-    // os saves (um commit por vez, o resto fica em fila) — não precisa de guarda extra.
-    const { saving, commitField } = useAutoSaveController<Record<string, string>>({
-        draft: values,
-        enabled: primaryFilled,
-        onSave: async (draft) => {
-            const validation = validateFormPayload(fields, draft);
-            if (!validation.ok) {
-                setFieldErrors(validation.fieldErrors);
-                throw new Error("Corrija os campos destacados antes de salvar.");
-            }
-
-            setFieldErrors({});
-            setStatus("saving");
-
-            if (!idRef.current) {
-                const result = await createRecordDraftAction(model, draft);
-                if (!result.ok) {
-                    setStatus("error", result.message);
-                    throw new Error(result.message);
-                }
-
-                idRef.current = result.id;
-                setStatus("saved");
-                const nextField = nextFieldNameAfter(fields, lastFocusedFieldRef.current);
-                router.replace(`/${model}/${result.id}${nextField ? `?focus=${nextField}` : ""}`);
-                return draft;
-            }
-
-            const updated = await autoSaveRecord<Record<string, string>>(model, idRef.current, draft);
-            setStatus("saved");
-            return updated;
-        },
-        onError: (err) => {
-            console.error("[draft-autosave]", err);
-            setStatus("error", "Falha ao salvar. Tentando novamente na próxima alteração.");
-        },
-    });
-
-    function handleChange(name: keyof Record<string, string> & string, value: string) {
-        setValues((prev) => ({ ...prev, [name]: value }));
-        setFieldErrors((prev) => {
-            if (!(name in prev)) return prev;
-            const next = { ...prev };
-            delete next[name];
-            return next;
-        });
-    }
-
-    return (
-        <InlineFieldsGrid<T>
-            fields={fields}
-            values={values}
-            fieldErrors={fieldErrors}
-            saving={saving}
-            onChange={handleChange}
-            onBlur={(name) => {
-                // Captura no blur, não no focus: o Tab nativo já moveu o foco pro próximo
-                // campo antes do save assíncrono terminar — se isso ficasse num onFocus,
-                // o ref seria sobrescrito antes do onSave ler qual campo focar a seguir.
-                lastFocusedFieldRef.current = name;
-                commitField();
-            }}
-        />
-    );
-}

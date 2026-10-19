@@ -63,3 +63,29 @@ export async function searchShowcase(_args: SearchArgs): Promise<SearchResult<Sh
 export async function readShowcase(id: string): Promise<ShowcaseEntity> {
     return RECORDS.find((record) => record.id === id) ?? RECORDS[0];
 }
+
+// Criação pelo Detail (etapa 2.6 do Plano Base.md) — mesmo padrão em memória
+// de search/read, só pra validar o DraftProvider com 2+ seções (feedbacks,
+// o único módulo real com createMode: "detail", tem só 1 seção).
+export async function createShowcase(payload: unknown): Promise<ShowcaseEntity> {
+    const data = (payload ?? {}) as Partial<ShowcaseEntity>;
+    const record: ShowcaseEntity = {
+        id: `showcase-${RECORDS.length + 1}`,
+        name: data.name ?? "",
+        role: data.role ?? "",
+        status: "active",
+        email: data.email ?? "",
+        phone: data.phone ?? "",
+        city: data.city ?? "",
+        document: data.document ?? "",
+        birthDate: data.birthDate ?? "",
+        maritalStatus: data.maritalStatus ?? "",
+        nationality: data.nationality ?? "",
+        department: data.department ?? "",
+        notes: data.notes ?? "",
+        tags: [],
+        createdAt: new Date().toISOString(),
+    };
+    RECORDS.push(record);
+    return record;
+}
