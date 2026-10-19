@@ -41,6 +41,20 @@ export class TenantController {
     return this.tenantService.create(dto);
   }
 
+  // Precisa vir ANTES de `:id` — senão o Nest casa "current" como valor de
+  // `:id` (rotas são testadas na ordem em que são declaradas).
+  @Get('current')
+  @Permissions('tenant.read')
+  getCurrent(@TenantId() tenantId: string) {
+    return this.tenantService.findOne(tenantId, tenantId);
+  }
+
+  @Patch('current')
+  @Permissions('tenant.update')
+  updateCurrent(@Body() dto: UpdateTenantDto, @TenantId() tenantId: string) {
+    return this.tenantService.update(tenantId, dto, tenantId);
+  }
+
   @Get(':id')
   @Permissions('tenant.read')
   findOne(@Param('id') id: string, @TenantId() tenantId: string) {
