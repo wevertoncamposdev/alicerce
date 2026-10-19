@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NestInterceptor,
   ExecutionContext,
   CallHandler,
@@ -25,8 +26,22 @@ interface AuditableResult {
   user?: { id?: string; tenantId?: string };
 }
 
+// Chaves nunca gravadas em um registro de auditoria, em qualquer nível de
+// aninhamento (objeto ou array) — comparação exata, sem normalizar case.
+const SENSITIVE_KEYS = new Set([
+  'password',
+  'newPassword',
+  'currentPassword',
+  'access_token',
+  'refresh_token',
+  'token',
+  'secret',
+]);
+
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(AuditInterceptor.name);
+
   constructor(
     private readonly auditService: AuditService,
     private readonly prisma: PrismaService,
@@ -87,19 +102,31 @@ export class AuditInterceptor implements NestInterceptor {
     }
   }
 
-  private sanitizePayload(payload: unknown) {
-    if (!payload || typeof payload !== 'object') {
+  // Recursivo porque segredo em nível aninhado (ex.: `{ user: { password } }`
+  // em um retorno de signup) escapava da sanitização só-de-topo anterior.
+  // Só desce em objeto "plano" ou array — `Date`, `Buffer` etc. são tratados
+  // como valor de folha, senão `{ createdAt: new Date() }` viraria `{}`.
+  private sanitizePayload(payload: unknown): unknown {
+    if (Array.isArray(payload)) {
+      return payload.map((item) => this.sanitizePayload(item));
+    }
+
+    const isPlainObject =
+      typeof payload === 'object' &&
+      payload !== null &&
+      payload.constructor === Object;
+
+    if (!isPlainObject) {
       return payload;
     }
 
-    const clone = { ...(payload as Record<string, unknown>) };
-
-    if ('password' in clone) {
-      clone.password = '[REDACTED]';
-    }
-
-    if ('newPassword' in clone) {
-      clone.newPassword = '[REDACTED]';
+    const clone: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(
+      payload as Record<string, unknown>,
+    )) {
+      clone[key] = SENSITIVE_KEYS.has(key)
+        ? '[REDACTED]'
+        : this.sanitizePayload(value);
     }
 
     return clone;
@@ -114,9 +141,13 @@ export class AuditInterceptor implements NestInterceptor {
     const routeId = req.params?.id;
 
     // Só audita ações relevantes (CRUD, login, onboarding, etc.) — para o
-    // resto, nem vale a pena tentar capturar "before".
+    // resto, nem vale a pena tentar capturar "before". `/auth/refresh` é
+    // excluído: não é uma ação de negócio (só renova o par de tokens) e o
+    // retorno inclui `access_token` em claro.
+    const isRefresh = url.includes('/auth/refresh');
     const isAuditable =
-      ['POST', 'PATCH', 'DELETE'].includes(method) || url.includes('login');
+      !isRefresh &&
+      (['POST', 'PATCH', 'DELETE'].includes(method) || url.includes('login'));
 
     if (!isAuditable) {
       return next.handle();
@@ -153,8 +184,10 @@ export class AuditInterceptor implements NestInterceptor {
                 // transforma (ex.: hash de senha) ou nem chega a gravar.
                 payload: this.sanitizePayload(result),
               })
-              .catch(() => {
-                // Auditoria não deve interromper o request principal.
+              .catch((error: unknown) => {
+                // Auditoria não deve interromper o request principal, mas a
+                // falha não pode mais desaparecer silenciosamente.
+                this.logger.error('Falha ao gravar auditoria', error);
               });
           }),
         ),
