@@ -74,7 +74,6 @@ function RolePermissionsHost({ roleId, initial }: { roleId: string; initial: Per
             renderPicker: ({ onSelect, onClose }) => (
                 <RelationPicker
                     kind="permissions"
-                    tenantId={currentTenantId}
                     // RelationPicker busca pela própria API e tipa o resultado
                     // como `Entity` (forma mínima genérica p/ renderizar a
                     // lista) — em runtime o endpoint de permissions retorna o

@@ -74,7 +74,6 @@ function UserRolesHost({ userId, initial }: { userId: string; initial: RoleEntit
             renderPicker: ({ onSelect, onClose }) => (
                 <RelationPicker
                     kind="roles"
-                    tenantId={currentTenantId}
                     // RelationPicker busca pela própria API e tipa o resultado
                     // como `Entity` (forma mínima genérica p/ renderizar a
                     // lista) — em runtime o endpoint de roles retorna o
