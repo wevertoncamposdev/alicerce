@@ -11,6 +11,7 @@ import { UserBusinessRules } from './domain/rules/user-business-rules';
 import { UserErrorMapper } from './mappers/user-error.mapper';
 import { UserRepository } from './persistence/repository/user.repository';
 import { PrismaService } from '@core/prisma/prisma.service';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 import { RolesService } from '../role/roles.service';
 
 jest.mock('bcrypt', () => ({
@@ -41,10 +42,15 @@ describe('UsersService', () => {
   const prismaMock = {
     userRole: { findMany: jest.fn(), count: jest.fn().mockResolvedValue(0) },
     rolePermission: { findMany: jest.fn() },
+    refreshToken: { updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
   };
 
   const rolesServiceMock = {
     hasOtherActiveAdmin: jest.fn().mockResolvedValue(true),
+  };
+
+  const permissionCacheMock = {
+    invalidateUser: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -72,6 +78,10 @@ describe('UsersService', () => {
         {
           provide: RolesService,
           useValue: rolesServiceMock,
+        },
+        {
+          provide: PermissionCacheService,
+          useValue: permissionCacheMock,
         },
       ],
     }).compile();
@@ -294,6 +304,84 @@ describe('UsersService', () => {
         ForbiddenException,
       );
       expect(repository.softDeleteById).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('session revocation on status/password change', () => {
+    const ownTenantId = 'tenant-own';
+    const userId = 'adf4f488-faa3-4fca-946e-522f7c2d4976';
+    const ownUser = {
+      id: userId,
+      email: 'user@example.com',
+      tenantId: ownTenantId,
+      password: 'hashed-password',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null,
+    };
+
+    it('update: revokes sessions and invalidates the permission cache when deactivating', async () => {
+      repository.findById.mockResolvedValueOnce(ownUser as never);
+      repository.updateById.mockResolvedValueOnce({
+        ...ownUser,
+        status: 'INACTIVE',
+      } as never);
+
+      await service.update(userId, { status: 'INACTIVE' }, ownTenantId);
+
+      expect(prismaMock.refreshToken.updateMany).toHaveBeenCalledWith({
+        where: { userId },
+        // `expect.any(Date)` é tipado como `any` pelo @types/jest — ver
+        // roles.service.spec.ts para o mesmo padrão.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        data: { revokedAt: expect.any(Date) },
+      });
+      expect(permissionCacheMock.invalidateUser).toHaveBeenCalledWith(
+        ownTenantId,
+        userId,
+      );
+    });
+
+    it('update: revokes sessions when the password changes, even without a status change', async () => {
+      repository.findById.mockResolvedValueOnce(ownUser as never);
+      repository.updateById.mockResolvedValueOnce(ownUser as never);
+
+      await service.update(userId, { password: 'new-password' }, ownTenantId);
+
+      expect(prismaMock.refreshToken.updateMany).toHaveBeenCalled();
+      expect(permissionCacheMock.invalidateUser).toHaveBeenCalled();
+    });
+
+    it('update: does not revoke sessions for an unrelated field change', async () => {
+      repository.findById.mockResolvedValueOnce(ownUser as never);
+      repository.updateById.mockResolvedValueOnce(ownUser as never);
+
+      await service.update(userId, { email: 'new@example.com' }, ownTenantId);
+
+      expect(prismaMock.refreshToken.updateMany).not.toHaveBeenCalled();
+      expect(permissionCacheMock.invalidateUser).not.toHaveBeenCalled();
+    });
+
+    it('remove: always revokes sessions and invalidates the permission cache', async () => {
+      repository.findById.mockResolvedValueOnce(ownUser as never);
+      repository.softDeleteById.mockResolvedValueOnce({
+        ...ownUser,
+        deletedAt: new Date(),
+      } as never);
+
+      await service.remove(userId, ownTenantId);
+
+      expect(prismaMock.refreshToken.updateMany).toHaveBeenCalledWith({
+        where: { userId },
+        // `expect.any(Date)` é tipado como `any` pelo @types/jest — ver
+        // roles.service.spec.ts para o mesmo padrão.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        data: { revokedAt: expect.any(Date) },
+      });
+      expect(permissionCacheMock.invalidateUser).toHaveBeenCalledWith(
+        ownTenantId,
+        userId,
+      );
     });
   });
 });

@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 //@Core
 import { Prisma, Permission } from '@core/prisma/generated/client';
 import { PrismaService } from '@core/prisma/prisma.service';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
 //@DTO
 import { CreateUserDto } from './dto/create-user.dto';
@@ -38,7 +39,19 @@ export class UsersService {
     private readonly userErrorMapper: UserErrorMapper,
     private readonly prisma: PrismaService,
     private readonly rolesService: RolesService,
+    private readonly permissionCache: PermissionCacheService,
   ) {}
+
+  // Fecha toda sessão aberta do usuário (ex.: desativação, exclusão, troca
+  // de senha) — RefreshToken já é tenant-scoped via RLS (TENANT_SCOPED_MODELS),
+  // então este updateMany nunca alcança refresh tokens de outro tenant.
+  private async revokeAllSessions(userId: string, tenantId: string) {
+    await this.prisma.refreshToken.updateMany({
+      where: { userId },
+      data: { revokedAt: new Date() },
+    });
+    await this.permissionCache.invalidateUser(tenantId, userId);
+  }
 
   // Rule C4: desativar/remover o último admin do tenant é bloqueado, mesmo
   // que quem esteja fazendo a ação seja outro admin ou o próprio usuário. Só
@@ -115,7 +128,18 @@ export class UsersService {
         data.password = await bcrypt.hash(password, 10);
       }
 
-      return await this.userRepository.updateById(id, data);
+      const updated = await this.userRepository.updateById(id, data);
+
+      // Desativar o usuário ou trocar a senha invalida qualquer sessão já
+      // aberta — senão um token emitido antes continuaria valendo.
+      if (
+        (updateUserDto.status && updateUserDto.status !== 'ACTIVE') ||
+        password
+      ) {
+        await this.revokeAllSessions(id, tenantId);
+      }
+
+      return updated;
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'update');
     }
@@ -136,7 +160,10 @@ export class UsersService {
 
       await this.assertNotLastActiveAdmin(id, tenantId);
 
-      return await this.userRepository.softDeleteById(id);
+      const removed = await this.userRepository.softDeleteById(id);
+      await this.revokeAllSessions(id, tenantId);
+
+      return removed;
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'remove');
     }
