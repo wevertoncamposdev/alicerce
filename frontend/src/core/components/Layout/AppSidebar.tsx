@@ -33,11 +33,12 @@ import {
   ChevronsUpDown,
   Blocks,
   UserRound,
+  Building2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { listRouteRules } from "@lib/authz";
-import { alicerceModules } from "@/alicerce.config";
+import { alicerceModules, alicerceTerms } from "@/alicerce.config";
 
 const MODULE_ICONS: Record<string, LucideIcon> = Object.fromEntries(
   alicerceModules.map((mod) => [mod.key, mod.icon]),
@@ -195,6 +196,12 @@ export function AppSidebar({
                   <UserRound className="mr-2 h-4 w-4" />
                   Perfil
                 </DropdownMenuItem>
+                {hasPermission("tenant.update") ? (
+                  <DropdownMenuItem onClick={() => router.push("/configuracoes/instituicao")}>
+                    <Building2 className="mr-2 h-4 w-4" />
+                    {alicerceTerms.tenant}
+                  </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuItem
                   onClick={() => {
                     signOut();

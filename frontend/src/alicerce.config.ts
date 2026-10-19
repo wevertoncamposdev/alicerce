@@ -8,7 +8,13 @@
 // pro code-splitting funcionar, não dá pra tornar isso dinâmico a partir
 // de dado de config sem arriscar quebrar o bundling.
 import type { LucideIcon } from "lucide-react";
-import { Users, Building2, KeyRound, Shield, FileText, Package } from "lucide-react";
+import { Users, KeyRound, Shield, FileText, Package } from "lucide-react";
+
+// Termos configuráveis — troca o rótulo em todo lugar que o importa (menu,
+// títulos, cadastro) sem precisar de mecanismo novo, só uma constante.
+export const alicerceTerms = {
+    tenant: "Instituição",
+} as const;
 
 export type ModuleManifestEntry = {
     /** Bate com o `model` de `defineRecordModule` e com o resource da API. */
@@ -43,15 +49,6 @@ export const alicerceModules = defineModuleManifest([
         permission: "user.read",
         navGroup: "geral",
         actionPermissions: { create: "user.create", update: "user.update", delete: "user.delete" },
-    },
-    {
-        key: "tenants",
-        title: "Tenants",
-        icon: Building2,
-        basePath: "/tenants",
-        permission: "tenant.read",
-        navGroup: "geral",
-        actionPermissions: { create: "tenant.update", update: "tenant.update", delete: "tenant.update" },
     },
     {
         key: "roles",
