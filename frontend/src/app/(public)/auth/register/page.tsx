@@ -5,17 +5,46 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { Button, Input } from "@components/ui/index";
 import { SideShell } from "@core/components/Layout/SideShell";
+import { alicerceTerms } from "@/alicerce.config";
 import Link from "next/link";
+
+// Minúsculas, sem acento, espaço/underscore -> hífen, remove o que não for
+// [a-z0-9-] — mesma whitelist que o backend aceita em `tenantSlug`
+// (sign-up-public.dto.ts: `^[a-z0-9]+(?:-[a-z0-9]+)*$`).
+function slugify(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "") // remove diacríticos isolados pela normalização NFD
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 export default function RegisterPage() {
   const { signUp } = useAuth();
   const router = useRouter();
+  const [name, setName] = useState("");
   const [tenantName, setTenantName] = useState("");
   const [tenantSlug, setTenantSlug] = useState("");
+  const [slugTouched, setSlugTouched] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function handleTenantNameChange(value: string) {
+    setTenantName(value);
+    if (!slugTouched) {
+      setTenantSlug(slugify(value));
+    }
+  }
+
+  function handleTenantSlugChange(value: string) {
+    setSlugTouched(true);
+    setTenantSlug(value);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,6 +56,7 @@ export default function RegisterPage() {
         tenantName,
         tenantSlug,
         email,
+        name,
         password,
       });
       router.replace("/");
@@ -43,21 +73,38 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-foreground">Alicerce</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Crie sua conta e comece a gerenciar tenants</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Crie sua conta e comece a gerenciar sua {alicerceTerms.tenant.toLowerCase()}
+          </p>
         </div>
 
-        <SideShell title="Registro" description="Crie sua conta e o tenant inicial em um unico fluxo.">
+        <SideShell title="Registro" description="Crie sua conta e a sua instituição em um único fluxo.">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium text-foreground">
+                Seu nome
+              </label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="Seu nome completo"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                required
+                disabled={submitting}
+              />
+            </div>
+
+            <div className="space-y-2">
               <label htmlFor="tenantName" className="text-sm font-medium text-foreground">
-                Nome do Tenant
+                Nome da {alicerceTerms.tenant}
               </label>
               <Input
                 id="tenantName"
                 name="tenantName"
                 placeholder="Minha Empresa"
                 value={tenantName}
-                onChange={(event) => setTenantName(event.target.value)}
+                onChange={(event) => handleTenantNameChange(event.target.value)}
                 required
                 disabled={submitting}
               />
@@ -65,14 +112,14 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <label htmlFor="tenantSlug" className="text-sm font-medium text-foreground">
-                Slug do Tenant
+                Slug da {alicerceTerms.tenant}
               </label>
               <Input
                 id="tenantSlug"
                 name="tenantSlug"
                 placeholder="minha-empresa"
                 value={tenantSlug}
-                onChange={(event) => setTenantSlug(event.target.value)}
+                onChange={(event) => handleTenantSlugChange(event.target.value)}
                 required
                 disabled={submitting}
               />

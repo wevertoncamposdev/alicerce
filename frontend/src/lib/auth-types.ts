@@ -2,6 +2,7 @@ export interface RegisterInput {
     tenantName?: string;
     tenantSlug?: string;
     email: string;
+    name?: string;
     password: string;
 }
 
