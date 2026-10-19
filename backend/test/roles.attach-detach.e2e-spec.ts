@@ -208,7 +208,6 @@ describe('Roles attach/detach (e2e with mocked Prisma)', () => {
             sub: 'user-1',
             username: 'user-1@example.com',
             tenantId: 'tenant-1',
-            roles: ['ADMIN'],
             permissions: ['role.assign'],
           };
           return true;

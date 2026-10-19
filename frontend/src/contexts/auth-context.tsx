@@ -10,7 +10,6 @@ type AuthState = {
     user: AuthUserProfile | null;
     isAuthenticated: boolean;
     currentTenantId: string | null;
-    hasRole: (role: string) => boolean;
     hasPermission: (permission: string) => boolean;
     setCurrentTenantId: (tenantId: string | null) => void;
     signIn: (email: string, password: string) => Promise<void>;
@@ -81,7 +80,6 @@ export function AuthProvider({ children, initialUser = null, initialTenantId = n
         setCurrentTenantId(null);
     }, [setCurrentTenantId]);
 
-    const hasRole = useCallback((role: string) => (user?.roles ?? []).includes(role), [user]);
     const hasPermission = useCallback((permission: string) => (user?.permissions ?? []).includes(permission), [user]);
 
     const value = useMemo<AuthState>(
@@ -89,14 +87,13 @@ export function AuthProvider({ children, initialUser = null, initialTenantId = n
             user,
             isAuthenticated: Boolean(user),
             currentTenantId,
-            hasRole,
             hasPermission,
             setCurrentTenantId,
             signIn,
             signUp,
             signOut,
         }),
-        [user, currentTenantId, hasRole, hasPermission, setCurrentTenantId, signIn, signUp, signOut],
+        [user, currentTenantId, hasPermission, setCurrentTenantId, signIn, signUp, signOut],
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

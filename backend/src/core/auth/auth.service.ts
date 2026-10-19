@@ -24,7 +24,6 @@ export interface AuthUserContext {
   id: string;
   email: string;
   tenantId: string;
-  roles: string[];
   permissions: string[];
 }
 
@@ -175,9 +174,6 @@ export class AuthService {
   private async mapAuthUserContext(
     user: NonNullable<Awaited<ReturnType<AuthService['getAuthUserById']>>>,
   ) {
-    const roleNames = Array.from(
-      new Set(user.roles.map((item) => item.role.type)),
-    );
     const permissionNames = Array.from(
       new Set(
         user.roles.flatMap((item) =>
@@ -190,7 +186,6 @@ export class AuthService {
       id: user.id,
       email: user.email,
       tenantId: user.tenantId,
-      roles: roleNames,
       permissions: permissionNames,
     };
 
@@ -210,7 +205,6 @@ export class AuthService {
       sub: user.id,
       username: user.email,
       tenantId: user.tenantId,
-      roles: user.roles,
       permissions: user.permissions,
     });
   }

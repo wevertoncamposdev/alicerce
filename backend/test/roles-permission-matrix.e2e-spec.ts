@@ -263,7 +263,6 @@ describe('Matriz de permissões do papel (e2e)', () => {
             sub: 'admin-1',
             username: 'admin@example.com',
             tenantId: 'tenant-1',
-            roles: [],
             permissions: ['role.read', 'role.assign'],
           };
           return true;

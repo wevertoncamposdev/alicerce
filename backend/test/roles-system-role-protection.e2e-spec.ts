@@ -93,7 +93,6 @@ describe('Papel de sistema não pode ser excluído nem renomeado (e2e)', () => {
             sub: 'user-1',
             username: 'admin@example.com',
             tenantId: 'tenant-1',
-            roles: [],
             permissions: ['role.delete', 'role.update'],
           };
           return true;

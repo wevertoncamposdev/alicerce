@@ -9,6 +9,5 @@ export interface AuthUserProfile {
     id: string;
     email: string;
     tenantId: string;
-    roles: string[];
     permissions: string[];
 }

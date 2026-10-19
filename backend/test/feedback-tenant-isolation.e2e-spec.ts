@@ -100,7 +100,6 @@ describe('Feedback tenant isolation + feedback.manage (e2e with mocked Prisma)',
             tenantId: String(
               Array.isArray(tenantHeader) ? tenantHeader[0] : tenantHeader,
             ),
-            roles: ['USER'],
             permissions,
           };
 

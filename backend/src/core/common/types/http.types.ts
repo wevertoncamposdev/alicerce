@@ -7,7 +7,6 @@ export interface JwtPayload {
   sub: string;
   username: string;
   tenantId: string;
-  roles: string[];
   permissions: string[];
   // Nenhum signToken emite isto hoje (só `sub`) — mantido só como fallback
   // defensivo já existente em AllExceptionsFilter antes desta tipagem.

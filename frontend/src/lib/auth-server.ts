@@ -40,7 +40,3 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
     return { user, tenantId };
 });
-
-export function hasRole(currentUser: CurrentUser | null, role: string): boolean {
-    return Boolean(currentUser?.user.roles?.includes(role));
-}
