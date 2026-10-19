@@ -197,6 +197,27 @@ describe('AuditInterceptor', () => {
     });
   });
 
+  it('calls register for PUT requests (etapa 3.5 — PUT /roles/:id/permissions)', (done) => {
+    const req = {
+      method: 'PUT',
+      originalUrl: '/api/roles/role-1/permissions',
+      params: { id: 'role-1' },
+      body: { permissionIds: ['perm-1'] },
+      user: { id: 'actor-1', tenantId: 'tenant-1' },
+      tenantId: 'tenant-1',
+    };
+    const next = { handle: () => of([{ resource: 'users', permissions: [] }]) };
+
+    interceptor.intercept(buildContext(req), next).subscribe({
+      complete: () => {
+        expect(auditService.register).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'PERMISSION_CHANGE' }),
+        );
+        done();
+      },
+    });
+  });
+
   it('singularizes the plural resource name from the URL', (done) => {
     const req = {
       method: 'POST',

@@ -147,7 +147,8 @@ export class AuditInterceptor implements NestInterceptor {
     const isRefresh = url.includes('/auth/refresh');
     const isAuditable =
       !isRefresh &&
-      (['POST', 'PATCH', 'DELETE'].includes(method) || url.includes('login'));
+      (['POST', 'PATCH', 'PUT', 'DELETE'].includes(method) ||
+        url.includes('login'));
 
     if (!isAuditable) {
       return next.handle();

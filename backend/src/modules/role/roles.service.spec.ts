@@ -11,12 +11,13 @@ import { PermissionCacheService } from '@core/authorization/permission-cache.ser
 
 const prismaMock = {
   role: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
-  permission: { findUnique: jest.fn() },
+  permission: { findUnique: jest.fn(), findMany: jest.fn() },
   user: { findUnique: jest.fn() },
   rolePermission: {
     upsert: jest.fn(),
     deleteMany: jest.fn(),
     findMany: jest.fn(),
+    createMany: jest.fn(),
   },
   userRole: {
     upsert: jest.fn(),
@@ -24,6 +25,7 @@ const prismaMock = {
     findMany: jest.fn(),
     count: jest.fn(),
   },
+  $transaction: jest.fn((ops: Promise<unknown>[]) => Promise.all(ops)),
 };
 
 const roleRepositoryMock = {
@@ -549,6 +551,131 @@ describe('RolesService', () => {
       );
 
       expect(result).toEqual({ id: 'role-2' });
+    });
+  });
+
+  describe('getPermissionMatrix (etapa 3.5)', () => {
+    it('groups catalog permissions by resource, marking what the role already has', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        deletedAt: null,
+      });
+      prismaMock.permission.findMany.mockResolvedValueOnce([
+        {
+          id: 'perm-read',
+          name: 'user.read',
+          type: 'READ',
+          resource: 'users',
+          description: 'Consultar usuários',
+        },
+        {
+          id: 'perm-write',
+          name: 'user.update',
+          type: 'WRITE',
+          resource: 'users',
+          description: 'Atualizar usuários',
+        },
+      ]);
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce([
+        { permissionId: 'perm-read' },
+      ]);
+
+      const matrix = await service.getPermissionMatrix('role-1', 't1');
+
+      expect(matrix).toEqual([
+        {
+          resource: 'users',
+          permissions: [
+            {
+              id: 'perm-read',
+              name: 'user.read',
+              type: 'READ',
+              description: 'Consultar usuários',
+              granted: true,
+            },
+            {
+              id: 'perm-write',
+              name: 'user.update',
+              type: 'WRITE',
+              description: 'Atualizar usuários',
+              granted: false,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('throws NotFoundException for a role from another tenant', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 'other-tenant',
+        deletedAt: null,
+      });
+
+      await expect(
+        service.getPermissionMatrix('role-1', 't1'),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('replacePermissions (etapa 3.5)', () => {
+    it('adds missing permissions and removes the ones no longer selected, in one pass', async () => {
+      prismaMock.role.findUnique.mockResolvedValue({
+        id: 'role-1',
+        tenantId: 't1',
+        deletedAt: null,
+      });
+      prismaMock.permission.findMany.mockResolvedValueOnce([
+        { id: 'perm-new' },
+      ]); // valida que perm-new existe no tenant
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce([
+        { permissionId: 'perm-old' },
+      ]); // conjunto atual
+      prismaMock.rolePermission.deleteMany.mockResolvedValueOnce({ count: 1 });
+      prismaMock.rolePermission.createMany.mockResolvedValueOnce({
+        count: 1,
+      });
+      // getPermissionMatrix roda de novo no final, pra devolver o resultado:
+      prismaMock.permission.findMany.mockResolvedValueOnce([]);
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce([]);
+
+      await service.replacePermissions('role-1', 't1', ['perm-new']);
+
+      expect(prismaMock.rolePermission.deleteMany).toHaveBeenCalledWith({
+        where: {
+          tenantId: 't1',
+          roleId: 'role-1',
+          resource: null,
+          permissionId: { in: ['perm-old'] },
+        },
+      });
+      expect(prismaMock.rolePermission.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            tenantId: 't1',
+            roleId: 'role-1',
+            permissionId: 'perm-new',
+            resource: null,
+          },
+        ],
+        skipDuplicates: true,
+      });
+      expect(permissionCacheMock.invalidateUsers).toHaveBeenCalled();
+    });
+
+    it('throws NotFoundException when a permissionId does not belong to the tenant', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        deletedAt: null,
+      });
+      prismaMock.permission.findMany.mockResolvedValueOnce([]); // nenhuma bate
+
+      await expect(
+        service.replacePermissions('role-1', 't1', ['perm-ghost']),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(prismaMock.rolePermission.deleteMany).not.toHaveBeenCalled();
     });
   });
 });

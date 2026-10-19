@@ -2,6 +2,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { CreateRoleDto } from './dto/create-role.dto';
@@ -304,6 +305,125 @@ export class RolesService {
     await this.invalidatePermissionCacheForRole(roleId, tenantId);
 
     return { removed: result.count > 0 };
+  }
+
+  // Etapa 3.5 (ADR 0007): recursos × ações do catálogo materializado no
+  // tenant, com o que já está marcado para este papel. Usa `Permission` do
+  // tenant (não `PERMISSION_CATALOG` direto) porque é lá que vive o `id`
+  // que o `PUT` abaixo precisa receber de volta.
+  async getPermissionMatrix(roleId: string, tenantId: string) {
+    findOneOrThrow(
+      await this.prisma.role.findUnique({ where: { id: roleId } }),
+      (role) => !role.deletedAt && role.tenantId === tenantId,
+      'Role nao encontrada',
+    );
+
+    const [catalogPermissions, granted] = await Promise.all([
+      this.prisma.permission.findMany({
+        where: { tenantId, deletedAt: null },
+        orderBy: [{ resource: 'asc' }, { name: 'asc' }],
+      }),
+      this.prisma.rolePermission.findMany({
+        where: { roleId, tenantId, resource: null },
+        select: { permissionId: true },
+      }),
+    ]);
+
+    const grantedIds = new Set(granted.map((item) => item.permissionId));
+
+    const byResource = new Map<
+      string,
+      Array<{
+        id: string;
+        name: string;
+        type: string;
+        description: string | null;
+        granted: boolean;
+      }>
+    >();
+
+    for (const permission of catalogPermissions) {
+      const resource = permission.resource ?? 'outros';
+      if (!byResource.has(resource)) {
+        byResource.set(resource, []);
+      }
+      byResource.get(resource)!.push({
+        id: permission.id,
+        name: permission.name,
+        type: permission.type,
+        description: permission.description,
+        granted: grantedIds.has(permission.id),
+      });
+    }
+
+    return [...byResource.entries()].map(([resource, permissions]) => ({
+      resource,
+      permissions,
+    }));
+  }
+
+  // Substitui o conjunto de permissões do papel em uma única transação
+  // (diff contra o atual, não detach+attach um por um) — só mexe nas
+  // concessões "de catálogo" (resource: null); attach/detach individual com
+  // `resource` customizado (attachPermission) continua intocado por aqui.
+  async replacePermissions(
+    roleId: string,
+    tenantId: string,
+    permissionIds: string[],
+  ) {
+    findOneOrThrow(
+      await this.prisma.role.findUnique({ where: { id: roleId } }),
+      (role) => !role.deletedAt && role.tenantId === tenantId,
+      'Role nao encontrada',
+    );
+
+    const uniqueIds = [...new Set(permissionIds)];
+
+    if (uniqueIds.length > 0) {
+      const existingPermissions = await this.prisma.permission.findMany({
+        where: { tenantId, deletedAt: null, id: { in: uniqueIds } },
+        select: { id: true },
+      });
+      if (existingPermissions.length !== uniqueIds.length) {
+        throw new NotFoundException(
+          'Uma ou mais permissões não existem neste tenant.',
+        );
+      }
+    }
+
+    const current = await this.prisma.rolePermission.findMany({
+      where: { roleId, tenantId, resource: null },
+      select: { permissionId: true },
+    });
+    const currentIds = new Set(current.map((item) => item.permissionId));
+    const nextIds = new Set(uniqueIds);
+
+    const toRemove = [...currentIds].filter((id) => !nextIds.has(id));
+    const toAdd = [...nextIds].filter((id) => !currentIds.has(id));
+
+    await this.prisma.$transaction([
+      this.prisma.rolePermission.deleteMany({
+        where: {
+          tenantId,
+          roleId,
+          resource: null,
+          permissionId: { in: toRemove },
+        },
+      }),
+      this.prisma.rolePermission.createMany({
+        data: toAdd.map((permissionId) => ({
+          tenantId,
+          roleId,
+          permissionId,
+          resource: null,
+        })),
+        skipDuplicates: true,
+      }),
+    ]);
+
+    await this.invalidatePermissionCacheForRole(roleId, tenantId);
+
+    return this.getPermissionMatrix(roleId, tenantId);
   }
 
   async search(query: SearchRoleDto, tenantId?: string) {

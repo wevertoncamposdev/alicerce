@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Search,
   UseGuards,
 } from '@nestjs/common';
@@ -20,6 +21,7 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { AttachRoleUserDto } from './dto/attach-role-user.dto';
 import { AttachRolePermissionDto } from './dto/attach-role-permission.dto';
+import { ReplaceRolePermissionsDto } from './dto/replace-role-permissions.dto';
 import { SearchRoleDto } from './dto/search-role.dto';
 import { RolesService } from './roles.service';
 
@@ -116,6 +118,30 @@ export class RolesController {
   @ApiBody({ schema: { type: 'object' } })
   search(@Body() query: SearchRoleDto, @TenantId() tenantId: string) {
     return this.rolesService.search(query, tenantId);
+  }
+
+  @Get(':id/permission-matrix')
+  @Permissions('role.read')
+  @ApiOperation({ summary: 'Permission matrix (resource x action) of a role' })
+  @ApiResponse({ status: 200, description: 'Permission matrix' })
+  getPermissionMatrix(@Param('id') id: string, @TenantId() tenantId: string) {
+    return this.rolesService.getPermissionMatrix(id, tenantId);
+  }
+
+  @Put(':id/permissions')
+  @Permissions('role.assign')
+  @ApiOperation({ summary: 'Replace the full permission set of a role' })
+  @ApiResponse({ status: 200, description: 'Updated permission matrix' })
+  replacePermissions(
+    @Param('id') id: string,
+    @Body() dto: ReplaceRolePermissionsDto,
+    @TenantId() tenantId: string,
+  ) {
+    return this.rolesService.replacePermissions(
+      id,
+      tenantId,
+      dto.permissionIds,
+    );
   }
 
   @Get(':id/permissions')
