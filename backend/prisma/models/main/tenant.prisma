@@ -1,11 +1,34 @@
 /// Main organizational entity of the system — identidade genérica de uma
 /// instituição multi-tenant. Campos específicos de domínio (ONG) foram
 /// removidos: ver docs/adr/0003-tenant-generico.md.
+enum DocumentType {
+    CNPJ
+    CPF
+    OUTRO
+}
+
 model Tenant {
     id String @id @default(uuid(7)) @db.Uuid
 
-    legalName String @unique @db.VarChar(255)
-    slug      String @unique @db.VarChar(120)
+    legalName String  @unique @db.VarChar(255)
+    slug      String  @unique @db.VarChar(120)
+    tradeName String? @db.VarChar(255)
+
+    // Fase 5 — campos institucionais genéricos (Plano Base.md 5.1). Dados
+    // específicos de ONG não entram aqui (ADR 0003).
+    documentType DocumentType?
+    document     String?       @db.VarChar(20) // só dígitos — validado por @IsDocument()
+    email        String?       @db.VarChar(255)
+    phone        String?       @db.VarChar(20)
+    website      String?       @db.VarChar(255)
+
+    addressStreet       String? @db.VarChar(255)
+    addressNumber       String? @db.VarChar(20)
+    addressComplement   String? @db.VarChar(100)
+    addressNeighborhood String? @db.VarChar(100)
+    addressCity         String? @db.VarChar(100)
+    addressState        String? @db.VarChar(2)
+    addressZipCode      String? @db.VarChar(10)
 
     status    Status    @default(ACTIVE)
     createdAt DateTime  @default(now())
