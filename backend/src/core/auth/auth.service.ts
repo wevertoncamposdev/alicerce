@@ -47,6 +47,14 @@ const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 // como roubo de token.
 const REFRESH_TOKEN_REUSE_GRACE_MS = 10 * 1000;
 
+// Hash fixo (calculado uma única vez, no load do módulo) usado só para
+// gastar o mesmo tempo de bcrypt.compare quando o e-mail não existe — ver
+// AuthService.signIn. Nunca corresponde a nenhuma senha real.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
+  'alicerce-timing-safety-dummy-value',
+  10,
+);
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -426,7 +434,11 @@ export class AuthService {
     const user = await this.getAuthUserByEmail(signInDto.email);
 
     if (!user) {
-      const message = this.i18n.translate('messages.USER.NOT_FOUND', {
+      // Mesmo tempo de resposta e mesma mensagem de uma senha errada: sem
+      // isso, o tempo do bcrypt.compare real denunciaria se o e-mail existe.
+      await bcrypt.compare(signInDto.password, DUMMY_PASSWORD_HASH);
+
+      const message = this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
         lang: 'pt-BR',
       });
       throw new UnauthorizedException(message);

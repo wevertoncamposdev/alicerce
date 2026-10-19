@@ -12,6 +12,7 @@ import { AuditService } from '@modules/audit/audit.service';
 describe('AuthService', () => {
   let service: AuthService;
   let auditService: { register: jest.Mock };
+  let i18nTranslate: jest.Mock;
   let prisma: {
     refreshToken: {
       findUnique: jest.Mock;
@@ -76,6 +77,7 @@ describe('AuthService', () => {
     };
 
     auditService = { register: jest.fn().mockResolvedValue(undefined) };
+    i18nTranslate = jest.fn().mockReturnValue('mocked message');
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -88,7 +90,7 @@ describe('AuthService', () => {
         { provide: ConfigService, useValue: {} },
         {
           provide: I18nService,
-          useValue: { translate: jest.fn().mockReturnValue('mocked message') },
+          useValue: { translate: i18nTranslate },
         },
         {
           provide: PermissionCacheService,
@@ -124,6 +126,29 @@ describe('AuthService', () => {
       ).rejects.toBeInstanceOf(UnauthorizedException);
 
       expect(auditService.register).not.toHaveBeenCalled();
+    });
+
+    it('uses the same message for a non-existent e-mail as for a wrong password (enumeration-safe)', async () => {
+      // `bcrypt` é um binding nativo — não dá pra espiar `bcrypt.compare`
+      // com `jest.spyOn` aqui (a propriedade não é redefinível). O que este
+      // teste garante é o contrato observável: a mensagem é a mesma nos dois
+      // casos. A chamada extra a `bcrypt.compare` contra o hash fixo (ver
+      // DUMMY_PASSWORD_HASH em auth.service.ts) é o que garante o tempo
+      // constante na prática, fora do escopo testável aqui.
+      prisma.user.findUnique.mockResolvedValueOnce(null);
+
+      await expect(
+        service.signIn({ email: 'ghost@example.com', password: 'whatever' }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+
+      expect(i18nTranslate).toHaveBeenCalledWith(
+        'messages.USER.INVALID_CREDENTIALS',
+        expect.anything(),
+      );
+      expect(i18nTranslate).not.toHaveBeenCalledWith(
+        'messages.USER.NOT_FOUND',
+        expect.anything(),
+      );
     });
 
     it('rejects a correct password when the user is inactive, auditing LOGIN_FAILED', async () => {
