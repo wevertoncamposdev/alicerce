@@ -6,7 +6,6 @@ import { ColumnDef, flexRender, useTable } from "@tanstack/react-table";
 import { appTableFeatures, type AppTableFeatures } from "@core/table-features";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { Button } from "@components/ui/button";
-import { Skeleton } from "@components/ui/skeleton";
 import { EmptyState } from "@components/ui/empty-state";
 import { Trash2 } from "lucide-react";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
@@ -14,7 +13,6 @@ import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 export type RelationCrudHostProps<T extends object> = {
     columns: ColumnDef<AppTableFeatures, T>[];
     initialData?: T[];
-    list?: () => Promise<T[]>;
     detach?: (id: string) => Promise<void>;
     idAccessor?: (item: T) => string;
     rowLink?: (item: T) => string | undefined;
@@ -26,7 +24,6 @@ export type RelationCrudHostProps<T extends object> = {
 function RelationCrudHost<T extends object>({
     columns,
     initialData = [],
-    list,
     detach,
     idAccessor = (i: T) => ((i as { id?: string }).id ?? ""),
     rowLink,
@@ -36,7 +33,6 @@ function RelationCrudHost<T extends object>({
 }: RelationCrudHostProps<T>) {
     const { confirm, dialog } = useConfirmDialog();
     const [items, setItems] = React.useState<T[]>(initialData);
-    const [loading, setLoading] = React.useState(Boolean(list));
 
     // `items` diverge de `initialData` conforme attach/detach — não é um
     // simples espelho de prop, então não dá pra "derivar" direto. Re-sincroniza
@@ -49,28 +45,6 @@ function RelationCrudHost<T extends object>({
         setPrevInitialData(initialData);
         setItems(initialData);
     }
-
-    React.useEffect(() => {
-        let mounted = true;
-        if (list) {
-            // Padrão de fetch em efeito recomendado pela própria doc do React
-            // (react.dev/learn/you-might-not-need-an-effect#fetching-data):
-            // marcar loading antes de chamar a API externa, desmarcar no
-            // retorno — não é um "setState que podia ser calculado no render",
-            // é sincronização real com um sistema externo (a API).
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setLoading(true);
-            list().then((res) => {
-                if (mounted) {
-                    setItems(res);
-                    setLoading(false);
-                }
-            });
-        }
-        return () => {
-            mounted = false;
-        };
-    }, [list]);
 
     // TanStack Table's useTable() retorna funções que o React Compiler
     // não consegue memoizar com segurança — limitação conhecida da lib, não
@@ -94,13 +68,7 @@ function RelationCrudHost<T extends object>({
 
     return (
         <div>
-            {loading ? (
-                <div className="space-y-2 py-1">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                        <Skeleton key={i} className="h-8 w-full" />
-                    ))}
-                </div>
-            ) : items.length === 0 ? (
+            {items.length === 0 ? (
                 <EmptyState title={emptyMessage} className="py-6" />
             ) : (
                 <div className="overflow-x-auto rounded-md border">
