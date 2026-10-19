@@ -290,7 +290,7 @@ por tenant**, **rotas checam só permissões**.
 
 ## Fase 6 — Arquivos (mínimo)
 
-### 6.1 ADR 0008 — Storage
+### 6.1 ADR 0010 — Storage
 
 - Interface `StorageProvider` (`put`, `getSignedUrl`, `delete`); adapters: disco local (dev)
   e S3-compatível (produção, ex.: R2/S3/MinIO). Nenhum código fora do adapter conhece o provedor.
@@ -317,7 +317,7 @@ por tenant**, **rotas checam só permissões**.
 
 ## Fase 7 — E-mail e fluxos de conta
 
-### 7.1 ADR 0009 + `MailProvider`
+### 7.1 ADR 0011 + `MailProvider`
 
 - Interface com adapters: console (dev), SMTP, Resend (ou similar). Templates simples
   (HTML + texto) com nome/logo da instituição.
