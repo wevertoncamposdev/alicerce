@@ -35,6 +35,17 @@ interface MockUserRow {
   password: string;
   status: string;
   deletedAt: null;
+  emailVerifiedAt: Date | null;
+}
+
+interface MockTokenRow {
+  id: string;
+  tenantId: string;
+  userId: string;
+  type: string;
+  tokenHash: string;
+  expiresAt: Date;
+  usedAt: Date | null;
 }
 
 /**
@@ -48,6 +59,18 @@ interface MockUserRow {
 class MockPrismaBootstrapService {
   tenants = new Map<string, MockTenantRow>();
   users = new Map<string, MockUserRow>();
+  tokens = new Map<string, MockTokenRow>();
+
+  // AuthService.sendVerifyEmail (etapa 7.5) passa `client: this` pro
+  // AccountTokenService.issue — rota @Public(), mesmo motivo do
+  // PrismaBootstrapService no resto desta classe.
+  accountToken = {
+    create: ({ data }: { data: Omit<MockTokenRow, 'id' | 'usedAt'> }) => {
+      const row: MockTokenRow = { id: randomUUID(), usedAt: null, ...data };
+      this.tokens.set(row.id, row);
+      return Promise.resolve(row);
+    },
+  };
 
   user = {
     findUnique: ({
@@ -143,6 +166,7 @@ class MockPrismaBootstrapService {
             password: data.password as string,
             status: data.status as string,
             deletedAt: null,
+            emailVerifiedAt: null,
           };
           this.users.set(row.id, row);
           return Promise.resolve(row);

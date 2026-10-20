@@ -12,4 +12,5 @@ export interface AuthUserProfile {
     name?: string | null;
     tenantId: string;
     permissions: string[];
+    emailVerified: boolean;
 }

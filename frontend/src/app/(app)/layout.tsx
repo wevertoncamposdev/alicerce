@@ -63,7 +63,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               mais largo (ex.: uma tabela) — a página inteira ganha scroll horizontal em
               telas estreitas em vez do conteúdo largo rolar só dentro do seu próprio
               container (overflow-x-auto). */}
-          <main className="min-w-0 flex-1">{children}</main>
+          <main className="min-w-0 flex-1">
+            {!currentUser.user.emailVerified ? (
+              <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm text-amber-900">
+                Confirme seu e-mail para garantir o acesso à sua conta. Verifique a caixa de entrada de{" "}
+                {currentUser.user.email}.
+              </div>
+            ) : null}
+            {children}
+          </main>
         </SidebarProvider>
       </AppAccessGuard>
     </AuthProvider>

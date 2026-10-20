@@ -18,6 +18,7 @@ import { SignUpPublicDto } from './dto/sign-up-public.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AcceptInviteDto } from './dto/accept-invite.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 import { JwtPayload } from '@core/common/types/http.types';
 import {
   REFRESH_COOKIE,
@@ -171,6 +172,21 @@ export class AuthController {
   async acceptInvite(@Body() dto: AcceptInviteDto) {
     await this.authService.acceptInvite(dto.token, dto.password);
     return { message: 'Convite aceito. Você já pode fazer login.' };
+  }
+
+  /**
+   * POST /api/auth/verify-email
+   *
+   * Confirma o e-mail de cadastro (etapa 7.5). O token é enviado por
+   * signUpPublic — ver AuthService.sendVerifyEmail.
+   */
+  @Public()
+  @Throttle(BRUTE_FORCE_THROTTLE)
+  @HttpCode(HttpStatus.OK)
+  @Post('verify-email')
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    await this.authService.verifyEmail(dto.token);
+    return { message: 'E-mail confirmado com sucesso.' };
   }
 
   // ------------------------------------------------------------------ helpers

@@ -37,6 +37,7 @@ export interface AuthUserContext {
   name: string | null;
   tenantId: string;
   permissions: string[];
+  emailVerified: boolean;
 }
 
 export interface AuthSessionResponse {
@@ -203,6 +204,7 @@ export class AuthService {
       name: user.name,
       tenantId: user.tenantId,
       permissions: permissionNames,
+      emailVerified: user.emailVerifiedAt !== null,
     };
 
     // Popula o cache de permissões já aqui (ver P7.5/PermissionCacheService)
@@ -478,6 +480,8 @@ export class AuthService {
       throw new UnauthorizedException('Falha ao carregar sessao de onboarding');
     }
 
+    await this.sendVerifyEmail(user);
+
     const mappedUser = await this.mapAuthUserContext(user);
     const familyId = crypto.randomUUID();
     const [access_token, refresh_token] = await Promise.all([
@@ -719,6 +723,54 @@ export class AuthService {
     await this.prismaBootstrap.user.update({
       where: { id: token.userId },
       data: { password: passwordHash },
+    });
+  }
+
+  // Verificação de e-mail no cadastro (etapa 7.5) — manda o e-mail depois
+  // que signUpPublic já criou tenant+usuário; rota @Public(), mesmo motivo
+  // de client explícito do forgotPassword acima.
+  private async sendVerifyEmail(
+    user: NonNullable<Awaited<ReturnType<AuthService['getAuthUserById']>>>,
+  ): Promise<void> {
+    const rawToken = await this.accountTokenService.issue({
+      userId: user.id,
+      tenantId: user.tenantId,
+      type: 'VERIFY_EMAIL',
+      ttlMs: 24 * 60 * 60 * 1000, // 24h
+      client: this.prismaBootstrap,
+    });
+
+    const { tenantName, tenantLogoUrl } = await resolveTenantBranding(
+      this.filesService,
+      user.tenant,
+    );
+    const { html, text } = renderAccountEmail({
+      title: 'Confirme seu e-mail',
+      bodyText: 'Confirme seu endereço de e-mail para concluir o cadastro.',
+      tenantName,
+      tenantLogoUrl,
+      actionUrl: `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawToken}`,
+      actionLabel: 'Confirmar e-mail',
+    });
+
+    await this.mailService.send({
+      to: user.email,
+      subject: 'Confirme seu e-mail',
+      html,
+      text,
+    });
+  }
+
+  async verifyEmail(rawToken: string): Promise<void> {
+    const token = await this.accountTokenService.consume(
+      rawToken,
+      'VERIFY_EMAIL',
+      this.prismaBootstrap,
+    );
+
+    await this.prismaBootstrap.user.update({
+      where: { id: token.userId },
+      data: { emailVerifiedAt: new Date() },
     });
   }
 }

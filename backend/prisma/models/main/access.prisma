@@ -15,6 +15,10 @@ model User {
     // `password === null`, não este campo.
     invitedAt DateTime?
 
+    // Verificação de e-mail no cadastro (etapa 7.5) — `emailVerified` no
+    // AuthUserContext usa `emailVerifiedAt !== null`.
+    emailVerifiedAt DateTime?
+
     // Fase 6 — avatar (Plano Base.md 6.4). Posse validada em quem anexa
     // (MeService.updateMe), não aqui — ver ADR 0010.
     avatarFileId String? @db.Uuid
