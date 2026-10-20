@@ -4,6 +4,10 @@ import * as crypto from 'crypto';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { findOneOrThrow } from '@core/common/utils/find-one-or-throw.util';
 import { FilesService } from '@core/files/file.service';
+import {
+  revokeSessions as revokeSessionsUtil,
+  RevokeSessionsScope,
+} from './session-revocation.util';
 import { UpdateMeDto } from './dto/update-me.dto';
 import { ChangeMyPasswordDto } from './dto/change-my-password.dto';
 
@@ -174,19 +178,8 @@ export class MeService {
 
   private async revokeSessions(
     userId: string,
-    scope: { exceptFamilyId?: string } | { onlyFamilyId: string },
+    scope: RevokeSessionsScope,
   ): Promise<void> {
-    await this.prisma.refreshToken.updateMany({
-      where: {
-        userId,
-        revokedAt: null,
-        ...('onlyFamilyId' in scope
-          ? { familyId: scope.onlyFamilyId }
-          : scope.exceptFamilyId
-            ? { familyId: { not: scope.exceptFamilyId } }
-            : {}),
-      },
-      data: { revokedAt: new Date() },
-    });
+    await revokeSessionsUtil(this.prisma, userId, scope);
   }
 }

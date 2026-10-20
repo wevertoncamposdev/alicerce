@@ -9,6 +9,7 @@ import { MeController } from './me.controller';
 import { UsersModule } from '@modules/user/user.module';
 import { AuditModule } from '@modules/audit/audit.module';
 import { FileModule } from '@core/files/file.module';
+import { MailModule } from '@core/mail/mail.module';
 import { AccountTokenModule } from './account-token.module';
 import { AuthGuard } from './auth.guard';
 import { TenantScopeGuard } from '@core/common/guards/tenant-scope.guard';
@@ -26,6 +27,7 @@ import { TenantScopeGuard } from '@core/common/guards/tenant-scope.guard';
     UsersModule,
     AuditModule,
     FileModule,
+    MailModule,
     AccountTokenModule,
   ],
   providers: [

@@ -330,7 +330,7 @@ describe('UsersService', () => {
       await service.update(userId, { status: 'INACTIVE' }, ownTenantId);
 
       expect(prismaMock.refreshToken.updateMany).toHaveBeenCalledWith({
-        where: { userId },
+        where: { userId, revokedAt: null },
         // `expect.any(Date)` é tipado como `any` pelo @types/jest — ver
         // roles.service.spec.ts para o mesmo padrão.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -372,7 +372,7 @@ describe('UsersService', () => {
       await service.remove(userId, ownTenantId);
 
       expect(prismaMock.refreshToken.updateMany).toHaveBeenCalledWith({
-        where: { userId },
+        where: { userId, revokedAt: null },
         // `expect.any(Date)` é tipado como `any` pelo @types/jest — ver
         // roles.service.spec.ts para o mesmo padrão.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

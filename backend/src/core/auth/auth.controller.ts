@@ -15,6 +15,8 @@ import { AuthService, AuthSessionResponse, SessionMeta } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { Public } from './auth.guard';
 import { SignUpPublicDto } from './dto/sign-up-public.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtPayload } from '@core/common/types/http.types';
 import {
   REFRESH_COOKIE,
@@ -129,6 +131,30 @@ export class AuthController {
   @Get('profile')
   getProfile(@Request() req: FastifyRequest & { user: JwtPayload }) {
     return this.authService.getProfile(req.user.sub);
+  }
+
+  /**
+   * POST /api/auth/forgot-password
+   *
+   * Sempre devolve 200 com a mesma resposta, exista ou não o e-mail — não
+   * dá pra descobrir quem tem conta por aqui (Plano Base.md 7.3).
+   */
+  @Public()
+  @Throttle(BRUTE_FORCE_THROTTLE)
+  @HttpCode(HttpStatus.OK)
+  @Post('forgot-password')
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(dto.email);
+    return { message: 'Se o e-mail existir, enviamos um link de redefinição.' };
+  }
+
+  @Public()
+  @Throttle(BRUTE_FORCE_THROTTLE)
+  @HttpCode(HttpStatus.OK)
+  @Post('reset-password')
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    await this.authService.resetPassword(dto.token, dto.newPassword);
+    return { message: 'Senha redefinida com sucesso.' };
   }
 
   // ------------------------------------------------------------------ helpers

@@ -19,6 +19,12 @@ import {
   PERMISSION_CATALOG,
   TENANT_ADMIN_PERMISSION_NAMES,
 } from '@core/authorization/permission-catalog';
+import { AccountTokenService } from './account-token.service';
+import { revokeSessions } from './session-revocation.util';
+import { MailService } from '@core/mail/mail.service';
+import { FilesService } from '@core/files/file.service';
+import { resolveTenantBranding } from '@core/mail/resolve-tenant-branding.util';
+import { renderAccountEmail } from '@core/mail/templates/account-email.template';
 
 export interface SessionMeta {
   userAgent?: string;
@@ -79,6 +85,9 @@ export class AuthService {
     private readonly permissionCache: PermissionCacheService,
     private readonly auditService: AuditService,
     private readonly redis: RedisService,
+    private readonly accountTokenService: AccountTokenService,
+    private readonly mailService: MailService,
+    private readonly filesService: FilesService,
   ) {}
 
   private loginLockoutKey(email: string): string {
@@ -623,5 +632,69 @@ export class AuthService {
     }
 
     return this.mapAuthUserContext(user);
+  }
+
+  /**
+   * Sempre devolve void (sem indicar se o e-mail existe) — a resposta no
+   * controller é idêntica nos dois casos (Plano Base.md 7.3). Só manda o
+   * e-mail se o usuário existir e a conta/tenant estiverem ativos.
+   */
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.getAuthUserByEmail(email);
+
+    if (!user || this.isUserOrTenantBlocked(user)) {
+      return;
+    }
+
+    const rawToken = await this.accountTokenService.issue({
+      userId: user.id,
+      tenantId: user.tenantId,
+      type: 'RESET_PASSWORD',
+      ttlMs: 60 * 60 * 1000, // 1h
+      // Rota @Public() — sem tenant no AsyncLocalStorage, a RLS da
+      // AccountToken bloquearia o insert via PrismaService (ver
+      // account-token.service.ts). PrismaBootstrapService é a mesma role
+      // de owner que o resto desta classe já usa pros seus próprios
+      // acessos cross-tenant.
+      client: this.prismaBootstrap,
+    });
+
+    const { tenantName, tenantLogoUrl } = await resolveTenantBranding(
+      this.filesService,
+      user.tenant,
+    );
+    const { html, text } = renderAccountEmail({
+      title: 'Redefinir sua senha',
+      bodyText:
+        'Recebemos um pedido para redefinir a senha da sua conta. Se foi você, clique no botão abaixo. Se não foi, pode ignorar este e-mail.',
+      tenantName,
+      tenantLogoUrl,
+      actionUrl: `${process.env.FRONTEND_URL}/auth/reset-password?token=${rawToken}`,
+      actionLabel: 'Redefinir senha',
+    });
+
+    await this.mailService.send({
+      to: user.email,
+      subject: 'Redefinir sua senha',
+      html,
+      text,
+    });
+  }
+
+  async resetPassword(rawToken: string, newPassword: string): Promise<void> {
+    const token = await this.accountTokenService.consume(
+      rawToken,
+      'RESET_PASSWORD',
+      this.prismaBootstrap,
+    );
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await this.prismaBootstrap.user.update({
+      where: { id: token.userId },
+      data: { password: passwordHash },
+    });
+
+    await revokeSessions(this.prismaBootstrap, token.userId, { all: true });
   }
 }

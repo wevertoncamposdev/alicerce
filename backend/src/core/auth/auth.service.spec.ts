@@ -9,6 +9,9 @@ import { I18nService } from 'nestjs-i18n';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 import { RedisService } from '@core/redis/redis.service';
 import { AuditService } from '@modules/audit/audit.service';
+import { AccountTokenService } from './account-token.service';
+import { MailService } from '@core/mail/mail.service';
+import { FilesService } from '@core/files/file.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -30,8 +33,10 @@ describe('AuthService', () => {
       >;
       create: jest.Mock;
     };
-    user: { findUnique: jest.Mock };
+    user: { findUnique: jest.Mock; update: jest.Mock };
   };
+  let accountTokenService: { issue: jest.Mock; consume: jest.Mock };
+  let mailService: { send: jest.Mock };
 
   const correctPassword = 'correct-password';
   let baseUser: {
@@ -82,7 +87,10 @@ describe('AuthService', () => {
           .mockResolvedValue({ count: 1 }),
         create: jest.fn().mockResolvedValue({}),
       },
-      user: { findUnique: jest.fn().mockResolvedValue(baseUser) },
+      user: {
+        findUnique: jest.fn().mockResolvedValue(baseUser),
+        update: jest.fn().mockResolvedValue({}),
+      },
     };
 
     auditService = { register: jest.fn().mockResolvedValue(undefined) };
@@ -93,6 +101,11 @@ describe('AuthService', () => {
       expire: jest.fn().mockResolvedValue(1),
       del: jest.fn().mockResolvedValue(1),
     };
+    accountTokenService = {
+      issue: jest.fn().mockResolvedValue('raw-account-token'),
+      consume: jest.fn(),
+    };
+    mailService = { send: jest.fn().mockResolvedValue(undefined) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -113,6 +126,12 @@ describe('AuthService', () => {
           useValue: { setPermissions: jest.fn().mockResolvedValue(undefined) },
         },
         { provide: AuditService, useValue: auditService },
+        { provide: AccountTokenService, useValue: accountTokenService },
+        { provide: MailService, useValue: mailService },
+        {
+          provide: FilesService,
+          useValue: { getSignedUrlOrNull: jest.fn().mockResolvedValue(null) },
+        },
       ],
     }).compile();
 
@@ -393,6 +412,72 @@ describe('AuthService', () => {
       await expect(service.refreshTokens('raw-token')).rejects.toBeInstanceOf(
         UnauthorizedException,
       );
+    });
+  });
+
+  describe('forgotPassword', () => {
+    it('emite um token e manda e-mail quando o usuário existe e está ativo', async () => {
+      await service.forgotPassword(baseUser.email);
+
+      expect(accountTokenService.issue).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: baseUser.id,
+          type: 'RESET_PASSWORD',
+        }),
+      );
+      expect(mailService.send).toHaveBeenCalledWith(
+        expect.objectContaining({ to: baseUser.email }),
+      );
+    });
+
+    it('não lança e não manda e-mail quando o usuário não existe', async () => {
+      prisma.user.findUnique.mockResolvedValueOnce(null);
+
+      await expect(
+        service.forgotPassword('nao-existe@example.com'),
+      ).resolves.toBeUndefined();
+
+      expect(accountTokenService.issue).not.toHaveBeenCalled();
+      expect(mailService.send).not.toHaveBeenCalled();
+    });
+
+    it('não manda e-mail quando a conta está inativa (mesma resposta pro chamador)', async () => {
+      prisma.user.findUnique.mockResolvedValueOnce({
+        ...baseUser,
+        status: 'INACTIVE',
+      });
+
+      await service.forgotPassword(baseUser.email);
+
+      expect(accountTokenService.issue).not.toHaveBeenCalled();
+      expect(mailService.send).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('troca a senha e revoga as sessões quando o token é válido', async () => {
+      accountTokenService.consume.mockResolvedValueOnce({
+        userId: baseUser.id,
+      });
+
+      await service.resetPassword('raw-token', 'uma-senha-bem-forte-123');
+
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: baseUser.id } }),
+      );
+      expect(prisma.refreshToken.updateMany).toHaveBeenCalled();
+    });
+
+    it('propaga o erro quando o token é inválido/expirado/já usado', async () => {
+      accountTokenService.consume.mockRejectedValueOnce(
+        new Error('Token inválido ou expirado'),
+      );
+
+      await expect(
+        service.resetPassword('raw-token', 'uma-senha-bem-forte-123'),
+      ).rejects.toThrow('Token inválido ou expirado');
+
+      expect(prisma.user.update).not.toHaveBeenCalled();
     });
   });
 });

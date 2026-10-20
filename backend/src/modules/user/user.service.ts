@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { Prisma, Permission } from '@core/prisma/generated/client';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { revokeSessions } from '@core/auth/session-revocation.util';
 
 //@DTO
 import { CreateUserDto } from './dto/create-user.dto';
@@ -46,10 +47,7 @@ export class UsersService {
   // de senha) — RefreshToken já é tenant-scoped via RLS (TENANT_SCOPED_MODELS),
   // então este updateMany nunca alcança refresh tokens de outro tenant.
   private async revokeAllSessions(userId: string, tenantId: string) {
-    await this.prisma.refreshToken.updateMany({
-      where: { userId },
-      data: { revokedAt: new Date() },
-    });
+    await revokeSessions(this.prisma, userId, { all: true });
     await this.permissionCache.invalidateUser(tenantId, userId);
   }
 
