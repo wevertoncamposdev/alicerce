@@ -24,6 +24,7 @@ import { HealthModule } from '@core/health/health.module';
 import { PrismaModule } from '@core/prisma/prisma.module';
 import { RedisModule } from '@core/redis/redis.module';
 import { StorageModule } from '@core/storage/storage.module';
+import { MailModule } from '@core/mail/mail.module';
 import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { AuthModule } from '@core/auth/auth.module';
 import { TenantMiddleware } from '@core/common/middleware/tenant.middleware';
@@ -48,6 +49,7 @@ import { PermissionModule } from '@modules/permission/permission.module';
     PrismaModule,
     RedisModule,
     StorageModule,
+    MailModule,
     HealthModule,
     AuthorizationModule,
     UsersModule,

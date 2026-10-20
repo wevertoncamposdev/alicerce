@@ -40,6 +40,21 @@ const envSchema = z.object({
   S3_ENDPOINT: z.string().optional(),
   S3_ACCESS_KEY_ID: z.string().optional(),
   S3_SECRET_ACCESS_KEY: z.string().optional(),
+
+  // Mail (Fase 7, ADR 0011) — driver console (default) não exige nada;
+  // variáveis de SMTP/Resend ficam opcionais aqui, exigidas em runtime só
+  // quando MAIL_DRIVER usa o adapter correspondente (mesmo padrão do
+  // Storage: falha no momento de uso, não no boot).
+  MAIL_DRIVER: z.enum(['console', 'smtp', 'resend']).default('console'),
+  MAIL_FROM: z.string().optional(),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.string().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
+  SMTP_SECURE: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(),
+  // Base pros links nos e-mails (convite, reset de senha, verificação...).
+  FRONTEND_URL: z.string().default('http://localhost:3000'),
 });
 
 export type Env = z.infer<typeof envSchema>;
