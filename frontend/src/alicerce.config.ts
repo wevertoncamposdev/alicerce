@@ -26,8 +26,13 @@ export type ModuleManifestEntry = {
     basePath: string;
     /** Permissão exigida pra ver/acessar o módulo (checagem de leitura). */
     permission: string;
-    /** Em qual grupo do menu lateral o módulo aparece. */
-    navGroup: "geral" | "permissoes";
+    /**
+     * Em qual grupo do menu lateral o módulo aparece. "hidden" não aparece
+     * em grupo nenhum — a rota continua protegida por permissão, só não é
+     * um item de navegação (ex.: permissions, alcançado por link direto a
+     * partir da matriz de Papéis — ver Plano Base.md 8.4).
+     */
+    navGroup: "geral" | "configuracoes" | "hidden";
     /**
      * Permissões por ação granular (criar/editar/remover/...), além da
      * permissão de leitura acima. Chave vira `${key}.${ação}` em
@@ -47,7 +52,7 @@ export const alicerceModules = defineModuleManifest([
         icon: Users,
         basePath: "/users",
         permission: "user.read",
-        navGroup: "geral",
+        navGroup: "configuracoes",
         actionPermissions: { create: "user.create", update: "user.update", delete: "user.delete" },
     },
     {
@@ -56,7 +61,7 @@ export const alicerceModules = defineModuleManifest([
         icon: KeyRound,
         basePath: "/roles",
         permission: "role.read",
-        navGroup: "permissoes",
+        navGroup: "configuracoes",
         actionPermissions: { create: "role.create", update: "role.update", delete: "role.delete", assign: "role.assign" },
     },
     {
@@ -65,7 +70,7 @@ export const alicerceModules = defineModuleManifest([
         icon: Shield,
         basePath: "/permissions",
         permission: "permission.read",
-        navGroup: "permissoes",
+        navGroup: "hidden",
         actionPermissions: { create: "permission.create", update: "permission.update", delete: "permission.delete" },
     },
     {
@@ -74,7 +79,7 @@ export const alicerceModules = defineModuleManifest([
         icon: FileText,
         basePath: "/audit",
         permission: "audit.read",
-        navGroup: "permissoes",
+        navGroup: "configuracoes",
         actionPermissions: { refresh: "audit.read" },
     },
     {
@@ -83,7 +88,7 @@ export const alicerceModules = defineModuleManifest([
         icon: Package,
         basePath: "/feedbacks",
         permission: "feedback.read",
-        navGroup: "permissoes",
+        navGroup: "geral",
         actionPermissions: { create: "feedback.create", update: "feedback.update", delete: "feedback.delete" },
     },
 ] as const);

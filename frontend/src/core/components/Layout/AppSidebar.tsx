@@ -49,6 +49,10 @@ const GENERAL_MODULES: string[] = alicerceModules
   .filter((mod) => mod.navGroup === "geral")
   .map((mod) => mod.key);
 
+const CONFIG_MODULES: string[] = alicerceModules
+  .filter((mod) => mod.navGroup === "configuracoes")
+  .map((mod) => mod.key);
+
 function NavItem({
   href,
   label,
@@ -106,7 +110,7 @@ export function AppSidebar({
 
   const routeRules = listRouteRules();
   const generalRoutes = routeRules.filter((rule) => GENERAL_MODULES.includes(rule.module));
-  const permissionRoutes = routeRules.filter((rule) => !GENERAL_MODULES.includes(rule.module));
+  const configRoutes = routeRules.filter((rule) => CONFIG_MODULES.includes(rule.module));
 
   return (
     <Sidebar>
@@ -156,10 +160,20 @@ export function AppSidebar({
         </SidebarGroup>
         <SidebarSeparator />
         <SidebarGroup>
-          <SidebarGroupLabel>Permissões</SidebarGroupLabel>
+          <SidebarGroupLabel>Configurações</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {permissionRoutes.map((route) => (
+              {hasPermission("tenant.update") ? (
+                <SidebarMenuItem>
+                  <NavItem
+                    href="/configuracoes/instituicao"
+                    label={alicerceTerms.tenant}
+                    icon={Building2}
+                    disabled={false}
+                  />
+                </SidebarMenuItem>
+              ) : null}
+              {configRoutes.map((route) => (
                 <SidebarMenuItem key={route.prefix}>
                   <NavItem
                     href={route.prefix}
@@ -206,12 +220,6 @@ export function AppSidebar({
                   <UserRound className="mr-2 h-4 w-4" />
                   Perfil
                 </DropdownMenuItem>
-                {hasPermission("tenant.update") ? (
-                  <DropdownMenuItem onClick={() => router.push("/configuracoes/instituicao")}>
-                    <Building2 className="mr-2 h-4 w-4" />
-                    {alicerceTerms.tenant}
-                  </DropdownMenuItem>
-                ) : null}
                 <DropdownMenuItem
                   onClick={() => {
                     signOut();
