@@ -3,10 +3,17 @@ model User {
     id       String  @id @default(uuid(7)) @db.Uuid
     tenantId String  @db.Uuid
     email    String  @unique @db.VarChar(255)
-    password String  @db.VarChar(100)
+    // Nullable: usuário convidado (etapa 7.4) ainda não definiu senha —
+    // computado como `pendingInvite` em UserMapper, nunca exposto crú.
+    password String? @db.VarChar(100)
     name     String? @db.VarChar(255)
     theme    String? @db.VarChar(20)
     locale   String? @db.VarChar(10)
+
+    // Quando o usuário foi convidado (etapa 7.4) — metadado histórico, fica
+    // setado pra sempre, mesmo depois do convite aceito. `pendingInvite` usa
+    // `password === null`, não este campo.
+    invitedAt DateTime?
 
     // Fase 6 — avatar (Plano Base.md 6.4). Posse validada em quem anexa
     // (MeService.updateMe), não aqui — ver ADR 0010.

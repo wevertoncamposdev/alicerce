@@ -39,8 +39,18 @@ export class UsersController {
     @Body() createUserDto: CreateUserDto,
     @TenantId() tenantId: string,
   ): Promise<UserResponseDto> {
-    const data = await this.usersService.create(createUserDto, tenantId);
+    const data = await this.usersService.invite(createUserDto, tenantId);
     return data;
+  }
+
+  @Post(':id/invite/resend')
+  @Permissions('user.update')
+  async resendInvite(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
+    await this.usersService.resendInvite(id, tenantId);
+    return { message: 'Convite reenviado.' };
   }
 
   @Get()

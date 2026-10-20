@@ -17,6 +17,7 @@ import { Public } from './auth.guard';
 import { SignUpPublicDto } from './dto/sign-up-public.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { AcceptInviteDto } from './dto/accept-invite.dto';
 import { JwtPayload } from '@core/common/types/http.types';
 import {
   REFRESH_COOKIE,
@@ -155,6 +156,21 @@ export class AuthController {
   async resetPassword(@Body() dto: ResetPasswordDto) {
     await this.authService.resetPassword(dto.token, dto.newPassword);
     return { message: 'Senha redefinida com sucesso.' };
+  }
+
+  /**
+   * POST /api/auth/accept-invite
+   *
+   * Define a senha de um usuário convidado (etapa 7.4). Não loga
+   * automaticamente — o fluxo é convite → aceite → login normal.
+   */
+  @Public()
+  @Throttle(BRUTE_FORCE_THROTTLE)
+  @HttpCode(HttpStatus.OK)
+  @Post('accept-invite')
+  async acceptInvite(@Body() dto: AcceptInviteDto) {
+    await this.authService.acceptInvite(dto.token, dto.password);
+    return { message: 'Convite aceito. Você já pode fazer login.' };
   }
 
   // ------------------------------------------------------------------ helpers

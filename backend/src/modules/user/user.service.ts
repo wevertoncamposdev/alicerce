@@ -11,6 +11,11 @@ import { Prisma, Permission } from '@core/prisma/generated/client';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 import { revokeSessions } from '@core/auth/session-revocation.util';
+import { AccountTokenService } from '@core/auth/account-token.service';
+import { MailService } from '@core/mail/mail.service';
+import { FilesService } from '@core/files/file.service';
+import { resolveTenantBranding } from '@core/mail/resolve-tenant-branding.util';
+import { renderAccountEmail } from '@core/mail/templates/account-email.template';
 
 //@DTO
 import { CreateUserDto } from './dto/create-user.dto';
@@ -31,6 +36,20 @@ import { UserRepository } from './persistence/repository/user.repository';
 
 import { RolesService } from '../role/roles.service';
 
+const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Qualquer linha de `users` que passe pelo controller — nunca devolve o
+// hash da senha, só o booleano computado (ver ADR 0011 / Plano Base.md
+// 7.4). `search`/`findOne`/`update`/`remove` continuam devolvendo o
+// restante da linha tal como já faziam (status, tenantId etc. — o
+// frontend depende dessa forma), só sem `password` cru.
+function withPendingInvite<T extends { password: string | null }>(
+  user: T,
+): Omit<T, 'password'> & { pendingInvite: boolean } {
+  const { password, ...rest } = user;
+  return { ...rest, pendingInvite: password === null };
+}
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -41,6 +60,9 @@ export class UsersService {
     private readonly prisma: PrismaService,
     private readonly rolesService: RolesService,
     private readonly permissionCache: PermissionCacheService,
+    private readonly accountTokenService: AccountTokenService,
+    private readonly mailService: MailService,
+    private readonly filesService: FilesService,
   ) {}
 
   // Fecha toda sessão aberta do usuário (ex.: desativação, exclusão, troca
@@ -78,7 +100,10 @@ export class UsersService {
     }
   }
 
-  async create(
+  // "Criar" um usuário agora é só convidar (etapa 7.4, Plano Base.md):
+  // sem senha, `invitedAt` marcado, e-mail de convite com um AccountToken
+  // de uso único. Mesma permissão de antes (`user.create`).
+  async invite(
     createUserDto: CreateUserDto,
     tenantId: string,
   ): Promise<UserResponseDto> {
@@ -87,19 +112,86 @@ export class UsersService {
       // (parâmetro `tenantId` desta função), nunca do payload do cliente.
       const { tenantId: _tenantId, ...rest } = createUserDto;
       void _tenantId;
-      const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
       const user = await this.userRepository.create({
         ...rest,
-        password: hashedPassword,
+        password: null,
+        invitedAt: new Date(),
         tenant: {
           connect: { id: tenantId },
         },
       });
 
+      await this.sendInviteEmail(user.id, tenantId, user.email);
+
       return this.userMapper.mapToResponseDto(user);
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'create');
     }
+  }
+
+  // Reenvio (etapa 7.4): invalida qualquer convite ainda não usado e emite
+  // um novo — mesmo e-mail, novo token, novo prazo de 7 dias.
+  async resendInvite(id: string, tenantId: string): Promise<void> {
+    this.userBusinessRules.validateUserId(id);
+
+    const existing = await this.userRepository.findById(id);
+    if (!existing || existing.tenantId !== tenantId) {
+      throw new NotFoundException({
+        message: 'Usuario nao encontrado',
+        code: UserErrorCode.NOT_FOUND,
+        details: { id },
+      });
+    }
+
+    if (existing.password !== null) {
+      throw new ForbiddenException(
+        'Este usuário já aceitou o convite e definiu uma senha.',
+      );
+    }
+
+    await this.accountTokenService.invalidatePending(id, 'INVITE');
+    await this.sendInviteEmail(id, tenantId, existing.email);
+  }
+
+  private async sendInviteEmail(
+    userId: string,
+    tenantId: string,
+    email: string,
+  ): Promise<void> {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { id: true, legalName: true, tradeName: true, logoFileId: true },
+    });
+    if (!tenant) {
+      return;
+    }
+
+    const rawToken = await this.accountTokenService.issue({
+      userId,
+      tenantId,
+      type: 'INVITE',
+      ttlMs: INVITE_TTL_MS,
+    });
+
+    const { tenantName, tenantLogoUrl } = await resolveTenantBranding(
+      this.filesService,
+      tenant,
+    );
+    const { html, text } = renderAccountEmail({
+      title: 'Você foi convidado',
+      bodyText: `Você foi convidado a fazer parte de ${tenantName}. Clique no botão abaixo para definir sua senha e acessar sua conta.`,
+      tenantName,
+      tenantLogoUrl,
+      actionUrl: `${process.env.FRONTEND_URL}/auth/accept-invite?token=${rawToken}`,
+      actionLabel: 'Aceitar convite',
+    });
+
+    await this.mailService.send({
+      to: email,
+      subject: 'Você foi convidado',
+      html,
+      text,
+    });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto, tenantId: string) {
@@ -137,7 +229,7 @@ export class UsersService {
         await this.revokeAllSessions(id, tenantId);
       }
 
-      return updated;
+      return withPendingInvite(updated);
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'update');
     }
@@ -161,7 +253,7 @@ export class UsersService {
       const removed = await this.userRepository.softDeleteById(id);
       await this.revokeAllSessions(id, tenantId);
 
-      return removed;
+      return withPendingInvite(removed);
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'remove');
     }
@@ -190,7 +282,7 @@ export class UsersService {
         });
       }
 
-      return user;
+      return withPendingInvite(user);
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'findOne');
     }
@@ -249,7 +341,7 @@ export class UsersService {
       this.userRepository.count(where),
     ]);
 
-    return { items: items, total, page, limit };
+    return { items: items.map(withPendingInvite), total, page, limit };
   }
 
   async findPermissionsOfUser(userId: string, tenantId: string) {

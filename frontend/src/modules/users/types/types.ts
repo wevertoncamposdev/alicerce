@@ -3,9 +3,9 @@ export type UserEntity = {
     id: string;
     email: string;
     name?: string | null;
-    password?: string;
     tenantId: string;
     status: string;
+    pendingInvite?: boolean;
     createdAt: string;
 };
 

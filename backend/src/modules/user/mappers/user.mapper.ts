@@ -20,6 +20,7 @@ export class UserMapper {
       validationStatus: this.validator.validateEmail(user.email),
       isActive: this.validator.isActive(user),
       isAdult: user.birthDate ? DateUtil.isAdult(user.birthDate) : false,
+      pendingInvite: user.password === null || user.password === undefined,
     };
   }
 

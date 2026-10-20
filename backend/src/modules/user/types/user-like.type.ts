@@ -9,6 +9,7 @@ export interface UserLike {
   email: string;
   name?: string | null;
   birthDate?: Date | null;
+  password?: string | null;
   createdAt: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;

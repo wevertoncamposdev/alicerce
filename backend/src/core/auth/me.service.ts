@@ -111,10 +111,12 @@ export class MeService {
       'Usuário não encontrado',
     );
 
-    const isCurrentPasswordValid = await bcrypt.compare(
-      dto.currentPassword,
-      user.password,
-    );
+    // user.password só é null pra convite ainda não aceito (etapa 7.4) —
+    // na prática inalcançável aqui (sem senha não tem como ter uma sessão
+    // autenticada), mas o tipo exige a guarda mesmo assim.
+    const isCurrentPasswordValid =
+      user.password !== null &&
+      (await bcrypt.compare(dto.currentPassword, user.password));
 
     if (!isCurrentPasswordValid) {
       throw new BadRequestException('Senha atual incorreta');

@@ -12,7 +12,8 @@ describe('UsersController', () => {
   let service: jest.Mocked<UsersService>;
 
   const usersServiceMock = {
-    create: jest.fn(),
+    invite: jest.fn(),
+    resendInvite: jest.fn(),
     findAll: jest.fn(),
     findOne: jest.fn(),
     findAllWithValidation: jest.fn(),
@@ -54,20 +55,32 @@ describe('UsersController', () => {
   });
 
   describe('POST /users', () => {
-    it('should call create on service', async () => {
+    it('should call invite on service', async () => {
       const tenantId = randomUUID();
       const dto: CreateUserDto = {
         tenantId,
         email: 'john@example.com',
-        password: '123456',
       };
-      const expected = { id: 'user-id', ...dto };
-      service.create.mockResolvedValueOnce(expected as never);
+      const expected = { id: 'user-id', ...dto, pendingInvite: true };
+      service.invite.mockResolvedValueOnce(expected as never);
 
       const result = await controller.create(dto, tenantId);
 
       expect(result).toEqual(expected);
-      expect(service.create).toHaveBeenCalledWith(dto, tenantId);
+      expect(service.invite).toHaveBeenCalledWith(dto, tenantId);
+    });
+  });
+
+  describe('POST /users/:id/invite/resend', () => {
+    it('should call resendInvite on service', async () => {
+      const id = 'adf4f488-faa3-4fca-946e-522f7c2d4976';
+      const tenantId = randomUUID();
+      service.resendInvite.mockResolvedValueOnce(undefined);
+
+      const result = await controller.resendInvite(id, tenantId);
+
+      expect(result).toEqual({ message: 'Convite reenviado.' });
+      expect(service.resendInvite).toHaveBeenCalledWith(id, tenantId);
     });
   });
 

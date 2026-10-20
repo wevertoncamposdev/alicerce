@@ -8,6 +8,9 @@ import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { FilesService } from '@core/files/file.service';
+import { MailService } from '@core/mail/mail.service';
+import { AccountTokenService } from '@core/auth/account-token.service';
 import { buildUser, MockUser } from './helpers/fixtures';
 
 /**
@@ -104,6 +107,19 @@ describe('User tenant isolation (e2e with mocked Prisma)', () => {
       // transitivamente por UsersModule) o injeta.
       .overrideProvider(PermissionCacheService)
       .useValue({ invalidateUser: jest.fn(), invalidateUsers: jest.fn() })
+      // UsersService injeta os três desde a etapa 7.4 (convite de usuário)
+      // — nenhum teste aqui exercita convite/e-mail, só precisam existir
+      // no grafo de DI.
+      .overrideProvider(FilesService)
+      .useValue({ getSignedUrlOrNull: () => Promise.resolve(null) })
+      .overrideProvider(MailService)
+      .useValue({ send: jest.fn().mockResolvedValue(undefined) })
+      .overrideProvider(AccountTokenService)
+      .useValue({
+        issue: jest.fn().mockResolvedValue('raw-token'),
+        consume: jest.fn(),
+        invalidatePending: jest.fn().mockResolvedValue(undefined),
+      })
       .compile();
 
     app = moduleFixture.createNestApplication();

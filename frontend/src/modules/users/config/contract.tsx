@@ -6,31 +6,20 @@ import { createRecordFormAction } from "@core/registry/actions";
 import { FormView } from "@components/TypeView/FormView/FormView";
 import UserRolesHost from "@modules/users/components/UserRolesHost";
 import { UserPermissionsHost } from "@modules/users/components/UserPermissionsHost";
+import { PendingInviteControl } from "@modules/users/components/PendingInviteControl";
 
 import { searchUsers, readUser, createUser, updateUser, deleteUser, readUserRoles, readUserPermissions } from "./provider";
 import type { UserEntity, ContextItem } from "../types/types";
 import UsersListView from "../components/UsersListView";
 
+// Sem campo de senha (etapa 7.4, Plano Base.md): "criar" um usuário é
+// convidar — quem aceita o convite é quem escolhe a própria senha.
 const formFields = [
     { name: "email" as const, label: "E-mail", type: "email" as const, required: true },
-    {
-        name: "password" as const,
-        label: "Senha",
-        type: "password" as const,
-        required: true,
-        createOnly: true,
-    }
 ];
 
 const formFieldsEdit = [
     { name: "email" as const, label: "E-mail", type: "email" as const, required: true },
-    {
-        name: "password" as const,
-        label: "Senha",
-        type: "password" as const,
-        required: true,
-        createOnly: true,
-    },
     {
         name: "status" as const,
         label: "Status",
@@ -60,13 +49,16 @@ const usersListLayout: ListLayout<UserEntity> = {
 
 const usersDetailLayout: DetailLayout<UserEntity> = {
     main: ({ record }) => (
-        <FormView<UserEntity>
-            mode="edit"
-            model="users"
-            recordId={record.id}
-            fields={formFieldsEdit}
-            initialValues={record}
-        />
+        <>
+            {record.pendingInvite ? <PendingInviteControl userId={record.id} /> : null}
+            <FormView<UserEntity>
+                mode="edit"
+                model="users"
+                recordId={record.id}
+                fields={formFieldsEdit}
+                initialValues={record}
+            />
+        </>
     ),
     relations: ({ record }) => [
         { key: "roles", label: "Roles", content: <UserRolesSection userId={record.id} /> },

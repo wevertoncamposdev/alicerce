@@ -545,10 +545,16 @@ export class AuthService {
       throw new UnauthorizedException(message);
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      signInDto.password,
-      user.password,
-    );
+    // Convite ainda não aceito (etapa 7.4): `password === null`, nunca
+    // chama bcrypt.compare com null — mas sempre chama bcrypt.compare com
+    // ALGUM hash, pra gastar o mesmo tempo do caso de senha errada.
+    const isPasswordValid =
+      user.password !== null &&
+      (await bcrypt.compare(signInDto.password, user.password));
+
+    if (user.password === null) {
+      await bcrypt.compare(signInDto.password, DUMMY_PASSWORD_HASH);
+    }
 
     if (!isPasswordValid) {
       await this.recordFailedLoginAttempt(signInDto.email);
@@ -696,5 +702,23 @@ export class AuthService {
     });
 
     await revokeSessions(this.prismaBootstrap, token.userId, { all: true });
+  }
+
+  // Convite de usuário (etapa 7.4) — define a senha pela primeira vez.
+  // Não loga automaticamente: "convite → aceite → login" no Plano Base é
+  // sequencial, o usuário faz login normal depois em /auth/login.
+  async acceptInvite(rawToken: string, password: string): Promise<void> {
+    const token = await this.accountTokenService.consume(
+      rawToken,
+      'INVITE',
+      this.prismaBootstrap,
+    );
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await this.prismaBootstrap.user.update({
+      where: { id: token.userId },
+      data: { password: passwordHash },
+    });
   }
 }

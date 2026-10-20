@@ -25,6 +25,11 @@ export class UserResponseDto {
   @ApiPropertyOptional()
   isAdult?: boolean;
 
+  // Convite ainda não aceito (etapa 7.4) — true enquanto a senha não foi
+  // definida. Nunca expõe a senha/hash em si, só este booleano.
+  @ApiProperty()
+  pendingInvite!: boolean;
+
   @ApiPropertyOptional({ nullable: true })
   birthDate?: Date | null;
 

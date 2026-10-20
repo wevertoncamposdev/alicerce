@@ -7,8 +7,10 @@ import {
   MaxLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsStrongPassword } from '@core/common/validators/strong-password.validator';
 
+// Sem campo de senha (etapa 7.4, Plano Base.md): admin nunca mais define a
+// senha de outra pessoa — `POST /user` convida (ver UsersService.invite),
+// quem aceita o convite é quem escolhe a própria senha.
 export class CreateUserDto {
   @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
@@ -25,12 +27,6 @@ export class CreateUserDto {
   @IsString()
   @MaxLength(255)
   name?: string;
-
-  @ApiProperty({ minLength: 8, maxLength: 100 })
-  @IsString()
-  @MaxLength(100)
-  @IsStrongPassword()
-  password!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
