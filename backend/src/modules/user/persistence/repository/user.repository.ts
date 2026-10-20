@@ -53,14 +53,6 @@ export class UserRepository {
     });
   }
 
-  findManyWithBirthDate() {
-    return this.prisma.user.findMany({
-      where: {
-        deletedAt: null,
-      },
-    });
-  }
-
   search(where: Prisma.UserWhereInput, skip: number, take: number) {
     return this.prisma.user.findMany({
       where,

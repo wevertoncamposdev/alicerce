@@ -8,7 +8,7 @@ export function UserPermissionsHost({ items }: { items: PermissionEntity[] }) {
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-muted-foreground">Permissions</h3>
+                <h3 className="text-sm font-medium text-muted-foreground">Permissões efetivas</h3>
             </div>
 
             <div className="overflow-hidden rounded-md border">
@@ -25,7 +25,7 @@ export function UserPermissionsHost({ items }: { items: PermissionEntity[] }) {
                         {items.length === 0 ? (
                             <tr>
                                 <td colSpan={4}>
-                                    <EmptyState title="Nenhuma permission associada." className="py-4" />
+                                    <EmptyState title="Nenhuma permissão associada." className="py-4" />
                                 </td>
                             </tr>
                         ) : (

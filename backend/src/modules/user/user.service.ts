@@ -282,7 +282,16 @@ export class UsersService {
         });
       }
 
-      return withPendingInvite(user);
+      // Resolvido só aqui (detail, um registro) — mesmo padrão de
+      // MeService/TenantService. A lista não precisa (não mostra avatar).
+      const avatarUrl = user.avatarFileId
+        ? await this.filesService.getSignedUrlOrNull(
+            user.avatarFileId,
+            tenantId,
+          )
+        : null;
+
+      return { ...withPendingInvite(user), avatarUrl };
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'findOne');
     }
@@ -303,14 +312,6 @@ export class UsersService {
     } catch (error) {
       this.userErrorMapper.mapAndThrow(error, 'findAll');
     }
-  }
-
-  async getAdultUserStats(
-    search: string,
-    tenantId: string,
-  ): Promise<UserResponseDto[]> {
-    const users = await this.findAllWithValidation(tenantId);
-    return this.userBusinessRules.filterUsersBySearch(users, search);
   }
 
   async getActiveUsersCount(): Promise<number> {

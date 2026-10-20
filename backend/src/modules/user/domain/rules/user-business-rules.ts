@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UserErrorCode } from '../errors/user-error-codes';
-import { UserResponseDto } from '../../dto/user-response.dto';
 
 @Injectable()
 export class UserBusinessRules {
@@ -12,24 +11,5 @@ export class UserBusinessRules {
         details: { id },
       });
     }
-  }
-
-  filterUsersBySearch(
-    users: UserResponseDto[],
-    search: string,
-  ): UserResponseDto[] {
-    if (search === 'all') {
-      return users;
-    }
-
-    if (search === 'adults') {
-      return users.filter((user) => user.isAdult);
-    }
-
-    if (search === 'non-adults') {
-      return users.filter((user) => !user.isAdult);
-    }
-
-    return [];
   }
 }

@@ -19,10 +19,7 @@ describe('UsersController', () => {
     findAllWithValidation: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
-    getUserStats: jest.fn(),
-    getAdultUserStats: jest.fn(),
     getActiveUsersCount: jest.fn(),
-    getUsersByAgeRange: jest.fn(),
   };
 
   beforeEach(async () => {

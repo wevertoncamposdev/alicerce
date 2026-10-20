@@ -27,7 +27,7 @@ function UserRolesHost({ userId, initial }: { userId: string; initial: RoleEntit
 
     const config = React.useMemo<RelationHostConfig<RoleEntity>>(
         () => ({
-            title: "Roles",
+            title: "Papéis",
             columns,
             initialData: initial,
             idAccessor: (r) => r.id,

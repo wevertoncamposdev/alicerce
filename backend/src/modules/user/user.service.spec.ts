@@ -34,7 +34,6 @@ describe('UsersService', () => {
     updateById: jest.fn(),
     softDeleteById: jest.fn(),
     countActive: jest.fn(),
-    findManyWithBirthDate: jest.fn(),
     search: jest.fn(),
     count: jest.fn(),
   };
@@ -322,8 +321,34 @@ describe('UsersService', () => {
 
       const result = await service.findOne(userId, tenantId);
 
-      expect(result).toMatchObject({ pendingInvite: true });
+      expect(result).toMatchObject({ pendingInvite: true, avatarUrl: null });
       expect(result).not.toHaveProperty('password');
+      expect(filesServiceMock.getSignedUrlOrNull).not.toHaveBeenCalled();
+    });
+
+    it('findOne resolves avatarUrl when avatarFileId is set', async () => {
+      filesServiceMock.getSignedUrlOrNull.mockResolvedValueOnce(
+        'https://signed.example/avatar.png',
+      );
+      repository.findById.mockResolvedValueOnce({
+        id: userId,
+        email: 'with-avatar@example.com',
+        tenantId,
+        password: 'hashed-password',
+        status: 'ACTIVE',
+        avatarFileId: 'file-id',
+        createdAt: new Date(),
+      } as never);
+
+      const result = await service.findOne(userId, tenantId);
+
+      expect(filesServiceMock.getSignedUrlOrNull).toHaveBeenCalledWith(
+        'file-id',
+        tenantId,
+      );
+      expect(result).toMatchObject({
+        avatarUrl: 'https://signed.example/avatar.png',
+      });
     });
 
     it('search computes pendingInvite and strips password for every item', async () => {
