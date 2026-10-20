@@ -19,6 +19,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AcceptInviteDto } from './dto/accept-invite.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ConfirmEmailChangeDto } from './dto/confirm-email-change.dto';
 import { JwtPayload } from '@core/common/types/http.types';
 import {
   REFRESH_COOKIE,
@@ -187,6 +188,21 @@ export class AuthController {
   async verifyEmail(@Body() dto: VerifyEmailDto) {
     await this.authService.verifyEmail(dto.token);
     return { message: 'E-mail confirmado com sucesso.' };
+  }
+
+  /**
+   * POST /api/auth/confirm-email-change
+   *
+   * Confirma a troca de e-mail do perfil (etapa 7.6) — o e-mail só muda
+   * de fato aqui, nunca em POST /me/email. Ver MeService.changeEmail.
+   */
+  @Public()
+  @Throttle(BRUTE_FORCE_THROTTLE)
+  @HttpCode(HttpStatus.OK)
+  @Post('confirm-email-change')
+  async confirmEmailChange(@Body() dto: ConfirmEmailChangeDto) {
+    await this.authService.confirmEmailChange(dto.token);
+    return { message: 'E-mail alterado com sucesso.' };
   }
 
   // ------------------------------------------------------------------ helpers

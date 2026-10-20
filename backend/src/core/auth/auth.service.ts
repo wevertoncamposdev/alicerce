@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
@@ -772,5 +773,30 @@ export class AuthService {
       where: { id: token.userId },
       data: { emailVerifiedAt: new Date() },
     });
+  }
+
+  // Troca de e-mail no perfil (etapa 7.6) — o link mandado pro endereço
+  // NOVO (MeService.changeEmail) é a prova de posse da caixa; só então o
+  // e-mail muda de fato. @Public() porque, assim como reset/verify, não
+  // depende de sessão — a prova é o token em si.
+  async confirmEmailChange(rawToken: string): Promise<void> {
+    const token = await this.accountTokenService.consume(
+      rawToken,
+      'CHANGE_EMAIL',
+      this.prismaBootstrap,
+    );
+
+    if (!token.newEmail) {
+      throw new BadRequestException('Token inválido ou expirado');
+    }
+
+    try {
+      await this.prismaBootstrap.user.update({
+        where: { id: token.userId },
+        data: { email: token.newEmail },
+      });
+    } catch {
+      throw new ConflictException('Este e-mail já está em uso');
+    }
   }
 }

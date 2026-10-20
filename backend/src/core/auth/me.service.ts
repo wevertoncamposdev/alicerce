@@ -1,15 +1,25 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { findOneOrThrow } from '@core/common/utils/find-one-or-throw.util';
 import { FilesService } from '@core/files/file.service';
+import { MailService } from '@core/mail/mail.service';
+import { AccountTokenService } from '@core/auth/account-token.service';
+import { resolveTenantBranding } from '@core/mail/resolve-tenant-branding.util';
+import { renderAccountEmail } from '@core/mail/templates/account-email.template';
 import {
   revokeSessions as revokeSessionsUtil,
   RevokeSessionsScope,
 } from './session-revocation.util';
 import { UpdateMeDto } from './dto/update-me.dto';
 import { ChangeMyPasswordDto } from './dto/change-my-password.dto';
+
+const CHANGE_EMAIL_TTL_MS = 60 * 60 * 1000; // 1h
 
 export interface MeSessionItem {
   familyId: string;
@@ -39,6 +49,8 @@ export class MeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly filesService: FilesService,
+    private readonly accountTokenService: AccountTokenService,
+    private readonly mailService: MailService,
   ) {}
 
   private hashToken(rawToken: string): string {
@@ -131,6 +143,80 @@ export class MeService {
     });
 
     await this.revokeSessions(userId, { exceptFamilyId: currentFamilyId });
+  }
+
+  // Troca de e-mail (etapa 7.6): o e-mail só muda de fato quando o link
+  // mandado pro endereço NOVO é confirmado (AuthService.confirmEmailChange)
+  // — aqui só emite o token e avisa as duas caixas. `User.email` é
+  // `@unique` global, por isso a checagem de duplicidade não precisa de
+  // tenantId.
+  async changeEmail(
+    userId: string,
+    tenantId: string,
+    newEmail: string,
+  ): Promise<void> {
+    const existing = await this.prisma.user.findUnique({
+      where: { email: newEmail },
+    });
+    if (existing) {
+      throw new ConflictException('Já existe uma conta com este e-mail');
+    }
+
+    const user = findOneOrThrow(
+      await this.prisma.user.findUnique({ where: { id: userId } }),
+      () => true,
+      'Usuário não encontrado',
+    );
+
+    const tenant = findOneOrThrow(
+      await this.prisma.tenant.findUnique({ where: { id: tenantId } }),
+      () => true,
+      'Tenant não encontrado',
+    );
+
+    const rawToken = await this.accountTokenService.issue({
+      userId,
+      tenantId,
+      type: 'CHANGE_EMAIL',
+      ttlMs: CHANGE_EMAIL_TTL_MS,
+      newEmail,
+    });
+
+    const { tenantName, tenantLogoUrl } = await resolveTenantBranding(
+      this.filesService,
+      tenant,
+    );
+
+    const { html, text } = renderAccountEmail({
+      title: 'Confirme seu novo e-mail',
+      bodyText:
+        'Recebemos um pedido para trocar o e-mail da sua conta. Clique no botão abaixo para confirmar este novo endereço.',
+      tenantName,
+      tenantLogoUrl,
+      actionUrl: `${process.env.FRONTEND_URL}/auth/confirm-email-change?token=${rawToken}`,
+      actionLabel: 'Confirmar novo e-mail',
+    });
+    await this.mailService.send({
+      to: newEmail,
+      subject: 'Confirme seu novo e-mail',
+      html,
+      text,
+    });
+
+    // Aviso informativo pro e-mail antigo — sem link, só pra avisar caso
+    // não tenha sido o próprio usuário a pedir a troca.
+    const { html: oldHtml, text: oldText } = renderAccountEmail({
+      title: 'Pedido de troca de e-mail',
+      bodyText: `Alguém pediu a troca do e-mail da sua conta para ${newEmail}. Se não foi você, contate o suporte.`,
+      tenantName,
+      tenantLogoUrl,
+    });
+    await this.mailService.send({
+      to: user.email,
+      subject: 'Pedido de troca de e-mail',
+      html: oldHtml,
+      text: oldText,
+    });
   }
 
   async listSessions(

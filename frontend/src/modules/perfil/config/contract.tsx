@@ -5,6 +5,7 @@ import { createListQueryState } from "@lib/query-state/list-query-state";
 
 import { ProfileFormSection } from "@modules/perfil/components/ProfileFormSection";
 import { ChangePasswordControl } from "@modules/perfil/components/ChangePasswordControl";
+import { ChangeEmailControl } from "@modules/perfil/components/ChangeEmailControl";
 import { ProfileSessionsHost } from "@modules/perfil/components/ProfileSessionsHost";
 
 import { readMe, updateMe, searchMeStub } from "./provider";
@@ -65,6 +66,13 @@ const perfilDetailLayout: DetailLayout<MeProfile> = {
             render: ({ record }) => (
                 <ProfileFormSection fields={["avatarFileId"]} record={record} formFields={formFields} />
             ),
+        },
+        {
+            key: "email",
+            title: "E-mail",
+            icon: Mail,
+            column: 1,
+            render: ({ record }) => <ChangeEmailControl currentEmail={record.email} />,
         },
         {
             key: "seguranca",

@@ -14,6 +14,7 @@ import type { FastifyRequest } from 'fastify';
 import { MeService } from './me.service';
 import { UpdateMeDto } from './dto/update-me.dto';
 import { ChangeMyPasswordDto } from './dto/change-my-password.dto';
+import { ChangeMyEmailDto } from './dto/change-my-email.dto';
 import { JwtPayload } from '@core/common/types/http.types';
 import { REFRESH_COOKIE } from './cookie.constants';
 
@@ -49,6 +50,19 @@ export class MeController {
       req.user.sub,
       dto,
       req.cookies?.[REFRESH_COOKIE],
+    );
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('email')
+  async changeEmail(
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: ChangeMyEmailDto,
+  ) {
+    await this.meService.changeEmail(
+      req.user.sub,
+      req.user.tenantId,
+      dto.newEmail,
     );
   }
 
