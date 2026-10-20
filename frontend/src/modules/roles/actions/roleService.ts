@@ -49,3 +49,27 @@ export async function detachRolePermission(params: { roleId: string; tenantId: s
     const qs = params.tenantId ? `?tenantId=${params.tenantId}` : "";
     return apiServer.delete<null>(`roles/${params.roleId}/permissions/${params.permissionId}${qs}`);
 }
+
+export interface PermissionMatrixGroup {
+    resource: string;
+    permissions: Array<{
+        id: string;
+        name: string;
+        type: string;
+        description: string | null;
+        granted: boolean;
+    }>;
+}
+
+// Etapa 3.5 (Plano Base.md) — matriz de permissões por recurso. Usada pela
+// aba Permissões do Detail de Papéis (8.3).
+export async function getPermissionMatrix(roleId: string): Promise<PermissionMatrixGroup[]> {
+    return apiServer.get<PermissionMatrixGroup[]>(`roles/${roleId}/permission-matrix`);
+}
+
+// Troca o conjunto INTEIRO de permissões de catálogo do papel — não é um
+// toggle por checkbox, é "manda o conjunto completo marcado" (ver
+// RolesService.replacePermissions, backend).
+export async function replaceRolePermissions(roleId: string, permissionIds: string[]): Promise<PermissionMatrixGroup[]> {
+    return apiServer.put<PermissionMatrixGroup[]>(`roles/${roleId}/permissions`, { permissionIds });
+}

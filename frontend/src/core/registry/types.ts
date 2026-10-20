@@ -58,7 +58,12 @@ export type DetailSection<T> = {
     title: string;
     icon?: LucideIcon;
     column?: 1 | 2 | 3;
-    editable?: boolean;
+    /**
+     * Função pra "editável, mas condicionado ao estado do registro" (ex.:
+     * seção bloqueada quando `record.isSystem` — ver Plano Base.md 8.3,
+     * papéis de sistema). Avaliada por `DetailSections.tsx` a cada render.
+     */
+    editable?: boolean | ((record: T) => boolean);
     fields?: (keyof T & string)[];
     render?: (ctx: DetailContext<T>) => React.ReactNode;
 };

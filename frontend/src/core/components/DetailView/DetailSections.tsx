@@ -59,8 +59,10 @@ function SectionBody<T>({
     if (section.render) return <>{section.render(context)}</>;
 
     const fields = section.fields ?? [];
+    const isEditable =
+        typeof section.editable === "function" ? section.editable(context.record) : Boolean(section.editable);
 
-    if (section.editable) {
+    if (isEditable) {
         return (
             <EditableSection
                 record={context.record}
