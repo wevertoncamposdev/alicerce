@@ -15,6 +15,26 @@ const SEARCHABLE_FIELDS = ['name', 'resource'] as const;
 const FILTERABLE_FIELDS = ['name', 'type', 'resource', 'description'] as const;
 const SORTABLE_FIELDS = ['name', 'type', 'resource', 'createdAt'] as const;
 
+// Lista de papéis que usam a permissão, já embutida na linha — evita N+1
+// de `findRolesOfPermission` por item quando a tela (8.4, Plano Base.md)
+// precisa mostrar "em quais papéis está" pra cada permissão da lista.
+const WITH_ROLE_NAMES = {
+  roles: { select: { role: { select: { id: true, name: true } } } },
+} satisfies Prisma.PermissionInclude;
+
+function withRoleNames<
+  T extends { roles: { role: { id: string; name: string } }[] },
+>(permission: T) {
+  const { roles, ...rest } = permission;
+  // Um papel pode ter mais de uma linha de RolePermission pra mesma
+  // permissão (chave composta inclui `resource` — concessão de catálogo
+  // com `resource: null` e concessões avulsas com `resource` custom
+  // coexistem, ver RolesService.attachPermission/replacePermissions) —
+  // dedupe por id, senão o mesmo papel aparece repetido na lista.
+  const uniqueRoles = new Map(roles.map((item) => [item.role.id, item.role]));
+  return { ...rest, roles: [...uniqueRoles.values()] };
+}
+
 @Injectable()
 export class PermissionsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -28,13 +48,16 @@ export class PermissionsService {
   }
 
   async findAll(tenantId: string) {
-    return this.prisma.permission.findMany({
+    const permissions = await this.prisma.permission.findMany({
       where: {
         tenantId,
         deletedAt: null,
       },
       orderBy: { createdAt: 'desc' },
+      include: WITH_ROLE_NAMES,
     });
+
+    return permissions.map(withRoleNames);
   }
 
   async search(query: SearchPermissionDto, tenantId?: string) {
@@ -54,19 +77,25 @@ export class PermissionsService {
         skip,
         take,
         orderBy: orderBy.length ? orderBy : [{ createdAt: 'desc' }],
+        include: WITH_ROLE_NAMES,
       }),
       this.prisma.permission.count({ where }),
     ]);
 
-    return { items, total, page, limit };
+    return { items: items.map(withRoleNames), total, page, limit };
   }
 
   //Roles
 
   async findRolesOfPermission(permissionId: string, tenantId: string) {
-    return this.prisma.rolePermission.findMany({
+    const rows = await this.prisma.rolePermission.findMany({
       where: { permissionId, tenantId },
       include: { role: { select: { id: true, name: true, type: true } } },
     });
+
+    // Mesmo dedup de `withRoleNames` acima — um papel pode ter mais de uma
+    // linha de RolePermission pra esta permissão (`resource` null + avulso).
+    const uniqueRoles = new Map(rows.map((row) => [row.role.id, row.role]));
+    return [...uniqueRoles.values()];
   }
 }
