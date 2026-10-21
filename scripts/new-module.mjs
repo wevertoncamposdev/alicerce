@@ -272,7 +272,6 @@ export class ${pascalPlural}Service {
 } from '@nestjs/common';
 import { Search${pascalPlural}Dto } from './dto/search-${kebabSingular}.dto';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
-import { Roles } from '@core/common/decorators/roles.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 import { ${pascalPlural}Service } from './${kebabPlural}.service';
@@ -285,21 +284,18 @@ export class ${pascalPlural}Controller {
   constructor(private readonly ${camelPlural}Service: ${pascalPlural}Service) {}
 
   @Post()
-  @Roles('ADMIN', 'USER')
   @Permissions('${kebabSingular}.create')
   create(@Body() dto: Create${pascalSingular}Dto, @TenantId() tenantId: string) {
     return this.${camelPlural}Service.create(dto, tenantId);
   }
 
   @Get(':id')
-  @Roles('ADMIN', 'USER')
   @Permissions('${kebabSingular}.read')
   findOne(@Param('id') id: string, @TenantId() tenantId: string) {
     return this.${camelPlural}Service.findOne(id, tenantId);
   }
 
   @Patch(':id')
-  @Roles('ADMIN', 'USER')
   @Permissions('${kebabSingular}.update')
   update(
     @Param('id') id: string,
@@ -310,14 +306,12 @@ export class ${pascalPlural}Controller {
   }
 
   @Delete(':id')
-  @Roles('ADMIN', 'USER')
   @Permissions('${kebabSingular}.delete')
   remove(@Param('id') id: string, @TenantId() tenantId: string) {
     return this.${camelPlural}Service.remove(id, tenantId);
   }
 
   @Search()
-  @Roles('ADMIN', 'USER')
   @Permissions('${kebabSingular}.read')
   search(@Body() query: Search${pascalPlural}Dto, @TenantId() tenantId: string) {
     return this.${camelPlural}Service.search(query, tenantId);
@@ -715,7 +709,13 @@ export default function New${pascalSingular}Page() {
         icon: Package,
         basePath: "/${kebabPlural}",
         permission: "${kebabSingular}.read",
-        navGroup: "permissoes",
+        // "geral" é o default certo pra um módulo de domínio novo — fica
+        // ao lado do Dashboard. Troque pra "configuracoes" se este módulo
+        // for uma tela administrativa (ex.: ao lado de Usuários/Papéis/
+        // Auditoria), ou "hidden" se não deve aparecer no menu (rota
+        // continua protegida, só não vira item de navegação — ver
+        // Plano Base.md 8.4/permissions pra um exemplo).
+        navGroup: "geral",
         actionPermissions: { create: "${kebabSingular}.create", update: "${kebabSingular}.update", delete: "${kebabSingular}.delete" },
     },
 `,
