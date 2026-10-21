@@ -92,6 +92,30 @@ export function normalizeAuditEntityName(moduleName: string) {
     return trimmed.endsWith("s") ? trimmed.slice(0, -1) : trimmed;
 }
 
+// Resumo legível pro item da timeline do drawer de Metadados (8.6,
+// Plano Base.md — a referência mostra frases como "Atualização de
+// atendimento", não o before/after cru). Sem conhecimento de domínio por
+// módulo, o melhor resumo genérico é: o que foi criado/removido, ou quais
+// campos mudaram numa atualização.
+function buildAuditSummary(action: string, before: unknown, after: unknown): string {
+    const beforeObj = before && typeof before === "object" ? (before as Record<string, unknown>) : null;
+    const afterObj = after && typeof after === "object" ? (after as Record<string, unknown>) : null;
+
+    if (action === "DELETE") return "Registro removido";
+    if (!beforeObj && afterObj) return "Registro criado";
+    if (!afterObj) return "—";
+
+    if (beforeObj) {
+        const changedFields = Object.keys(afterObj).filter(
+            (key) => JSON.stringify(beforeObj[key]) !== JSON.stringify(afterObj[key]),
+        );
+        if (changedFields.length === 0) return "Nenhum campo alterado";
+        return `Campo(s) alterado(s): ${changedFields.join(", ")}`;
+    }
+
+    return `Campo(s) definidos: ${Object.keys(afterObj).join(", ")}`;
+}
+
 export async function resolveAuditItems(
     mod: ReturnType<typeof getModule>,
     moduleName: string,
@@ -110,6 +134,6 @@ export async function resolveAuditItems(
         createdAt: entry.createdAt,
         userEmail: entry.user.email,
         tenantName: entry.tenant.legalName,
-        summary: entry.after ? `Antes: ${entry.before ?? "—"} | Depois: ${entry.after}` : "—",
+        summary: buildAuditSummary(entry.action, entry.before, entry.after),
     }));
 }

@@ -26,6 +26,24 @@ describe('AuditService', () => {
     service = module.get<AuditService>(AuditService);
   });
 
+  describe('findAll', () => {
+    it('parses before/after JSON strings into objects for every item', async () => {
+      prismaMock.audit.findMany.mockResolvedValueOnce([
+        {
+          id: 'audit-1',
+          before: null,
+          after: JSON.stringify({ name: 'new' }),
+        },
+      ] as never);
+
+      const result = await service.findAll('tenant-1');
+
+      expect(result).toEqual([
+        { id: 'audit-1', before: null, after: { name: 'new' } },
+      ]);
+    });
+  });
+
   describe('findOne', () => {
     it('parses before/after JSON strings into objects', async () => {
       prismaMock.audit.findUnique.mockResolvedValueOnce({

@@ -89,7 +89,16 @@ export class AuditService {
       orderBy: { createdAt: 'desc' },
       include: AUDIT_INCLUDE,
     });
-    return response;
+
+    // Mesmo parse de findOne — a trilha de auditoria do MetaData drawer
+    // (getEntityAuditTrail) usa este endpoint e precisa de before/after
+    // estruturados pra montar um resumo legível (ver resolveAuditItems,
+    // frontend), não a string JSON crua.
+    return response.map((entry) => ({
+      ...entry,
+      before: parseAuditJson(entry.before),
+      after: parseAuditJson(entry.after),
+    }));
   }
 
   async findOne(id: string, tenantId: string) {
