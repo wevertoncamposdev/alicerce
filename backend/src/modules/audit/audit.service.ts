@@ -32,6 +32,18 @@ const SEARCHABLE_FIELDS = ['action'] as const;
 const FILTERABLE_FIELDS = ['entity', 'entityId', 'type'] as const;
 const SORTABLE_FIELDS = ['createdAt', 'action', 'entity'] as const;
 
+function parseAuditJson(raw: string | null): unknown {
+  if (raw === null) return null;
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch {
+    // Nunca deveria acontecer (register() sempre grava JSON.stringify),
+    // mas um 500 por um registro antigo/corrompido é pior que devolver a
+    // string crua pro front mostrar como veio.
+    return raw;
+  }
+}
+
 @Injectable()
 export class AuditService {
   constructor(private readonly prisma: PrismaService) {}
@@ -81,14 +93,23 @@ export class AuditService {
   }
 
   async findOne(id: string, tenantId: string) {
-    return findOneOrThrow(
+    const entry = findOneOrThrow(
       await this.prisma.audit.findUnique({
         where: { id },
         include: AUDIT_INCLUDE,
       }),
-      (entry) => entry.tenantId === tenantId,
+      (item) => item.tenantId === tenantId,
       'Registro de auditoria não encontrado',
     );
+
+    // `before`/`after` são salvos como JSON stringificado (ver register())
+    // — devolvidos já parseados pro consumidor (detail com diff, 8.5) não
+    // precisar fazer JSON.parse duas vezes nem lidar com string crua.
+    return {
+      ...entry,
+      before: parseAuditJson(entry.before),
+      after: parseAuditJson(entry.after),
+    };
   }
 
   async search(query: SearchAuditDto, tenantId: string) {
@@ -98,6 +119,15 @@ export class AuditService {
       tenantId,
       ...(query.entity ? { entity: query.entity } : {}),
       ...(query.entityId ? { entityId: query.entityId } : {}),
+      ...(query.userId ? { userId: query.userId } : {}),
+      ...(query.from || query.to
+        ? {
+            createdAt: {
+              ...(query.from ? { gte: new Date(query.from) } : {}),
+              ...(query.to ? { lte: new Date(query.to) } : {}),
+            },
+          }
+        : {}),
       ...buildSearchTextWhere(query.searchText, SEARCHABLE_FIELDS),
       ...buildWhitelistedFilters(query.filters, FILTERABLE_FIELDS),
     };
