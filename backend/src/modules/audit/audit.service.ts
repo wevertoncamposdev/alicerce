@@ -101,6 +101,25 @@ export class AuditService {
     }));
   }
 
+  // Etapa 9.2 (LGPD, "exportar meus dados") — resumo da própria atividade,
+  // sem `before`/`after`: um admin pode ter editado o registro de OUTRA
+  // pessoa, e o diff daquela auditoria não é dado do usuário que está
+  // exportando (exportar o payload completo violaria "só dados do próprio
+  // usuário").
+  async findAllByUserId(tenantId: string, userId: string) {
+    return this.prisma.audit.findMany({
+      where: { tenantId, userId },
+      select: {
+        action: true,
+        entity: true,
+        entityId: true,
+        type: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async findOne(id: string, tenantId: string) {
     const entry = findOneOrThrow(
       await this.prisma.audit.findUnique({

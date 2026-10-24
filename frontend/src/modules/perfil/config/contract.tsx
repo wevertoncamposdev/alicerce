@@ -1,4 +1,4 @@
-import { User as UserIcon, Shield, SlidersHorizontal, Mail, Monitor, Image as ImageIcon } from "lucide-react";
+import { User as UserIcon, Shield, SlidersHorizontal, Mail, Monitor, Image as ImageIcon, Download } from "lucide-react";
 import { defineRecordModule, registerModule } from "@core/registry";
 import type { DetailLayout, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
@@ -7,6 +7,7 @@ import { ProfileFormSection } from "@modules/perfil/components/ProfileFormSectio
 import { ChangePasswordControl } from "@modules/perfil/components/ChangePasswordControl";
 import { ChangeEmailControl } from "@modules/perfil/components/ChangeEmailControl";
 import { ProfileSessionsHost } from "@modules/perfil/components/ProfileSessionsHost";
+import { ExportDataControl } from "@modules/perfil/components/ExportDataControl";
 
 import { readMe, updateMe, searchMeStub } from "./provider";
 import { listMySessions } from "./sessions-provider";
@@ -89,6 +90,13 @@ const perfilDetailLayout: DetailLayout<MeProfile> = {
             render: ({ record }) => (
                 <ProfileFormSection fields={["theme", "locale"]} record={record} formFields={formFields} />
             ),
+        },
+        {
+            key: "privacidade",
+            title: "Privacidade",
+            icon: Download,
+            column: 2,
+            render: () => <ExportDataControl />,
         },
     ],
     relations: async () => {

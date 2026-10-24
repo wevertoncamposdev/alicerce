@@ -92,6 +92,12 @@ export class MeController {
     );
   }
 
+  // Etapa 9.2 (LGPD) — exportar meus dados.
+  @Get('export')
+  exportMyData(@Request() req: AuthenticatedRequest) {
+    return this.meService.exportMyData(req.user.sub, req.user.tenantId);
+  }
+
   // Etapa 9.1 (LGPD) — aceite dos termos quando a versão muda.
   @HttpCode(HttpStatus.NO_CONTENT)
   @Post('consent')

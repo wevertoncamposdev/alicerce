@@ -10,6 +10,7 @@ import { findOneOrThrow } from '@core/common/utils/find-one-or-throw.util';
 import { FilesService } from '@core/files/file.service';
 import { MailService } from '@core/mail/mail.service';
 import { AccountTokenService } from '@core/auth/account-token.service';
+import { AuditService } from '@modules/audit/audit.service';
 import { resolveTenantBranding } from '@core/mail/resolve-tenant-branding.util';
 import { renderAccountEmail } from '@core/mail/templates/account-email.template';
 import {
@@ -52,6 +53,7 @@ export class MeService {
     private readonly filesService: FilesService,
     private readonly accountTokenService: AccountTokenService,
     private readonly mailService: MailService,
+    private readonly auditService: AuditService,
   ) {}
 
   private hashToken(rawToken: string): string {
@@ -89,6 +91,26 @@ export class MeService {
       : null;
 
     return { ...user, avatarUrl };
+  }
+
+  // Etapa 9.2 (LGPD) — "exportar meus dados". Escopo deliberadamente
+  // restrito ao que já vive em core/auth (perfil, sessões, consentimentos)
+  // mais um resumo da própria atividade de auditoria (ver
+  // AuditService.findAllByUserId) — nunca dados de outro usuário nem o
+  // conteúdo de módulos de domínio, que este serviço não conhece.
+  async exportMyData(userId: string, tenantId: string) {
+    const [profile, sessions, consents, activity] = await Promise.all([
+      this.getMe(userId, tenantId),
+      this.listSessions(userId, undefined),
+      this.prisma.consentRecord.findMany({
+        where: { userId },
+        select: { document: true, version: true, acceptedAt: true, ip: true },
+        orderBy: { acceptedAt: 'desc' },
+      }),
+      this.auditService.findAllByUserId(tenantId, userId),
+    ]);
+
+    return { profile, sessions, consents, activity };
   }
 
   async updateMe(userId: string, tenantId: string, dto: UpdateMeDto) {
