@@ -32,7 +32,7 @@ describe('UsersService', () => {
     findById: jest.fn(),
     findByEmail: jest.fn(),
     updateById: jest.fn(),
-    softDeleteById: jest.fn(),
+    anonymizeById: jest.fn(),
     countActive: jest.fn(),
     search: jest.fn(),
     count: jest.fn(),
@@ -410,7 +410,7 @@ describe('UsersService', () => {
       await expect(service.remove(userId, ownTenantId)).rejects.toBeInstanceOf(
         NotFoundException,
       );
-      expect(repository.softDeleteById).not.toHaveBeenCalled();
+      expect(repository.anonymizeById).not.toHaveBeenCalled();
     });
 
     it('findAllWithValidation: should scope the repository query to the given tenant', async () => {
@@ -485,7 +485,7 @@ describe('UsersService', () => {
       await expect(service.remove(userId, ownTenantId)).rejects.toBeInstanceOf(
         ForbiddenException,
       );
-      expect(repository.softDeleteById).not.toHaveBeenCalled();
+      expect(repository.anonymizeById).not.toHaveBeenCalled();
     });
   });
 
@@ -546,7 +546,7 @@ describe('UsersService', () => {
 
     it('remove: always revokes sessions and invalidates the permission cache', async () => {
       repository.findById.mockResolvedValueOnce(ownUser as never);
-      repository.softDeleteById.mockResolvedValueOnce({
+      repository.anonymizeById.mockResolvedValueOnce({
         ...ownUser,
         deletedAt: new Date(),
       } as never);

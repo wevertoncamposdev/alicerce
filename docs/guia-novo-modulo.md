@@ -110,3 +110,18 @@ cd frontend && npx tsc --noEmit && npm run lint && npm run build
 Se os campos do model mudaram depois que o gerador já rodou, rode
 `npx prisma generate` (e, com Postgres acessível, `npx prisma migrate dev`)
 de novo antes do checkpoint.
+
+## 6. Dados pessoais e exclusão (LGPD)
+
+Se o módulo guarda dado pessoal de alguém que não é um usuário do sistema
+(ex.: pessoa atendida, contato, paciente), "excluir" nunca deve ser um
+`DELETE` físico da linha: isso quebraria vínculos (relações, auditoria) e
+perderia o histórico que outras partes do sistema dependem.
+
+Siga o padrão de `UserRepository.anonymizeById` (etapa 9.3, Plano Base.md):
+um método `anonymize<Entidade>ById(id)` no repositório que sobrescreve só
+os campos de identificação (nome, e-mail, documento, telefone — o que for
+dado pessoal) com um valor anônimo determinístico, mantém `deletedAt`/
+`status` marcando o registro como inativo, e preserva tudo o resto
+(relações, `createdAt`, auditoria). O service chama esse método em vez do
+soft-delete genérico.

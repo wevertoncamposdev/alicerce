@@ -250,7 +250,7 @@ export class UsersService {
 
       await this.assertNotLastActiveAdmin(id, tenantId);
 
-      const removed = await this.userRepository.softDeleteById(id);
+      const removed = await this.userRepository.anonymizeById(id);
       await this.revokeAllSessions(id, tenantId);
 
       return withPendingInvite(removed);

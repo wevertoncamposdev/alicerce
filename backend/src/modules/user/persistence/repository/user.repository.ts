@@ -34,12 +34,18 @@ export class UserRepository {
     });
   }
 
-  softDeleteById(id: string) {
+  // Etapa 9.3 (LGPD) — exclusão anonimiza em vez de apagar a linha: mantém
+  // vínculos (UserRole, Audit, Feedback...) e a trilha de auditoria, mas
+  // libera o e-mail original pra reuso. `email` determinístico a partir do
+  // id (nunca colide, nunca precisa de retry).
+  anonymizeById(id: string) {
     return this.prisma.user.update({
       where: { id },
       data: {
         deletedAt: new Date(),
         status: 'INACTIVE',
+        name: null,
+        email: `deleted-${id}@anon.invalid`,
       },
     });
   }
