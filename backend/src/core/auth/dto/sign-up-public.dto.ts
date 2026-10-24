@@ -1,4 +1,6 @@
 import {
+  Equals,
+  IsBoolean,
   IsEmail,
   IsNotEmpty,
   IsOptional,
@@ -37,4 +39,9 @@ export class SignUpPublicDto {
   @MaxLength(100)
   @IsStrongPassword()
   password!: string;
+
+  // Etapa 9.1 (LGPD) — aceite dos Termos de Uso no cadastro.
+  @IsBoolean()
+  @Equals(true, { message: 'Você precisa aceitar os Termos de Uso.' })
+  acceptedTerms!: boolean;
 }

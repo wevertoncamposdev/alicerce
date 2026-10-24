@@ -102,6 +102,10 @@ describe('Metadados de sessão no refresh token (e2e)', () => {
       .overrideProvider(PrismaBootstrapService)
       .useValue({
         user: { findUnique: () => Promise.resolve(user) },
+        // Etapa 9.1 (LGPD) — mapAuthUserContext consulta isto; sem
+        // nenhum ConsentRecord, termsAccepted fica false (irrelevante
+        // pra este teste, que só olha metadados de sessão).
+        consentRecord: { findFirst: () => Promise.resolve(null) },
         refreshToken: {
           create: ({ data }: { data: StoredRefreshToken }) => {
             const stored = { ...data, id: randomUUID(), revokedAt: null };

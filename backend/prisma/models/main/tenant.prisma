@@ -50,6 +50,7 @@ model Tenant {
     feedbackComments FeedbackComment[]
     files            File[]            @relation("TenantFiles")
     accountTokens    AccountToken[]
+    consentRecords   ConsentRecord[]
 
     @@index([slug])
     @@index([status])

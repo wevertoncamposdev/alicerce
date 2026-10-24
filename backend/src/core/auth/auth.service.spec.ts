@@ -34,6 +34,7 @@ describe('AuthService', () => {
       create: jest.Mock;
     };
     user: { findUnique: jest.Mock; update: jest.Mock };
+    consentRecord: { findFirst: jest.Mock };
   };
   let accountTokenService: { issue: jest.Mock; consume: jest.Mock };
   let mailService: { send: jest.Mock };
@@ -90,6 +91,9 @@ describe('AuthService', () => {
       user: {
         findUnique: jest.fn().mockResolvedValue(baseUser),
         update: jest.fn().mockResolvedValue({}),
+      },
+      consentRecord: {
+        findFirst: jest.fn().mockResolvedValue(null),
       },
     };
 

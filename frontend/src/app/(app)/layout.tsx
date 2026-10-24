@@ -3,6 +3,7 @@ import { getCurrentUser } from "@lib/auth-server";
 import { apiServer } from "@lib/api-server";
 import { AuthProvider } from "@/contexts/auth-context";
 import { AppAccessGuard } from "@components/auth/AppAccessGuard";
+import { TermsConsentBanner } from "@components/auth/TermsConsentBanner";
 import { SidebarProvider } from "@components/ui/sidebar";
 import { AppSidebar } from "@core/components/Layout/AppSidebar";
 import "@/bootstrap";
@@ -70,6 +71,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 {currentUser.user.email}.
               </div>
             ) : null}
+            {!currentUser.user.termsAccepted ? <TermsConsentBanner /> : null}
             {children}
           </main>
         </SidebarProvider>

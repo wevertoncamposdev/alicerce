@@ -50,6 +50,15 @@ interface MockTokenRow {
   usedAt: Date | null;
 }
 
+interface MockConsentRow {
+  id: string;
+  tenantId: string;
+  userId: string;
+  document: string;
+  version: string;
+  ip?: string;
+}
+
 function hashToken(rawToken: string): string {
   return crypto.createHash('sha256').update(rawToken).digest('hex');
 }
@@ -65,6 +74,25 @@ class MockPrismaBootstrapService {
   tenants = new Map<string, MockTenantRow>();
   users = new Map<string, MockUserRow>();
   tokens = new Map<string, MockTokenRow>();
+  consents = new Map<string, MockConsentRow>();
+
+  // mapAuthUserContext (etapa 9.1) consulta isto depois da transação —
+  // signUpPublic já cria o ConsentRecord dentro dela (ver tx.consentRecord).
+  consentRecord = {
+    findFirst: ({
+      where,
+    }: {
+      where: { userId: string; document: string; version: string };
+    }) => {
+      const found = [...this.consents.values()].find(
+        (c) =>
+          c.userId === where.userId &&
+          c.document === where.document &&
+          c.version === where.version,
+      );
+      return Promise.resolve(found ?? null);
+    },
+  };
 
   user = {
     findUnique: ({
@@ -162,6 +190,11 @@ class MockPrismaBootstrapService {
         }) => Promise<MockUserRow>;
       };
       userRole: { create: () => Promise<Record<string, never>> };
+      consentRecord: {
+        create: (args: {
+          data: Record<string, unknown>;
+        }) => Promise<MockConsentRow>;
+      };
     }) => Promise<T>,
   ): Promise<T> {
     const tx = {
@@ -201,6 +234,20 @@ class MockPrismaBootstrapService {
         },
       },
       userRole: { create: () => Promise.resolve({}) },
+      consentRecord: {
+        create: ({ data }: { data: Record<string, unknown> }) => {
+          const row: MockConsentRow = {
+            id: randomUUID(),
+            tenantId: data.tenantId as string,
+            userId: data.userId as string,
+            document: data.document as string,
+            version: data.version as string,
+            ip: data.ip as string | undefined,
+          };
+          this.consents.set(row.id, row);
+          return Promise.resolve(row);
+        },
+      },
     };
 
     return callback(tx);
@@ -281,6 +328,7 @@ describe('Verificação de e-mail no cadastro (e2e)', () => {
         email: 'verificar@example.com',
         name: 'Pessoa Teste',
         password: 'uma-senha-bem-forte-123',
+        acceptedTerms: true,
       })
       .expect(201);
 
@@ -325,6 +373,7 @@ describe('Verificação de e-mail no cadastro (e2e)', () => {
         email: 'verificar2@example.com',
         name: 'Pessoa Teste 2',
         password: 'uma-senha-bem-forte-123',
+        acceptedTerms: true,
       })
       .expect(201);
 

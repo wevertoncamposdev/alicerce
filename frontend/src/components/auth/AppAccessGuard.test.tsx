@@ -16,6 +16,7 @@ function buildUser(permissions: string[]): AuthUserProfile {
     tenantId: "tenant-1",
     permissions,
     emailVerified: true,
+    termsAccepted: true,
   };
 }
 

@@ -39,6 +39,7 @@ model User {
     feedbackComments FeedbackComment[]
     uploadedFiles    File[]            @relation("UploadedFiles")
     accountTokens    AccountToken[]
+    consentRecords   ConsentRecord[]
 
     @@map("users")
 }

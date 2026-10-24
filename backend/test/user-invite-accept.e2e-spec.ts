@@ -218,6 +218,9 @@ describe('Convite de usuário: convite -> aceite -> login (e2e)', () => {
       refreshToken: {
         create: () => Promise.resolve(undefined),
       },
+      // Etapa 9.1 (LGPD) — mapAuthUserContext consulta isto no login após
+      // o aceite do convite; irrelevante pra este teste (só olha permissões).
+      consentRecord: { findFirst: () => Promise.resolve(null) },
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({

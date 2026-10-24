@@ -18,6 +18,7 @@ import {
 } from './session-revocation.util';
 import { UpdateMeDto } from './dto/update-me.dto';
 import { ChangeMyPasswordDto } from './dto/change-my-password.dto';
+import { CURRENT_TERMS_VERSION, TERMS_DOCUMENT } from './legal-terms.constants';
 
 const CHANGE_EMAIL_TTL_MS = 60 * 60 * 1000; // 1h
 
@@ -269,5 +270,24 @@ export class MeService {
     scope: RevokeSessionsScope,
   ): Promise<void> {
     await revokeSessionsUtil(this.prisma, userId, scope);
+  }
+
+  // Etapa 9.1 (LGPD) — aceite dos termos quando a versão atual mudou desde
+  // o cadastro. Tenant-scoped via RLS (this.prisma), igual ao resto deste
+  // service — ver comentário da classe sobre ADR 0008.
+  async acceptCurrentTerms(
+    userId: string,
+    tenantId: string,
+    ip: string | undefined,
+  ): Promise<void> {
+    await this.prisma.consentRecord.create({
+      data: {
+        tenantId,
+        userId,
+        document: TERMS_DOCUMENT,
+        version: CURRENT_TERMS_VERSION,
+        ip,
+      },
+    });
   }
 }

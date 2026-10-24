@@ -4,6 +4,7 @@ export interface RegisterInput {
     email: string;
     name?: string;
     password: string;
+    acceptedTerms: boolean;
 }
 
 export interface AuthUserProfile {
@@ -13,4 +14,5 @@ export interface AuthUserProfile {
     tenantId: string;
     permissions: string[];
     emailVerified: boolean;
+    termsAccepted: boolean;
 }

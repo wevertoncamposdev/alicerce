@@ -91,4 +91,15 @@ export class MeController {
       req.cookies?.[REFRESH_COOKIE],
     );
   }
+
+  // Etapa 9.1 (LGPD) — aceite dos termos quando a versão muda.
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('consent')
+  async acceptCurrentTerms(@Request() req: AuthenticatedRequest) {
+    await this.meService.acceptCurrentTerms(
+      req.user.sub,
+      req.user.tenantId,
+      req.ip,
+    );
+  }
 }

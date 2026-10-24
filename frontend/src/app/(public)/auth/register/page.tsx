@@ -31,6 +31,7 @@ export default function RegisterPage() {
   const [slugTouched, setSlugTouched] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +59,7 @@ export default function RegisterPage() {
         email,
         name,
         password,
+        acceptedTerms,
       });
       router.replace("/");
     } catch (err) {
@@ -155,6 +157,26 @@ export default function RegisterPage() {
                 required
                 disabled={submitting}
               />
+            </div>
+
+            <div className="flex items-start gap-2">
+              <input
+                id="acceptedTerms"
+                name="acceptedTerms"
+                type="checkbox"
+                className="mt-1"
+                checked={acceptedTerms}
+                onChange={(event) => setAcceptedTerms(event.target.checked)}
+                required
+                disabled={submitting}
+              />
+              <label htmlFor="acceptedTerms" className="text-sm text-muted-foreground">
+                Li e aceito os{" "}
+                <Link href="/termos" target="_blank" className="font-medium text-foreground hover:underline">
+                  Termos de Uso
+                </Link>
+                .
+              </label>
             </div>
 
             {error ? (

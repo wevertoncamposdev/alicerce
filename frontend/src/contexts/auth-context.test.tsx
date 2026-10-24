@@ -10,6 +10,7 @@ function buildUser(overrides: Partial<AuthUserProfile> = {}): AuthUserProfile {
     tenantId: "tenant-1",
     permissions: ["user.read", "user.update"],
     emailVerified: true,
+    termsAccepted: true,
     ...overrides,
   };
 }

@@ -26,6 +26,7 @@ import { MailService } from '@core/mail/mail.service';
 import { FilesService } from '@core/files/file.service';
 import { resolveTenantBranding } from '@core/mail/resolve-tenant-branding.util';
 import { renderAccountEmail } from '@core/mail/templates/account-email.template';
+import { CURRENT_TERMS_VERSION, TERMS_DOCUMENT } from './legal-terms.constants';
 
 export interface SessionMeta {
   userAgent?: string;
@@ -39,6 +40,7 @@ export interface AuthUserContext {
   tenantId: string;
   permissions: string[];
   emailVerified: boolean;
+  termsAccepted: boolean;
 }
 
 export interface AuthSessionResponse {
@@ -199,6 +201,15 @@ export class AuthService {
       ),
     );
 
+    const currentConsent = await this.prismaBootstrap.consentRecord.findFirst({
+      where: {
+        userId: user.id,
+        document: TERMS_DOCUMENT,
+        version: CURRENT_TERMS_VERSION,
+      },
+      select: { id: true },
+    });
+
     const authUserContext: AuthUserContext = {
       id: user.id,
       email: user.email,
@@ -206,6 +217,7 @@ export class AuthService {
       tenantId: user.tenantId,
       permissions: permissionNames,
       emailVerified: user.emailVerifiedAt !== null,
+      termsAccepted: currentConsent !== null,
     };
 
     // Popula o cache de permissões já aqui (ver P7.5/PermissionCacheService)
@@ -469,6 +481,17 @@ export class AuthService {
           tenantId: tenant.id,
           userId: user.id,
           roleId: role.id,
+        },
+      });
+
+      // Etapa 9.1 (LGPD) — dto.acceptedTerms já garantido `true` pelo DTO.
+      await tx.consentRecord.create({
+        data: {
+          tenantId: tenant.id,
+          userId: user.id,
+          document: TERMS_DOCUMENT,
+          version: CURRENT_TERMS_VERSION,
+          ip: meta?.ip,
         },
       });
 

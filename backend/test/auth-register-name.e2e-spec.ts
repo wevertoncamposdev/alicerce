@@ -48,6 +48,15 @@ interface MockTokenRow {
   usedAt: Date | null;
 }
 
+interface MockConsentRow {
+  id: string;
+  tenantId: string;
+  userId: string;
+  document: string;
+  version: string;
+  ip?: string;
+}
+
 /**
  * Mock em memória de PrismaBootstrapService que reproduz só o que
  * `AuthService.signUpPublic` efetivamente chama (ver auth.service.ts):
@@ -60,6 +69,25 @@ class MockPrismaBootstrapService {
   tenants = new Map<string, MockTenantRow>();
   users = new Map<string, MockUserRow>();
   tokens = new Map<string, MockTokenRow>();
+  consents = new Map<string, MockConsentRow>();
+
+  // mapAuthUserContext (etapa 9.1) consulta isto depois da transação —
+  // signUpPublic já cria o ConsentRecord dentro dela (ver tx.consentRecord).
+  consentRecord = {
+    findFirst: ({
+      where,
+    }: {
+      where: { userId: string; document: string; version: string };
+    }) => {
+      const found = [...this.consents.values()].find(
+        (c) =>
+          c.userId === where.userId &&
+          c.document === where.document &&
+          c.version === where.version,
+      );
+      return Promise.resolve(found ?? null);
+    },
+  };
 
   // AuthService.sendVerifyEmail (etapa 7.5) passa `client: this` pro
   // AccountTokenService.issue — rota @Public(), mesmo motivo do
@@ -134,6 +162,11 @@ class MockPrismaBootstrapService {
         }) => Promise<MockUserRow>;
       };
       userRole: { create: () => Promise<Record<string, never>> };
+      consentRecord: {
+        create: (args: {
+          data: Record<string, unknown>;
+        }) => Promise<MockConsentRow>;
+      };
     }) => Promise<T>,
   ): Promise<T> {
     const tx = {
@@ -173,6 +206,20 @@ class MockPrismaBootstrapService {
         },
       },
       userRole: { create: () => Promise.resolve({}) },
+      consentRecord: {
+        create: ({ data }: { data: Record<string, unknown> }) => {
+          const row: MockConsentRow = {
+            id: randomUUID(),
+            tenantId: data.tenantId as string,
+            userId: data.userId as string,
+            document: data.document as string,
+            version: data.version as string,
+            ip: data.ip as string | undefined,
+          };
+          this.consents.set(row.id, row);
+          return Promise.resolve(row);
+        },
+      },
     };
 
     return callback(tx);
@@ -242,16 +289,28 @@ describe('POST /auth/register grava o nome da pessoa (e2e)', () => {
         email: 'pessoa@example.com',
         name: 'Pessoa de Teste',
         password: 'uma-senha-bem-forte-123',
+        acceptedTerms: true,
       })
       .expect(201);
 
-    const body = res.body as { user: { email: string; name: string } };
+    const body = res.body as {
+      user: { email: string; name: string; termsAccepted: boolean };
+    };
     expect(body.user).toMatchObject({
       email: 'pessoa@example.com',
       name: 'Pessoa de Teste',
+      termsAccepted: true,
     });
 
     const createdUser = [...mockPrismaBootstrap.users.values()][0];
     expect(createdUser.name).toBe('Pessoa de Teste');
+
+    // Etapa 9.1 (LGPD) — ConsentRecord criado no cadastro com o IP do request.
+    const createdConsent = [...mockPrismaBootstrap.consents.values()][0];
+    expect(createdConsent).toMatchObject({
+      userId: createdUser.id,
+      document: 'terms',
+    });
+    expect(createdConsent.ip).toBeDefined();
   });
 });
