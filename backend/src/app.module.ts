@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import { I18nModule } from 'nestjs-i18n';
 
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from '@src/app.controller';
 import { AppService } from '@src/app.service';
@@ -37,6 +38,7 @@ import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 
 import { RoleModule } from '@modules/role/role.module';
 import { PermissionModule } from '@modules/permission/permission.module';
+import { JobsModule } from '@core/jobs/jobs.module';
 
 @Module({
   imports: [
@@ -46,6 +48,7 @@ import { PermissionModule } from '@modules/permission/permission.module';
     // `/auth/register`) sobrescrevem com um limite mais estrito via
     // `@Throttle()` no próprio controller.
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 60 }]),
+    ScheduleModule.forRoot(),
     PrismaModule,
     RedisModule,
     StorageModule,
@@ -60,6 +63,7 @@ import { PermissionModule } from '@modules/permission/permission.module';
     AuditModule,
     FeedbacksModule,
     FileModule,
+    JobsModule,
     I18nModule.forRoot({
       fallbackLanguage: 'pt',
       loaderOptions: {

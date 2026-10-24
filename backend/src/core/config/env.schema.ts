@@ -55,6 +55,10 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   // Base pros links nos e-mails (convite, reset de senha, verificação...).
   FRONTEND_URL: z.string().default('http://localhost:3000'),
+
+  // Jobs agendados (Fase 10.1 / etapa 9.4, LGPD) — prazo de retenção da
+  // auditoria; o job diário em core/jobs apaga registros mais antigos.
+  AUDIT_RETENTION_DAYS: z.coerce.number().int().positive().default(365),
 });
 
 export type Env = z.infer<typeof envSchema>;
