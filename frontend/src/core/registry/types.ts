@@ -23,10 +23,14 @@ export type FormFieldConfig<T> = {
     /** Campo que dispara a criação no Detail (`createMode: "detail"`). Um por módulo. */
     primary?: boolean;
     /**
-     * Só `type: "image"`: o campo guarda o `fileId` (FK), não a URL — de
-     * onde tirar a URL de preview já resolvida pelo backend (ver ADR 0010).
+     * Só `type: "image"`: o campo guarda o `fileId` (FK), não a URL — nome
+     * do campo do registro que já traz a URL de preview resolvida pelo
+     * backend (ver ADR 0010). Precisa ser o NOME do campo, não uma função
+     * `(record) => string` — função não serializa na fronteira
+     * Server→Client (etapa 12.3, corrige C2); `serializable-contracts.
+     * test.ts` cobre essa classe de erro pra todo `formFields`.
      */
-    previewUrl?: (record: T) => string | null | undefined;
+    previewField?: keyof T & string;
     /** Só `type: "image"`: metadado repassado ao upload (ex.: "user.avatar"). */
     uploadOwnerType?: string;
 };

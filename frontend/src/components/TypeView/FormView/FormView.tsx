@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useActionState } from "react";
+import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Input } from "@components/ui/input";
@@ -89,11 +90,12 @@ function BooleanFieldInput({
 }
 
 // Upload (Fase 6, ADR 0010): o campo guarda o `fileId` (FK), não a URL — o
-// preview vem de `field.previewUrl(record)` (resolvida pelo backend em
-// request-time). Só funciona no modo edit (precisa de `record`+`onChange`+
-// `onBlur`); `CreateFormView` não passa `record`, então o campo não
-// renderiza nada criável ainda (nenhum módulo usa "image" em criação nesta
-// fase).
+// preview vem de `record[field.previewField]` (resolvida pelo backend em
+// request-time; etapa 12.3 — era uma função `previewUrl(record)`, não
+// serializável Server→Client, corrige C2). Só funciona no modo edit
+// (precisa de `record`+`onChange`+`onBlur`); `CreateFormView` não passa
+// `record`, então o campo não renderiza nada criável ainda (nenhum
+// módulo usa "image" em criação nesta fase).
 function ImageFieldInput<T extends object>({
     field,
     record,
@@ -109,7 +111,8 @@ function ImageFieldInput<T extends object>({
 }) {
     const [uploading, setUploading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
-    const previewUrl = record ? field.previewUrl?.(record) ?? undefined : undefined;
+    const previewValue = record && field.previewField ? record[field.previewField] : undefined;
+    const previewUrl = typeof previewValue === "string" ? previewValue : undefined;
 
     async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
@@ -127,7 +130,16 @@ function ImageFieldInput<T extends object>({
             formData.append("file", file);
 
             const uploaded = await uploadFileAction(formData);
-            onChange?.(uploaded.id);
+            // `flushSync`: sem isso, `onChange` só aplica o novo valor no
+            // próximo ciclo de render — o `onBlur` (autosave) chamado em
+            // seguida ainda leria o estado antigo (sem o fileId novo) e
+            // nunca persistiria o upload. Com input de texto normal isso
+            // não acontece porque o blur de verdade do navegador só chega
+            // depois do render; aqui os dois disparam sintéticos, um atrás
+            // do outro, sem esse intervalo.
+            flushSync(() => {
+                onChange?.(uploaded.id);
+            });
             onBlur?.();
         } catch (err) {
             setError(err instanceof Error ? err.message : "Falha ao enviar arquivo.");
@@ -166,7 +178,7 @@ function renderFieldInput<T extends object>(
         invalid?: boolean;
         /** Textarea só: borda só em hover/focus + caixa compacta (sem rows fixo) — detail page inline. */
         compactTextarea?: boolean;
-        /** Só "image": o registro completo, pra resolver `field.previewUrl(record)`. */
+        /** Só "image": o registro completo, pra ler `record[field.previewField]`. */
         record?: T;
         disabled?: boolean;
     },
@@ -277,7 +289,7 @@ export function InlineFieldsGrid<T extends object>({
 }: {
     fields: FormFieldConfig<T>[];
     values: Record<string, string>;
-    /** Registro completo (não stringificado) — só usado por campos `type: "image"`, pra resolver `field.previewUrl(record)`. */
+    /** Registro completo (não stringificado) — só usado por campos `type: "image"`, pra ler `record[field.previewField]`. */
     record?: T;
     fieldErrors: Record<string, string>;
     saving: boolean;

@@ -30,7 +30,7 @@ const formFields = [
         name: "avatarFileId" as const,
         label: "Foto",
         type: "image" as const,
-        previewUrl: (record: MeProfile) => record.avatarUrl,
+        previewField: "avatarUrl" as const,
         uploadOwnerType: "user.avatar",
     },
 ];

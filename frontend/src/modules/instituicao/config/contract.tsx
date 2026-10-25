@@ -36,7 +36,7 @@ const formFields = [
         name: "logoFileId" as const,
         label: "Logo",
         type: "image" as const,
-        previewUrl: (record: TenantProfile) => record.logoUrl,
+        previewField: "logoUrl" as const,
         uploadOwnerType: "tenant.logo",
     },
 ];
