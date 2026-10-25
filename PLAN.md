@@ -7,12 +7,14 @@
 
 ## Agora
 
-- [x] Fase 12 (Endurecimento) — etapa 12.0 concluída em 2026-10-25: ADR 0013
-      (`docs/adr/0013-endurecimento-da-base.md`) registra a saída do
-      congelamento para `docs/PLAN-fase-12.md`, com o escopo de `core/` por
-      etapa e as duas decisões novas (CSP com nonce ⇒ páginas dinâmicas;
-      `sid` no access token). Próximo: etapa 12.1 (rede de testes reais
-      contra Postgres/Redis real + smoke Playwright).
+- [x] Fase 12 (Endurecimento) — etapas 12.0–12.2 concluídas em 2026-10-25.
+      12.0: ADR 0013 (`docs/adr/0013-endurecimento-da-base.md`), saída do
+      congelamento pra `docs/PLAN-fase-12.md`. 12.1: suíte `test:e2e:db`
+      (Postgres/Redis reais, `backend/test-db/`) + smoke Playwright
+      (`frontend/e2e/smoke.spec.ts`). 12.2: CSP com nonce por requisição
+      (corrige C1) — ver pendência resolvida abaixo, achado grande: o
+      `proxy.ts` nunca executava em produção. Próximo: etapa 12.3 (campo
+      `image` serializável, C2).
 - [x] Fases 0–10 do `Plano Base.md` concluídas em 2026-10-24 (etapas 9.2,
       9.3 e 10.1–10.6 na mesma sessão que fechou a Fase 9 — ver histórico
       de commits `feat(lgpd)`/`feat(ops)`/`docs(ops)`).
@@ -34,13 +36,37 @@
 
 - 10.2 (monitoramento): adapter Sentry implementado e gated por env, mas
   nunca confirmado contra um painel Sentry real (exige conta/projeto).
-- 10.3 (CSP): headers corretos confirmados via `curl` num build de
-  produção local; falta um teste manual num browser real (sem
-  `chromium-cli`/Playwright utilizáveis no ambiente onde foi implementado).
+- **[Resolvido em 2026-10-25, etapa 12.2]** 10.3 (CSP): confirmado num
+  browser real (Chromium via Playwright) — nonce presente e diferente a
+  cada requisição, zero violações de CSP. A versão anterior desta nota
+  ("confirmado via curl, falta teste em browser real") ficou obsoleta
+  junto com a descoberta de que o proxy nunca tinha executado de verdade
+  (ver nota da etapa 12.2 mais abaixo) — o `curl` da época só viu os
+  headers de `next.config.ts`, nunca o CSP do proxy.
 - 10.5/10.6 (deploy, backup/restore): documentação e scripts prontos, mas
   nunca executados de ponta a ponta (sem `docker`/`pg_dump` disponíveis
   onde foram escritos) — primeira execução real fica pra quem tiver acesso
   a um ambiente de staging.
+- **[Achado na etapa 12.2, escopo pra 12.10]** O item 6 da 12.10
+  ("/roles tem rolagem horizontal a 375px") é mais abrangente do que
+  descrito: com a hidratação funcionando de verdade (pós-12.2), o mesmo
+  overflow apareceu também em `/users`, mas não em `/audit` — o
+  `ListView`/`TypeView` compartilhado é candidato mais provável do que
+  algo isolado de `/roles`. A 12.10 precisa mapear exatamente quais
+  rotas são afetadas antes de corrigir — ver `frontend/e2e/smoke.spec.ts`,
+  teste "sem rolagem horizontal a 375px", hoje `test.skip()` em toda
+  rota por esse motivo (não dá pra marcar `test.fail()` por rota sem
+  mapear o alcance real primeiro).
+- **[Achado na etapa 12.2, escopo pra 12.3]** C2 (`FormFieldConfig.
+  previewUrl` função não serializável) foi confirmado real em `/perfil`
+  e `/configuracoes/instituicao` (erro "Functions cannot be passed
+  directly to Client Components"), mas de forma **instável**: numa
+  rodada do smoke falhou nas duas rotas, em outra só numa, e numa
+  terceira passou nas duas. Possível relação com timing de streaming/
+  Suspense do App Router. A 12.3 precisa confirmar se corrigir o
+  `previewField` (desenho já no `docs/PLAN-fase-12.md`) resolve de vez,
+  já que a causa (campo `image` com função) deveria ser determinística,
+  não instável.
 - 11 (management): ações de suspender/reativar tenant são logadas via
   `Logger`, não gravadas em `Audit` (exceção deliberada, decisão 4 do ADR
   0012 — `Audit.userId` é FK pra `User`, platform user não é `User`).
@@ -66,19 +92,27 @@
   Corrigido movendo `tenants/` e `feedbacks/` para
   `frontend/src/app/platform/(authenticated)/` (route group, não afeta
   URL) e deixando `platform/login/page.tsx` fora dessa árvore.
-- **[Investigado em 2026-10-25, sem mudança de código]** Usuário já
-  autenticado que visita `/auth/login` ou `/platform/login` não é
-  redirecionado automaticamente pra dentro — confirmado real (não é nota
-  obsoleta) e a causa raiz foi isolada: as duas páginas são prerenderizadas
-  como estáticas (`○` no output do `next build`, ao contrário de
-  `/dashboard`/`/platform/tenants`, que são `ƒ`/dinâmicas), e o
-  `proxy.ts` não consegue aplicar de forma confiável, nesta versão do
-  Next, o redirect condicional baseado em cookie pra uma página estática
-  nessa direção (autenticado → afastar do login); a direção que importa
-  pra segurança (bloquear acesso sem sessão) continua garantida pelos
-  guards de cada layout (`(app)/layout.tsx` e
-  `platform/(authenticated)/layout.tsx`, que chamam o backend de
-  verdade) — sem risco de segurança, cosmético confirmado. Resolver de
-  verdade exigiria tornar essas páginas dinâmicas (perder a otimização
-  estática) — decisão de arquitetura a discutir antes de implementar, não
-  feita agora.
+- **[Resolvido em 2026-10-25, etapa 12.2]** Usuário já autenticado que
+  visita `/auth/login` ou `/platform/login` não era redirecionado pra
+  dentro. A causa raiz registrada em 2026-10-25 (páginas estáticas,
+  proxy "não consegue reavaliar o redirect") estava **errada** — a causa
+  real, só descoberta ao debugar por que o CSP com nonce da etapa 12.2
+  não aparecia em nenhuma resposta: **`frontend/proxy.ts` nunca executava
+  em produção**, para rota nenhuma, desde sempre. O Next 16 só reconhece
+  `proxy.ts` quando ele fica no mesmo nível de `app/` — como este projeto
+  usa `src/app/`, o arquivo precisava estar em `src/proxy.ts`, não na
+  raiz do repo. Confirmado com um `console.error` no topo da função: zero
+  linhas no log do servidor antes da correção; `ƒ Proxy (Middleware)`
+  ausente do output do `next build` antes, presente depois. Isso também
+  expõe por que a direção que importa (bloquear sem sessão) nunca
+  quebrou: o guard de verdade sempre foi o `redirect()` de cada layout
+  (`(app)/layout.tsx`, `platform/(authenticated)/layout.tsx`), que chama
+  o backend direto — o proxy nunca foi a única barreira, só achávamos que
+  era. Corrigido movendo o arquivo pra `frontend/src/proxy.ts` (etapa
+  12.2, junto da correção de C1 — a mesma investigação achou os dois).
+  Consequência exposta pelo proxy agora executando de verdade: faltavam
+  em `PUBLIC_ROUTES` as rotas `/termos`, `/auth/forgot-password`,
+  `/auth/reset-password`, `/auth/verify-email`, `/auth/accept-invite`,
+  `/auth/confirm-email-change` — sem sessão, qualquer uma delas caía num
+  redirect pro login (ex.: link de "Termos de Uso" do cadastro, ou o link
+  de redefinir senha do e-mail). Corrigido na mesma etapa.
