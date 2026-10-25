@@ -5,12 +5,14 @@
 ## Específico do Claude Code
 
 - A base evolui pelas fases do `Plano Base.md` (raiz do repo), autorizado pelo
-  ADR 0006. Numa etapa listada lá, mudar `backend/src/core/` ou
-  `frontend/src/core/` é permitido só no escopo exato que a etapa descreve ou
-  que o ADR citado por ela autoriza (ex.: ADR 0004/0005 para a Fase 8, ADR 0007
-  para a Fase 3, ADR 0008/0009 para a Fase 4, ADR 0010 para a Fase 6, ADR 0011
-  para a Fase 7, ADR 0012 para a Fase 11). Fora dessas fases, ou para tocar
-  `core/` além do escopo autorizado, pare, explique o motivo e espere aprovação.
+  ADR 0006, e pela Fase 12 em `docs/PLAN-fase-12.md`, autorizada pelo ADR
+  0013. Numa etapa listada num desses dois planos, mudar `backend/src/core/`
+  ou `frontend/src/core/` é permitido só no escopo exato que a etapa descreve
+  ou que o ADR citado por ela autoriza (ex.: ADR 0004/0005 para a Fase 8, ADR
+  0007 para a Fase 3, ADR 0008/0009 para a Fase 4, ADR 0010 para a Fase 6, ADR
+  0011 para a Fase 7, ADR 0012 para a Fase 11, ADR 0013 para a Fase 12). Fora
+  dessas fases, ou para tocar `core/` além do escopo autorizado, pare, explique
+  o motivo e espere aprovação.
 - Tarefas grandes começam em plan mode; só edite depois que eu aprovar.
 - Módulo novo: use a skill `/novo-modulo`.
 - Upgrade de dependência: só quando eu chamar `/upgrade-deps`. Nunca por iniciativa própria.

@@ -1,10 +1,18 @@
 # PLAN.md — Trabalho atual
 
-> Só o que está em andamento. O roteiro completo das fases v1 → v1.1/v2 está
-> em `Plano Base.md`. O histórico até a v1 está em `docs/historico/PLAN-v0.md`.
+> Só o que está em andamento. O roteiro das fases v1 → v1.1/v2 está em
+> `Plano Base.md`; o endurecimento pós-revisão está em
+> `docs/PLAN-fase-12.md`. O histórico até a v1 está em
+> `docs/historico/PLAN-v0.md`.
 
 ## Agora
 
+- [x] Fase 12 (Endurecimento) — etapa 12.0 concluída em 2026-10-25: ADR 0013
+      (`docs/adr/0013-endurecimento-da-base.md`) registra a saída do
+      congelamento para `docs/PLAN-fase-12.md`, com o escopo de `core/` por
+      etapa e as duas decisões novas (CSP com nonce ⇒ páginas dinâmicas;
+      `sid` no access token). Próximo: etapa 12.1 (rede de testes reais
+      contra Postgres/Redis real + smoke Playwright).
 - [x] Fases 0–10 do `Plano Base.md` concluídas em 2026-10-24 (etapas 9.2,
       9.3 e 10.1–10.6 na mesma sessão que fechou a Fase 9 — ver histórico
       de commits `feat(lgpd)`/`feat(ops)`/`docs(ops)`).
