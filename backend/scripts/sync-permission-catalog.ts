@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../src/app.module';
+import { ScriptsModule } from './scripts.module';
 import { PermissionCatalogSyncService } from '../src/core/authorization/permission-catalog-sync.service';
 
 async function run() {
-  const app = await NestFactory.createApplicationContext(AppModule, {
+  const app = await NestFactory.createApplicationContext(ScriptsModule, {
     logger: false,
   });
 

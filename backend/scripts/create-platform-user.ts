@@ -1,13 +1,13 @@
 // Fase 11 (ADR 0012) — único jeito de criar um PlatformUser: não há
-// self-signup (ver decisão 1 do ADR). Reaproveita o AppModule real via
-// NestFactory.createApplicationContext, mesmo padrão de
-// sync-permission-catalog.ts, para usar o PrismaService já configurado em
-// vez de abrir uma segunda conexão solta.
+// self-signup (ver decisão 1 do ADR). Reaproveita o ScriptsModule (ver
+// scripts.module.ts) via NestFactory.createApplicationContext, mesmo padrão
+// de sync-permission-catalog.ts, para usar o PrismaService já configurado
+// em vez de abrir uma segunda conexão solta.
 //
 // Uso: npm run create:platform-user -- <email> <nome> <senha>
 import { NestFactory } from '@nestjs/core';
 import * as bcrypt from 'bcrypt';
-import { AppModule } from '../src/app.module';
+import { ScriptsModule } from './scripts.module';
 import { PrismaService } from '../src/core/prisma/prisma.service';
 
 async function run() {
@@ -18,7 +18,7 @@ async function run() {
     process.exit(1);
   }
 
-  const app = await NestFactory.createApplicationContext(AppModule, {
+  const app = await NestFactory.createApplicationContext(ScriptsModule, {
     logger: false,
   });
 
