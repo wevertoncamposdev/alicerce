@@ -29,6 +29,11 @@ const PLATFORM_NAV = [
   { href: "/platform/feedbacks", label: "Feedbacks" },
 ];
 
+// Route group "(authenticated)": não existe na URL, só mantém `/platform/login`
+// fora desta árvore. Sem isso, este layout envolvia a própria página de login
+// e o redirect abaixo mandava /platform/login para /platform/login — loop
+// infinito pra quem nunca logou (bug encontrado ao verificar a pendência
+// "redirect cosmético" do PLAN.md: não era cosmético).
 export default async function PlatformLayout({ children }: { children: React.ReactNode }) {
   const platformUser = await getPlatformUser();
 
