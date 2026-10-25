@@ -146,11 +146,13 @@ describe('Login de usuário de plataforma (e2e)', () => {
       .get('/platform-auth/me')
       .set('Authorization', `Bearer ${loginBody.access_token}`)
       .expect(200)
-      .expect(({ body }: { body: { id: string; email: string; name: string } }) => {
-        expect(body.id).toBe(activeUser.id);
-        expect(body.email).toBe(activeUser.email);
-        expect(body.name).toBe(activeUser.name);
-      });
+      .expect(
+        ({ body }: { body: { id: string; email: string; name: string } }) => {
+          expect(body.id).toBe(activeUser.id);
+          expect(body.email).toBe(activeUser.email);
+          expect(body.name).toBe(activeUser.name);
+        },
+      );
 
     await request(app.getHttpServer()).get('/platform-auth/me').expect(401);
   });

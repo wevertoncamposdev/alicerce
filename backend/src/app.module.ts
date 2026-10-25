@@ -41,6 +41,7 @@ import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 import { RoleModule } from '@modules/role/role.module';
 import { PermissionModule } from '@modules/permission/permission.module';
 import { JobsModule } from '@core/jobs/jobs.module';
+import { ManagementModule } from '@modules/management/management.module';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { JobsModule } from '@core/jobs/jobs.module';
     FeedbacksModule,
     FileModule,
     JobsModule,
+    ManagementModule,
     I18nModule.forRoot({
       fallbackLanguage: 'pt',
       loaderOptions: {
