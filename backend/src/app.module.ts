@@ -50,7 +50,22 @@ import { ManagementModule } from '@modules/management/management.module';
     // genérico); rotas sensíveis a brute-force (`/auth/login`,
     // `/auth/register`) sobrescrevem com um limite mais estrito via
     // `@Throttle()` no próprio controller.
-    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 60 }]),
+    //
+    // `forRootAsync` (Fase 12, etapa 12.1, ADR 0013): a suíte test:e2e:db
+    // roda vários specs no mesmo Postgres/Redis em sequência e precisa
+    // desligar o throttle pra não contaminar um arquivo com os logins do
+    // anterior — `THROTTLE_DISABLED=true` só nessa suíte (nunca em
+    // produção; sem a env, o comportamento é idêntico ao `forRoot` de
+    // antes).
+    ThrottlerModule.forRootAsync({
+      useFactory: () => [
+        {
+          name: 'default',
+          ttl: 60_000,
+          limit: process.env.THROTTLE_DISABLED === 'true' ? 1_000_000 : 60,
+        },
+      ],
+    }),
     ScheduleModule.forRoot(),
     PrismaModule,
     RedisModule,

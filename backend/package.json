@@ -24,6 +24,7 @@
     "test:cov": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "test:debug": "cross-env NODE_OPTIONS=--experimental-vm-modules node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./test/jest-e2e.json",
+    "test:e2e:db": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./test-db/jest-e2e-db.json --runInBand",
     "seed": "tsx prisma/seed.ts",
     "export:openapi": "tsx -r tsconfig-paths/register scripts/export-openapi.ts",
     "sync:permissions": "tsx -r tsconfig-paths/register scripts/sync-permission-catalog.ts",
