@@ -5,12 +5,19 @@
 
 ## Agora
 
-- [x] Fase 0.1 — ADR 0006 (base sai do congelamento) + `CLAUDE.md` + este
-      arquivo, concluída em 2026-10-18.
-- [ ] Fase 0.2 — linha de base de testes (`backend/test/helpers/`)
-- [ ] Fase 1 — segurança de autenticação e auditoria
+- [x] Fases 0–10 do `Plano Base.md` concluídas em 2026-10-24 (etapas 9.2,
+      9.3 e 10.1–10.6 na mesma sessão que fechou a Fase 9 — ver histórico
+      de commits `feat(lgpd)`/`feat(ops)`/`docs(ops)`).
+- [ ] Fase 11 (v2) — sob demanda, puxada pelo TerceiroGestor. Sem data.
 
 ## Pendências conhecidas (não bloqueiam)
 
-- Etapas 4.3 (`/me`) e 4.4 (`SingletonDetailScreen`) precisam de ADR próprio
-  antes de tocar `core/` (ver ADR 0006).
+- 10.2 (monitoramento): adapter Sentry implementado e gated por env, mas
+  nunca confirmado contra um painel Sentry real (exige conta/projeto).
+- 10.3 (CSP): headers corretos confirmados via `curl` num build de
+  produção local; falta um teste manual num browser real (sem
+  `chromium-cli`/Playwright utilizáveis no ambiente onde foi implementado).
+- 10.5/10.6 (deploy, backup/restore): documentação e scripts prontos, mas
+  nunca executados de ponta a ponta (sem `docker`/`pg_dump` disponíveis
+  onde foram escritos) — primeira execução real fica pra quem tiver acesso
+  a um ambiente de staging.
