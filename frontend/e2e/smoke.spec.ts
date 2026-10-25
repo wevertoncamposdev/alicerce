@@ -57,25 +57,11 @@ const extraRoutes: RouteCheck[] = [
 
 const routes = [...moduleRoutes, ...extraRoutes];
 
-// C2 (docs/PLAN-fase-12.md): FormFieldConfig.previewUrl é uma função,
-// não serializável Server→Client — derruba só o card do campo "image"
-// (error boundary local), não a página inteira. Com C1 corrigido
-// (12.2) e a página de fato hidratando, esse crash passou a aparecer
-// nestas duas rotas — mas de forma instável (passou no desktop numa
-// rodada, falhou no mobile; não é 100% determinístico, talvez por
-// timing de streaming/Suspense). `test.fail()` exigiria acertar o
-// resultado toda vez; fica `test.skip()`, a 12.3 escreve sua própria
-// asserção ao corrigir de vez.
-const ROUTES_WITH_C2 = new Set(['perfil', 'instituicao']);
-
 for (const { path, label } of routes) {
-  // C1 (12.2): CSP com nonce por requisição — nenhuma rota deve mais
-  // derrubar a hidratação nem gerar violação de CSP.
+  // C1 (12.2) + C2 (12.3): CSP com nonce por requisição e o campo
+  // "image" serializável — nenhuma rota deve mais derrubar a hidratação
+  // nem gerar violação de CSP.
   test(`rota ${label} (${path}) carrega sem violação de CSP/hidratação`, async () => {
-    if (ROUTES_WITH_C2.has(label)) {
-      test.skip(true, 'C2 (12.3): campo image com previewUrl função derruba o card às vezes (flaky) — ver comentário acima');
-    }
-
     consoleErrors = [];
     pageErrors = [];
 
@@ -137,4 +123,36 @@ test('usuário já logado que abre /auth/login é redirecionado pro dashboard', 
   await sharedPage.goto('/auth/login');
   await sharedPage.waitForURL('**/dashboard', { timeout: 10_000 });
   expect(sharedPage.url()).toContain('/dashboard');
+});
+
+// 1x1 PNG transparente — só precisa passar pela whitelist de MIME do
+// backend (image/png,jpeg,webp), conteúdo em si é irrelevante aqui.
+const TINY_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+  'base64',
+);
+
+test('upload de avatar em /perfil mostra o preview (previewField fim-a-fim, C2)', async () => {
+  await sharedPage.goto('/perfil');
+  await sharedPage.waitForLoadState('networkidle');
+
+  const fileInput = sharedPage.locator('input[type="file"]');
+  await fileInput.setInputFiles({
+    name: 'avatar.png',
+    mimeType: 'image/png',
+    buffer: TINY_PNG,
+  });
+
+  // Espera o autosave comitar (onBlur) antes de recarregar — sem isso o
+  // reload pode pegar o servidor ainda sem o avatarFileId novo salvo.
+  await sharedPage.waitForTimeout(1500);
+  await sharedPage.reload();
+  await sharedPage.waitForLoadState('networkidle');
+
+  // Classe exata do preview em ImageFieldInput (FormView.tsx) — evita
+  // colidir com o avatar maior (size-20) do cabeçalho da página.
+  const preview = sharedPage.locator('img.size-12.rounded-full');
+  await expect(preview).toBeVisible({ timeout: 10_000 });
+  const src = await preview.getAttribute('src');
+  expect(src).toBeTruthy();
 });

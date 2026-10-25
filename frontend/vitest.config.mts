@@ -12,6 +12,13 @@ export default defineConfig({
       "@lib/": path.resolve(rootDir, "./src/lib/") + "/",
       "@modules/": path.resolve(rootDir, "./src/modules/") + "/",
       "@components/": path.resolve(rootDir, "./src/components/") + "/",
+      // Etapa 12.3 — `@core/*` faltava (nenhum teste anterior precisou
+      // dele); `serializable-contracts.test.ts` importa os contratos dos
+      // módulos, que usam esse alias internamente.
+      "@core/": path.resolve(rootDir, "./src/core/") + "/",
+      // `server-only` sempre lança ao importar (não é checagem de
+      // runtime) — stub vazio só pro Vitest, build real do Next intocado.
+      "server-only": path.resolve(rootDir, "./vitest.server-only-stub.ts"),
     },
   },
   test: {
