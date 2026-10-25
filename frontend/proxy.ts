@@ -39,7 +39,7 @@ const PLATFORM_LOGIN_ROUTE = "/platform/login";
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // Grupo (platform) (ADR 0012): sessão própria, nunca a de tenant acima.
+    // Pasta platform/ (ADR 0012): sessão própria, nunca a de tenant acima.
     if (pathname.startsWith("/platform")) {
         const hasPlatformSession = request.cookies.has(PLATFORM_SESSION_COOKIE);
         const isPlatformLoginRoute = pathname === PLATFORM_LOGIN_ROUTE;
