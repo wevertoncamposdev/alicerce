@@ -36,18 +36,41 @@
 - 11 (management): ações de suspender/reativar tenant são logadas via
   `Logger`, não gravadas em `Audit` (exceção deliberada, decisão 4 do ADR
   0012 — `Audit.userId` é FK pra `User`, platform user não é `User`).
-  Script `backend/scripts/create-platform-user.ts` está correto (mesmo
-  padrão comprovado de `sync-permission-catalog.ts`), mas falha ao rodar
-  via `tsx`/`NestFactory.createApplicationContext(AppModule)` neste
-  ambiente — `FilesService`/`STORAGE_PROVIDER` não resolve fora do boot
-  completo do `nest start` (bug pré-existente, não introduzido agora;
-  afeta igualmente `sync:permissions`/`backup:db`/`restore:db`). Workaround
-  usado pra validar o fluxo: insert direto via `PrismaClient` sem o grafo
-  do Nest. Vale investigar a ordem de inicialização de `StorageModule`
-  separadamente — fora do escopo deste ADR.
-- 11 (management/frontend): usuário de plataforma já autenticado que
-  visita `/platform/login` não é redirecionado automaticamente pro
-  dashboard — mesmo comportamento (não é regressão) já existe hoje no
-  fluxo de tenant (`/auth/login` com `session_token` válido também não
-  redireciona nesta base). Sem risco de segurança (a direção que importa —
-  bloquear acesso sem sessão — funciona nos dois fluxos); cosmético.
+- **[Resolvido em 2026-10-25]** `backend/scripts/create-platform-user.ts`
+  e `sync-permission-catalog.ts` falhavam via `tsx` — causa real não era
+  `StorageModule` (hipótese anterior, descartada: o provider é síncrono,
+  sem `onModuleInit`, sem relação com o adapter HTTP): `FilesService`
+  mistura um parâmetro `@Inject(STORAGE_PROVIDER)` com um parâmetro de
+  tipo implícito (`PrismaService`) no mesmo construtor, e o esbuild do
+  `tsx` não emite `design:paramtypes` completo nesse caso (`nest start`/
+  `nest build`, via `tsc`, não têm essa limitação). `backup:db`/
+  `restore:db` nunca foram afetados — não sobem o Nest, usam
+  `execFileSync('pg_dump'/'pg_restore')` puro. Corrigido isolando
+  `backend/scripts/scripts.module.ts` (`ConfigModule` + `PrismaModule` +
+  `RedisModule` + `AuthorizationModule`, sem `FileModule`/`StorageModule`)
+  — os dois scripts agora usam esse módulo em vez do `AppModule` inteiro.
+  Nenhuma mudança em `core/`.
+- **[Resolvido em 2026-10-25]** Achado ao verificar a pendência abaixo:
+  `frontend/src/app/platform/layout.tsx` envolvia **também**
+  `/platform/login` e redirecionava pra lá quando não autenticado — a
+  própria página de login se redirecionando pra si mesma, um loop
+  infinito real (confirmado com `curl -L --max-redirs 5`), não cosmético.
+  Corrigido movendo `tenants/` e `feedbacks/` para
+  `frontend/src/app/platform/(authenticated)/` (route group, não afeta
+  URL) e deixando `platform/login/page.tsx` fora dessa árvore.
+- **[Investigado em 2026-10-25, sem mudança de código]** Usuário já
+  autenticado que visita `/auth/login` ou `/platform/login` não é
+  redirecionado automaticamente pra dentro — confirmado real (não é nota
+  obsoleta) e a causa raiz foi isolada: as duas páginas são prerenderizadas
+  como estáticas (`○` no output do `next build`, ao contrário de
+  `/dashboard`/`/platform/tenants`, que são `ƒ`/dinâmicas), e o
+  `proxy.ts` não consegue aplicar de forma confiável, nesta versão do
+  Next, o redirect condicional baseado em cookie pra uma página estática
+  nessa direção (autenticado → afastar do login); a direção que importa
+  pra segurança (bloquear acesso sem sessão) continua garantida pelos
+  guards de cada layout (`(app)/layout.tsx` e
+  `platform/(authenticated)/layout.tsx`, que chamam o backend de
+  verdade) — sem risco de segurança, cosmético confirmado. Resolver de
+  verdade exigiria tornar essas páginas dinâmicas (perder a otimização
+  estática) — decisão de arquitetura a discutir antes de implementar, não
+  feita agora.
