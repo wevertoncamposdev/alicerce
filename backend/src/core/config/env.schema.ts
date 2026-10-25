@@ -59,6 +59,12 @@ const envSchema = z.object({
   // Jobs agendados (Fase 10.1 / etapa 9.4, LGPD) — prazo de retenção da
   // auditoria; o job diário em core/jobs apaga registros mais antigos.
   AUDIT_RETENTION_DAYS: z.coerce.number().int().positive().default(365),
+
+  // Monitoramento de erros (Fase 10.2) — driver console (default) só loga,
+  // igual hoje; "sentry" exige SENTRY_DSN (sem DSN o SDK não manda nada,
+  // mesmo padrão de falha-no-uso do Storage/Mail).
+  MONITORING_DRIVER: z.enum(['console', 'sentry']).default('console'),
+  SENTRY_DSN: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -11,13 +11,17 @@ import { AuditService } from '@modules/audit/audit.service';
 import { resolveAuditEntityFromUrl } from '@core/common/utils/audit-entity.util';
 import { RequestWithAuth } from '@core/common/types/http.types';
 import { ResponseLike } from '@core/common/types/response-like.type';
+import { MonitoringService } from '@core/monitoring/monitoring.service';
 
 @Catch()
 @Injectable()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger('ExceptionsFilter');
 
-  constructor(private readonly auditService: AuditService) {}
+  constructor(
+    private readonly auditService: AuditService,
+    private readonly monitoringService: MonitoringService,
+  ) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -64,6 +68,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
         correlationId,
         message: 'erro não tratado',
         stack,
+      });
+
+      // Etapa 10.2 — só erro de verdade (bug), não exceção de negócio
+      // esperada (HttpException, já tratada no warn acima).
+      this.monitoringService.captureException(exception, {
+        method,
+        url,
+        correlationId,
       });
     }
 

@@ -26,6 +26,7 @@ import { PrismaModule } from '@core/prisma/prisma.module';
 import { RedisModule } from '@core/redis/redis.module';
 import { StorageModule } from '@core/storage/storage.module';
 import { MailModule } from '@core/mail/mail.module';
+import { MonitoringModule } from '@core/monitoring/monitoring.module';
 import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { AuthModule } from '@core/auth/auth.module';
 import { TenantMiddleware } from '@core/common/middleware/tenant.middleware';
@@ -53,6 +54,7 @@ import { JobsModule } from '@core/jobs/jobs.module';
     RedisModule,
     StorageModule,
     MailModule,
+    MonitoringModule,
     HealthModule,
     AuthorizationModule,
     UsersModule,

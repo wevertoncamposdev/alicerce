@@ -19,4 +19,9 @@ const nextConfig: NextConfig = {
   output: "standalone",
 };
 
+// Etapa 10.2 — captura de erro já é feita por instrumentation.ts /
+// instrumentation-client.ts (ativados só com SENTRY_DSN/NEXT_PUBLIC_SENTRY_DSN).
+// `@sentry/nextjs@11` não expõe mais um `withSentryConfig` na raiz do pacote
+// pra plugar neste arquivo — upload de source maps fica pra quando/se isso
+// for necessário, não é exigido pra erros chegarem no painel.
 export default nextConfig;
