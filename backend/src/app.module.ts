@@ -29,6 +29,7 @@ import { MailModule } from '@core/mail/mail.module';
 import { MonitoringModule } from '@core/monitoring/monitoring.module';
 import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { AuthModule } from '@core/auth/auth.module';
+import { PlatformAuthModule } from '@core/platform-auth/platform-auth.module';
 import { TenantMiddleware } from '@core/common/middleware/tenant.middleware';
 import { AuditModule } from '@modules/audit/audit.module';
 
@@ -61,6 +62,7 @@ import { JobsModule } from '@core/jobs/jobs.module';
     RoleModule,
     PermissionModule,
     AuthModule,
+    PlatformAuthModule,
     TenantModule,
     AuditModule,
     FeedbacksModule,

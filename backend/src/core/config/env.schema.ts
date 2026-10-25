@@ -21,6 +21,12 @@ const envSchema = z.object({
   REDIS_URL: z.string().min(1, 'REDIS_URL é obrigatória'),
   JWT_SECRET: z.string().min(1, 'JWT_SECRET é obrigatória'),
   COOKIE_SECRET: z.string().min(1, 'COOKIE_SECRET é obrigatória'),
+
+  // Usuário de plataforma (Fase 11, ADR 0012) — secret próprio, diferente
+  // de JWT_SECRET: garante que um token de tenant nunca é aceito numa rota
+  // de management por engano (a lib de JWT falha a verificação contra o
+  // secret errado).
+  PLATFORM_JWT_SECRET: z.string().min(1, 'PLATFORM_JWT_SECRET é obrigatória'),
   CORS_ORIGINS: z.string().min(1, 'CORS_ORIGINS é obrigatória'),
 
   // Storage (Fase 6, ADR 0010) — driver local tem defaults utilizáveis em
