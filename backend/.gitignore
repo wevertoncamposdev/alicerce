@@ -19,6 +19,9 @@ lerna-debug.log*
 /coverage
 /.nyc_output
 
+# Dumps gerados por scripts/backup-db.ts (etapa 10.6) — nunca versionados.
+/backups
+
 # IDEs and editors
 /.idea
 .project

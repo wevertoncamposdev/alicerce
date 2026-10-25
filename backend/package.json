@@ -26,7 +26,9 @@
     "test:e2e": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./test/jest-e2e.json",
     "seed": "tsx prisma/seed.ts",
     "export:openapi": "tsx -r tsconfig-paths/register scripts/export-openapi.ts",
-    "sync:permissions": "tsx -r tsconfig-paths/register scripts/sync-permission-catalog.ts"
+    "sync:permissions": "tsx -r tsconfig-paths/register scripts/sync-permission-catalog.ts",
+    "backup:db": "tsx scripts/backup-db.ts",
+    "restore:db": "tsx scripts/restore-db.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1140.0",
