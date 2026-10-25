@@ -1,6 +1,13 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaBootstrapService } from '@core/prisma/prisma-bootstrap.service';
+import {
+  resolvePagination,
+  buildSearchTextWhere,
+} from '@core/common/utils/tenant-search.util';
 import { UpdateTenantStatusDto } from './dto/update-tenant-status.dto';
+import { SearchFeedbacksQueryDto } from './dto/search-feedbacks-query.dto';
+
+const FEEDBACK_SEARCHABLE_FIELDS = ['title', 'description'] as const;
 
 /**
  * "Módulo de Plataforma" (ADR 0012) — cross-tenant por natureza, lê via
@@ -63,5 +70,41 @@ export class ManagementService {
     );
 
     return updated;
+  }
+
+  // Caixa única de feedbacks (decisão 3 do ADR 0012): cross-tenant, sem
+  // `where.tenantId` — PrismaBootstrapService é o único jeito de ver linhas
+  // de todas as tenants de uma vez (Feedback tem RLS; sem bypassar, uma
+  // consulta sem tenant no contexto veria 0 linhas).
+  async listFeedbacks(query: SearchFeedbacksQueryDto) {
+    const { page, limit, skip, take } = resolvePagination({
+      pageIndex: query.pageIndex ?? 0,
+      pageSize: query.pageSize ?? 20,
+    });
+
+    const where = buildSearchTextWhere(
+      query.searchText,
+      FEEDBACK_SEARCHABLE_FIELDS,
+    );
+
+    const [items, total] = await Promise.all([
+      this.prismaBootstrap.feedback.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          status: true,
+          createdAt: true,
+          tenant: { select: { id: true, legalName: true, slug: true } },
+        },
+      }),
+      this.prismaBootstrap.feedback.count({ where }),
+    ]);
+
+    return { items, total, page, limit };
   }
 }
