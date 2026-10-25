@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE } from "@lib/session";
+import { PLATFORM_SESSION_COOKIE } from "@lib/platform-session";
 
 const PUBLIC_ROUTES = ["/", "/auth/login", "/auth/register"];
 const AUTH_ROUTES = ["/auth/login", "/auth/register"];
+
+// Usuário de plataforma (ADR 0012) tem sessão própria, sem relação com a de
+// tenant acima — path separado, cookie separado, redirect separado.
+const PLATFORM_LOGIN_ROUTE = "/platform/login";
 
 /**
  * middleware.ts na RAIZ do projeto (não dentro de app/) roda ANTES de
@@ -32,8 +37,25 @@ const AUTH_ROUTES = ["/auth/login", "/auth/register"];
  * só a primeira barreira, pra UX — não é o único guarda de segurança.
  */
 export function proxy(request: NextRequest) {
-    const hasSession = request.cookies.has(SESSION_COOKIE);
     const { pathname } = request.nextUrl;
+
+    // Grupo (platform) (ADR 0012): sessão própria, nunca a de tenant acima.
+    if (pathname.startsWith("/platform")) {
+        const hasPlatformSession = request.cookies.has(PLATFORM_SESSION_COOKIE);
+        const isPlatformLoginRoute = pathname === PLATFORM_LOGIN_ROUTE;
+
+        if (hasPlatformSession && isPlatformLoginRoute) {
+            return NextResponse.redirect(new URL("/platform/tenants", request.url));
+        }
+
+        if (!hasPlatformSession && !isPlatformLoginRoute) {
+            return NextResponse.redirect(new URL(PLATFORM_LOGIN_ROUTE, request.url));
+        }
+
+        return NextResponse.next();
+    }
+
+    const hasSession = request.cookies.has(SESSION_COOKIE);
 
     const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
     const isAuthRoute = AUTH_ROUTES.includes(pathname);
