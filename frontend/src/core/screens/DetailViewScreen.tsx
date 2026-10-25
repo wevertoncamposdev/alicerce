@@ -1,4 +1,5 @@
 // screens/DetailViewScreen.tsx
+import { notFound } from "next/navigation";
 import { getModule } from "@core/registry";
 import { createDataProvider } from "@core/data-provider";
 import { getEntityAuditTrail } from "@core/data-provider/rest/audit";
@@ -34,6 +35,11 @@ export async function DetailViewScreen({
                     <PermissionDeniedView message={err.message} />
                 </div>
             );
+        }
+        // Etapa 10.4 — id inexistente mostra o not-found.tsx do grupo (app)
+        // em vez de cair sem tratamento no error.tsx genérico.
+        if (err instanceof ApiServerError && err.status === 404) {
+            notFound();
         }
         throw err;
     }
