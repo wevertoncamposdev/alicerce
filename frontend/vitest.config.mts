@@ -17,6 +17,8 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
-    exclude: ["node_modules", ".next"],
+    // e2e/ são specs do Playwright (etapa 12.1) — rodam com npm run
+    // test:smoke, não com o Vitest.
+    exclude: ["node_modules", ".next", "e2e"],
   },
 });

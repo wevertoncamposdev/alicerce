@@ -12,7 +12,8 @@
     "lint": "eslint",
     "knip": "knip",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:smoke": "next build && playwright test"
   },
   "dependencies": {
     "@sentry/nextjs": "^11.9.0",
@@ -44,6 +45,7 @@
     "postcss": "^8.5.10"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
