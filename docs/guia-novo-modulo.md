@@ -76,6 +76,15 @@ Nome sempre singular, kebab-case.
 
 ## 4. Conceitos do contrato (ADR 0005)
 
+- **`FormFieldConfig` com `type: "image"`** (ADR 0010): o campo guarda o
+  `fileId` (FK), não a URL — declare `previewField: "<campo>"` apontando
+  pro campo do registro que já traz a URL de preview resolvida pelo
+  backend (ex.: `avatarUrl`, `logoUrl`). **Nunca** uma função
+  (`previewUrl: (record) => ...`) — função não serializa na fronteira
+  Server→Client e derruba a página em produção sem avisar em dev/build
+  (etapa 12.3, corrige C2). `core/registry/serializable-contracts.
+  test.ts` falha se qualquer `formFields` de qualquer módulo tiver um
+  valor função, não só `previewUrl`.
 - **`FormFieldConfig.primary`**: um por módulo, o campo que dispara a
   criação em `/<plural>/new` quando perde o foco com algo digitado. O
   gerador já marca o primeiro campo (`title`).

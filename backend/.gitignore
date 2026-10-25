@@ -22,6 +22,9 @@ lerna-debug.log*
 # Dumps gerados por scripts/backup-db.ts (etapa 10.6) — nunca versionados.
 /backups
 
+# Uploads do LocalDiskStorageProvider (STORAGE_LOCAL_PATH, ADR 0010) — nunca versionados.
+/storage
+
 # IDEs and editors
 /.idea
 .project

@@ -93,3 +93,12 @@ upload.
 - Upload sem destino nunca é limpo automaticamente nesta fase (sem job de
   GC de arquivos órfãos) — aceitável para o "mínimo" da Fase 6, revisável
   se o volume de uploads abandonados importar depois.
+
+## Nota (etapa 12.3, ADR 0013)
+
+`FormFieldConfig.previewUrl` (decisão original acima: função `(record) =>
+string`) virou `previewField` (nome do campo do registro, não função) —
+função não serializa na fronteira Server→Client e derrubava `/perfil` e
+`/configuracoes/instituicao` em produção (C2, corrigido na etapa 12.3). A
+decisão de onde a URL é resolvida (request-time, no backend) não muda —
+só a forma como o contrato aponta pra ela.
