@@ -290,9 +290,13 @@ export class AuthService {
    * Fluxo:
    * 1. Hash do token recebido → busca no banco.
    * 2. Token não existe / revogado / expirado → 401.
-   * 3. Token já foi consumido antes (revokedAt preenchido mas ainda no banco)
-   *    → REUSO DETECTADO → revoga toda a família → 401.
-   * 4. Marca o token atual como revogado.
+   * 3. Token já foi consumido antes (revokedAt preenchido mas ainda no banco):
+   *    tolera reuso só se `replacedAt` estiver preenchido (revogação por
+   *    ROTAÇÃO, não por motivo de segurança) e dentro da janela de 10s —
+   *    senão REUSO/REVOGAÇÃO DE SEGURANÇA → revoga toda a família → 401
+   *    (C4, etapa 12.5/F1: sem isso, encerrar sessão ou trocar senha não
+   *    impedia um refresh imediato com o token recém-revogado).
+   * 4. Marca o token atual como revogado E substituído (`replacedAt`).
    * 5. Emite novo par com o mesmo familyId.
    */
   async refreshTokens(
@@ -314,18 +318,22 @@ export class AuthService {
     }
 
     if (storedToken.revokedAt !== null) {
-      const revokedWithinGraceWindow =
-        Date.now() - storedToken.revokedAt.getTime() <
-        REFRESH_TOKEN_REUSE_GRACE_MS;
+      const withinRotationGrace =
+        storedToken.replacedAt !== null &&
+        Date.now() - storedToken.replacedAt.getTime() <
+          REFRESH_TOKEN_REUSE_GRACE_MS;
 
-      // Dentro da janela de tolerância: provável corrida de requisições
-      // paralelas que rotacionaram o mesmo token quase ao mesmo tempo (não é
-      // reuso malicioso). Deixa passar e emite um novo par normalmente,
-      // sem punir a família nem revogar de novo o token já revogado.
-      if (!revokedWithinGraceWindow) {
-        // ⚠️  Reuso fora da janela de tolerância: o token já tinha sido
-        // revogado há tempo e alguém está tentando usá-lo de novo. Isso
-        // indica que o token pode ter sido roubado. A decisão mais segura
+      // Dentro da janela de tolerância de uma ROTAÇÃO legítima: provável
+      // corrida de requisições paralelas que rotacionaram o mesmo token
+      // quase ao mesmo tempo (não é reuso malicioso). Deixa passar e emite
+      // um novo par normalmente, sem punir a família nem revogar de novo o
+      // token já revogado.
+      if (!withinRotationGrace) {
+        // ⚠️  Cobre dois casos com a mesma resposta: (a) rotação fora da
+        // janela de tolerância — reuso tardio, possível roubo; (b)
+        // revogação de SEGURANÇA (`replacedAt` nunca setado: logout, troca
+        // de senha, "encerrar sessão/outras", reset, desativação) — essa
+        // nunca tolera reuso, nem imediato. Em ambos, a decisão mais segura
         // é revogar toda a família — forçando novo login para todos.
         await this.prismaBootstrap.refreshToken.updateMany({
           where: { familyId: storedToken.familyId },
@@ -336,10 +344,12 @@ export class AuthService {
         );
       }
     } else {
-      // Revoga o token atual antes de emitir o próximo
+      // Revoga o token atual antes de emitir o próximo — `replacedAt`
+      // marca que esta é uma rotação (não uma revogação de segurança),
+      // habilitando a tolerância de reuso acima.
       await this.prismaBootstrap.refreshToken.update({
         where: { id: storedToken.id },
-        data: { revokedAt: new Date() },
+        data: { revokedAt: new Date(), replacedAt: new Date() },
       });
     }
 

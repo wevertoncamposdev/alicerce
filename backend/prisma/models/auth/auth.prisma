@@ -6,6 +6,12 @@ model RefreshToken {
     familyId   String    @db.Uuid // detectar reuso: toda rotação compartilha o mesmo familyId
     expiresAt  DateTime
     revokedAt  DateTime?
+    // Só preenchido quando a revogação é uma ROTAÇÃO (token trocado por um
+    // novo na mesma família, em refreshTokens) — nunca numa revogação de
+    // segurança (logout, troca de senha, "encerrar sessão/outras"). É o que
+    // diferencia as duas: só uma rotação legítima tolera reuso dentro da
+    // janela de 10s (C4, etapa 12.5/F1) — ver AuthService.refreshTokens.
+    replacedAt DateTime?
     createdAt  DateTime  @default(now())
     userAgent  String?   @db.VarChar(255)
     ip         String?   @db.VarChar(45)

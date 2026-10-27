@@ -6,11 +6,12 @@ import { registerTenant, login, inviteAndAccept, refreshWith } from './helpers/f
 const PASSWORD = 'SenhaForte123';
 
 /**
- * C4 (docs/PLAN-fase-12.md): `refreshTokens` tolera reuso de um token já
+ * C4 (docs/PLAN-fase-12.md): `refreshTokens` tolerava reuso de um token já
  * revogado por até 10s (`REFRESH_TOKEN_REUSE_GRACE_MS`) — pensado pra duas
- * abas renovando ao mesmo tempo, mas vale também pra revogação de
- * segurança (encerrar sessão, trocar senha): dá pra "ressuscitar" a sessão
- * dentro da janela. Corrige na etapa 12.5.
+ * abas renovando ao mesmo tempo, mas valia também pra revogação de
+ * segurança (encerrar sessão, trocar senha): dava pra "ressuscitar" a
+ * sessão dentro da janela. Corrigido na etapa 12.5/F1 (`replacedAt` só é
+ * gravado numa rotação legítima, nunca numa revogação de segurança).
  *
  * Cada `it()` sobe sua própria app (não um `testApp` compartilhado no
  * describe): o throttle de `/auth/login`/`/auth/register` (5/min,
@@ -19,7 +20,7 @@ const PASSWORD = 'SenhaForte123';
  * mascarariam o teste com 429 em vez do 401/200 esperado.
  */
 describe('Revogação de sessão e tolerância de reuso do refresh (Postgres real)', () => {
-  it.failing('encerrar sessão + refresh imediato com o cookie dela → 401', async () => {
+  it('encerrar sessão + refresh imediato com o cookie dela → 401', async () => {
     const testApp = await createTestApp();
     try {
       const user = await registerTenant(testApp.app, { password: PASSWORD });
@@ -48,7 +49,7 @@ describe('Revogação de sessão e tolerância de reuso do refresh (Postgres rea
     }
   });
 
-  it.failing('trocar senha + refresh imediato de outra sessão → 401', async () => {
+  it('trocar senha + refresh imediato de outra sessão → 401', async () => {
     const testApp = await createTestApp();
     try {
       const user = await registerTenant(testApp.app, { password: PASSWORD });

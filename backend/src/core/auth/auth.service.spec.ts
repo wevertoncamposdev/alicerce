@@ -322,12 +322,13 @@ describe('AuthService', () => {
   });
 
   describe('refreshTokens', () => {
-    it('issues a new pair and revokes only the current token when it is still active', async () => {
+    it('issues a new pair and revokes+replaces only the current token when it is still active', async () => {
       prisma.refreshToken.findUnique.mockResolvedValue({
         id: 'rt-1',
         familyId: 'family-1',
         userId: baseUser.id,
         revokedAt: null,
+        replacedAt: null,
         expiresAt: new Date(Date.now() + 1000 * 60),
       });
 
@@ -337,16 +338,21 @@ describe('AuthService', () => {
       expect(prisma.refreshToken.update).toHaveBeenCalledTimes(1);
       expect(prisma.refreshToken.update.mock.calls[0][0]).toMatchObject({
         where: { id: 'rt-1' },
+        // `expect.any(Date)` é tipado como `any` pelo @types/jest — ver
+        // roles.service.spec.ts para o mesmo padrão.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        data: { revokedAt: expect.any(Date), replacedAt: expect.any(Date) },
       });
       expect(prisma.refreshToken.updateMany).not.toHaveBeenCalled();
     });
 
-    it('tolerates reuse of a just-revoked token (parallel requests) without nuking the family', async () => {
+    it('tolerates reuse of a just-rotated token (parallel requests) without nuking the family', async () => {
       prisma.refreshToken.findUnique.mockResolvedValue({
         id: 'rt-1',
         familyId: 'family-1',
         userId: baseUser.id,
-        revokedAt: new Date(Date.now() - 2000), // revogado há 2s, dentro da janela
+        revokedAt: new Date(Date.now() - 2000), // rotacionado há 2s, dentro da janela
+        replacedAt: new Date(Date.now() - 2000),
         expiresAt: new Date(Date.now() + 1000 * 60),
       });
 
@@ -356,12 +362,37 @@ describe('AuthService', () => {
       expect(prisma.refreshToken.updateMany).not.toHaveBeenCalled();
     });
 
-    it('treats reuse outside the grace window as theft and revokes the whole family', async () => {
+    it('treats a rotated token reused outside the grace window as theft and revokes the whole family', async () => {
       prisma.refreshToken.findUnique.mockResolvedValue({
         id: 'rt-1',
         familyId: 'family-1',
         userId: baseUser.id,
-        revokedAt: new Date(Date.now() - 60 * 1000), // revogado há 60s
+        revokedAt: new Date(Date.now() - 60 * 1000), // rotacionado há 60s
+        replacedAt: new Date(Date.now() - 60 * 1000),
+        expiresAt: new Date(Date.now() + 1000 * 60),
+      });
+
+      await expect(service.refreshTokens('raw-token')).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+      expect(prisma.refreshToken.updateMany).toHaveBeenCalledTimes(1);
+      expect(prisma.refreshToken.updateMany.mock.calls[0][0]).toMatchObject({
+        where: { familyId: 'family-1' },
+      });
+    });
+
+    // C4 (etapa 12.5/F1): revogação de SEGURANÇA (logout, troca de senha,
+    // "encerrar sessão/outras") nunca grava `replacedAt` — mesmo revogado
+    // há poucos ms, não pode ser confundida com a tolerância de rotação
+    // acima. Sem essa distinção, um refresh imediato após essas ações
+    // "ressuscitava" a sessão dentro da janela de 10s.
+    it('never tolerates reuse of a security-revoked token (no replacedAt), even immediately', async () => {
+      prisma.refreshToken.findUnique.mockResolvedValue({
+        id: 'rt-1',
+        familyId: 'family-1',
+        userId: baseUser.id,
+        revokedAt: new Date(Date.now() - 10), // revogado há 10ms
+        replacedAt: null,
         expiresAt: new Date(Date.now() + 1000 * 60),
       });
 
