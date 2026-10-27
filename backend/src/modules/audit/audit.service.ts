@@ -4,6 +4,7 @@ import { AuditType } from '@core/prisma/generated/enums';
 import { Prisma } from '@core/prisma/generated/client';
 import { SearchAuditDto } from './dto/search-audit.dto';
 import { findOneOrThrow } from '@core/common/utils/find-one-or-throw.util';
+import { runWithTenantContext } from '@core/common/context/request-context';
 import {
   resolvePagination,
   buildSearchTextWhere,
@@ -62,18 +63,26 @@ export class AuditService {
       return;
     }
 
-    await this.prisma.audit.create({
-      data: {
-        tenantId,
-        userId,
-        type: type ?? 'DATA_CHANGE',
-        action,
-        entity,
-        entityId,
-        before: before !== undefined ? JSON.stringify(before) : null,
-        after: JSON.stringify(payload),
-      },
-    });
+    // Rotas `@Public()` (login, cadastro, reset, aceite de convite) chamam
+    // `register()` antes do `RequestContextInterceptor` rodar — sem
+    // tenant no `AsyncLocalStorage`, a RLS recusa o insert (C3,
+    // docs/PLAN-fase-12.md). `runWithTenantContext` resolve isso com o
+    // `tenantId` já recebido como parâmetro (nunca do cliente), mesmo
+    // padrão de `PermissionCacheService.reloadPermissions`.
+    await runWithTenantContext(tenantId, () =>
+      this.prisma.audit.create({
+        data: {
+          tenantId,
+          userId,
+          type: type ?? 'DATA_CHANGE',
+          action,
+          entity,
+          entityId,
+          before: before !== undefined ? JSON.stringify(before) : null,
+          after: JSON.stringify(payload),
+        },
+      }),
+    );
   }
 
   async findAll(

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -78,6 +79,8 @@ const LOGIN_LOCKOUT_WINDOW_SECONDS = 15 * 60;
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     // Role owner (ignora RLS) — ver PrismaBootstrapService: todas as
     // consultas deste service são inerentemente cross-tenant (login por
@@ -548,8 +551,8 @@ export class AuthService {
             entity: 'auth',
             payload: { reason: 'account_locked' },
           })
-          .catch(() => {
-            // Auditoria não deve interromper o fluxo de login (nem seu erro).
+          .catch((error: unknown) => {
+            this.logger.error('Falha ao gravar auditoria de login', error);
           });
       }
 
@@ -599,8 +602,8 @@ export class AuthService {
           action: 'POST',
           entity: 'auth',
         })
-        .catch(() => {
-          // Auditoria não deve interromper o fluxo de login (nem seu erro).
+        .catch((error: unknown) => {
+          this.logger.error('Falha ao gravar auditoria de login', error);
         });
 
       const message = this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
@@ -623,8 +626,8 @@ export class AuthService {
           action: 'POST',
           entity: 'auth',
         })
-        .catch(() => {
-          // Auditoria não deve interromper o fluxo de login (nem seu erro).
+        .catch((error: unknown) => {
+          this.logger.error('Falha ao gravar auditoria de login', error);
         });
 
       const message = this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {

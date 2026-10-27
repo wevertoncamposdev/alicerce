@@ -10,16 +10,17 @@ interface AuditRow {
   before: string | null;
 }
 
-async function auditRowsFor(userId: string, action: string): Promise<AuditRow[]> {
+async function queryAuditRowsFor(userId: string, type: string): Promise<AuditRow[]> {
   // DATABASE_URL (role owner) bypassa RLS de propósito aqui — o teste
   // precisa inspecionar o que ficou gravado independente da RLS, não
-  // reproduzi-la (isso já é coberto por isolation.db-spec.ts).
+  // reproduzi-la (isso já é coberto por isolation.db-spec.ts). Filtra por
+  // `type` (LOGIN/LOGIN_FAILED) — `action` é sempre o método HTTP (POST).
   const client = new Client({ connectionString: process.env.DATABASE_URL });
   await client.connect();
   try {
     const result = await client.query<AuditRow>(
-      'SELECT action, type, after, before FROM audits WHERE "userId" = $1 AND action = $2',
-      [userId, action],
+      'SELECT action, type, after, before FROM audits WHERE "userId" = $1 AND type = $2',
+      [userId, type],
     );
     return result.rows;
   } finally {
@@ -27,13 +28,31 @@ async function auditRowsFor(userId: string, action: string): Promise<AuditRow[]>
   }
 }
 
+// `AuditInterceptor`/`AuthService` chamam `auditService.register(...)` sem
+// `await` (`void register().catch(...)`) de propósito — a auditoria nunca
+// pode atrasar a resposta HTTP. Isso corre em paralelo com o fim da
+// requisição: consultar o banco imediatamente após o `request(...)`
+// resolver é uma corrida real contra essa escrita assíncrona, não um
+// detalhe de teste. Poll curto (até 2s) em vez de uma query única.
+async function auditRowsFor(userId: string, type: string): Promise<AuditRow[]> {
+  const deadline = Date.now() + 2000;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const rows = await queryAuditRowsFor(userId, type);
+    if (rows.length > 0 || Date.now() >= deadline) {
+      return rows;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
+
 /**
- * C3 (docs/PLAN-fase-12.md): `AuditService.register` grava com
- * `PrismaService` (RLS); rotas `@Public()` (login) não têm tenant no
- * `AsyncLocalStorage`, a policy recusa o insert, e o `catch` vazio do
- * `AuthService` engole o erro — hoje nenhum LOGIN/LOGIN_FAILED fica
- * auditado. Corrige na etapa 12.4. Os dois primeiros cenários são
- * `it.failing` de propósito.
+ * C3 (docs/PLAN-fase-12.md): `AuditService.register` gravava com
+ * `PrismaService` (RLS) fora de `runWithTenantContext`; rotas
+ * `@Public()` (login) não tinham tenant no `AsyncLocalStorage`, a
+ * policy recusava o insert e o `catch` vazio do `AuthService` engolia
+ * o erro — nenhum LOGIN/LOGIN_FAILED ficava auditado. Corrigido na
+ * etapa 12.4.
  */
 describe('Auditoria de login (Postgres real)', () => {
   let testApp: TestApp;
@@ -48,7 +67,7 @@ describe('Auditoria de login (Postgres real)', () => {
     await testApp.close();
   });
 
-  it.failing('login certo grava um registro LOGIN', async () => {
+  it('login certo grava um registro LOGIN', async () => {
     await request(testApp.app.getHttpServer())
       .post('/api/auth/login')
       .send({ email: admin.email, password: 'SenhaForte123' })
@@ -58,10 +77,10 @@ describe('Auditoria de login (Postgres real)', () => {
     expect(rows.length).toBeGreaterThan(0);
   });
 
-  it.failing('senha errada grava um registro LOGIN_FAILED', async () => {
+  it('senha errada grava um registro LOGIN_FAILED', async () => {
     await request(testApp.app.getHttpServer())
       .post('/api/auth/login')
-      .send({ email: admin.email, password: 'senha-errada-qualquer' })
+      .send({ email: admin.email, password: 'senha-errada-123' })
       .expect(401);
 
     const rows = await auditRowsFor(admin.userId, 'LOGIN_FAILED');
@@ -83,7 +102,7 @@ describe('Auditoria de login (Postgres real)', () => {
       for (let i = 0; i < 5; i += 1) {
         await request(lockoutApp.app.getHttpServer())
           .post('/api/auth/login')
-          .send({ email: victim.email, password: 'senha-errada-qualquer' });
+          .send({ email: victim.email, password: 'senha-errada-123' });
       }
 
       const rows = await auditRowsFor(victim.userId, 'LOGIN_FAILED');
@@ -106,7 +125,7 @@ describe('Auditoria de login (Postgres real)', () => {
         [admin.userId],
       );
       const blob = JSON.stringify(result.rows);
-      expect(blob).not.toMatch(/SenhaForte123|senha-errada-qualquer/);
+      expect(blob).not.toMatch(/SenhaForte123|senha-errada-123/);
       expect(blob.toLowerCase()).not.toContain('"password"');
       expect(blob.toLowerCase()).not.toContain('"access_token"');
       expect(blob.toLowerCase()).not.toContain('"refresh_token"');
