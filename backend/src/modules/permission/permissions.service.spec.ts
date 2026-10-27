@@ -65,9 +65,9 @@ describe('PermissionsService', () => {
     });
 
     it('dedupes a role that grants the same permission via more than one RolePermission row', async () => {
-      // Chave composta de RolePermission inclui `resource` — concessão de
-      // catálogo (resource: null) e concessão avulsa (resource custom)
-      // coexistem pro mesmo papel+permissão (ver RolesService.attachPermission).
+      // Chave composta de RolePermission inclui `resource` — dados antigos
+      // com `resource` custom podem coexistir com a concessão de catálogo
+      // (resource: null) pro mesmo papel+permissão.
       prismaMock.permission.findMany.mockResolvedValueOnce([
         {
           id: 'perm-1',

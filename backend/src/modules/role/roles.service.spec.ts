@@ -45,8 +45,8 @@ describe('RolesService', () => {
     jest.clearAllMocks();
     // Default: nenhum usuário afetado, a menos que um teste sobrescreva com
     // `.mockResolvedValueOnce` — evita que todo teste que passa por
-    // attachPermission/detachPermission/remove precise mockar isto só para
-    // não quebrar no `.map()` da invalidação de cache.
+    // replacePermissions/remove precise mockar isto só para não quebrar no
+    // `.map()` da invalidação de cache.
     prismaMock.userRole.findMany.mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
@@ -59,49 +59,6 @@ describe('RolesService', () => {
     }).compile();
 
     service = module.get<RolesService>(RolesService);
-  });
-
-  it('attachPermission: should upsert permission when role and permission exist', async () => {
-    prismaMock.role.findUnique.mockResolvedValueOnce({
-      id: 'role-1',
-      tenantId: 't1',
-      deletedAt: null,
-    });
-    prismaMock.permission.findUnique.mockResolvedValueOnce({
-      id: 'perm-1',
-      tenantId: 't1',
-      deletedAt: null,
-    });
-    prismaMock.rolePermission.upsert.mockResolvedValueOnce({ id: 'rp-1' });
-
-    const res = await service.attachPermission(
-      'role-1',
-      't1',
-      'perm-1',
-      'res-a',
-    );
-
-    expect(prismaMock.role.findUnique).toHaveBeenCalledWith({
-      where: { id: 'role-1' },
-    });
-    expect(prismaMock.permission.findUnique).toHaveBeenCalledWith({
-      where: { id: 'perm-1' },
-    });
-    expect(prismaMock.rolePermission.upsert).toHaveBeenCalled();
-    expect(res).toEqual({ id: 'rp-1' });
-  });
-
-  it('attachPermission: should throw NotFoundException when permission missing', async () => {
-    prismaMock.role.findUnique.mockResolvedValueOnce({
-      id: 'role-1',
-      tenantId: 't1',
-      deletedAt: null,
-    });
-    prismaMock.permission.findUnique.mockResolvedValueOnce(null);
-
-    await expect(
-      service.attachPermission('role-1', 't1', 'perm-404'),
-    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('attachUser: should upsert userRole when role and user exist', async () => {
@@ -308,8 +265,8 @@ describe('RolesService', () => {
   });
 
   // P7.5: invalidação do cache de permissões. attachUser/detachUser afetam
-  // só 1 usuário; attachPermission/detachPermission/remove afetam todo
-  // mundo que tem a role (ver RolesService.invalidatePermissionCacheForRole).
+  // só 1 usuário; replacePermissions/remove afetam todo mundo que tem a
+  // role (ver RolesService.invalidatePermissionCacheForRole).
   describe('permission cache invalidation', () => {
     it('attachUser: invalidates only the attached user', async () => {
       prismaMock.role.findUnique.mockResolvedValueOnce({
@@ -347,46 +304,6 @@ describe('RolesService', () => {
         't1',
         'user-1',
       );
-    });
-
-    it('attachPermission: invalidates every user who holds the role', async () => {
-      prismaMock.role.findUnique.mockResolvedValueOnce({
-        id: 'role-1',
-        tenantId: 't1',
-        deletedAt: null,
-      });
-      prismaMock.permission.findUnique.mockResolvedValueOnce({
-        id: 'perm-1',
-        tenantId: 't1',
-        deletedAt: null,
-      });
-      prismaMock.rolePermission.upsert.mockResolvedValueOnce({ id: 'rp-1' });
-      prismaMock.userRole.findMany.mockResolvedValueOnce([
-        { userId: 'user-1' },
-        { userId: 'user-2' },
-      ]);
-
-      await service.attachPermission('role-1', 't1', 'perm-1');
-
-      expect(permissionCacheMock.invalidateUsers).toHaveBeenCalledWith('t1', [
-        'user-1',
-        'user-2',
-      ]);
-    });
-
-    it('detachPermission: invalidates every user who holds the role', async () => {
-      prismaMock.rolePermission.deleteMany.mockResolvedValueOnce({
-        count: 1,
-      });
-      prismaMock.userRole.findMany.mockResolvedValueOnce([
-        { userId: 'user-3' },
-      ]);
-
-      await service.detachPermission('role-1', 't1', 'perm-1');
-
-      expect(permissionCacheMock.invalidateUsers).toHaveBeenCalledWith('t1', [
-        'user-3',
-      ]);
     });
 
     it('remove: invalidates every user who held the deactivated role', async () => {

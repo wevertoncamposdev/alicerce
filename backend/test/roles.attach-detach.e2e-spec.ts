@@ -20,12 +20,6 @@ interface MockUser {
   deletedAt: Date | null;
 }
 
-interface MockPermission {
-  id: string;
-  tenantId: string;
-  deletedAt: Date | null;
-}
-
 interface MockUserRole {
   tenantId: string;
   userId: string;
@@ -33,19 +27,10 @@ interface MockUserRole {
   assignedAt?: Date;
 }
 
-interface MockRolePermission {
-  tenantId: string;
-  roleId: string;
-  permissionId: string;
-  resource: string | null;
-}
-
 class MockPrisma {
   roles = new Map<string, MockRole>();
   users = new Map<string, MockUser>();
-  permissions = new Map<string, MockPermission>();
   userRoles: MockUserRole[] = [];
-  rolePermissions: MockRolePermission[] = [];
 
   constructor() {
     // seed minimal data
@@ -55,11 +40,6 @@ class MockPrisma {
       deletedAt: null,
     });
     this.users.set('user-1', { id: 'user-1', deletedAt: null });
-    this.permissions.set('perm-1', {
-      id: 'perm-1',
-      tenantId: 'tenant-1',
-      deletedAt: null,
-    });
   }
 
   role = {
@@ -70,11 +50,6 @@ class MockPrisma {
   user = {
     findUnique: ({ where: { id } }: { where: { id: string } }) =>
       this.users.get(id) ?? null,
-  };
-
-  permission = {
-    findUnique: ({ where: { id } }: { where: { id: string } }) =>
-      this.permissions.get(id) ?? null,
   };
 
   userRole = {
@@ -119,55 +94,6 @@ class MockPrisma {
     findMany: ({ where }: { where: { roleId: string; tenantId: string } }) =>
       this.userRoles.filter(
         (r) => r.roleId === where.roleId && r.tenantId === where.tenantId,
-      ),
-  };
-
-  rolePermission = {
-    upsert: ({
-      where,
-      create,
-    }: {
-      where: {
-        roleId_permissionId_resource: {
-          roleId: string;
-          permissionId: string;
-          resource: string | null;
-        };
-      };
-      create: MockRolePermission;
-      update: Record<string, never>;
-    }) => {
-      const key = where.roleId_permissionId_resource;
-      const existing = this.rolePermissions.find(
-        (p) =>
-          p.roleId === key.roleId &&
-          p.permissionId === key.permissionId &&
-          p.resource === key.resource,
-      );
-      if (existing) return existing;
-      const created = { ...create };
-      this.rolePermissions.push(created);
-      return created;
-    },
-    deleteMany: ({
-      where,
-    }: {
-      where: { permissionId: string; roleId: string; tenantId: string };
-    }) => {
-      const before = this.rolePermissions.length;
-      this.rolePermissions = this.rolePermissions.filter(
-        (p) =>
-          !(
-            p.permissionId === where.permissionId &&
-            p.roleId === where.roleId &&
-            p.tenantId === where.tenantId
-          ),
-      );
-      return { count: before - this.rolePermissions.length };
-    },
-    findMany: ({ where }: { where: { roleId: string; tenantId: string } }) =>
-      this.rolePermissions.filter(
-        (p) => p.roleId === where.roleId && p.tenantId === where.tenantId,
       ),
   };
 }
@@ -246,45 +172,6 @@ describe('Roles attach/detach (e2e with mocked Prisma)', () => {
 
     const res = await request(app.getHttpServer())
       .delete('/roles/role-1/users/user-1')
-      .query({ tenantId: 'tenant-1' })
-      .expect(200);
-
-    expect(res.body).toEqual({ removed: true });
-  });
-
-  it('attaches a permission to a role', async () => {
-    const res = await request(app.getHttpServer())
-      .post('/roles/role-1/permissions')
-      .send({ tenantId: 'tenant-1', permissionId: 'perm-1' })
-      .expect(201);
-
-    expect(res.body).toMatchObject({
-      tenantId: 'tenant-1',
-      roleId: 'role-1',
-      permissionId: 'perm-1',
-    });
-  });
-
-  it('detaches a permission from a role', async () => {
-    mockPrisma.rolePermission.upsert({
-      where: {
-        roleId_permissionId_resource: {
-          roleId: 'role-1',
-          permissionId: 'perm-1',
-          resource: null,
-        },
-      },
-      create: {
-        tenantId: 'tenant-1',
-        roleId: 'role-1',
-        permissionId: 'perm-1',
-        resource: null,
-      },
-      update: {},
-    });
-
-    const res = await request(app.getHttpServer())
-      .delete('/roles/role-1/permissions/perm-1')
       .query({ tenantId: 'tenant-1' })
       .expect(200);
 

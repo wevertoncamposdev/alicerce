@@ -8,18 +8,12 @@ import { registerTenant, inviteAndAccept, login, Session } from './helpers/flows
  * nunca `@Roles`. Contra Postgres real pra confirmar que a checagem lê o
  * estado atual do papel a cada requisição, não algo cacheado no JWT.
  *
- * Achado nesta etapa (12.1), fora do catálogo C1-C4/I1-I4 do
- * `docs/PLAN-fase-12.md`: `POST /roles/:id/permissions`
- * (`RolesService.attachPermission`, roles.service.ts:266-288) faz um
- * `upsert` cuja `where` composta usa `resource: null` quando nenhum
- * `resource` customizado é enviado — o comentário do próprio método
- * (linhas 262-265) afirma que "o `null` em runtime funciona normalmente",
- * mas o Prisma Client 7.10.1 instalado hoje rejeita isso com
- * `PrismaClientValidationError: Argument "resource" must not be null`,
- * virando 500 em qualquer tentativa de conceder permissão sem `resource`
- * — ou seja, o caminho comum de uso do endpoint. Os dois cenários abaixo
- * dependem desse endpoint e por isso ficam `it.failing` até uma etapa
- * futura corrigir `attachPermission` (não é código novo desta suíte).
+ * Os dois cenários abaixo concedem permissão via `PUT /roles/:id/permissions`
+ * (`replacePermissions`, substitui o conjunto inteiro). O antigo
+ * `POST /roles/:id/permissions` (`attachPermission`) tinha um bug de upsert
+ * no Prisma 7.10 (`resource: null` rejeitado numa chave composta) e não
+ * tinha consumidor nenhum — removido na etapa F2.1
+ * (`docs/Plan-Finalizacao.md`) em vez de corrigido.
  */
 describe('RBAC — permissões por papel (Postgres real)', () => {
   let testApp: TestApp;
@@ -44,7 +38,7 @@ describe('RBAC — permissões por papel (Postgres real)', () => {
     return permission.id;
   }
 
-  it.failing('papel só com feedback.read lê feedbacks e leva 403 em /roles', async () => {
+  it('papel só com feedback.read lê feedbacks e leva 403 em /roles', async () => {
     const admin = await registerTenant(testApp.app);
 
     const roleRes = await request(testApp.app.getHttpServer())
@@ -56,10 +50,10 @@ describe('RBAC — permissões por papel (Postgres real)', () => {
 
     const feedbackReadId = await permissionIdByName(admin, 'feedback.read');
     await request(testApp.app.getHttpServer())
-      .post(`/api/roles/${roleId}/permissions`)
+      .put(`/api/roles/${roleId}/permissions`)
       .set('Authorization', `Bearer ${admin.accessToken}`)
-      .send({ tenantId: admin.tenantId, permissionId: feedbackReadId })
-      .expect(201);
+      .send({ permissionIds: [feedbackReadId] })
+      .expect(200);
 
     let coordenador = await inviteAndAccept(testApp.app, testApp.mail, admin);
 
@@ -85,7 +79,7 @@ describe('RBAC — permissões por papel (Postgres real)', () => {
       .expect(403);
   });
 
-  it.failing('conceder role.read ao papel vale sem novo login (checagem não é cacheada no JWT)', async () => {
+  it('conceder role.read ao papel vale sem novo login (checagem não é cacheada no JWT)', async () => {
     const admin = await registerTenant(testApp.app);
 
     const roleRes = await request(testApp.app.getHttpServer())
@@ -105,12 +99,12 @@ describe('RBAC — permissões por papel (Postgres real)', () => {
 
     const roleReadId = await permissionIdByName(admin, 'role.read');
     await request(testApp.app.getHttpServer())
-      .post(`/api/roles/${roleId}/permissions`)
+      .put(`/api/roles/${roleId}/permissions`)
       .set('Authorization', `Bearer ${admin.accessToken}`)
-      .send({ tenantId: admin.tenantId, permissionId: roleReadId })
-      .expect(201);
+      .send({ permissionIds: [roleReadId] })
+      .expect(200);
 
-    // Mesmo accessToken de antes do attach — sem relogar.
+    // Mesmo accessToken de antes da concessão — sem relogar.
     await request(testApp.app.getHttpServer())
       .get('/api/roles')
       .set('Authorization', `Bearer ${coordenador.accessToken}`)

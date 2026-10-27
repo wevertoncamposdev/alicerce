@@ -240,73 +240,6 @@ export class RolesService {
     return { removed: result.count > 0 };
   }
 
-  async attachPermission(
-    roleId: string,
-    tenantId: string,
-    permissionId: string,
-    resource?: string,
-  ) {
-    findOneOrThrow(
-      await this.prisma.role.findUnique({ where: { id: roleId } }),
-      (role) => !role.deletedAt && role.tenantId === tenantId,
-      'Role nao encontrada',
-    );
-
-    findOneOrThrow(
-      await this.prisma.permission.findUnique({ where: { id: permissionId } }),
-      (permission) => !permission.deletedAt && permission.tenantId === tenantId,
-      'Permission nao encontrada',
-    );
-
-    // upsert (idempotent) by unique composite [roleId, permissionId, resource].
-    // O tipo gerado pelo Prisma para a chave composta exige `resource:
-    // string` mesmo a coluna sendo nullable (limitação conhecida da geração
-    // de tipos para chaves compostas com campo opcional) — o `null` em
-    // runtime funciona normalmente, só o tipo do gerador é mais estrito.
-    const uniqueWhere: Prisma.RolePermissionWhereUniqueInput = {
-      roleId_permissionId_resource: {
-        roleId,
-        permissionId,
-        resource: (resource ?? null) as unknown as string,
-      },
-    };
-
-    const rolePermission = await this.prisma.rolePermission.upsert({
-      where: uniqueWhere,
-      create: {
-        tenantId,
-        roleId,
-        permissionId,
-        resource: resource ?? null,
-      },
-      update: {
-        // touch to update timestamp if any (no timestamp field here), keep as no-op
-      },
-    });
-
-    await this.invalidatePermissionCacheForRole(roleId, tenantId);
-
-    return rolePermission;
-  }
-
-  async detachPermission(
-    roleId: string,
-    tenantId: string,
-    permissionId: string,
-  ) {
-    const result = await this.prisma.rolePermission.deleteMany({
-      where: {
-        tenantId,
-        roleId,
-        permissionId,
-      },
-    });
-
-    await this.invalidatePermissionCacheForRole(roleId, tenantId);
-
-    return { removed: result.count > 0 };
-  }
-
   // Etapa 3.5 (ADR 0007): recursos × ações do catálogo materializado no
   // tenant, com o que já está marcado para este papel. Usa `Permission` do
   // tenant (não `PERMISSION_CATALOG` direto) porque é lá que vive o `id`
@@ -363,9 +296,10 @@ export class RolesService {
   }
 
   // Substitui o conjunto de permissões do papel em uma única transação
-  // (diff contra o atual, não detach+attach um por um) — só mexe nas
-  // concessões "de catálogo" (resource: null); attach/detach individual com
-  // `resource` customizado (attachPermission) continua intocado por aqui.
+  // (diff contra o atual, não detach+attach um por um) — único caminho de
+  // concessão de permissão hoje (F2.1: os endpoints de attach/detach
+  // isolado foram removidos, sem consumidor e com um bug de upsert no
+  // Prisma 7.10 quando `resource` é nulo).
   async replacePermissions(
     roleId: string,
     tenantId: string,

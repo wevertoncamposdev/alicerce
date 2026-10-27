@@ -27,10 +27,10 @@ function withRoleNames<
 >(permission: T) {
   const { roles, ...rest } = permission;
   // Um papel pode ter mais de uma linha de RolePermission pra mesma
-  // permissão (chave composta inclui `resource` — concessão de catálogo
-  // com `resource: null` e concessões avulsas com `resource` custom
-  // coexistem, ver RolesService.attachPermission/replacePermissions) —
-  // dedupe por id, senão o mesmo papel aparece repetido na lista.
+  // permissão (chave composta inclui `resource`; `replacePermissions`
+  // só cria `resource: null`, mas dados antigos com `resource` custom
+  // podem coexistir) — dedupe por id, senão o mesmo papel aparece
+  // repetido na lista.
   const uniqueRoles = new Map(roles.map((item) => [item.role.id, item.role]));
   return { ...rest, roles: [...uniqueRoles.values()] };
 }

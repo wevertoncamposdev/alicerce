@@ -20,7 +20,6 @@ import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.gua
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { AttachRoleUserDto } from './dto/attach-role-user.dto';
-import { AttachRolePermissionDto } from './dto/attach-role-permission.dto';
 import { ReplaceRolePermissionsDto } from './dto/replace-role-permissions.dto';
 import { SearchRoleDto } from './dto/search-role.dto';
 import { RolesService } from './roles.service';
@@ -84,31 +83,6 @@ export class RolesController {
     @CurrentUserId() currentUserId: string,
   ) {
     return this.rolesService.detachUser(id, tenantId, userId, currentUserId);
-  }
-
-  @Post(':id/permissions')
-  @Permissions('role.assign')
-  attachPermission(
-    @Param('id') id: string,
-    @Body() dto: AttachRolePermissionDto,
-    @TenantId() tenantId: string,
-  ) {
-    return this.rolesService.attachPermission(
-      id,
-      tenantId,
-      dto.permissionId,
-      dto.resource,
-    );
-  }
-
-  @Delete(':id/permissions/:permissionId')
-  @Permissions('role.assign')
-  detachPermission(
-    @Param('id') id: string,
-    @Param('permissionId') permissionId: string,
-    @TenantId() tenantId: string,
-  ) {
-    return this.rolesService.detachPermission(id, tenantId, permissionId);
   }
 
   @Search()
