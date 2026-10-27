@@ -5,10 +5,10 @@ import { registerTenant } from './helpers/flows';
 const PASSWORD = 'SenhaForte123';
 
 /**
- * I3 (docs/PLAN-fase-12.md): sem `@NormalizeEmail()` (ainda não existe),
- * `Fulano@x.com` e `fulano@x.com` são contas diferentes pro Postgres —
- * cadastro duplicado com outra caixa não é bloqueado, e login com outra
- * caixa falha. Corrige na etapa 12.9. Os dois cenários são `it.failing`.
+ * I3 (docs/PLAN-fase-12.md): sem `@NormalizeEmail()`, `Fulano@x.com` e
+ * `fulano@x.com` eram contas diferentes pro Postgres — cadastro duplicado
+ * com outra caixa não era bloqueado, e login com outra caixa falhava.
+ * Corrigido na etapa 12.9/F2.2.
  */
 describe('E-mail sem normalização de caixa (Postgres real)', () => {
   let testApp: TestApp;
@@ -21,7 +21,7 @@ describe('E-mail sem normalização de caixa (Postgres real)', () => {
     await testApp.close();
   });
 
-  it.failing('cadastro com e-mail em maiúsculas de uma conta existente → 409', async () => {
+  it('cadastro com e-mail em maiúsculas de uma conta existente → 409', async () => {
     const user = await registerTenant(testApp.app, { password: PASSWORD });
 
     await request(testApp.app.getHttpServer())
@@ -36,7 +36,7 @@ describe('E-mail sem normalização de caixa (Postgres real)', () => {
       .expect(409);
   });
 
-  it.failing('login com outra caixa do e-mail cadastrado funciona', async () => {
+  it('login com outra caixa do e-mail cadastrado funciona', async () => {
     const user = await registerTenant(testApp.app, { password: PASSWORD });
 
     await request(testApp.app.getHttpServer())

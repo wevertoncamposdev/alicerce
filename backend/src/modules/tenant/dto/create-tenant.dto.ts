@@ -9,6 +9,7 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DocumentType } from '@core/prisma/generated/enums';
 import { IsDocument } from '@core/common/validators/is-document.validator';
+import { NormalizeEmail } from '@core/common/validators/normalize-email.decorator';
 
 export class CreateTenantDto {
   @ApiProperty({
@@ -51,6 +52,7 @@ export class CreateTenantDto {
 
   @ApiPropertyOptional({ maxLength: 255 })
   @IsOptional()
+  @NormalizeEmail()
   @IsEmail()
   @MaxLength(255)
   email?: string;

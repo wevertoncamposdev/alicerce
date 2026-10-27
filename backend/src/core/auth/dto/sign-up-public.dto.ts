@@ -10,6 +10,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { IsStrongPassword } from '@core/common/validators/strong-password.validator';
+import { NormalizeEmail } from '@core/common/validators/normalize-email.decorator';
 
 export class SignUpPublicDto {
   @IsString()
@@ -25,6 +26,7 @@ export class SignUpPublicDto {
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
   tenantSlug!: string;
 
+  @NormalizeEmail()
   @IsEmail()
   @IsNotEmpty()
   email!: string;

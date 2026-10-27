@@ -7,9 +7,11 @@ import {
   MaxLength,
 } from 'class-validator';
 import { IsStrongPassword } from '@core/common/validators/strong-password.validator';
+import { NormalizeEmail } from '@core/common/validators/normalize-email.decorator';
 
 export class UpdateUserDto {
   @IsOptional()
+  @NormalizeEmail()
   @IsEmail()
   @MaxLength(255)
   email?: string;
