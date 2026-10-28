@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Query, Search } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Query,
+  Search,
+} from '@nestjs/common';
 import { AuditService } from './audit.service';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { UseGuards } from '@nestjs/common';
@@ -25,7 +33,10 @@ export class AuditController {
 
   @Get(':id')
   @Permissions('audit.read')
-  findOne(@Param('id') id: string, @TenantId() tenantId: string) {
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.auditService.findOne(id, tenantId);
   }
 

@@ -36,7 +36,9 @@ describe('Rotas checam só permissões, não mais roles (e2e)', () => {
   let app: INestApplication<App>;
   let jwtService: JwtService;
 
-  const feedbackId = 'fb-1';
+  // ParseUUIDPipe (F4.3, docs/Plan-Finalizacao.md) rejeita `:id` que não
+  // seja um UUID de verdade.
+  const feedbackId = '11111111-1111-4111-8111-111111111111';
   const tenantId = 'tenant-1';
 
   beforeAll(async () => {

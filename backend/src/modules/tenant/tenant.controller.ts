@@ -6,6 +6,7 @@ import {
   Body,
   Patch,
   Param,
+  ParseUUIDPipe,
   Delete,
   UseGuards,
   Search,
@@ -62,7 +63,10 @@ export class TenantController {
 
   @Get(':id')
   @Permissions('tenant.read')
-  findOne(@Param('id') id: string, @TenantId() tenantId: string) {
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.tenantService.findOne(id, tenantId);
   }
 
@@ -70,7 +74,10 @@ export class TenantController {
   @Permissions('tenant.read')
   @ApiOperation({ summary: 'List users of a tenant' })
   @ApiResponse({ status: 200, description: 'Users of the tenant.' })
-  listUsers(@Param('id') id: string, @TenantId() tenantId: string) {
+  listUsers(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.tenantService.findUsersOfTenant(id, tenantId);
   }
 
@@ -78,14 +85,17 @@ export class TenantController {
   @Permissions('tenant.read')
   @ApiOperation({ summary: 'List roles of a tenant' })
   @ApiResponse({ status: 200, description: 'Roles of the tenant.' })
-  listRoles(@Param('id') id: string, @TenantId() tenantId: string) {
+  listRoles(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.tenantService.findRolesOfTenant(id, tenantId);
   }
 
   @Patch(':id')
   @Permissions('tenant.update')
   update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateTenantDto,
     @TenantId() tenantId: string,
   ) {
@@ -94,7 +104,7 @@ export class TenantController {
 
   @Delete(':id')
   @Permissions('tenant.manage')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.tenantService.remove(id);
   }
 

@@ -48,12 +48,17 @@ interface MockRolePermission {
   resource: string | null;
 }
 
+// ParseUUIDPipe (F4.3, docs/Plan-Finalizacao.md) rejeita `:id` que não
+// seja um UUID de verdade — só o roleId vai na URL, por isso só ele
+// precisa parecer um UUID (permissionId vai no body do PUT, sem pipe).
+const ROLE_ID = '11111111-1111-4111-8111-111111111111';
+
 class MockPrisma {
   roles = new Map([
     [
-      'role-1',
+      ROLE_ID,
       {
-        id: 'role-1',
+        id: ROLE_ID,
         tenantId: 'tenant-1',
         name: 'Coordenador',
         isSystem: false,
@@ -92,13 +97,13 @@ class MockPrisma {
   rolePermissions: MockRolePermission[] = [
     {
       tenantId: 'tenant-1',
-      roleId: 'role-1',
+      roleId: ROLE_ID,
       permissionId: 'perm-read',
       resource: null,
     },
   ];
 
-  userRoles = [{ tenantId: 'tenant-1', userId: 'user-1', roleId: 'role-1' }];
+  userRoles = [{ tenantId: 'tenant-1', userId: 'user-1', roleId: ROLE_ID }];
 
   users = new Map([
     [
@@ -281,7 +286,7 @@ describe('Matriz de permissões do papel (e2e)', () => {
 
   it('GET permission-matrix mostra o catálogo com o que já está marcado', async () => {
     const res = await request(app.getHttpServer())
-      .get('/roles/role-1/permission-matrix')
+      .get(`/roles/${ROLE_ID}/permission-matrix`)
       .expect(200);
 
     expect(res.body).toEqual([
@@ -303,7 +308,7 @@ describe('Matriz de permissões do papel (e2e)', () => {
     expect(before).toEqual(['FEEDBACK.READ']);
 
     await request(app.getHttpServer())
-      .put('/roles/role-1/permissions')
+      .put(`/roles/${ROLE_ID}/permissions`)
       .send({ permissionIds: ['perm-manage'] })
       .expect(200);
 

@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Request,
@@ -78,7 +79,7 @@ export class MeController {
   @Delete('sessions/:familyId')
   async revokeSession(
     @Request() req: AuthenticatedRequest,
-    @Param('familyId') familyId: string,
+    @Param('familyId', new ParseUUIDPipe()) familyId: string,
   ) {
     await this.meService.revokeSession(req.user.sub, familyId);
   }

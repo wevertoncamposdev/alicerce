@@ -97,7 +97,10 @@ export class UsersController {
   @Permissions('user.read')
   @ApiOperation({ summary: 'List roles of a user' })
   @ApiResponse({ status: 200, description: 'List of roles' })
-  listRoles(@Param('id') id: string, @TenantId() tenantId: string) {
+  listRoles(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.rolesService.findRolesOfUser(id, tenantId);
   }
 
@@ -108,7 +111,10 @@ export class UsersController {
     status: 200,
     description: 'List of effective permissions inherited from the user roles',
   })
-  listPermissions(@Param('id') id: string, @TenantId() tenantId: string) {
+  listPermissions(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.usersService.findPermissionsOfUser(id, tenantId);
   }
 }

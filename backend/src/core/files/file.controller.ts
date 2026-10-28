@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Post,
   Req,
   UseGuards,
@@ -58,14 +59,17 @@ export class FilesController {
   }
 
   @Get(':id/url')
-  getUrl(@Param('id') id: string, @TenantId() tenantId: string) {
+  getUrl(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.filesService.getSignedUrl(id, tenantId);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   async remove(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @TenantId() tenantId: string,
     @CurrentUserId() userId: string,
   ) {

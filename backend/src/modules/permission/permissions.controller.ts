@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Param, Search } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Search,
+} from '@nestjs/common';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
@@ -21,7 +28,10 @@ export class PermissionsController {
 
   @Get(':id')
   @Permissions('permission.read')
-  findOne(@Param('id') id: string, @TenantId() tenantId: string) {
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.permissionsService.findOne(id, tenantId);
   }
 
@@ -38,7 +48,10 @@ export class PermissionsController {
 
   @Get(':id/roles')
   @Permissions('permission.read')
-  listRoles(@Param('id') id: string, @TenantId() tenantId: string) {
+  listRoles(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.permissionsService.findRolesOfPermission(id, tenantId);
   }
 }

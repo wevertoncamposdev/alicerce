@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Query,
   UseGuards,
@@ -37,7 +38,7 @@ export class ManagementController {
 
   @Patch('tenants/:id/status')
   updateStatus(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateTenantStatusDto,
     @CurrentPlatformUser() platformUser: PlatformJwtPayload,
   ) {

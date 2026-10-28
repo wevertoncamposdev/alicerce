@@ -5,6 +5,7 @@ import {
   Delete,
   Body,
   Param,
+  ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -26,7 +27,7 @@ export class FeedbackCommentsController {
   @Permissions('feedback.read')
   @ApiOperation({ summary: 'Listar comentários de um feedback' })
   findAll(
-    @Param('feedbackId') feedbackId: string,
+    @Param('feedbackId', new ParseUUIDPipe()) feedbackId: string,
     @TenantId() tenantId: string,
   ) {
     return this.commentsService.findAll(feedbackId, tenantId);
@@ -36,7 +37,7 @@ export class FeedbackCommentsController {
   @Permissions('feedback.update')
   @ApiOperation({ summary: 'Comentar em um feedback' })
   create(
-    @Param('feedbackId') feedbackId: string,
+    @Param('feedbackId', new ParseUUIDPipe()) feedbackId: string,
     @Body() dto: CreateFeedbackCommentDto,
     @TenantId() tenantId: string,
     @CurrentUserId() userSub: string,
@@ -47,7 +48,10 @@ export class FeedbackCommentsController {
   @Delete(':id')
   @Permissions('feedback.update')
   @ApiOperation({ summary: 'Remover comentário' })
-  remove(@Param('id') id: string, @TenantId() tenantId: string) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.commentsService.remove(id, tenantId);
   }
 }

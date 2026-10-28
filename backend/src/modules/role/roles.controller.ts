@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -38,7 +39,10 @@ export class RolesController {
 
   @Get(':id')
   @Permissions('role.read')
-  findOne(@Param('id') id: string, @TenantId() tenantId: string) {
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.rolesService.findOne(id, tenantId);
   }
 
@@ -51,7 +55,7 @@ export class RolesController {
   @Patch(':id')
   @Permissions('role.update')
   update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateRoleDto,
     @TenantId() tenantId: string,
   ) {
@@ -60,14 +64,17 @@ export class RolesController {
 
   @Delete(':id')
   @Permissions('role.delete')
-  remove(@Param('id') id: string, @TenantId() tenantId: string) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.rolesService.remove(id, tenantId);
   }
 
   @Post(':id/users')
   @Permissions('role.assign')
   attachUser(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: AttachRoleUserDto,
     @TenantId() tenantId: string,
   ) {
@@ -77,8 +84,8 @@ export class RolesController {
   @Delete(':id/users/:userId')
   @Permissions('role.assign')
   detachUser(
-    @Param('id') id: string,
-    @Param('userId') userId: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
     @TenantId() tenantId: string,
     @CurrentUserId() currentUserId: string,
   ) {
@@ -98,7 +105,10 @@ export class RolesController {
   @Permissions('role.read')
   @ApiOperation({ summary: 'Permission matrix (resource x action) of a role' })
   @ApiResponse({ status: 200, description: 'Permission matrix' })
-  getPermissionMatrix(@Param('id') id: string, @TenantId() tenantId: string) {
+  getPermissionMatrix(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.rolesService.getPermissionMatrix(id, tenantId);
   }
 
@@ -107,7 +117,7 @@ export class RolesController {
   @ApiOperation({ summary: 'Replace the full permission set of a role' })
   @ApiResponse({ status: 200, description: 'Updated permission matrix' })
   replacePermissions(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: ReplaceRolePermissionsDto,
     @TenantId() tenantId: string,
   ) {
@@ -122,7 +132,10 @@ export class RolesController {
   @Permissions('role.read')
   @ApiOperation({ summary: 'List permissions of a role' })
   @ApiResponse({ status: 200, description: 'List of permissions' })
-  listPermissions(@Param('id') id: string, @TenantId() tenantId: string) {
+  listPermissions(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.rolesService.findPermissionsOfRole(id, tenantId);
   }
 
@@ -130,7 +143,10 @@ export class RolesController {
   @Permissions('role.read')
   @ApiOperation({ summary: 'List users of a role' })
   @ApiResponse({ status: 200, description: 'List of users' })
-  listUsers(@Param('id') id: string, @TenantId() tenantId: string) {
+  listUsers(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.rolesService.findUsersOfRole(id, tenantId);
   }
 }

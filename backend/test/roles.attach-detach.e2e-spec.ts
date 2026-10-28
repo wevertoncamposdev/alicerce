@@ -27,6 +27,12 @@ interface MockUserRole {
   assignedAt?: Date;
 }
 
+// ParseUUIDPipe (F4.3, docs/Plan-Finalizacao.md) rejeita qualquer
+// `:id`/`:userId` que não seja um UUID de verdade — as fixtures precisam
+// de valores que pareçam reais, não mais "role-1"/"user-1".
+const ROLE_ID = '11111111-1111-4111-8111-111111111111';
+const USER_ID = '22222222-2222-4222-8222-222222222222';
+
 class MockPrisma {
   roles = new Map<string, MockRole>();
   users = new Map<string, MockUser>();
@@ -34,12 +40,12 @@ class MockPrisma {
 
   constructor() {
     // seed minimal data
-    this.roles.set('role-1', {
-      id: 'role-1',
+    this.roles.set(ROLE_ID, {
+      id: ROLE_ID,
       tenantId: 'tenant-1',
       deletedAt: null,
     });
-    this.users.set('user-1', { id: 'user-1', deletedAt: null });
+    this.users.set(USER_ID, { id: USER_ID, deletedAt: null });
   }
 
   role = {
@@ -131,7 +137,7 @@ describe('Roles attach/detach (e2e with mocked Prisma)', () => {
         canActivate: (context: ExecutionContext) => {
           const request = context.switchToHttp().getRequest<RequestWithAuth>();
           request.user = {
-            sub: 'user-1',
+            sub: USER_ID,
             username: 'user-1@example.com',
             tenantId: 'tenant-1',
             permissions: ['role.assign'],
@@ -151,27 +157,27 @@ describe('Roles attach/detach (e2e with mocked Prisma)', () => {
 
   it('attaches a user to a role', async () => {
     const res = await request(app.getHttpServer())
-      .post('/roles/role-1/users')
-      .send({ tenantId: 'tenant-1', userId: 'user-1' })
+      .post(`/roles/${ROLE_ID}/users`)
+      .send({ tenantId: 'tenant-1', userId: USER_ID })
       .expect(201);
 
     expect(res.body).toMatchObject({
       tenantId: 'tenant-1',
-      userId: 'user-1',
-      roleId: 'role-1',
+      userId: USER_ID,
+      roleId: ROLE_ID,
     });
   });
 
   it('detaches a user from a role', async () => {
     // ensure a relation exists
     mockPrisma.userRole.upsert({
-      where: { userId_roleId: { userId: 'user-1', roleId: 'role-1' } },
-      create: { tenantId: 'tenant-1', userId: 'user-1', roleId: 'role-1' },
+      where: { userId_roleId: { userId: USER_ID, roleId: ROLE_ID } },
+      create: { tenantId: 'tenant-1', userId: USER_ID, roleId: ROLE_ID },
       update: {},
     });
 
     const res = await request(app.getHttpServer())
-      .delete('/roles/role-1/users/user-1')
+      .delete(`/roles/${ROLE_ID}/users/${USER_ID}`)
       .query({ tenantId: 'tenant-1' })
       .expect(200);
 

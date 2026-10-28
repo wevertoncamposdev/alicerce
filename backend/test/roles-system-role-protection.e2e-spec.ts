@@ -25,19 +25,24 @@ interface MockRole {
  * por um stub que só povoa `request.user` e libera (a etapa 3.2 já cobre o
  * comportamento do guard em si).
  */
+// ParseUUIDPipe (F4.3, docs/Plan-Finalizacao.md) rejeita `:id` que não
+// seja um UUID de verdade.
+const ROLE_ADMIN_ID = '11111111-1111-4111-8111-111111111111';
+const ROLE_COORDENADOR_ID = '22222222-2222-4222-8222-222222222222';
+
 class MockPrisma {
   roles = new Map<string, MockRole>();
 
   constructor() {
-    this.roles.set('role-admin', {
-      id: 'role-admin',
+    this.roles.set(ROLE_ADMIN_ID, {
+      id: ROLE_ADMIN_ID,
       tenantId: 'tenant-1',
       name: 'ADMIN',
       isSystem: true,
       deletedAt: null,
     });
-    this.roles.set('role-coordenador', {
-      id: 'role-coordenador',
+    this.roles.set(ROLE_COORDENADOR_ID, {
+      id: ROLE_COORDENADOR_ID,
       tenantId: 'tenant-1',
       name: 'Coordenador',
       isSystem: false,
@@ -109,29 +114,31 @@ describe('Papel de sistema não pode ser excluído nem renomeado (e2e)', () => {
   });
 
   it('DELETE num papel isSystem retorna 409', async () => {
-    await request(app.getHttpServer()).delete('/roles/role-admin').expect(409);
+    await request(app.getHttpServer())
+      .delete(`/roles/${ROLE_ADMIN_ID}`)
+      .expect(409);
 
-    expect(mockPrisma.roles.get('role-admin')).toMatchObject({
+    expect(mockPrisma.roles.get(ROLE_ADMIN_ID)).toMatchObject({
       deletedAt: null,
     });
   });
 
   it('PATCH renomeando um papel isSystem retorna 409', async () => {
     await request(app.getHttpServer())
-      .patch('/roles/role-admin')
+      .patch(`/roles/${ROLE_ADMIN_ID}`)
       .send({ name: 'Não é mais admin' })
       .expect(409);
 
-    expect(mockPrisma.roles.get('role-admin')).toMatchObject({
+    expect(mockPrisma.roles.get(ROLE_ADMIN_ID)).toMatchObject({
       name: 'ADMIN',
     });
   });
 
   it('DELETE num papel comum (não isSystem) funciona normalmente', async () => {
     await request(app.getHttpServer())
-      .delete('/roles/role-coordenador')
+      .delete(`/roles/${ROLE_COORDENADOR_ID}`)
       .expect(200);
 
-    expect(mockPrisma.roles.get('role-coordenador')?.deletedAt).not.toBeNull();
+    expect(mockPrisma.roles.get(ROLE_COORDENADOR_ID)?.deletedAt).not.toBeNull();
   });
 });

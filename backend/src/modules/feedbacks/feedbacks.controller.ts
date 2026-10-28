@@ -5,6 +5,7 @@ import {
   Body,
   Patch,
   Param,
+  ParseUUIDPipe,
   Delete,
   UseGuards,
   Search,
@@ -36,14 +37,17 @@ export class FeedbacksController {
 
   @Get(':id')
   @Permissions('feedback.read')
-  findOne(@Param('id') id: string, @TenantId() tenantId: string) {
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.feedbacksService.findOne(id, tenantId);
   }
 
   @Patch(':id')
   @Permissions('feedback.update')
   update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateFeedbackDto,
     @TenantId() tenantId: string,
   ) {
@@ -56,7 +60,7 @@ export class FeedbacksController {
   @Patch(':id/status')
   @Permissions('feedback.manage')
   updateStatus(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateFeedbackStatusDto,
     @TenantId() tenantId: string,
   ) {
@@ -65,7 +69,10 @@ export class FeedbacksController {
 
   @Delete(':id')
   @Permissions('feedback.delete')
-  remove(@Param('id') id: string, @TenantId() tenantId: string) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.feedbacksService.remove(id, tenantId);
   }
 

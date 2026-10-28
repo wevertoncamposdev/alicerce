@@ -266,6 +266,7 @@ export class ${pascalPlural}Service {
   Body,
   Patch,
   Param,
+  ParseUUIDPipe,
   Delete,
   UseGuards,
   Search,
@@ -291,14 +292,17 @@ export class ${pascalPlural}Controller {
 
   @Get(':id')
   @Permissions('${kebabSingular}.read')
-  findOne(@Param('id') id: string, @TenantId() tenantId: string) {
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.${camelPlural}Service.findOne(id, tenantId);
   }
 
   @Patch(':id')
   @Permissions('${kebabSingular}.update')
   update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: Update${pascalSingular}Dto,
     @TenantId() tenantId: string,
   ) {
@@ -307,7 +311,10 @@ export class ${pascalPlural}Controller {
 
   @Delete(':id')
   @Permissions('${kebabSingular}.delete')
-  remove(@Param('id') id: string, @TenantId() tenantId: string) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.${camelPlural}Service.remove(id, tenantId);
   }
 
