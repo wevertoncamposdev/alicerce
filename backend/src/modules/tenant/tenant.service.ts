@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
@@ -9,6 +13,7 @@ import { TenantErrorMapper } from './mappers/tenant-error.mapper';
 import { TenantRepository } from './persistence/repository/tenant.repository';
 import { SearchTenantsDto } from './dto/search-tenant.dto';
 import { FilesService } from '@core/files/file.service';
+import { isValidDocumentForType } from '@core/common/validators/is-document.validator';
 
 @Injectable()
 export class TenantService {
@@ -98,6 +103,35 @@ export class TenantService {
     }
 
     try {
+      const existing = await this.tenantRepository.findById(id);
+      if (!existing) {
+        throw new NotFoundException({
+          message: 'Tenant não encontrado',
+          code: TenantErrorCode.NOT_FOUND,
+          details: { id },
+        });
+      }
+
+      // D4 (docs/PLAN-fundacao-ux.md): o DTO só vê o payload parcial deste
+      // PATCH — um PATCH que manda só `document` (sem `documentType`) não
+      // tem como validar o dígito verificador sozinho. Mescla com o
+      // registro já salvo antes de validar, pra cobrir exatamente esse caso.
+      const merged = { ...existing, ...updateTenantDto };
+      if (!isValidDocumentForType(merged.documentType, merged.document)) {
+        throw new BadRequestException({
+          message: 'Documento inválido para o tipo selecionado.',
+          code: TenantErrorCode.DOCUMENT_INVALID,
+          details: {
+            errors: [
+              {
+                field: 'document',
+                message: 'Documento inválido para o tipo selecionado.',
+              },
+            ],
+          },
+        });
+      }
+
       const data: Prisma.TenantUpdateInput = { ...updateTenantDto };
 
       return await this.tenantRepository.updateById(id, data);

@@ -53,24 +53,36 @@ function isValidCnpj(value: string): boolean {
   return secondCheck === digits[13];
 }
 
+// Extraído do constraint pra ser reusado fora do class-validator — D4
+// (docs/PLAN-fundacao-ux.md): o DTO sozinho só vê o payload parcial de um
+// PATCH, então não dá pra pegar "document sem documentType no mesmo
+// payload" pulando a checagem. Quem precisa do registro mesclado (ver
+// TenantService#update) chama esta função direto, sem duplicar o algoritmo
+// de dígito verificador.
+export function isValidDocumentForType(
+  documentType: unknown,
+  value: unknown,
+): boolean {
+  // Campo opcional — só valida quando vier preenchido (ver
+  // CreateTenantDto: documentType/document são ambos opcionais).
+  if (value === undefined || value === null || value === '') return true;
+  if (typeof value !== 'string') return false;
+
+  if (documentType === 'CPF') return isValidCpf(value);
+  if (documentType === 'CNPJ') return isValidCnpj(value);
+
+  // Sem documentType ou "OUTRO": não é um registro brasileiro com
+  // checksum conhecido — qualquer string não vazia é aceita.
+  return true;
+}
+
 @ValidatorConstraint({ name: 'isDocument' })
 export class IsDocumentConstraint implements ValidatorConstraintInterface {
   validate(value: unknown, args: ValidationArguments): boolean {
-    // Campo opcional — só valida quando vier preenchido (ver
-    // CreateTenantDto: documentType/document são ambos opcionais).
-    if (value === undefined || value === null || value === '') return true;
-    if (typeof value !== 'string') return false;
-
     // Lê o campo irmão `documentType` do mesmo objeto, mesmo padrão de
     // IsStrongPassword lendo `email`.
     const documentType = (args.object as Record<string, unknown>).documentType;
-
-    if (documentType === 'CPF') return isValidCpf(value);
-    if (documentType === 'CNPJ') return isValidCnpj(value);
-
-    // Sem documentType ou "OUTRO": não é um registro brasileiro com
-    // checksum conhecido — qualquer string não vazia é aceita.
-    return true;
+    return isValidDocumentForType(documentType, value);
   }
 
   defaultMessage(): string {
