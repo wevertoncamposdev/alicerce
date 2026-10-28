@@ -394,21 +394,19 @@ describe('Endpoints /me (e2e)', () => {
     );
   });
 
-  it('GET /me devolve avatarUrl resolvido quando avatarFileId está setado', async () => {
+  // D6 (docs/PLAN-fundacao-ux.md): avatarUrl passa a ser montada direto
+  // (buildFileContentUrl), same-origin via proxy BFF — não chama mais o
+  // storage provider aqui (getSignedUrlOrNull continua reservado pro
+  // caso de e-mail, resolveTenantBranding).
+  it('GET /me devolve avatarUrl same-origin quando avatarFileId está setado', async () => {
     const fileId = randomUUID();
     mockPrisma.users.get(userId)!.avatarFileId = fileId;
-    mockFilesService.getSignedUrlOrNull.mockResolvedValueOnce(
-      'https://storage.example.com/avatar-signed-url',
-    );
 
     const res = await authed('get', '/me').expect(200);
 
-    expect(mockFilesService.getSignedUrlOrNull).toHaveBeenCalledWith(
-      fileId,
-      tenantId,
-    );
+    expect(mockFilesService.getSignedUrlOrNull).not.toHaveBeenCalled();
     expect((res.body as { avatarUrl: string }).avatarUrl).toBe(
-      'https://storage.example.com/avatar-signed-url',
+      `/api/proxy/files/${fileId}/content`,
     );
   });
 });
