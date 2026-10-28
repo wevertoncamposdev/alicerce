@@ -21,3 +21,4 @@
 | Escopo por registro (`.read.own`) | Avaliação | Conversa com a ONG mostrar que alguém só pode ver o que é seu |
 | Campos data, CPF, telefone, moeda, seleção de registro | Avaliação | Módulo 1 do TerceiroGestor (fazer durante ele) |
 | Gerador criando Feature filha | Avaliação | Módulo 2 do TerceiroGestor |
+| D12 — sidebar sem 900px literal nem fixed/h-svh errado no código atual | U0.5 | Confirmar visualmente com a app rodando (Docker); se ainda cortar em telas longas, investigar de novo |
