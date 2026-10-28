@@ -49,7 +49,7 @@ AppTopbar: breadcrumb (Feedbacks / <título>)      [toolbar do módulo][Metadado
 │ Section card │ │ Section card │ │              │     (colunas declaradas)
 └──────────────┘ └──────────────┘ └──────────────┘
 ┌────────────────────────────────────────────────────────────┐
-│ RELATION CARD   ícone + "Relacionamentos"                  │
+│ RELATION CARD   (sem título — abas já no topo)              │
 │ Abas com contador: Comentários (3) | ...                   │
 │ toolbar: busca · filtro · ordenação · ação "Novo"          │
 │ tabela · rodapé "Mostrando X de Y" + paginação             │
@@ -82,13 +82,16 @@ renderiza nenhum dos dois.
 - **Seções:** `grid grid-cols-1 gap-4 lg:grid-cols-{n} items-start`,
   onde `n` = número de colunas efetivamente usadas (1–3). Cada coluna é `flex flex-col gap-4`.
   **Nunca renderizar coluna vazia.**
-- **Section card:** `Card` → header `flex items-center gap-2 px-5 pt-5 text-sm font-semibold`
-  (ícone `size-4 text-muted-foreground`, ação opcional à direita `text-xs text-primary`),
-  corpo `px-5 pb-5 pt-3`.
+- **Section card:** `Card` → corpo `px-5 pb-5 pt-3`. **Sem header de título/ícone/ação**
+  (decisão do usuário: essa informação não importa pro usuário final) — `SectionCard` ainda
+  aceita `title`/`icon`/`action` no tipo (os `sections` do módulo continuam declarando, outros
+  consumidores dependem do tipo), só não desestrutura nem renderiza nada disso. Não reintroduzir
+  esse header sem pedido explícito.
 - **Campos (leitura):** `dl` com `grid grid-cols-[minmax(110px,40%)_1fr] gap-x-4 gap-y-2.5 text-sm`;
   `dt text-muted-foreground`, `dd text-foreground break-words`. Valor vazio = `—`.
   Texto longo (`type: "textarea"`): `p text-sm whitespace-pre-wrap leading-relaxed`, ocupando a largura toda.
-- **Relation card:** `Card p-0`; header `px-5 pt-5`; `TabsList variant="line"` com contador
+- **Relation card:** `Card p-0`; **sem header "Relacionamentos"** (mesma decisão acima — abas
+  (`TabsList variant="line"`) começam direto no topo do card); contador
   `ml-1.5 text-xs tabular-nums text-muted-foreground` → `(3)`; conteúdo `p-5`.
   Toolbar: `flex flex-wrap items-center gap-2`, busca `Input` com ícone `Search` à esquerda e `max-w-sm flex-1`.
   **Relações como links:** toda relação cujo item é um registro com Detail próprio renderiza a
@@ -231,15 +234,25 @@ Primitivas só do `components/ui` existente (Card, Tabs, Badge, Avatar, Button, 
 ## 7. Metadata Drawer
 
 Mantém `MetaDataSidebar` (Drawer `direction="right"`), trigger vira o botão-ícone do AppTopbar (§3).
-Largura `sm:max-w-[400px]`, altura total (sem `max-h-[80vh]`).
-Abas: **Auditoria** (primeira e default) · Contexto. `tags/notes/attachments` continuam reservadas (não renderizar aba vazia).
+Largura `sm:max-w-[400px]`, altura total (sem `max-h-[80vh]`). **Sem `DrawerHeader`/título
+"Metadados"** (decisão do usuário: desnecessário pro usuário final) — fechar continua
+funcionando pelo comportamento padrão do `Drawer` (clique fora, Esc), sem botão de fechar
+explícito.
+Abas: **Auditoria** (primeira e default) · Contexto, `TabsList variant="line"` igual ao resto do
+Detail (§3). `tags/notes/attachments` continuam reservadas (não renderizar aba vazia).
+
+Cada bloco de conteúdo (abaixo) fica dentro de um `Card` — mesmo outline de `SectionCard`/
+`RelationCard`, só que sem título (`SectionCard`) já que a própria natureza do bloco (ícone +
+texto) já identifica o conteúdo.
 
 Aba Auditoria, de cima para baixo:
-1. Bloco "Registro criado em": ícone `CalendarPlus`, data `dd/MM/yyyy • HH:mm`, "por {email}".
-2. Bloco "Última atualização": ícone `History`, mesmo formato.
-3. "Histórico de alterações": timeline vertical (`border-l` + bolinha `size-2` colorida por ação:
-   create=emerald, update=primary, delete=destructive), cada item com data, resumo e autor.
-4. "Informações adicionais": os `ContextItem[]` como `dl` (§3).
+1. Card com "Registro criado em" (ícone `CalendarPlus`, data `dd/MM/yyyy • HH:mm`, "por {email}")
+   e "Última atualização" (ícone `Clock`, mesmo formato) juntos.
+2. Card "Histórico de alterações" (ícone `History`): timeline vertical (`border-l` + bolinha
+   `size-2` colorida por ação: create=emerald, update=primary, delete=destructive), cada item
+   com data, resumo e autor.
+3. Card "Informações adicionais" (ícone `Info`): os `ContextItem[]` como `dl` (§3, mesmo grid de
+   `FieldList`).
 
 Datas sempre `pt-BR` (`dd/MM/yyyy • HH:mm`), nunca ISO cru.
 

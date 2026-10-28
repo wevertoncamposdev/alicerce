@@ -10,15 +10,13 @@ type SectionCardProps = {
     children: React.ReactNode;
 };
 
-export function SectionCard({ title, icon: Icon, action, children }: SectionCardProps) {
+// Decisão do usuário: SectionCard não renderiza título/ícone/ação — informação
+// considerada desnecessária pro usuário final (ver docs/ui/detail-page.md §3).
+// `title`/`icon`/`action` continuam no tipo (chamadores em todo o app passam
+// essas props) mas não são desestruturados, então não sobram como "não usados".
+export function SectionCard({ children }: SectionCardProps) {
     return (
         <Card>
-            {/** 
-            <div className="flex items-center gap-2 px-5 pt-5 text-sm font-semibold">
-                {Icon ? <Icon className="size-4 text-muted-foreground" /> : null}
-                <span>{title}</span>
-                {action ? <span className="ml-auto text-xs text-primary">{action}</span> : null}
-            </div>*/}
             <div className="px-5 pt-3 pb-5">{children}</div>
         </Card>
     );

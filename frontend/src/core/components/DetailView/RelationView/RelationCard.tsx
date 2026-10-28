@@ -4,18 +4,19 @@
 // precisa de "use client" aqui (mesmo padrão do header em DetailView.tsx). Isso importa:
 // `tab.icon` é uma referência de componente (LucideIcon), que só pode ser resolvida em
 // `<Icon />` ANTES de cruzar uma fronteira client — nunca passada como prop crua.
-import { Link2 } from "lucide-react";
 import { Card } from "@components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import type { RelationTabConfig } from "@core/registry/types";
 
-/** Relation card — docs/ui/detail-page.md §3: moldura + contador por aba. */
+// Relation card — docs/ui/detail-page.md §3: moldura + contador por aba.
+// Decisão do usuário: sem o header "Relacionamentos" acima das abas —
+// informação desnecessária pro usuário final.
 export function RelationCard({ tabs }: { tabs: RelationTabConfig[] }) {
     if (tabs.length === 0) return null;
 
     return (
         <Card className="p-0">
-            <Tabs defaultValue={tabs[0].key} className="mt-3">
+            <Tabs defaultValue={tabs[0].key}>
                 <TabsList variant="line" className="w-full justify-start border-b px-5">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;

@@ -1,16 +1,9 @@
 'use client';
 
 import * as React from "react";
-import { PanelRight, X } from "lucide-react";
+import { PanelRight } from "lucide-react";
 import { Button } from "@components/ui/button";
-import {
-    Drawer,
-    DrawerContent,
-    DrawerDescription,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerTrigger,
-} from "@components/ui/drawer";
+import { Drawer, DrawerContent, DrawerTrigger } from "@components/ui/drawer";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
 
 const defaultTrigger = (
@@ -43,6 +36,9 @@ export function MetaDataSidebar({
                 </Tooltip>
             </TooltipProvider>
 
+            {/* Decisão do usuário: sem DrawerHeader/título "Metadados" — informação
+                desnecessária pro usuário final (ver docs/ui/detail-page.md §7). Fechar
+                continua funcionando via clique fora/Esc (comportamento padrão do Drawer). */}
             <DrawerContent className="sm:max-w-[400px]">
                 <div className="min-h-0 mt-4 flex-1 overflow-y-auto px-4 pb-4">{children}</div>
             </DrawerContent>
