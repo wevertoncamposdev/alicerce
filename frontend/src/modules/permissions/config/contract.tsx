@@ -1,54 +1,47 @@
+import { Shield } from "lucide-react";
 import { defineRecordModule, registerModule } from "@core/registry";
-import type { DetailLayout, ListLayout } from "@core/registry/types";
+import type { DetailLayout, FormFieldConfig, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
-import { createRecordFormAction } from "@core/registry/actions";
 
 import { PermissionsListView } from "@modules/permissions/components/PermissionsListView";
-import { FormView } from "@components/TypeView/FormView/FormView";
 
-import { searchPermissions, readPermission, createPermission, updatePermission, deletePermission, readPermissionRoles } from "./provider";
+import { searchPermissions, readPermission, readPermissionRoles } from "./provider";
 import type { PermissionEntity, ContextItem } from "../types/types";
 import PermissionRolesHost from "@modules/permissions/components/PermissionRolesHost";
 
-const formFields = [
-    { name: "name" as const, label: "Nome", type: "text" as const, required: true },
-    {
-        name: "type" as const,
-        label: "Tipo",
-        type: "select" as const,
-        required: true,
-        options: ["READ", "WRITE", "DELETE"],
-    },
-    { name: "resource" as const, label: "Recurso", type: "text" as const },
+// Somente leitura (Plano Base.md 8.4) — sem create/update/delete em
+// dataHandlers, então nenhum botão de criar/editar/excluir pode aparecer.
+// `formFields` ainda existe só pra dar label/tipo de exibição ao FieldList
+// da seção "Dados" (nenhuma seção é `editable`, então nunca vira um FormView).
+const formFields: FormFieldConfig<PermissionEntity>[] = [
+    { name: "name", label: "Nome", type: "text" },
+    { name: "type", label: "Tipo", type: "text" },
+    { name: "resource", label: "Recurso", type: "text" },
+    { name: "description", label: "Descrição", type: "textarea" },
 ];
 
 const { parseListState, serializeListState } = createListQueryState();
 
-const createPermissionAction = createRecordFormAction.bind(null, "permissions", formFields);
-
 const permissionsListLayout: ListLayout<PermissionEntity> = {
     list: ({ data }) => <PermissionsListView data={data} />,
-    form: () => (
-        <FormView<PermissionEntity>
-            mode="create"
-            fields={formFields}
-            createAction={createPermissionAction}
-        />
-    ),
 };
 
 const permissionsDetailLayout: DetailLayout<PermissionEntity> = {
-    main: ({ record }) => (
-        <FormView<PermissionEntity>
-            mode="edit"
-            model="permissions"
-            recordId={record.id}
-            fields={formFields}
-            initialValues={record}
-        />
-    ),
+    header: ({ record }) => ({
+        title: record.name,
+        subtitle: record.description ? [record.description] : [],
+    }),
+    sections: [
+        {
+            key: "dados",
+            title: "Dados",
+            icon: Shield,
+            column: 1,
+            fields: ["name", "type", "resource", "description"],
+        },
+    ],
     relations: ({ record }) => [
-        { key: "roles", label: "Roles", content: <PermissionRolesSection permissionId={record.id} /> },
+        { key: "roles", label: "Papéis", content: <PermissionRolesSection permissionId={record.id} /> },
     ],
 };
 
@@ -65,10 +58,10 @@ function loadPermissionContext(record: PermissionEntity): ContextItem[] {
 
 export const permissionsModule = defineRecordModule<PermissionEntity>({
     model: "permissions",
-    label: "Permissions",
+    label: "Permissões",
     views: ["list"],
     defaultView: "list",
-    dataHandlers: { search: searchPermissions, read: readPermission, create: createPermission, update: updatePermission, delete: deletePermission },
+    dataHandlers: { search: searchPermissions, read: readPermission },
     formFields,
     parseListState,
     serializeListState,

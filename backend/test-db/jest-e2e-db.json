@@ -1,0 +1,19 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "..",
+  "testEnvironment": "node",
+  "testRegex": "test-db/.*\\.db-spec\\.ts$",
+  "testTimeout": 30000,
+  "transform": {
+    "^.+\\.ts$": "ts-jest"
+  },
+  "transformIgnorePatterns": ["/node_modules/(?!(@nestjs)/)"],
+  "globalSetup": "<rootDir>/test-db/global-setup.ts",
+  "setupFilesAfterEnv": ["<rootDir>/test-db/jest-setup-after-env.ts"],
+  "moduleNameMapper": {
+    "^(\\.{1,2}/.*)\\.js$": "$1",
+    "^@core/(.*)$": "<rootDir>/src/core/$1",
+    "^@modules/(.*)$": "<rootDir>/src/modules/$1",
+    "^@src/(.*)$": "<rootDir>/src/$1"
+  }
+}

@@ -22,7 +22,7 @@ function deferred<T>() {
 
 describe("useAutoSaveController", () => {
     it("saves the draft and reports saving=false when done", async () => {
-        const onSave = vi.fn(async (draft: { value: string }) => draft);
+        const onSave = vi.fn(async (patch: Partial<{ value: string }>) => ({ value: "a", ...patch }));
         const { result, rerender } = renderHook(
             ({ draft }) => useAutoSaveController({ draft, onSave }),
             { initialProps: { draft: { value: "a" } } },
@@ -40,7 +40,7 @@ describe("useAutoSaveController", () => {
     });
 
     it("does not call onSave again for an unchanged draft", async () => {
-        const onSave = vi.fn(async (draft: { value: string }) => draft);
+        const onSave = vi.fn(async (patch: Partial<{ value: string }>) => ({ value: "a", ...patch }));
         const { result, rerender } = renderHook(
             ({ draft }) => useAutoSaveController({ draft, onSave }),
             { initialProps: { draft: { value: "a" } } },
@@ -64,9 +64,9 @@ describe("useAutoSaveController", () => {
     it("drains a draft queued while a save was in flight (via the loop, not recursion)", async () => {
         const first = deferred<{ value: string }>();
         const onSave = vi
-            .fn<(draft: { value: string }) => Promise<{ value: string }>>()
+            .fn<(patch: Partial<{ value: string }>) => Promise<{ value: string }>>()
             .mockImplementationOnce(() => first.promise)
-            .mockImplementationOnce(async (draft) => draft);
+            .mockImplementationOnce(async (patch) => ({ value: "a", ...patch }));
 
         const { result, rerender } = renderHook(
             ({ draft }) => useAutoSaveController({ draft, onSave }),
@@ -103,9 +103,9 @@ describe("useAutoSaveController", () => {
         const onError = vi.fn();
         const first = deferred<{ value: string }>();
         const onSave = vi
-            .fn<(draft: { value: string }) => Promise<{ value: string }>>()
+            .fn<(patch: Partial<{ value: string }>) => Promise<{ value: string }>>()
             .mockImplementationOnce(() => first.promise)
-            .mockImplementationOnce(async (draft) => draft);
+            .mockImplementationOnce(async (patch) => ({ value: "a", ...patch }));
 
         const { result, rerender } = renderHook(
             ({ draft }) => useAutoSaveController({ draft, onSave, onError }),
@@ -132,5 +132,79 @@ describe("useAutoSaveController", () => {
         expect(onSave).toHaveBeenCalledTimes(2);
         expect(onSave).toHaveBeenNthCalledWith(2, { value: "c" });
         expect(result.current.saving).toBe(false);
+    });
+
+    // D2 (docs/PLAN-fundacao-ux.md): o motor mandava a seção inteira a cada
+    // commit, inclusive campos que o usuário nunca tocou — com `""` nos
+    // vazios, qualquer campo opcional estrito (enum/e-mail/UUID) do backend
+    // reprovava o lote todo. A partir daqui o controller manda só as chaves
+    // que mudaram desde o último save.
+    it("sends only the changed keys, not the whole draft (D2)", async () => {
+        const onSave = vi.fn(async (patch: Partial<{ a: string; b: string }>) => ({
+            a: "a1",
+            b: "b1",
+            ...patch,
+        }));
+        const { result, rerender } = renderHook(
+            ({ draft }) => useAutoSaveController({ draft, onSave }),
+            { initialProps: { draft: { a: "a1", b: "b1" } } },
+        );
+
+        // só `a` muda; `b` permanece igual ao último save.
+        rerender({ draft: { a: "a2", b: "b1" } });
+
+        await act(async () => {
+            result.current.commitField();
+            await Promise.resolve();
+        });
+
+        expect(onSave).toHaveBeenCalledTimes(1);
+        expect(onSave).toHaveBeenCalledWith({ a: "a2" });
+    });
+
+    it("sends an emptied field as null, never as an empty string (D2)", async () => {
+        const onSave = vi.fn(async (patch: Partial<{ email: string | null }>) => ({
+            email: patch.email ?? null,
+        }));
+        const { result, rerender } = renderHook(
+            ({ draft }) => useAutoSaveController({ draft, onSave }),
+            { initialProps: { draft: { email: "old@example.com" } } },
+        );
+
+        rerender({ draft: { email: "" } });
+
+        await act(async () => {
+            result.current.commitField();
+            await Promise.resolve();
+        });
+
+        expect(onSave).toHaveBeenCalledWith({ email: null });
+    });
+
+    it("does not resend an already-cleared field just because the input still shows an empty string", async () => {
+        const onSave = vi.fn(async (patch: Partial<{ email: string | null }>) => ({
+            email: patch.email ?? null,
+        }));
+        const { result, rerender } = renderHook(
+            ({ draft }) => useAutoSaveController({ draft, onSave }),
+            { initialProps: { draft: { email: "old@example.com" } } },
+        );
+
+        rerender({ draft: { email: "" } });
+        await act(async () => {
+            result.current.commitField();
+            await Promise.resolve();
+        });
+        expect(onSave).toHaveBeenCalledTimes(1);
+
+        // nada mudou de verdade (null vs "" é a mesma coisa pro motor) — um
+        // segundo blur no mesmo campo não deve reenviar nada.
+        rerender({ draft: { email: "" } });
+        await act(async () => {
+            result.current.commitField();
+            await Promise.resolve();
+        });
+
+        expect(onSave).toHaveBeenCalledTimes(1);
     });
 });

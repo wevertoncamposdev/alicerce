@@ -1,0 +1,15 @@
+// Usuário da plataforma (ADR 0012) — fora de qualquer tenant, autenticação
+// própria (core/platform-auth), sem relação com `User`/`Tenant`. Fica fora
+// de `TENANT_SCOPED_MODELS` (tenant-rls.extension.ts) de propósito: não tem
+// `tenantId`, não tem policy de RLS, é lido/escrito via Prisma normal.
+model PlatformUser {
+    id           String    @id @default(uuid(7)) @db.Uuid
+    email        String    @unique
+    passwordHash String
+    name         String
+    status       Status    @default(ACTIVE)
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime  @updatedAt
+
+    @@map("platform_users")
+}

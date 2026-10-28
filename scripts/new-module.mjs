@@ -266,13 +266,13 @@ export class ${pascalPlural}Service {
   Body,
   Patch,
   Param,
+  ParseUUIDPipe,
   Delete,
   UseGuards,
   Search,
 } from '@nestjs/common';
 import { Search${pascalPlural}Dto } from './dto/search-${kebabSingular}.dto';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
-import { Roles } from '@core/common/decorators/roles.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 import { ${pascalPlural}Service } from './${kebabPlural}.service';
@@ -285,24 +285,24 @@ export class ${pascalPlural}Controller {
   constructor(private readonly ${camelPlural}Service: ${pascalPlural}Service) {}
 
   @Post()
-  @Roles('ADMIN', 'USER')
   @Permissions('${kebabSingular}.create')
   create(@Body() dto: Create${pascalSingular}Dto, @TenantId() tenantId: string) {
     return this.${camelPlural}Service.create(dto, tenantId);
   }
 
   @Get(':id')
-  @Roles('ADMIN', 'USER')
   @Permissions('${kebabSingular}.read')
-  findOne(@Param('id') id: string, @TenantId() tenantId: string) {
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.${camelPlural}Service.findOne(id, tenantId);
   }
 
   @Patch(':id')
-  @Roles('ADMIN', 'USER')
   @Permissions('${kebabSingular}.update')
   update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: Update${pascalSingular}Dto,
     @TenantId() tenantId: string,
   ) {
@@ -310,14 +310,15 @@ export class ${pascalPlural}Controller {
   }
 
   @Delete(':id')
-  @Roles('ADMIN', 'USER')
   @Permissions('${kebabSingular}.delete')
-  remove(@Param('id') id: string, @TenantId() tenantId: string) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.${camelPlural}Service.remove(id, tenantId);
   }
 
   @Search()
-  @Roles('ADMIN', 'USER')
   @Permissions('${kebabSingular}.read')
   search(@Body() query: Search${pascalPlural}Dto, @TenantId() tenantId: string) {
     return this.${camelPlural}Service.search(query, tenantId);
@@ -544,7 +545,8 @@ export function ${pascalPlural}ListView({ data, pagination, sort }: ${pascalPlur
 
   writeNew(
     join(dir, "config", "contract.tsx"),
-    `import { defineRecordModule, registerModule } from "@core/registry";
+    `import { FileText } from "lucide-react";
+import { defineRecordModule, registerModule } from "@core/registry";
 import type { DetailLayout, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
 import { createRecordFormAction } from "@core/registry/actions";
@@ -557,12 +559,24 @@ import {
 } from "./provider";
 import type { ${pascalSingular}Entity, ContextItem } from "../types/types";
 
+// \`primary: true\` dispara a criação pelo Detail (createMode: "detail" abaixo, ver
+// docs/ui/detail-page.md §5) — um campo por módulo, geralmente o mesmo que vira o
+// título no header.
 const formFields = [
-    { name: "title" as const, label: "Título", placeholder: "Digite o título", type: "text" as const, required: true },
+    {
+        name: "title" as const,
+        label: "Título",
+        placeholder: "Digite o título",
+        type: "text" as const,
+        required: true,
+        primary: true,
+    },
 ];
 
 const { parseListState, serializeListState } = createListQueryState();
 
+// Sem uso enquanto createMode for "detail" (listLayout.form fica pronto caso você
+// volte pro fluxo de Sheet depois — não precisa remover).
 const create${pascalSingular}Action = createRecordFormAction.bind(
     null,
     "${kebabPlural}",
@@ -583,15 +597,20 @@ const ${camelPlural}ListLayout: ListLayout<${pascalSingular}Entity> = {
 };
 
 const ${camelPlural}DetailLayout: DetailLayout<${pascalSingular}Entity> = {
-    main: ({ record }) => (
-        <FormView<${pascalSingular}Entity>
-            mode="edit"
-            model="${kebabPlural}"
-            recordId={record.id}
-            fields={formFields}
-            initialValues={record}
-        />
-    ),
+    header: ({ record }) => ({
+        title: record.title,
+        subtitle: ["Criado em " + new Date(record.createdAt).toLocaleDateString("pt-BR")],
+    }),
+    sections: [
+        {
+            key: "details",
+            title: "Detalhes",
+            icon: FileText,
+            column: 1,
+            editable: true,
+            fields: ["title"],
+        },
+    ],
 };
 
 function load${pascalSingular}Context(record: ${pascalSingular}Entity): ContextItem[] {
@@ -605,6 +624,10 @@ export const ${camelPlural}Module = defineRecordModule<${pascalSingular}Entity>(
     label: "${label}",
     views: ["list"],
     defaultView: "list",
+    // "Novo" abre o Detail em rascunho (docs/ui/detail-page.md §5) — troque pra
+    // "sheet" (ou remova a linha, é o default) se o módulo não tolerar um registro
+    // incompleto até o campo primary ser preenchido.
+    createMode: "detail",
     dataHandlers: {
         search: search${pascalPlural},
         read: read${pascalSingular},
@@ -651,6 +674,17 @@ export default async function ${pascalSingular}DetailPage({ params }: { params: 
 `,
   );
 
+  writeNew(
+    join(FRONTEND, "src", "app", "(app)", kebabPlural, "new", "page.tsx"),
+    `// app/(app)/${kebabPlural}/new/page.tsx
+import { DetailCreateScreen } from "@core/screens/DetailCreateScreen";
+
+export default function New${pascalSingular}Page() {
+    return <DetailCreateScreen moduleName="${kebabPlural}" />;
+}
+`,
+  );
+
   // --- edições em arquivo existente ---
 
   editExisting(
@@ -682,7 +716,13 @@ export default async function ${pascalSingular}DetailPage({ params }: { params: 
         icon: Package,
         basePath: "/${kebabPlural}",
         permission: "${kebabSingular}.read",
-        navGroup: "permissoes",
+        // "geral" é o default certo pra um módulo de domínio novo — fica
+        // ao lado do Dashboard. Troque pra "configuracoes" se este módulo
+        // for uma tela administrativa (ex.: ao lado de Usuários/Papéis/
+        // Auditoria), ou "hidden" se não deve aparecer no menu (rota
+        // continua protegida, só não vira item de navegação — ver
+        // Plano Base.md 8.4/permissions pra um exemplo).
+        navGroup: "geral",
         actionPermissions: { create: "${kebabSingular}.create", update: "${kebabSingular}.update", delete: "${kebabSingular}.delete" },
     },
 `,

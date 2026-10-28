@@ -33,20 +33,18 @@ do form de detalhe — ainda não tem exemplo real neste projeto; o padrão
 existe na taxonomia pra quando surgir um caso de uso.)`}
             </DocCode>
 
-            <DocSubTitle>Backend — decorators de autorização</DocSubTitle>
-            <DocCode label="core/common/decorators/roles.decorator.ts e permissions.decorator.ts">
-                {`export const ROLES_KEY = 'roles';
-export const Roles = (...roles: string[]) => SetMetadata(ROLES_KEY, roles);
-
-export const PERMISSIONS_KEY = 'permissions';
+            <DocSubTitle>Backend — decorator de autorização</DocSubTitle>
+            <DocCode label="core/common/decorators/permissions.decorator.ts">
+                {`export const PERMISSIONS_KEY = 'permissions';
 export const Permissions = (...permissions: string[]) => SetMetadata(PERMISSIONS_KEY, permissions);`}
             </DocCode>
             <DocP>
-                Assim como <code>@Public()</code>, esses decorators anexam metadata lida por um guard (via{" "}
-                <code>Reflector</code>) para bloquear o acesso quando o usuário do token não tem a
-                role/permission exigida pela rota. O padrão de nomeação de permission é{" "}
-                <code>&lt;entidade&gt;.&lt;ação&gt;</code> — ex.: <code>role.read</code>,{" "}
-                <code>role.update</code>, <code>permission.create</code>.
+                Assim como <code>@Public()</code>, esse decorator anexa metadata lida por{" "}
+                <code>RolesPermissionsGuard</code> (via <code>Reflector</code>) para bloquear o acesso quando a
+                permissão fresca do usuário (cache/DB, nunca o JWT) não bate com a exigida pela rota. Desde o
+                ADR 0007, não existe mais <code>@Roles</code>/checagem por role — só permissão. O padrão de
+                nomeação é <code>&lt;entidade&gt;.&lt;ação&gt;</code> — ex.: <code>role.read</code>,{" "}
+                <code>role.update</code>, <code>feedback.manage</code>.
             </DocP>
 
             <DocSubTitle>Frontend — authz.ts é a fonte única de verdade</DocSubTitle>

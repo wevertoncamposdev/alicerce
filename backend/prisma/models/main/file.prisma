@@ -1,0 +1,34 @@
+/// Infra genérica de upload (Fase 6, Plano Base.md) — avatar de usuário,
+/// logo da instituição e qualquer anexo futuro. `ownerType`/`ownerId` são
+/// metadados livres (não FK): a autorização real de "isto pode ser usado
+/// como X" acontece em quem ANEXA o arquivo (ex.: MeService.updateMe),
+/// não aqui (ver ADR 0010).
+model File {
+    id       String @id @default(uuid(7)) @db.Uuid
+    tenantId String @db.Uuid
+
+    ownerType String  @db.VarChar(50)
+    ownerId   String? @db.Uuid
+
+    mime String @db.VarChar(100)
+    size Int
+    key  String @unique @db.VarChar(255)
+
+    uploadedById String @db.Uuid
+
+    createdAt DateTime  @default(now())
+    deletedAt DateTime?
+
+    tenant     Tenant @relation("TenantFiles", fields: [tenantId], references: [id])
+    uploadedBy User   @relation("UploadedFiles", fields: [uploadedById], references: [id])
+
+    // Segunda relação entre File e User/Tenant (a primeira é
+    // tenantId/uploadedById acima) — Prisma exige nome explícito nas duas
+    // quando há mais de uma relação entre o mesmo par de models.
+    avatarOfUsers  User[]   @relation("UserAvatar")
+    logoOfTenants  Tenant[] @relation("TenantLogo")
+
+    @@index([tenantId])
+    @@index([ownerType, ownerId])
+    @@map("files")
+}

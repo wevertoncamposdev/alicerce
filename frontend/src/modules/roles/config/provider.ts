@@ -11,15 +11,6 @@ export const {
     delete: deleteRole,
 } = createRestDataHandlers<RoleEntity>("roles");
 
-export async function readRolePermissions(id: string) {
-    const tenantId = await getSessionTenantId();
-    const rows = await apiServer.get<Array<Record<string, unknown>>>(
-        `roles/${id}/permissions`,
-        { query: { tenantId } },
-    );
-    return normalizeEntityList<import("@/modules/permissions/types/types").PermissionEntity>(rows, "permission");
-}
-
 export async function readRoleUsers(id: string) {
     const tenantId = await getSessionTenantId();
     const rows = await apiServer.get<Array<Record<string, unknown>>>(

@@ -7,6 +7,7 @@ import { TenantErrorMapper } from './mappers/tenant-error.mapper';
 import { TenantRepository } from './persistence/repository/tenant.repository';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { PrismaService } from '@core/prisma/prisma.service';
+import { FilesService } from '@core/files/file.service';
 
 describe('TenantService', () => {
   let service: TenantService;
@@ -33,6 +34,13 @@ describe('TenantService', () => {
           useValue: {
             user: { findMany: jest.fn() },
             role: { findMany: jest.fn() },
+          },
+        },
+        {
+          provide: FilesService,
+          useValue: {
+            getSignedUrlOrNull: jest.fn().mockResolvedValue(null),
+            assertUploadedBy: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],
@@ -81,7 +89,7 @@ describe('TenantService', () => {
 
     const result = await service.findOne(ownTenantId, ownTenantId);
 
-    expect(result).toEqual({ id: ownTenantId });
+    expect(result).toEqual({ id: ownTenantId, logoUrl: null });
   });
 
   it('update: should throw NotFoundException when targeting another tenant by id', async () => {

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { apiClient } from "@lib/api-client";
+import { updateFeedbackStatus } from "@modules/feedbacks/config/status-action";
 import { useAuth } from "@/contexts/auth-context";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 import useApiError from "@/hooks/useApiError";
@@ -47,7 +47,7 @@ export function FeedbackStatusControl({ feedback }: { feedback: FeedbackEntity }
         setAutoSaveStatus("saving");
 
         try {
-            await apiClient.patch(`feedbacks/${feedback.id}/status`, { status: next });
+            await updateFeedbackStatus(feedback.id, next);
             setAutoSaveStatus("saved");
             toast("Status atualizado");
             router.refresh();

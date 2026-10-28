@@ -21,7 +21,56 @@ const envSchema = z.object({
   REDIS_URL: z.string().min(1, 'REDIS_URL é obrigatória'),
   JWT_SECRET: z.string().min(1, 'JWT_SECRET é obrigatória'),
   COOKIE_SECRET: z.string().min(1, 'COOKIE_SECRET é obrigatória'),
+
+  // Usuário de plataforma (Fase 11, ADR 0012) — secret próprio, diferente
+  // de JWT_SECRET: garante que um token de tenant nunca é aceito numa rota
+  // de management por engano (a lib de JWT falha a verificação contra o
+  // secret errado).
+  PLATFORM_JWT_SECRET: z.string().min(1, 'PLATFORM_JWT_SECRET é obrigatória'),
   CORS_ORIGINS: z.string().min(1, 'CORS_ORIGINS é obrigatória'),
+
+  // Storage (Fase 6, ADR 0010) — driver local tem defaults utilizáveis em
+  // dev; variáveis de S3 ficam opcionais aqui e são exigidas em runtime só
+  // quando STORAGE_DRIVER=s3 (mesmo padrão de falha de RedisService: lança
+  // no momento de uso, não no boot, pra não quebrar quem nunca usa S3).
+  STORAGE_DRIVER: z.enum(['local', 's3']).default('local'),
+  STORAGE_LOCAL_PATH: z.string().default('./storage'),
+  STORAGE_LOCAL_PUBLIC_URL: z.string().default('http://localhost:5000'),
+  UPLOAD_MAX_SIZE_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(5 * 1024 * 1024),
+  S3_BUCKET: z.string().optional(),
+  S3_REGION: z.string().optional(),
+  S3_ENDPOINT: z.string().optional(),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+
+  // Mail (Fase 7, ADR 0011) — driver console (default) não exige nada;
+  // variáveis de SMTP/Resend ficam opcionais aqui, exigidas em runtime só
+  // quando MAIL_DRIVER usa o adapter correspondente (mesmo padrão do
+  // Storage: falha no momento de uso, não no boot).
+  MAIL_DRIVER: z.enum(['console', 'smtp', 'resend']).default('console'),
+  MAIL_FROM: z.string().optional(),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.string().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
+  SMTP_SECURE: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(),
+  // Base pros links nos e-mails (convite, reset de senha, verificação...).
+  FRONTEND_URL: z.string().default('http://localhost:3000'),
+
+  // Jobs agendados (Fase 10.1 / etapa 9.4, LGPD) — prazo de retenção da
+  // auditoria; o job diário em core/jobs apaga registros mais antigos.
+  AUDIT_RETENTION_DAYS: z.coerce.number().int().positive().default(365),
+
+  // Monitoramento de erros (Fase 10.2) — driver console (default) só loga,
+  // igual hoje; "sentry" exige SENTRY_DSN (sem DSN o SDK não manda nada,
+  // mesmo padrão de falha-no-uso do Storage/Mail).
+  MONITORING_DRIVER: z.enum(['console', 'sentry']).default('console'),
+  SENTRY_DSN: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

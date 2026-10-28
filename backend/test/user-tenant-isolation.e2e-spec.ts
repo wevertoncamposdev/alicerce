@@ -8,6 +8,10 @@ import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { FilesService } from '@core/files/file.service';
+import { MailService } from '@core/mail/mail.service';
+import { AccountTokenService } from '@core/auth/account-token.service';
+import { buildUser, MockUser } from './helpers/fixtures';
 
 /**
  * Cobre a Fase 0 do AGENTS.md ("acesso cruzado entre tenants retorna
@@ -25,7 +29,7 @@ import { PermissionCacheService } from '@core/authorization/permission-cache.ser
  * `tenant-id.decorator.ts`).
  */
 class MockPrisma {
-  users = new Map<string, Record<string, unknown>>();
+  users = new Map<string, MockUser>();
 
   user = {
     findMany: ({ where }: { where: { tenantId?: string; deletedAt: null } }) =>
@@ -68,24 +72,22 @@ describe('User tenant isolation (e2e with mocked Prisma)', () => {
 
   beforeAll(async () => {
     mockPrisma = new MockPrisma();
-    mockPrisma.users.set(userOwnId, {
-      id: userOwnId,
-      tenantId: tenantOwn,
-      email: 'own@example.com',
-      status: 'ACTIVE',
-      deletedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    mockPrisma.users.set(userOtherId, {
-      id: userOtherId,
-      tenantId: tenantOther,
-      email: 'victim@example.com',
-      status: 'ACTIVE',
-      deletedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    mockPrisma.users.set(
+      userOwnId,
+      buildUser({
+        id: userOwnId,
+        tenantId: tenantOwn,
+        email: 'own@example.com',
+      }),
+    );
+    mockPrisma.users.set(
+      userOtherId,
+      buildUser({
+        id: userOtherId,
+        tenantId: tenantOther,
+        email: 'victim@example.com',
+      }),
+    );
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       // AuthorizationModule precisa estar no grafo para RolesService (puxado
@@ -105,6 +107,19 @@ describe('User tenant isolation (e2e with mocked Prisma)', () => {
       // transitivamente por UsersModule) o injeta.
       .overrideProvider(PermissionCacheService)
       .useValue({ invalidateUser: jest.fn(), invalidateUsers: jest.fn() })
+      // UsersService injeta os três desde a etapa 7.4 (convite de usuário)
+      // — nenhum teste aqui exercita convite/e-mail, só precisam existir
+      // no grafo de DI.
+      .overrideProvider(FilesService)
+      .useValue({ getSignedUrlOrNull: () => Promise.resolve(null) })
+      .overrideProvider(MailService)
+      .useValue({ send: jest.fn().mockResolvedValue(undefined) })
+      .overrideProvider(AccountTokenService)
+      .useValue({
+        issue: jest.fn().mockResolvedValue('raw-token'),
+        consume: jest.fn(),
+        invalidatePending: jest.fn().mockResolvedValue(undefined),
+      })
       .compile();
 
     app = moduleFixture.createNestApplication();

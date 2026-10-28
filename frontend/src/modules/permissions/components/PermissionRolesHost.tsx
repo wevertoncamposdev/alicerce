@@ -16,11 +16,12 @@ function PermissionRolesHost({ items }: { items: RoleEntity[] }) {
 
     const config = React.useMemo<RelationHostConfig<RoleEntity>>(
         () => ({
-            title: "Usado pelos roles",
+            title: "Usado pelos papéis",
             columns,
             initialData: items,
             idAccessor: (r) => r.id,
-            emptyMessage: "Nenhum role usa esta permissão ainda.",
+            rowLink: (r) => `/roles/${r.id}`,
+            emptyMessage: "Nenhum papel usa esta permissão ainda.",
         }),
         [columns, items],
     );

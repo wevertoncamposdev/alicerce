@@ -1,14 +1,18 @@
+import { KeyRound } from "lucide-react";
 import { defineRecordModule, registerModule } from "@core/registry";
 import type { DetailLayout, ListLayout } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
 import { createRecordFormAction } from "@core/registry/actions";
+import { Badge } from "@components/ui/badge";
+import { STATUS_BADGE_CLASSNAME } from "@core/components/DetailView/statusBadgeClasses";
 
 import { RolesListView } from "@modules/roles/components/RoleListView";
 import { FormView } from "@components/TypeView/FormView/FormView";
-import RolePermissionsHost from "@modules/roles/components/RolePermissionsHost";
 import RoleUsersHost from "@modules/roles/components/RoleUsersHost";
+import { RolePermissionMatrix } from "@modules/roles/components/RolePermissionMatrix";
 
-import { searchRoles, readRole, createRole, updateRole, deleteRole, readRolePermissions, readRoleUsers } from "./provider";
+import { searchRoles, readRole, createRole, updateRole, deleteRole, readRoleUsers } from "./provider";
+import { getPermissionMatrix } from "@modules/roles/actions/roleService";
 import type { RoleEntity, ContextItem } from "../types/types";
 
 const formFields = [
@@ -39,25 +43,39 @@ const rolesListLayout: ListLayout<RoleEntity> = {
 };
 
 const rolesDetailLayout: DetailLayout<RoleEntity> = {
-    main: ({ record }) => (
-        <FormView<RoleEntity>
-            mode="edit"
-            model="roles"
-            recordId={record.id}
-            fields={formFields}
-            initialValues={record}
-        />
-    ),
+    header: ({ record }) => ({
+        title: record.name,
+        subtitle: record.description ? [record.description] : [],
+        status: record.isSystem ? (
+            <Badge className={STATUS_BADGE_CLASSNAME.info}>Papel de sistema</Badge>
+        ) : undefined,
+    }),
+    sections: [
+        {
+            key: "dados",
+            title: "Dados",
+            icon: KeyRound,
+            column: 1,
+            // Papel de sistema (ex.: ADMIN seedado) não pode ser renomeado/
+            // reclassificado — o backend já bloqueia (RolesService.update),
+            // aqui só evita mostrar um formulário que falharia.
+            editable: (record) => !record.isSystem,
+            fields: ["name", "type", "description"],
+        },
+    ],
+    tabs: [
+        {
+            key: "permissoes",
+            label: "Permissões",
+            icon: KeyRound,
+            content: ({ record }) => <RolePermissionsSection roleId={record.id} />,
+        },
+    ],
     relations: ({ record }) => [
         {
             key: "users",
-            label: "Users",
+            label: "Usuários",
             content: <RoleUsersSection roleId={record.id} />,
-        },
-        {
-            key: "permissions",
-            label: "Permissions",
-            content: <RolePermissionsSection roleId={record.id} />,
         },
     ],
 };
@@ -70,7 +88,7 @@ function loadRoleContext(record: RoleEntity): ContextItem[] {
 
 export const rolesModule = defineRecordModule<RoleEntity>({
     model: "roles",
-    label: "Roles",
+    label: "Papéis",
     views: ["list"],
     defaultView: "list",
     dataHandlers: { search: searchRoles, read: readRole, create: createRole, update: updateRole, delete: deleteRole },
@@ -84,12 +102,12 @@ export const rolesModule = defineRecordModule<RoleEntity>({
 
 registerModule(rolesModule);
 
-async function RolePermissionsSection({ roleId }: { roleId: string }) {
-    const permissions = await readRolePermissions(roleId);
-    return <RolePermissionsHost roleId={roleId} initial={permissions ?? []} />;
-}
-
 async function RoleUsersSection({ roleId }: { roleId: string }) {
     const users = await readRoleUsers(roleId);
     return <RoleUsersHost roleId={roleId} initial={users ?? []} />;
+}
+
+async function RolePermissionsSection({ roleId }: { roleId: string }) {
+    const matrix = await getPermissionMatrix(roleId);
+    return <RolePermissionMatrix roleId={roleId} initial={matrix} />;
 }

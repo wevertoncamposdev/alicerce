@@ -8,14 +8,15 @@ function buildUser(overrides: Partial<AuthUserProfile> = {}): AuthUserProfile {
     id: "user-1",
     email: "user@example.com",
     tenantId: "tenant-1",
-    roles: ["ADMIN"],
     permissions: ["user.read", "user.update"],
+    emailVerified: true,
+    termsAccepted: true,
     ...overrides,
   };
 }
 
 describe("AuthProvider / useAuth: estado de autenticação e permissões", () => {
-  it("expõe hasRole/hasPermission a partir do usuário inicial", () => {
+  it("expõe hasPermission a partir do usuário inicial", () => {
     const { result } = renderHook(() => useAuth(), {
       wrapper: ({ children }) => (
         <AuthProvider initialUser={buildUser()} initialTenantId="tenant-1">
@@ -25,8 +26,6 @@ describe("AuthProvider / useAuth: estado de autenticação e permissões", () =>
     });
 
     expect(result.current.isAuthenticated).toBe(true);
-    expect(result.current.hasRole("ADMIN")).toBe(true);
-    expect(result.current.hasRole("GUEST")).toBe(false);
     expect(result.current.hasPermission("user.update")).toBe(true);
     expect(result.current.hasPermission("user.delete")).toBe(false);
   });

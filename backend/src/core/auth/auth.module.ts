@@ -4,8 +4,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { MeService } from './me.service';
+import { MeController } from './me.controller';
 import { UsersModule } from '@modules/user/user.module';
 import { AuditModule } from '@modules/audit/audit.module';
+import { FileModule } from '@core/files/file.module';
+import { MailModule } from '@core/mail/mail.module';
+import { AccountTokenModule } from './account-token.module';
 import { AuthGuard } from './auth.guard';
 import { TenantScopeGuard } from '@core/common/guards/tenant-scope.guard';
 
@@ -21,9 +26,13 @@ import { TenantScopeGuard } from '@core/common/guards/tenant-scope.guard';
     }),
     UsersModule,
     AuditModule,
+    FileModule,
+    MailModule,
+    AccountTokenModule,
   ],
   providers: [
     AuthService,
+    MeService,
     {
       // Ordem importa: precisa rodar antes do TenantScopeGuard, que depende
       // de `request.user.tenantId` já estar populado por este guard.
@@ -35,7 +44,7 @@ import { TenantScopeGuard } from '@core/common/guards/tenant-scope.guard';
       useClass: TenantScopeGuard,
     },
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, MeController],
   exports: [JwtModule],
 })
 export class AuthModule {}

@@ -15,8 +15,6 @@ describe('RolesController', () => {
     remove: jest.fn(),
     attachUser: jest.fn(),
     detachUser: jest.fn(),
-    attachPermission: jest.fn(),
-    detachPermission: jest.fn(),
     search: jest.fn(),
     findPermissionsOfRole: jest.fn(),
     findUsersOfRole: jest.fn(),

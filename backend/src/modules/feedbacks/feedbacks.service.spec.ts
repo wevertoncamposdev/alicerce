@@ -57,6 +57,33 @@ describe('FeedbacksService', () => {
     expect(result).toEqual(created);
   });
 
+  it('deve criar um feedback sem description (fluxo de criação pelo Detail)', async () => {
+    const created = {
+      id: '1',
+      tenantId: 'tenant-1',
+      title: 'Teste',
+      description: '',
+      createdById: 'user-1',
+      status: 'RECEIVED',
+    };
+    prismaMock.feedback.create.mockResolvedValueOnce(created);
+
+    const result = await service.create(
+      { title: 'Teste' },
+      'tenant-1',
+      'user-1',
+    );
+
+    expect(prismaMock.feedback.create).toHaveBeenCalledWith({
+      data: {
+        title: 'Teste',
+        tenantId: 'tenant-1',
+        createdById: 'user-1',
+      },
+    });
+    expect(result).toEqual(created);
+  });
+
   it('search filtra por tenantId', async () => {
     prismaMock.feedback.findMany.mockResolvedValueOnce([]);
     prismaMock.feedback.count.mockResolvedValueOnce(0);

@@ -5,6 +5,7 @@ import {
   Body,
   Patch,
   Param,
+  ParseUUIDPipe,
   Delete,
   UseGuards,
   Search,
@@ -12,7 +13,6 @@ import {
 import { SearchFeedbacksDto } from './dto/search-feedback.dto';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { CurrentUserId } from '@core/common/decorators/current-user-id.decorator';
-import { Roles } from '@core/common/decorators/roles.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 import { FeedbacksService } from './feedbacks.service';
@@ -26,7 +26,6 @@ export class FeedbacksController {
   constructor(private readonly feedbacksService: FeedbacksService) {}
 
   @Post()
-  @Roles('ADMIN', 'USER')
   @Permissions('feedback.create')
   create(
     @Body() dto: CreateFeedbackDto,
@@ -37,17 +36,18 @@ export class FeedbacksController {
   }
 
   @Get(':id')
-  @Roles('ADMIN', 'USER')
   @Permissions('feedback.read')
-  findOne(@Param('id') id: string, @TenantId() tenantId: string) {
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.feedbacksService.findOne(id, tenantId);
   }
 
   @Patch(':id')
-  @Roles('ADMIN', 'USER')
   @Permissions('feedback.update')
   update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateFeedbackDto,
     @TenantId() tenantId: string,
   ) {
@@ -58,10 +58,9 @@ export class FeedbacksController {
   // `feedback.manage` mesmo que alguém chame a API direto (nunca só
   // esconder o controle no frontend).
   @Patch(':id/status')
-  @Roles('ADMIN', 'USER')
   @Permissions('feedback.manage')
   updateStatus(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateFeedbackStatusDto,
     @TenantId() tenantId: string,
   ) {
@@ -69,14 +68,15 @@ export class FeedbacksController {
   }
 
   @Delete(':id')
-  @Roles('ADMIN', 'USER')
   @Permissions('feedback.delete')
-  remove(@Param('id') id: string, @TenantId() tenantId: string) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.feedbacksService.remove(id, tenantId);
   }
 
   @Search()
-  @Roles('ADMIN', 'USER')
   @Permissions('feedback.read')
   search(@Body() query: SearchFeedbacksDto, @TenantId() tenantId: string) {
     return this.feedbacksService.search(query, tenantId);

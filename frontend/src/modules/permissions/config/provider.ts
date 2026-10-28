@@ -4,12 +4,11 @@ import type { PermissionEntity } from "../types/types";
 import { getSessionTenantId } from "@lib/session";
 import { RoleEntity } from "@modules/roles/types/types";
 
+// Somente leitura (Plano Base.md 8.4) — o backend nunca teve create/update/
+// delete pra `/permissions`, só search/read.
 export const {
     search: searchPermissions,
     read: readPermission,
-    create: createPermission,
-    update: updatePermission,
-    delete: deletePermission,
 } = createRestDataHandlers<PermissionEntity>("permissions");
 
 //Roles

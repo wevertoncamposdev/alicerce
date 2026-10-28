@@ -14,8 +14,9 @@ function buildUser(permissions: string[]): AuthUserProfile {
     id: "user-1",
     email: "user@example.com",
     tenantId: "tenant-1",
-    roles: [],
     permissions,
+    emailVerified: true,
+    termsAccepted: true,
   };
 }
 

@@ -7,6 +7,9 @@ export interface RoleEntity {
     type: RoleType;
     description?: string | null;
     status?: string;
+    // ADR 0007: `type` virou só metadado — quem decide acesso de admin é
+    // isSystem (bloqueia renomear/excluir o papel ADMIN seedado).
+    isSystem?: boolean;
     createdAt?: string;
 }
 

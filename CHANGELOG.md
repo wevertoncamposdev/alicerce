@@ -8,6 +8,19 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 ## [Unreleased]
 
+### Fixed
+
+- Autosave envia só os campos alterados desde o último save, nunca `""`
+  em campo vazio (D2, ADR 0014).
+- Erro de validação chega estruturado por campo até a tela, mesmo em
+  produção (D5, ADR 0014).
+- Preview de avatar/logo passa a ser same-origin via proxy BFF
+  (`GET /files/:id/content`), em vez de apontar direto pro backend —
+  funciona com CSP e com backend sem domínio público (D6, ADR 0014).
+- Upload de foto acima de 1 MB não dá mais 500: limite de Server Action
+  subiu pra 6 MB e a imagem é redimensionada (~512px, WebP) no browser
+  antes de enviar (D7, ADR 0014).
+
 ---
 
 ## [1.0.0] - 2026-10-17

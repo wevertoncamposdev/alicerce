@@ -15,16 +15,20 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // vazio e obrigatório falha tanto o formato quanto o "obrigatório"), e isso não
 // é a prioridade que queremos. Aqui a prioridade é explícita: vazio+obrigatório
 // sempre vence sobre formato errado.
-function isFieldValueValid<T extends object>(field: FormFieldConfig<T>, value: string): boolean {
-    if (field.required && value.trim() === "") return false;
-    if (value === "") return true;
-    if (field.type === "email") return EMAIL_PATTERN.test(value);
-    if (field.type === "number") return !Number.isNaN(Number(value));
+// `null` (campo esvaziado, ver D2/U0.2 — o autosave manda `null`, nunca "")
+// é tratado igual a "" em toda checagem: nenhum dos dois é "preenchido".
+function isFieldValueValid<T extends object>(field: FormFieldConfig<T>, value: string | null): boolean {
+    const trimmed = value?.trim() ?? "";
+    if (field.required && trimmed === "") return false;
+    if (trimmed === "") return true;
+    if (field.type === "email") return EMAIL_PATTERN.test(trimmed);
+    if (field.type === "number") return !Number.isNaN(Number(trimmed));
     return true;
 }
 
-function messageForInvalidField<T extends object>(field: FormFieldConfig<T>, value: string): string {
-    if (field.required && value.trim() === "") return `${field.label} é obrigatório.`;
+function messageForInvalidField<T extends object>(field: FormFieldConfig<T>, value: string | null): string {
+    const trimmed = value?.trim() ?? "";
+    if (field.required && trimmed === "") return `${field.label} é obrigatório.`;
     if (field.type === "email") return `${field.label}: e-mail inválido.`;
     if (field.type === "number") return `${field.label}: precisa ser um número.`;
     return `${field.label}: valor inválido.`;
@@ -32,13 +36,13 @@ function messageForInvalidField<T extends object>(field: FormFieldConfig<T>, val
 
 function fieldSchemaFor<T extends object>(field: FormFieldConfig<T>): z.ZodTypeAny {
     if (field.type === "checkbox" || field.type === "switch") {
-        return z.string().optional();
+        return z.string().nullable().optional();
     }
 
     // `.refine(check, (value) => ({ message }))` não aplica a mensagem dinâmica
     // no zod 4 (fica "Invalid input") — só `superRefine` + `ctx.addIssue` respeita
     // uma mensagem calculada a partir do valor.
-    return z.string().superRefine((value, ctx) => {
+    return z.string().nullable().superRefine((value, ctx) => {
         if (!isFieldValueValid(field, value)) {
             ctx.addIssue({ code: "custom", message: messageForInvalidField(field, value) });
         }
@@ -50,11 +54,11 @@ export function buildFormSchema<T extends object>(fields: FormFieldConfig<T>[]) 
     for (const field of fields) {
         shape[field.name] = fieldSchemaFor(field);
     }
-    // Sem .partial(): tanto o create (FormData, via createRecordFormAction) quanto
-    // o autosave do edit (pickEditableFields) sempre incluem todas as chaves dos
-    // campos editáveis — a ausência de uma chave aqui indicaria um bug no chamador,
-    // não um campo que o usuário "ainda não preencheu" (esse caso já é "" presente).
-    return z.object(shape);
+    // `.partial()`: o create (FormData, via createRecordFormAction) continua
+    // mandando todas as chaves, mas o autosave do edit (D2/U0.2) agora manda só
+    // o patch com os campos que mudaram desde o último save — chave ausente
+    // aqui é "não tocado nesta rodada", não mais um bug do chamador.
+    return z.object(shape).partial();
 }
 
 export type FieldErrors = Record<string, string>;

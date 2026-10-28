@@ -8,11 +8,8 @@ describe('PermissionsController', () => {
   let service: jest.Mocked<PermissionsService>;
 
   const permissionsServiceMock = {
-    create: jest.fn(),
     findAll: jest.fn(),
     findOne: jest.fn(),
-    update: jest.fn(),
-    remove: jest.fn(),
     search: jest.fn(),
     findRolesOfPermission: jest.fn(),
   };
@@ -33,21 +30,6 @@ describe('PermissionsController', () => {
 
     controller = module.get<PermissionsController>(PermissionsController);
     service = module.get(PermissionsService);
-  });
-
-  it('should ignore tenantId from payload and use request tenant context when creating a permission', async () => {
-    service.create.mockResolvedValueOnce({ id: 'perm-1' } as never);
-
-    const dto = {
-      tenantId: 'tenant-malicious',
-      name: 'read:users',
-      type: 'READ' as const,
-      resource: 'users',
-      description: 'desc',
-    };
-    await controller.create(dto, 'tenant-safe');
-
-    expect(service.create).toHaveBeenCalledWith(dto, 'tenant-safe');
   });
 
   it('should use request tenant context when listing roles', async () => {

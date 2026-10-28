@@ -1,0 +1,22 @@
+/// Registro de aceite de termos/privacidade (Fase 9.1, LGPD). `document` é
+/// String (constante TERMS_DOCUMENT hoje) em vez de enum: só existe um
+/// documento combinado aceito num checkbox — um segundo documento no futuro
+/// é só outro valor de string, sem migration.
+model ConsentRecord {
+    id       String @id @default(uuid(7)) @db.Uuid
+    tenantId String @db.Uuid
+    userId   String @db.Uuid
+
+    document   String   @db.VarChar(40)
+    version    String   @db.VarChar(20)
+    acceptedAt DateTime @default(now())
+    ip         String?  @db.VarChar(45)
+
+    tenant Tenant @relation(fields: [tenantId], references: [id])
+    user   User   @relation(fields: [userId], references: [id])
+
+    // Consulta de mapAuthUserContext: "o usuário já aceitou a versão atual
+    // deste documento?" — userId + document.
+    @@index([userId, document])
+    @@map("consent_records")
+}

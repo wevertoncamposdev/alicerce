@@ -16,10 +16,10 @@ roles/
 ├── actions/
 │   └── roleService.ts    # Server Actions para atar/desatar usuário e permissão ao role
 ├── components/
-│   ├── RoleListView.tsx       # "use client" — wrapper de ColumnDef para a TypeView (list)
-│   ├── RolePermissionsHost.tsx # aba "Permissions" do DetailView — attach/detach com picker
-│   ├── RoleUsersHost.tsx       # aba "Users" do DetailView — attach/detach com picker
-│   └── columns.ts              # ColumnDef da tabela de listagem
+│   ├── RoleListView.tsx          # "use client" — wrapper de ColumnDef para a TypeView (list)
+│   ├── RolePermissionMatrix.tsx  # aba "Permissões" do Detail — matriz recurso x ação, autosave (8.3)
+│   ├── RoleUsersHost.tsx         # relação "Usuários" do Detail — attach/detach com picker
+│   └── columns.ts                # ColumnDef da tabela de listagem
 ├── types/types.ts        # RoleEntity, CreateRolePayload, UpdateRolePayload, ContextItem
 └── constants/.gitkeep    # sem constantes próprias ainda
 ```
@@ -30,20 +30,23 @@ roles/
   módulo atual usa essas duas; não é um padrão obrigatório, é por módulo).
   "Criar" não é mais uma view (`?view=form`) desde o P13 — é o botão "+ Novo"
   que abre um `Sheet`, ver `CreateRecordSheet.tsx`.
-- **Relações são bidirecionais nos dois sentidos, mas só um lado é editável**: as abas
-  `users`/`permissions` aqui em `RoleUsersHost`/`RolePermissionsHost` usam
-  `RelationHost` (`lib/registry/relation-host.tsx`) com attach/detach completo
-  (picker + toast + indicador de autosave). Os lados reversos
-  (`modules/users/components/UserRolesHost.tsx`,
-  `modules/permissions/components/PermissionRolesHost.tsx`) são só leitura — é o Role
-  que administra a relação, por decisão de produto, não uma limitação técnica.
+- **Permissões não são mais attach/detach individual**: desde a 8.3 (Plano Base.md),
+  a aba "Permissões" é uma matriz recurso x ação (`RolePermissionMatrix.tsx`) que
+  consome `GET /roles/:id/permission-matrix` e manda o CONJUNTO INTEIRO marcado pra
+  `PUT /roles/:id/permissions` a cada clique — não é um toggle por checkbox no
+  backend, é um replace (ver `RolesService.replacePermissions`). O lado reverso
+  (`modules/permissions/components/PermissionRolesHost.tsx`) continua só leitura.
+- **A relação "Usuários" continua attach/detach** via `RoleUsersHost` +
+  `RelationHost` (`lib/registry/relation-host.tsx`) — picker + toast + indicador de
+  autosave. O lado reverso (`modules/users/components/UserRolesHost.tsx`) é só
+  leitura — é o Role que administra a relação, por decisão de produto.
 - **`provider.ts`** usa `apiServer` (nunca `fetch` direto) e resolve `tenantId` via
-  `getSessionTenantId()` só para as duas leituras de relação
-  (`readRolePermissions`/`readRoleUsers`) — os demais handlers recebem `tenantId` do
-  próprio contexto da sessão no `apiServer`.
+  `getSessionTenantId()` só para a leitura de relação (`readRoleUsers`) — os demais
+  handlers recebem `tenantId` do próprio contexto da sessão no `apiServer`.
 - **`actions/roleService.ts`** (não `config/client-actions.ts` — esse arquivo existiu
   como um rascunho duplicado e foi removido) é o único lugar com as Server Actions de
-  attach/detach; `RoleUsersHost`/`RolePermissionsHost`/`UserRolesHost` importam dele.
+  attach/detach de usuário e com a matriz de permissões
+  (`getPermissionMatrix`/`replaceRolePermissions`).
 
 ## Ao modificar este módulo
 

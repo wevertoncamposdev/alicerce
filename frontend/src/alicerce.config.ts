@@ -8,7 +8,13 @@
 // pro code-splitting funcionar, não dá pra tornar isso dinâmico a partir
 // de dado de config sem arriscar quebrar o bundling.
 import type { LucideIcon } from "lucide-react";
-import { Users, Building2, KeyRound, Shield, FileText, Package } from "lucide-react";
+import { Users, KeyRound, Shield, FileText, Package } from "lucide-react";
+
+// Termos configuráveis — troca o rótulo em todo lugar que o importa (menu,
+// títulos, cadastro) sem precisar de mecanismo novo, só uma constante.
+export const alicerceTerms = {
+    tenant: "Instituição",
+} as const;
 
 export type ModuleManifestEntry = {
     /** Bate com o `model` de `defineRecordModule` e com o resource da API. */
@@ -20,8 +26,13 @@ export type ModuleManifestEntry = {
     basePath: string;
     /** Permissão exigida pra ver/acessar o módulo (checagem de leitura). */
     permission: string;
-    /** Em qual grupo do menu lateral o módulo aparece. */
-    navGroup: "geral" | "permissoes";
+    /**
+     * Em qual grupo do menu lateral o módulo aparece. "hidden" não aparece
+     * em grupo nenhum — a rota continua protegida por permissão, só não é
+     * um item de navegação (ex.: permissions, alcançado por link direto a
+     * partir da matriz de Papéis — ver Plano Base.md 8.4).
+     */
+    navGroup: "geral" | "configuracoes" | "hidden";
     /**
      * Permissões por ação granular (criar/editar/remover/...), além da
      * permissão de leitura acima. Chave vira `${key}.${ação}` em
@@ -41,17 +52,8 @@ export const alicerceModules = defineModuleManifest([
         icon: Users,
         basePath: "/users",
         permission: "user.read",
-        navGroup: "geral",
+        navGroup: "configuracoes",
         actionPermissions: { create: "user.create", update: "user.update", delete: "user.delete" },
-    },
-    {
-        key: "tenants",
-        title: "Tenants",
-        icon: Building2,
-        basePath: "/tenants",
-        permission: "tenant.read",
-        navGroup: "geral",
-        actionPermissions: { create: "tenant.update", update: "tenant.update", delete: "tenant.update" },
     },
     {
         key: "roles",
@@ -59,7 +61,7 @@ export const alicerceModules = defineModuleManifest([
         icon: KeyRound,
         basePath: "/roles",
         permission: "role.read",
-        navGroup: "permissoes",
+        navGroup: "configuracoes",
         actionPermissions: { create: "role.create", update: "role.update", delete: "role.delete", assign: "role.assign" },
     },
     {
@@ -68,8 +70,10 @@ export const alicerceModules = defineModuleManifest([
         icon: Shield,
         basePath: "/permissions",
         permission: "permission.read",
-        navGroup: "permissoes",
-        actionPermissions: { create: "permission.create", update: "permission.update", delete: "permission.delete" },
+        navGroup: "hidden",
+        // Catálogo só de leitura (ADR 0007) — sem create/update/delete
+        // próprios, nada aqui.
+        actionPermissions: {},
     },
     {
         key: "audit",
@@ -77,7 +81,7 @@ export const alicerceModules = defineModuleManifest([
         icon: FileText,
         basePath: "/audit",
         permission: "audit.read",
-        navGroup: "permissoes",
+        navGroup: "configuracoes",
         actionPermissions: { refresh: "audit.read" },
     },
     {
@@ -86,7 +90,7 @@ export const alicerceModules = defineModuleManifest([
         icon: Package,
         basePath: "/feedbacks",
         permission: "feedback.read",
-        navGroup: "permissoes",
+        navGroup: "geral",
         actionPermissions: { create: "feedback.create", update: "feedback.update", delete: "feedback.delete" },
     },
 ] as const);

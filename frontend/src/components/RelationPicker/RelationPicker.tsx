@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { apiClient } from "@lib/api-client";
+import { searchRecordsAction } from "@core/registry/actions";
 import {
     Dialog,
     DialogContent,
@@ -24,12 +24,10 @@ type Entity = { id: string; name?: string; email?: string; type?: string; resour
 
 export default function RelationPicker({
     kind,
-    tenantId,
     onSelect,
     onClose,
 }: {
     kind: "permissions" | "users" | "roles";
-    tenantId?: string | null;
     onSelect: (item: Entity) => void;
     onClose: () => void;
 }) {
@@ -40,8 +38,6 @@ export default function RelationPicker({
     const limit = 20;
     const [hasMore, setHasMore] = React.useState(true);
 
-    const modelPath = kind === "users" ? "user" : kind;
-
     // debounce search term
     const [term, setTerm] = React.useState("");
     React.useEffect(() => {
@@ -49,12 +45,12 @@ export default function RelationPicker({
         return () => clearTimeout(t);
     }, [q]);
 
-    // load when kind, tenantId or term changes -> reset page.
+    // load when kind or term changes -> reset page.
     // Ajuste de estado durante o render (não um useEffect) — mesmo padrão já
     // usado em relation-host.tsx: compara a chave atual com a anterior e
     // reseta síncrono, sem o render em cascata extra de um setState dentro
     // de efeito (ver "Adjusting state based on a prop change" na doc do React).
-    const resetKey = `${kind}:${tenantId ?? ""}:${term}`;
+    const resetKey = `${kind}:${term}`;
     const [prevResetKey, setPrevResetKey] = React.useState(resetKey);
     if (resetKey !== prevResetKey) {
         setPrevResetKey(resetKey);
@@ -68,24 +64,19 @@ export default function RelationPicker({
         async function load() {
             setLoading(true);
             try {
-                const listPath = tenantId ? `${modelPath}?tenantId=${tenantId}` : modelPath;
-
-                const response = await apiClient.get<Array<Entity> | { items?: Entity[]; total?: number; page?: number; limit?: number }>(listPath);
+                // Busca e paginação reais no servidor — nada de filtro client-side
+                // sobre a página crua (ver AGENTS §4.1.9).
+                const result = await searchRecordsAction<Entity>(kind, {
+                    searchText: term || undefined,
+                    pagination: { pageIndex: page, pageSize: limit },
+                });
 
                 if (!mounted) return;
 
-                const rawItems = Array.isArray(response) ? response : response.items ?? [];
-                const filteredItems = term
-                    ? rawItems.filter((it) => {
-                        const label = (it.name ?? it.email ?? it.resource ?? "").toLowerCase();
-                        return label.includes(term.toLowerCase());
-                    })
-                    : rawItems;
+                if (page === 0) setItems(result.data);
+                else setItems((s) => [...s, ...result.data]);
 
-                if (page === 0) setItems(filteredItems);
-                else setItems((s) => [...s, ...filteredItems]);
-
-                setHasMore(filteredItems.length === limit && rawItems.length >= limit);
+                setHasMore(result.pagination.page < result.pagination.pages);
             } catch (err) {
                 console.error("RelationPicker load error", err);
                 if (mounted) {
@@ -100,7 +91,7 @@ export default function RelationPicker({
         return () => {
             mounted = false;
         };
-    }, [kind, modelPath, tenantId, term, page]);
+    }, [kind, term, page]);
 
     const loadMore = () => {
         if (!hasMore || loading) return;

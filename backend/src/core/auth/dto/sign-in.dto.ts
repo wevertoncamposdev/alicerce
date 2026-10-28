@@ -6,8 +6,10 @@ import {
   MaxLength,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { NormalizeEmail } from '@core/common/validators/normalize-email.decorator';
 
 export class SignInDto {
+  @NormalizeEmail()
   @IsEmail()
   @IsNotEmpty()
   @ApiProperty({

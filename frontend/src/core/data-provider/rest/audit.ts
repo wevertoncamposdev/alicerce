@@ -9,8 +9,9 @@ export type AuditEntry = {
     action: string;
     entity: string;
     entityId: string | null;
-    before: string | null;
-    after: string | null;
+    // Backend já devolve parseado (JSON.parse) — ver AuditService.findAll.
+    before: unknown;
+    after: unknown;
     createdAt: string;
     userId: string;
     user: {

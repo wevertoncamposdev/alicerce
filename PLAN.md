@@ -1,15 +1,18 @@
 # PLAN.md — Trabalho atual
 
-> Só o que está em andamento. O histórico até a v1 está em
-> `docs/historico/PLAN-v0.md`.
+> Só o que está em andamento. Histórico (fases v0, Fase 12, roteiro de
+> finalização) está em `docs/historico/`. Itens adiados com gatilho:
+> `docs/backlog.md`.
 
 ## Agora
 
-- [x] Sessão de fechamento da v1 (blocos A a D) — concluída em 2026-10-17.
-      Base congelada; `feedback` é o módulo canônico de exemplo.
-- [ ] Primeiro módulo de domínio com `/novo-modulo`
+- F7 (processo enxuto) em andamento — ver `CLAUDE.md`/`AGENTS.md`.
+- Nada mais em andamento. Base na v1.0, congelada (`AGENTS.md` §2).
 
-## Pendências conhecidas (não bloqueiam)
+## Próximo
 
-- Validação manual em navegador: login → expirar token → navegar
-- `--feature-of <pai>` no gerador (sob demanda)
+- F8 (manual, por você): merge `develop` → `main` com CI verde, tag
+  `v1.0.0`, criar o repositório do TerceiroGestor a partir dessa tag.
+- Depois do F8, o trabalho passa a ser o TerceiroGestor: módulos de
+  domínio novos sobre a base congelada. `feedback` continua como módulo
+  de referência até o primeiro módulo real ficar pronto.

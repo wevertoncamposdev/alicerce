@@ -76,4 +76,28 @@ describe("validateFormPayload", () => {
             expect(result.fieldErrors.email).toBeUndefined();
         }
     });
+
+    // D2 (docs/PLAN-fundacao-ux.md): o autosave do edit agora manda só o
+    // patch com os campos alterados — uma chave ausente é "não tocado nesta
+    // rodada", não mais um bug do chamador.
+    it("aceita um patch parcial, sem exigir os campos não tocados", () => {
+        const result = validateFormPayload(fields, { bio: "texto novo" });
+
+        expect(result.ok).toBe(true);
+    });
+
+    it("trata null igual a vazio (campo opcional limpo pelo autosave)", () => {
+        const result = validateFormPayload(fields, { age: null });
+
+        expect(result.ok).toBe(true);
+    });
+
+    it("rejeita e-mail obrigatório enviado como null", () => {
+        const result = validateFormPayload(fields, { email: null });
+
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+            expect(result.fieldErrors.email).toMatch(/obrigatório/);
+        }
+    });
 });

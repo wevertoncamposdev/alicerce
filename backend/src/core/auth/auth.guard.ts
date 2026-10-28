@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt'; // Serviço para verificar/assinar JWT
 import { Reflector } from '@nestjs/core'; // Leitor de metadata em runtime
-import { Request } from 'express'; // Tipo de request HTTP (Express)
+import { FastifyRequest } from 'fastify'; // Tipo de request HTTP (Fastify — adapter real do app, ver AGENTS §4.2.8)
 import { JwtPayload } from '@core/common/types/http.types';
 
 // Chave de metadata usada para marcar rotas públicas
@@ -43,7 +43,7 @@ export class AuthGuard implements CanActivate {
     }
 
     // Converte contexto genérico para HTTP e obtém o request
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<FastifyRequest>();
 
     // Extrai token do header Authorization no formato "Bearer <token>"
     const token = this.extractTokenFromHeader(request);
@@ -58,7 +58,7 @@ export class AuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
 
       // Injeta payload no request para uso posterior nos handlers/services
-      (request as Request & { user: JwtPayload }).user = payload;
+      (request as FastifyRequest & { user: JwtPayload }).user = payload;
     } catch {
       // Token inválido, expirado ou malformado: 401
       throw new UnauthorizedException();
@@ -69,7 +69,7 @@ export class AuthGuard implements CanActivate {
   }
 
   // Método auxiliar privado para isolar parsing do header Authorization
-  private extractTokenFromHeader(request: Request): string | undefined {
+  private extractTokenFromHeader(request: FastifyRequest): string | undefined {
     // Divide "Bearer abc.def.ghi" em ["Bearer", "abc.def.ghi"]
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
 

@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { RoleRepository } from './persistence/role.repository';
 import { PrismaService } from '@core/prisma/prisma.service';
@@ -7,12 +11,13 @@ import { PermissionCacheService } from '@core/authorization/permission-cache.ser
 
 const prismaMock = {
   role: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
-  permission: { findUnique: jest.fn() },
+  permission: { findUnique: jest.fn(), findMany: jest.fn() },
   user: { findUnique: jest.fn() },
   rolePermission: {
     upsert: jest.fn(),
     deleteMany: jest.fn(),
     findMany: jest.fn(),
+    createMany: jest.fn(),
   },
   userRole: {
     upsert: jest.fn(),
@@ -20,6 +25,7 @@ const prismaMock = {
     findMany: jest.fn(),
     count: jest.fn(),
   },
+  $transaction: jest.fn((ops: Promise<unknown>[]) => Promise.all(ops)),
 };
 
 const roleRepositoryMock = {
@@ -39,8 +45,8 @@ describe('RolesService', () => {
     jest.clearAllMocks();
     // Default: nenhum usuário afetado, a menos que um teste sobrescreva com
     // `.mockResolvedValueOnce` — evita que todo teste que passa por
-    // attachPermission/detachPermission/remove precise mockar isto só para
-    // não quebrar no `.map()` da invalidação de cache.
+    // replacePermissions/remove precise mockar isto só para não quebrar no
+    // `.map()` da invalidação de cache.
     prismaMock.userRole.findMany.mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
@@ -53,49 +59,6 @@ describe('RolesService', () => {
     }).compile();
 
     service = module.get<RolesService>(RolesService);
-  });
-
-  it('attachPermission: should upsert permission when role and permission exist', async () => {
-    prismaMock.role.findUnique.mockResolvedValueOnce({
-      id: 'role-1',
-      tenantId: 't1',
-      deletedAt: null,
-    });
-    prismaMock.permission.findUnique.mockResolvedValueOnce({
-      id: 'perm-1',
-      tenantId: 't1',
-      deletedAt: null,
-    });
-    prismaMock.rolePermission.upsert.mockResolvedValueOnce({ id: 'rp-1' });
-
-    const res = await service.attachPermission(
-      'role-1',
-      't1',
-      'perm-1',
-      'res-a',
-    );
-
-    expect(prismaMock.role.findUnique).toHaveBeenCalledWith({
-      where: { id: 'role-1' },
-    });
-    expect(prismaMock.permission.findUnique).toHaveBeenCalledWith({
-      where: { id: 'perm-1' },
-    });
-    expect(prismaMock.rolePermission.upsert).toHaveBeenCalled();
-    expect(res).toEqual({ id: 'rp-1' });
-  });
-
-  it('attachPermission: should throw NotFoundException when permission missing', async () => {
-    prismaMock.role.findUnique.mockResolvedValueOnce({
-      id: 'role-1',
-      tenantId: 't1',
-      deletedAt: null,
-    });
-    prismaMock.permission.findUnique.mockResolvedValueOnce(null);
-
-    await expect(
-      service.attachPermission('role-1', 't1', 'perm-404'),
-    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('attachUser: should upsert userRole when role and user exist', async () => {
@@ -302,8 +265,8 @@ describe('RolesService', () => {
   });
 
   // P7.5: invalidação do cache de permissões. attachUser/detachUser afetam
-  // só 1 usuário; attachPermission/detachPermission/remove afetam todo
-  // mundo que tem a role (ver RolesService.invalidatePermissionCacheForRole).
+  // só 1 usuário; replacePermissions/remove afetam todo mundo que tem a
+  // role (ver RolesService.invalidatePermissionCacheForRole).
   describe('permission cache invalidation', () => {
     it('attachUser: invalidates only the attached user', async () => {
       prismaMock.role.findUnique.mockResolvedValueOnce({
@@ -343,46 +306,6 @@ describe('RolesService', () => {
       );
     });
 
-    it('attachPermission: invalidates every user who holds the role', async () => {
-      prismaMock.role.findUnique.mockResolvedValueOnce({
-        id: 'role-1',
-        tenantId: 't1',
-        deletedAt: null,
-      });
-      prismaMock.permission.findUnique.mockResolvedValueOnce({
-        id: 'perm-1',
-        tenantId: 't1',
-        deletedAt: null,
-      });
-      prismaMock.rolePermission.upsert.mockResolvedValueOnce({ id: 'rp-1' });
-      prismaMock.userRole.findMany.mockResolvedValueOnce([
-        { userId: 'user-1' },
-        { userId: 'user-2' },
-      ]);
-
-      await service.attachPermission('role-1', 't1', 'perm-1');
-
-      expect(permissionCacheMock.invalidateUsers).toHaveBeenCalledWith('t1', [
-        'user-1',
-        'user-2',
-      ]);
-    });
-
-    it('detachPermission: invalidates every user who holds the role', async () => {
-      prismaMock.rolePermission.deleteMany.mockResolvedValueOnce({
-        count: 1,
-      });
-      prismaMock.userRole.findMany.mockResolvedValueOnce([
-        { userId: 'user-3' },
-      ]);
-
-      await service.detachPermission('role-1', 't1', 'perm-1');
-
-      expect(permissionCacheMock.invalidateUsers).toHaveBeenCalledWith('t1', [
-        'user-3',
-      ]);
-    });
-
     it('remove: invalidates every user who held the deactivated role', async () => {
       prismaMock.role.findUnique.mockResolvedValueOnce({
         id: 'role-1',
@@ -404,12 +327,15 @@ describe('RolesService', () => {
 
   // C4: o tenant nunca pode ficar sem admin, nem um admin remover a própria
   // role ADMIN (ver FECHAMENTO.md e RolesService.hasOtherActiveAdmin).
+  // Desde o ADR 0007 (etapa 3.4), o gatilho é `isSystem`, não mais
+  // `type === 'ADMIN'` — `type` continua no fixture só como metadado.
   describe('admin lockout protection (C4)', () => {
     it('detachUser: blocks a user from removing their own admin access, even with other admins around', async () => {
       prismaMock.role.findUnique.mockResolvedValueOnce({
         id: 'role-1',
         tenantId: 't1',
         type: 'ADMIN',
+        isSystem: true,
         deletedAt: null,
       });
 
@@ -424,6 +350,7 @@ describe('RolesService', () => {
         id: 'role-1',
         tenantId: 't1',
         type: 'ADMIN',
+        isSystem: true,
         deletedAt: null,
       });
       prismaMock.userRole.count.mockResolvedValueOnce(0);
@@ -439,6 +366,7 @@ describe('RolesService', () => {
         id: 'role-1',
         tenantId: 't1',
         type: 'ADMIN',
+        isSystem: true,
         deletedAt: null,
       });
       prismaMock.userRole.count.mockResolvedValueOnce(1);
@@ -454,34 +382,217 @@ describe('RolesService', () => {
       expect(result).toEqual({ removed: true });
     });
 
-    it('remove: blocks deleting the only admin role of the tenant', async () => {
+    it('remove: blocks deleting a system role, unconditionally (409)', async () => {
       prismaMock.role.findUnique.mockResolvedValueOnce({
         id: 'role-1',
         tenantId: 't1',
         type: 'ADMIN',
+        isSystem: true,
         deletedAt: null,
       });
-      prismaMock.userRole.count.mockResolvedValueOnce(0);
 
       await expect(service.remove('role-1', 't1')).rejects.toBeInstanceOf(
-        ForbiddenException,
+        ConflictException,
       );
       expect(prismaMock.role.update).not.toHaveBeenCalled();
     });
 
-    it('remove: allows deleting an admin role when another admin role still has active users', async () => {
+    it('remove: allows deleting a non-system role', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-2',
+        tenantId: 't1',
+        type: 'USER',
+        isSystem: false,
+        deletedAt: null,
+      });
+      prismaMock.role.update.mockResolvedValueOnce({ id: 'role-2' });
+
+      const result = await service.remove('role-2', 't1');
+
+      expect(result).toEqual({ id: 'role-2' });
+    });
+  });
+
+  describe('update: system role rename protection (ADR 0007)', () => {
+    it('blocks renaming a system role', async () => {
       prismaMock.role.findUnique.mockResolvedValueOnce({
         id: 'role-1',
         tenantId: 't1',
+        name: 'ADMIN',
         type: 'ADMIN',
+        isSystem: true,
         deletedAt: null,
       });
-      prismaMock.userRole.count.mockResolvedValueOnce(1);
+
+      await expect(
+        service.update('role-1', { name: 'Not Admin Anymore' }, 't1'),
+      ).rejects.toBeInstanceOf(ConflictException);
+      expect(prismaMock.role.update).not.toHaveBeenCalled();
+    });
+
+    it('allows updating other fields of a system role as long as the name is unchanged', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        name: 'ADMIN',
+        type: 'ADMIN',
+        isSystem: true,
+        deletedAt: null,
+      });
       prismaMock.role.update.mockResolvedValueOnce({ id: 'role-1' });
 
-      const result = await service.remove('role-1', 't1');
+      const result = await service.update(
+        'role-1',
+        { name: 'ADMIN', description: 'novo texto' },
+        't1',
+      );
 
       expect(result).toEqual({ id: 'role-1' });
+    });
+
+    it('allows renaming a non-system role', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-2',
+        tenantId: 't1',
+        name: 'Coordenador',
+        type: 'USER',
+        isSystem: false,
+        deletedAt: null,
+      });
+      prismaMock.role.update.mockResolvedValueOnce({ id: 'role-2' });
+
+      const result = await service.update(
+        'role-2',
+        { name: 'Coordenador Regional' },
+        't1',
+      );
+
+      expect(result).toEqual({ id: 'role-2' });
+    });
+  });
+
+  describe('getPermissionMatrix (etapa 3.5)', () => {
+    it('groups catalog permissions by resource, marking what the role already has', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        deletedAt: null,
+      });
+      prismaMock.permission.findMany.mockResolvedValueOnce([
+        {
+          id: 'perm-read',
+          name: 'user.read',
+          type: 'READ',
+          resource: 'users',
+          description: 'Consultar usuários',
+        },
+        {
+          id: 'perm-write',
+          name: 'user.update',
+          type: 'WRITE',
+          resource: 'users',
+          description: 'Atualizar usuários',
+        },
+      ]);
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce([
+        { permissionId: 'perm-read' },
+      ]);
+
+      const matrix = await service.getPermissionMatrix('role-1', 't1');
+
+      expect(matrix).toEqual([
+        {
+          resource: 'users',
+          permissions: [
+            {
+              id: 'perm-read',
+              name: 'user.read',
+              type: 'READ',
+              description: 'Consultar usuários',
+              granted: true,
+            },
+            {
+              id: 'perm-write',
+              name: 'user.update',
+              type: 'WRITE',
+              description: 'Atualizar usuários',
+              granted: false,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('throws NotFoundException for a role from another tenant', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 'other-tenant',
+        deletedAt: null,
+      });
+
+      await expect(
+        service.getPermissionMatrix('role-1', 't1'),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('replacePermissions (etapa 3.5)', () => {
+    it('adds missing permissions and removes the ones no longer selected, in one pass', async () => {
+      prismaMock.role.findUnique.mockResolvedValue({
+        id: 'role-1',
+        tenantId: 't1',
+        deletedAt: null,
+      });
+      prismaMock.permission.findMany.mockResolvedValueOnce([
+        { id: 'perm-new' },
+      ]); // valida que perm-new existe no tenant
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce([
+        { permissionId: 'perm-old' },
+      ]); // conjunto atual
+      prismaMock.rolePermission.deleteMany.mockResolvedValueOnce({ count: 1 });
+      prismaMock.rolePermission.createMany.mockResolvedValueOnce({
+        count: 1,
+      });
+      // getPermissionMatrix roda de novo no final, pra devolver o resultado:
+      prismaMock.permission.findMany.mockResolvedValueOnce([]);
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce([]);
+
+      await service.replacePermissions('role-1', 't1', ['perm-new']);
+
+      expect(prismaMock.rolePermission.deleteMany).toHaveBeenCalledWith({
+        where: {
+          tenantId: 't1',
+          roleId: 'role-1',
+          resource: null,
+          permissionId: { in: ['perm-old'] },
+        },
+      });
+      expect(prismaMock.rolePermission.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            tenantId: 't1',
+            roleId: 'role-1',
+            permissionId: 'perm-new',
+            resource: null,
+          },
+        ],
+        skipDuplicates: true,
+      });
+      expect(permissionCacheMock.invalidateUsers).toHaveBeenCalled();
+    });
+
+    it('throws NotFoundException when a permissionId does not belong to the tenant', async () => {
+      prismaMock.role.findUnique.mockResolvedValueOnce({
+        id: 'role-1',
+        tenantId: 't1',
+        deletedAt: null,
+      });
+      prismaMock.permission.findMany.mockResolvedValueOnce([]); // nenhuma bate
+
+      await expect(
+        service.replacePermissions('role-1', 't1', ['perm-ghost']),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(prismaMock.rolePermission.deleteMany).not.toHaveBeenCalled();
     });
   });
 });

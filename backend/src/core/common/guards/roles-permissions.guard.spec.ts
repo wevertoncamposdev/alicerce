@@ -3,17 +3,30 @@ import { Reflector } from '@nestjs/core';
 import { RolesPermissionsGuard } from './roles-permissions.guard';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
-class TestController {}
-
 describe('RolesPermissionsGuard', () => {
   let permissionCacheMock: { getFreshPermissions: jest.Mock };
 
-  const buildContext = (user: Record<string, unknown>): ExecutionContext => {
+  // Classe nova a cada chamada — `Reflect.defineMetadata` gravaria na mesma
+  // classe pra sempre se fosse compartilhada entre testes, vazando metadata
+  // de um teste anterior pro próximo (ex.: o teste "sem @Permissions"
+  // herdaria o `requiredPermissions` de um teste rodado antes dele).
+  // `null` (não `undefined`) significa "sem @Permissions" — um parâmetro
+  // default em JS também dispara para `undefined` passado explicitamente,
+  // não só quando omitido.
+  const buildContext = (
+    user: Record<string, unknown>,
+    requiredPermissions: string[] | null = ['user.read'],
+  ): ExecutionContext => {
+    class TestController {}
     const handler = () => undefined;
-    Reflect.defineMetadata('roles', ['ADMIN'], handler);
-    Reflect.defineMetadata('roles', ['ADMIN'], TestController);
-    Reflect.defineMetadata('permissions', ['user.read'], handler);
-    Reflect.defineMetadata('permissions', ['user.read'], TestController);
+    if (requiredPermissions) {
+      Reflect.defineMetadata('permissions', requiredPermissions, handler);
+      Reflect.defineMetadata(
+        'permissions',
+        requiredPermissions,
+        TestController,
+      );
+    }
 
     return {
       getHandler: () => handler,
@@ -32,14 +45,10 @@ describe('RolesPermissionsGuard', () => {
       permissionCacheMock as unknown as PermissionCacheService,
     );
 
-  it('accepts nested role objects from the JWT and a fresh permission from the cache', async () => {
+  it('allows when a fresh permission from the cache matches', async () => {
     permissionCacheMock.getFreshPermissions.mockResolvedValue(['USER.READ']);
     const guard = buildGuard();
-    const context = buildContext({
-      sub: 'user-1',
-      tenantId: 'tenant-1',
-      roles: [{ role: { type: 'Admin' } }, 'USER'],
-    });
+    const context = buildContext({ sub: 'user-1', tenantId: 'tenant-1' });
 
     await expect(guard.canActivate(context)).resolves.toBe(true);
     expect(permissionCacheMock.getFreshPermissions).toHaveBeenCalledWith(
@@ -48,44 +57,34 @@ describe('RolesPermissionsGuard', () => {
     );
   });
 
-  it('denies when the cache (fresh source) no longer has the permission, even if the JWT role still matches', async () => {
-    // Este é o cenário que o P7.5 resolve: a permissão foi revogada depois
-    // do login, mas o token ainda não expirou — antes, a checagem só olhava
-    // o JWT e deixaria passar; agora a fonte fresca (cache/DB) manda.
+  it('denies when the cache (fresh source) no longer has the permission', async () => {
+    // ADR 0007 (etapa 3.6): a checagem é só por permissão fresca
+    // (cache/DB), não mais pelo JWT — a permissão pode ter sido revogada
+    // depois do login, antes do token expirar.
     permissionCacheMock.getFreshPermissions.mockResolvedValue([]);
     const guard = buildGuard();
-    const context = buildContext({
-      sub: 'user-1',
-      tenantId: 'tenant-1',
-      roles: ['ADMIN'],
-    });
+    const context = buildContext({ sub: 'user-1', tenantId: 'tenant-1' });
 
     await expect(guard.canActivate(context)).rejects.toThrow(
       'Acesso negado: permission insuficiente',
     );
-  });
-
-  it('denies based on role before even consulting the permission cache', async () => {
-    const guard = buildGuard();
-    const context = buildContext({
-      sub: 'user-1',
-      tenantId: 'tenant-1',
-      roles: ['USER'],
-    });
-
-    await expect(guard.canActivate(context)).rejects.toThrow(
-      'Acesso negado: role insuficiente',
-    );
-    expect(permissionCacheMock.getFreshPermissions).not.toHaveBeenCalled();
   });
 
   it('treats a missing tenantId/sub as no permissions (fails closed, not open)', async () => {
     const guard = buildGuard();
-    const context = buildContext({ roles: ['ADMIN'] });
+    const context = buildContext({});
 
     await expect(guard.canActivate(context)).rejects.toThrow(
       'Acesso negado: permission insuficiente',
     );
+    expect(permissionCacheMock.getFreshPermissions).not.toHaveBeenCalled();
+  });
+
+  it('allows a route with no @Permissions metadata, never touching the cache', async () => {
+    const guard = buildGuard();
+    const context = buildContext({ sub: 'user-1', tenantId: 'tenant-1' }, null);
+
+    await expect(guard.canActivate(context)).resolves.toBe(true);
     expect(permissionCacheMock.getFreshPermissions).not.toHaveBeenCalled();
   });
 });

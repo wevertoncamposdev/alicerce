@@ -6,12 +6,14 @@ import {
 } from '@nestjs/common';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 import { AuditService } from '@modules/audit/audit.service';
+import { MonitoringService } from '@core/monitoring/monitoring.service';
 
 describe('AllExceptionsFilter', () => {
   let filter: AllExceptionsFilter;
   let warnSpy: jest.SpyInstance;
   let errorSpy: jest.SpyInstance;
   let auditServiceMock: { register: jest.Mock };
+  let monitoringServiceMock: { captureException: jest.Mock };
 
   const buildHost = (request: Record<string, unknown>) => {
     const response = {
@@ -29,8 +31,10 @@ describe('AllExceptionsFilter', () => {
 
   beforeEach(() => {
     auditServiceMock = { register: jest.fn().mockResolvedValue(undefined) };
+    monitoringServiceMock = { captureException: jest.fn() };
     filter = new AllExceptionsFilter(
       auditServiceMock as unknown as AuditService,
+      monitoringServiceMock as unknown as MonitoringService,
     );
     warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
     errorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation();
@@ -62,6 +66,8 @@ describe('AllExceptionsFilter', () => {
       message: 'Usuario nao encontrado',
     });
     expect(errorSpy).not.toHaveBeenCalled();
+    // Negócio esperado (HttpException) não vai pro monitoramento de erros.
+    expect(monitoringServiceMock.captureException).not.toHaveBeenCalled();
     expect(response.status).toHaveBeenCalledWith(404);
     // O mesmo correlationId do log também vai na resposta — permite ao
     // cliente reportar o erro citando um id que localiza o log exato.
@@ -89,6 +95,11 @@ describe('AllExceptionsFilter', () => {
       stack: exception.stack,
     });
     expect(warnSpy).not.toHaveBeenCalled();
+    // Etapa 10.2 — bug real (não-HttpException) vai pro monitoramento.
+    expect(monitoringServiceMock.captureException).toHaveBeenCalledWith(
+      exception,
+      { method: 'POST', url: '/boom', correlationId: 'req-2' },
+    );
     expect(response.status).toHaveBeenCalledWith(500);
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({

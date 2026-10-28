@@ -2,9 +2,12 @@
 export type UserEntity = {
     id: string;
     email: string;
-    password?: string;
+    name?: string | null;
     tenantId: string;
     status: string;
+    pendingInvite?: boolean;
+    avatarFileId?: string | null;
+    avatarUrl?: string | null;
     createdAt: string;
 };
 

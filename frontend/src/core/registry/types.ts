@@ -2,6 +2,7 @@
 import type { SearchArgs, SearchResult } from "@core/data-provider/types";
 import type { ContextItem, AuditFeedItem } from "@core/components/DetailView/MetaDataView/types";
 import type React from "react";
+import type { LucideIcon } from "lucide-react";
 
 export type RecordModuleDataHandlers<T> = {
     search: (args: SearchArgs) => Promise<SearchResult<T>>;
@@ -15,10 +16,23 @@ export type FormFieldConfig<T> = {
     name: keyof T & string;
     label: string;
     placeholder?: string;
-    type: "text" | "email" | "password" | "url" | "number" | "textarea" | "select" | "checkbox" | "switch";
+    type: "text" | "email" | "password" | "url" | "number" | "textarea" | "select" | "checkbox" | "switch" | "image";
     required?: boolean;
     createOnly?: boolean;
     options?: Array<string | { label: string; value: string }>;
+    /** Campo que dispara a criação no Detail (`createMode: "detail"`). Um por módulo. */
+    primary?: boolean;
+    /**
+     * Só `type: "image"`: o campo guarda o `fileId` (FK), não a URL — nome
+     * do campo do registro que já traz a URL de preview resolvida pelo
+     * backend (ver ADR 0010). Precisa ser o NOME do campo, não uma função
+     * `(record) => string` — função não serializa na fronteira
+     * Server→Client (etapa 12.3, corrige C2); `serializable-contracts.
+     * test.ts` cobre essa classe de erro pra todo `formFields`.
+     */
+    previewField?: keyof T & string;
+    /** Só `type: "image"`: metadado repassado ao upload (ex.: "user.avatar"). */
+    uploadOwnerType?: string;
 };
 
 export type DetailContext<T> = {
@@ -31,13 +45,52 @@ export type RelationTabConfig = {
     key: string;
     label: string;
     content: React.ReactNode;
+    icon?: LucideIcon;
+    count?: number;
+};
+
+export type DetailHeaderConfig = {
+    title: string;
+    subtitle?: string[];
+    avatar?: { src?: string; fallback: string };
+    status?: React.ReactNode;
+    contacts?: { icon: LucideIcon; text: string; href?: string }[];
+};
+
+export type DetailSection<T> = {
+    key: string;
+    title: string;
+    icon?: LucideIcon;
+    column?: 1 | 2 | 3;
+    /**
+     * Função pra "editável, mas condicionado ao estado do registro" (ex.:
+     * seção bloqueada quando `record.isSystem` — ver Plano Base.md 8.3,
+     * papéis de sistema). Avaliada por `DetailSections.tsx` a cada render.
+     */
+    editable?: boolean | ((record: T) => boolean);
+    fields?: (keyof T & string)[];
+    render?: (ctx: DetailContext<T>) => React.ReactNode;
+};
+
+export type DetailTab<T> = {
+    key: string;
+    label: string;
+    icon?: LucideIcon;
+    content: (ctx: DetailContext<T>) => React.ReactNode;
 };
 
 export type DetailLayout<T> = {
-    main: (ctx: DetailContext<T>) => React.ReactNode;
+    // NOVO (todos opcionais)
+    header?: (ctx: DetailContext<T>) => DetailHeaderConfig;
+    sections?: DetailSection<T>[];
+    tabs?: DetailTab<T>[];
+    /** Ações da tela de detalhe, renderizadas no AppTopbar antes do botão de metadados. */
+    toolbar?: (ctx: DetailContext<T>) => React.ReactNode;
+    // EXISTENTE — continua funcionando
+    main?: (ctx: DetailContext<T>) => React.ReactNode;
     side?: (ctx: DetailContext<T>) => React.ReactNode;
     bottom?: (ctx: DetailContext<T>) => React.ReactNode;
-    relations?: (ctx: DetailContext<T>) => RelationTabConfig[];
+    relations?: (ctx: DetailContext<T>) => RelationTabConfig[] | Promise<RelationTabConfig[]>;
 };
 
 // ============================================================
@@ -63,13 +116,18 @@ export type ListLayout<T> = Partial<Record<string, (ctx: ListContext<T>) => Reac
 // ============================================================
 
 export type DetailConfig<T> = {
-    /** Se true, DetailViewScreen busca a trilha de auditoria automaticamente. */
+    /** Se true, DetailViewScreen busca a trilha de auditoria automaticamente (REST real). */
     auditEnabled?: boolean;
     /**
      * Constrói os ContextItem[] a partir do record já carregado.
      * Isso é conhecimento de domínio do módulo — não pertence à page.
      */
     loadContext?: (record: T) => ContextItem[] | Promise<ContextItem[]>;
+    /**
+     * Fornece a trilha de auditoria diretamente (bypassa o REST real) — só pra fixtures sem
+     * backend, como `modules/develop/showcase`. Módulo de domínio real usa `auditEnabled`.
+     */
+    loadAudit?: (record: T) => AuditFeedItem[] | Promise<AuditFeedItem[]>;
 };
 
 export type RecordModuleDefinition<T = unknown> = {
@@ -79,6 +137,14 @@ export type RecordModuleDefinition<T = unknown> = {
     defaultView: string;
     dataHandlers: RecordModuleDataHandlers<T>;
     formFields: FormFieldConfig<T>[];
+    /**
+     * Prefixo de permissão usado pelas seções `editable` do detail (vira
+     * `${permission}.update`). Default: resolução atual de `${model}.update`
+     * via `resolveActionPermission` (lib/authz.ts).
+     */
+    permission?: string;
+    /** "sheet" (default, Sheet de criação) ou "detail" ("Novo" abre o Detail em rascunho). */
+    createMode?: "sheet" | "detail";
     parseListState: (searchParams: Record<string, string | string[] | undefined>) => SearchArgs;
     serializeListState: (current: URLSearchParams, patch: Record<string, unknown>) => URLSearchParams;
 

@@ -57,6 +57,128 @@ describe('AuditInterceptor', () => {
     });
   });
 
+  it('redacts every sensitive key, recursively, in objects and arrays', (done) => {
+    const req = {
+      method: 'POST',
+      originalUrl: '/api/auth/register',
+      params: {},
+      body: {},
+      user: undefined,
+      tenantId: 'tenant-1',
+    };
+    const persistedResult = {
+      access_token: 'jwt-access',
+      refresh_token: 'opaque-refresh',
+      user: {
+        id: 'u1',
+        currentPassword: 'old-pass',
+        newPassword: 'new-pass',
+        secret: 'mfa-seed',
+        sessions: [{ token: 'session-token', createdAt: 'x' }],
+      },
+      tenant: { id: 't1' },
+    };
+    const next = { handle: () => of(persistedResult) };
+
+    interceptor.intercept(buildContext(req), next).subscribe({
+      complete: () => {
+        expect(auditService.register).toHaveBeenCalledWith(
+          expect.objectContaining({
+            payload: {
+              access_token: '[REDACTED]',
+              refresh_token: '[REDACTED]',
+              user: {
+                id: 'u1',
+                currentPassword: '[REDACTED]',
+                newPassword: '[REDACTED]',
+                secret: '[REDACTED]',
+                sessions: [{ token: '[REDACTED]', createdAt: 'x' }],
+              },
+              tenant: { id: 't1' },
+            },
+          }),
+        );
+        done();
+      },
+    });
+  });
+
+  it('keeps Date values intact instead of flattening them into {}', (done) => {
+    const createdAt = new Date('2026-01-01T00:00:00.000Z');
+    const req = {
+      method: 'PATCH',
+      originalUrl: '/api/examples/ex-1',
+      params: { id: 'ex-1' },
+      body: {},
+      user: { id: 'actor-1', tenantId: 'tenant-1' },
+      tenantId: 'tenant-1',
+    };
+    const next = { handle: () => of({ id: 'ex-1', createdAt }) };
+
+    interceptor.intercept(buildContext(req), next).subscribe({
+      complete: () => {
+        expect(auditService.register).toHaveBeenCalledWith(
+          expect.objectContaining({
+            payload: { id: 'ex-1', createdAt },
+          }),
+        );
+        done();
+      },
+    });
+  });
+
+  it('does not audit POST /auth/refresh', (done) => {
+    const req = {
+      method: 'POST',
+      originalUrl: '/api/auth/refresh',
+      params: {},
+      body: {},
+      user: undefined,
+    };
+    const next = {
+      handle: () => of({ access_token: 'jwt', refresh_token: 'opaque' }),
+    };
+
+    interceptor.intercept(buildContext(req), next).subscribe({
+      complete: () => {
+        expect(auditService.register).not.toHaveBeenCalled();
+        done();
+      },
+    });
+  });
+
+  it('logs an error instead of swallowing it when register() fails', (done) => {
+    const registerError = new Error('db unavailable');
+    auditService.register.mockRejectedValueOnce(registerError);
+    const logSpy = jest
+      .spyOn(
+        (interceptor as unknown as { logger: { error: jest.Mock } }).logger,
+        'error',
+      )
+      .mockImplementation(() => undefined);
+
+    const req = {
+      method: 'POST',
+      originalUrl: '/api/examples',
+      params: {},
+      body: { title: 'x' },
+      user: { id: 'actor-1', tenantId: 'tenant-1' },
+    };
+    const next = { handle: () => of({ id: 'ex-1', title: 'x' }) };
+
+    interceptor.intercept(buildContext(req), next).subscribe({
+      complete: () => {
+        setImmediate(() => {
+          expect(logSpy).toHaveBeenCalledWith(
+            'Falha ao gravar auditoria',
+            registerError,
+          );
+          done();
+        });
+      },
+    });
+  });
+
   it('does not call register for GET requests', (done) => {
     const req = {
       method: 'GET',
@@ -70,6 +192,27 @@ describe('AuditInterceptor', () => {
     interceptor.intercept(buildContext(req), next).subscribe({
       complete: () => {
         expect(auditService.register).not.toHaveBeenCalled();
+        done();
+      },
+    });
+  });
+
+  it('calls register for PUT requests (etapa 3.5 — PUT /roles/:id/permissions)', (done) => {
+    const req = {
+      method: 'PUT',
+      originalUrl: '/api/roles/role-1/permissions',
+      params: { id: 'role-1' },
+      body: { permissionIds: ['perm-1'] },
+      user: { id: 'actor-1', tenantId: 'tenant-1' },
+      tenantId: 'tenant-1',
+    };
+    const next = { handle: () => of([{ resource: 'users', permissions: [] }]) };
+
+    interceptor.intercept(buildContext(req), next).subscribe({
+      complete: () => {
+        expect(auditService.register).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'PERMISSION_CHANGE' }),
+        );
         done();
       },
     });

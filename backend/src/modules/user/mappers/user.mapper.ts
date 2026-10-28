@@ -1,25 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { UserResponseDto } from '../dto/user-response.dto';
-import { DateUtil } from '../utils/date.util';
-import { UserValidator } from '../validators/user.validator';
 import { UserLike } from '../types/user-like.type';
 
 @Injectable()
 export class UserMapper {
-  constructor(private validator: UserValidator) {}
-
-  mapToResponseDto(user: UserLike): UserResponseDto {
+  // `avatarUrl` é resolvido por quem chama (I/O — signed URL via
+  // FilesService), não pelo mapper em si — mesmo motivo de
+  // MeService/TenantService nunca resolverem dentro de um mapper puro.
+  mapToResponseDto(
+    user: UserLike,
+    avatarUrl: string | null = null,
+  ): UserResponseDto {
     return {
       id: user.id,
       email: user.email,
       name: user.name ?? null,
-      age: user.birthDate ? DateUtil.calculateAge(user.birthDate) : null,
-      createAge: DateUtil.calculateDaysSinceCreation(user.createdAt),
+      status: user.status,
+      avatarFileId: user.avatarFileId ?? null,
+      avatarUrl,
+      pendingInvite: user.password === null || user.password === undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-      validationStatus: this.validator.validateEmail(user.email),
-      isActive: this.validator.isActive(user),
-      isAdult: user.birthDate ? DateUtil.isAdult(user.birthDate) : false,
+      deletedAt: user.deletedAt ?? null,
     };
   }
 

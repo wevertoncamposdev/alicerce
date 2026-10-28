@@ -11,23 +11,25 @@ import {
 } from '@nestjs/common';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { Throttle } from '@nestjs/throttler';
-import { AuthService, AuthSessionResponse } from './auth.service';
+import { AuthService, AuthSessionResponse, SessionMeta } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { Public } from './auth.guard';
 import { SignUpPublicDto } from './dto/sign-up-public.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { AcceptInviteDto } from './dto/accept-invite.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ConfirmEmailChangeDto } from './dto/confirm-email-change.dto';
 import { JwtPayload } from '@core/common/types/http.types';
+import {
+  REFRESH_COOKIE,
+  COOKIE_PATH,
+  COOKIE_MAX_AGE_MS,
+} from './cookie.constants';
 
 // Superfície de brute-force (login/registro) — bem mais estrito que o
 // throttle global (`default`, 60/min em app.module.ts).
 const BRUTE_FORCE_THROTTLE = { default: { limit: 5, ttl: 60_000 } };
-
-// Nome do cookie que transporta o refresh token entre BFF e Nest.
-// O access token nunca viaja em cookie para o Nest — ele vem como Bearer no header.
-const REFRESH_COOKIE = 'refresh_token';
-
-// Opções de cookie compartilhadas entre set e clear
-const COOKIE_PATH = '/api/auth';
-const COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias
 
 // refresh_token nunca sai no JSON — fica só no cookie httpOnly.
 function omitRefreshToken(session: AuthSessionResponse) {
@@ -45,9 +47,13 @@ export class AuthController {
   @Post('register')
   async signUp(
     @Body() signUpPublicDto: SignUpPublicDto,
+    @Request() req: FastifyRequest,
     @Res({ passthrough: true }) res: FastifyReply,
   ) {
-    const session = await this.authService.signUpPublic(signUpPublicDto);
+    const session = await this.authService.signUpPublic(
+      signUpPublicDto,
+      this.extractSessionMeta(req),
+    );
     this.setRefreshCookie(res, session.refresh_token);
 
     return omitRefreshToken(session);
@@ -59,9 +65,13 @@ export class AuthController {
   @Post('login')
   async signIn(
     @Body() signInDto: SignInDto,
+    @Request() req: FastifyRequest,
     @Res({ passthrough: true }) res: FastifyReply,
   ) {
-    const session = await this.authService.signIn(signInDto);
+    const session = await this.authService.signIn(
+      signInDto,
+      this.extractSessionMeta(req),
+    );
     this.setRefreshCookie(res, session.refresh_token);
 
     return omitRefreshToken(session);
@@ -89,7 +99,10 @@ export class AuthController {
       throw new UnauthorizedException('Refresh token ausente');
     }
 
-    const session = await this.authService.refreshTokens(rawToken);
+    const session = await this.authService.refreshTokens(
+      rawToken,
+      this.extractSessionMeta(req),
+    );
     this.setRefreshCookie(res, session.refresh_token);
 
     return omitRefreshToken(session);
@@ -123,7 +136,86 @@ export class AuthController {
     return this.authService.getProfile(req.user.sub);
   }
 
+  /**
+   * POST /api/auth/forgot-password
+   *
+   * Sempre devolve 200 com a mesma resposta, exista ou não o e-mail — não
+   * dá pra descobrir quem tem conta por aqui (Plano Base.md 7.3).
+   */
+  @Public()
+  @Throttle(BRUTE_FORCE_THROTTLE)
+  @HttpCode(HttpStatus.OK)
+  @Post('forgot-password')
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(dto.email);
+    return { message: 'Se o e-mail existir, enviamos um link de redefinição.' };
+  }
+
+  @Public()
+  @Throttle(BRUTE_FORCE_THROTTLE)
+  @HttpCode(HttpStatus.OK)
+  @Post('reset-password')
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    await this.authService.resetPassword(dto.token, dto.newPassword);
+    return { message: 'Senha redefinida com sucesso.' };
+  }
+
+  /**
+   * POST /api/auth/accept-invite
+   *
+   * Define a senha de um usuário convidado (etapa 7.4). Não loga
+   * automaticamente — o fluxo é convite → aceite → login normal.
+   */
+  @Public()
+  @Throttle(BRUTE_FORCE_THROTTLE)
+  @HttpCode(HttpStatus.OK)
+  @Post('accept-invite')
+  async acceptInvite(@Body() dto: AcceptInviteDto) {
+    await this.authService.acceptInvite(dto.token, dto.password);
+    return { message: 'Convite aceito. Você já pode fazer login.' };
+  }
+
+  /**
+   * POST /api/auth/verify-email
+   *
+   * Confirma o e-mail de cadastro (etapa 7.5). O token é enviado por
+   * signUpPublic — ver AuthService.sendVerifyEmail.
+   */
+  @Public()
+  @Throttle(BRUTE_FORCE_THROTTLE)
+  @HttpCode(HttpStatus.OK)
+  @Post('verify-email')
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    await this.authService.verifyEmail(dto.token);
+    return { message: 'E-mail confirmado com sucesso.' };
+  }
+
+  /**
+   * POST /api/auth/confirm-email-change
+   *
+   * Confirma a troca de e-mail do perfil (etapa 7.6) — o e-mail só muda
+   * de fato aqui, nunca em POST /me/email. Ver MeService.changeEmail.
+   */
+  @Public()
+  @Throttle(BRUTE_FORCE_THROTTLE)
+  @HttpCode(HttpStatus.OK)
+  @Post('confirm-email-change')
+  async confirmEmailChange(@Body() dto: ConfirmEmailChangeDto) {
+    await this.authService.confirmEmailChange(dto.token);
+    return { message: 'E-mail alterado com sucesso.' };
+  }
+
   // ------------------------------------------------------------------ helpers
+
+  // trustProxy: true (main.ts) já resolve req.ip pro IP real atrás de proxy.
+  private extractSessionMeta(req: FastifyRequest): SessionMeta {
+    const userAgent = req.headers['user-agent'] as
+      string | string[] | undefined;
+    return {
+      userAgent: Array.isArray(userAgent) ? userAgent[0] : userAgent,
+      ip: req.ip,
+    };
+  }
 
   private setRefreshCookie(res: FastifyReply, token: string) {
     res.setCookie(REFRESH_COOKIE, token, {

@@ -2,13 +2,17 @@ export interface RegisterInput {
     tenantName?: string;
     tenantSlug?: string;
     email: string;
+    name?: string;
     password: string;
+    acceptedTerms: boolean;
 }
 
 export interface AuthUserProfile {
     id: string;
     email: string;
+    name?: string | null;
     tenantId: string;
-    roles: string[];
     permissions: string[];
+    emailVerified: boolean;
+    termsAccepted: boolean;
 }

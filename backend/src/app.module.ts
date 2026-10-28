@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import { I18nModule } from 'nestjs-i18n';
 
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from '@src/app.controller';
 import { AppService } from '@src/app.service';
@@ -23,17 +24,24 @@ import { HealthModule } from '@core/health/health.module';
 
 import { PrismaModule } from '@core/prisma/prisma.module';
 import { RedisModule } from '@core/redis/redis.module';
+import { StorageModule } from '@core/storage/storage.module';
+import { MailModule } from '@core/mail/mail.module';
+import { MonitoringModule } from '@core/monitoring/monitoring.module';
 import { AuthorizationModule } from '@core/authorization/authorization.module';
 import { AuthModule } from '@core/auth/auth.module';
+import { PlatformAuthModule } from '@core/platform-auth/platform-auth.module';
 import { TenantMiddleware } from '@core/common/middleware/tenant.middleware';
 import { AuditModule } from '@modules/audit/audit.module';
 
 import { UsersModule } from '@modules/user/user.module';
 import { TenantModule } from '@modules/tenant/tenant.module';
+import { FileModule } from '@core/files/file.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 
 import { RoleModule } from '@modules/role/role.module';
 import { PermissionModule } from '@modules/permission/permission.module';
+import { JobsModule } from '@core/jobs/jobs.module';
+import { ManagementModule } from '@modules/management/management.module';
 
 @Module({
   imports: [
@@ -42,18 +50,41 @@ import { PermissionModule } from '@modules/permission/permission.module';
     // genérico); rotas sensíveis a brute-force (`/auth/login`,
     // `/auth/register`) sobrescrevem com um limite mais estrito via
     // `@Throttle()` no próprio controller.
-    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 60 }]),
+    //
+    // `forRootAsync` (Fase 12, etapa 12.1, ADR 0013): a suíte test:e2e:db
+    // roda vários specs no mesmo Postgres/Redis em sequência e precisa
+    // desligar o throttle pra não contaminar um arquivo com os logins do
+    // anterior — `THROTTLE_DISABLED=true` só nessa suíte (nunca em
+    // produção; sem a env, o comportamento é idêntico ao `forRoot` de
+    // antes).
+    ThrottlerModule.forRootAsync({
+      useFactory: () => [
+        {
+          name: 'default',
+          ttl: 60_000,
+          limit: process.env.THROTTLE_DISABLED === 'true' ? 1_000_000 : 60,
+        },
+      ],
+    }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     RedisModule,
+    StorageModule,
+    MailModule,
+    MonitoringModule,
     HealthModule,
     AuthorizationModule,
     UsersModule,
     RoleModule,
     PermissionModule,
     AuthModule,
+    PlatformAuthModule,
     TenantModule,
     AuditModule,
     FeedbacksModule,
+    FileModule,
+    JobsModule,
+    ManagementModule,
     I18nModule.forRoot({
       fallbackLanguage: 'pt',
       loaderOptions: {

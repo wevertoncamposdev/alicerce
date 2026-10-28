@@ -34,6 +34,24 @@ Construir uma base reutilizável de arquitetura e processos que possa ser aplica
 
 > *(Atualize conforme o projeto evoluir.)*
 
+## Como rodar localmente
+
+Requer Node 26 (`.nvmrc` na raiz) e Docker.
+
+```bash
+nvm use
+cp .env.example .env
+docker compose up -d --build
+curl http://localhost:5000/api/health
+```
+
+Depois, abra `http://localhost:3000` e faça login com o usuário do seed:
+`admin@exemplo.com` / `admin123`.
+
+`docker compose up` sobe Postgres, Redis, aplica as migrations e
+sincroniza o catálogo de permissões (serviço `migrate`) antes do backend
+e do frontend subirem — ver `docs/deploy.md` para produção.
+
 ## Estrutura do Projeto
 
 Em construção.

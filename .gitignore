@@ -7,3 +7,5 @@ study.code-workspace
 # instala node_modules/lockfile próprios.
 /node_modules
 /package-lock.json
+
+/Alicerce - Plano da base v1.1.v2.md

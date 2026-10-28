@@ -1,6 +1,8 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -10,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaBootstrapService } from '@core/prisma/prisma-bootstrap.service';
 import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { RedisService } from '@core/redis/redis.service';
 import { AuditService } from '@modules/audit/audit.service';
 import { SignUpPublicDto } from './dto/sign-up-public.dto';
 import { RoleType } from '@core/prisma/generated/enums';
@@ -18,13 +21,27 @@ import {
   PERMISSION_CATALOG,
   TENANT_ADMIN_PERMISSION_NAMES,
 } from '@core/authorization/permission-catalog';
+import { AccountTokenService } from './account-token.service';
+import { revokeSessions } from './session-revocation.util';
+import { MailService } from '@core/mail/mail.service';
+import { FilesService } from '@core/files/file.service';
+import { resolveTenantBranding } from '@core/mail/resolve-tenant-branding.util';
+import { renderAccountEmail } from '@core/mail/templates/account-email.template';
+import { CURRENT_TERMS_VERSION, TERMS_DOCUMENT } from './legal-terms.constants';
+
+export interface SessionMeta {
+  userAgent?: string;
+  ip?: string;
+}
 
 export interface AuthUserContext {
   id: string;
   email: string;
+  name: string | null;
   tenantId: string;
-  roles: string[];
   permissions: string[];
+  emailVerified: boolean;
+  termsAccepted: boolean;
 }
 
 export interface AuthSessionResponse {
@@ -47,8 +64,23 @@ const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 // como roubo de token.
 const REFRESH_TOKEN_REUSE_GRACE_MS = 10 * 1000;
 
+// Hash fixo (calculado uma única vez, no load do módulo) usado só para
+// gastar o mesmo tempo de bcrypt.compare quando o e-mail não existe — ver
+// AuthService.signIn. Nunca corresponde a nenhuma senha real.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
+  'alicerce-timing-safety-dummy-value',
+  10,
+);
+
+// Bloqueio por conta (além do throttle por IP já existente no controller):
+// 5 falhas em 15 min bloqueiam qualquer tentativa pelo mesmo e-mail.
+const LOGIN_LOCKOUT_MAX_ATTEMPTS = 5;
+const LOGIN_LOCKOUT_WINDOW_SECONDS = 15 * 60;
+
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     // Role owner (ignora RLS) — ver PrismaBootstrapService: todas as
     // consultas deste service são inerentemente cross-tenant (login por
@@ -59,7 +91,50 @@ export class AuthService {
     private readonly i18n: I18nService,
     private readonly permissionCache: PermissionCacheService,
     private readonly auditService: AuditService,
+    private readonly redis: RedisService,
+    private readonly accountTokenService: AccountTokenService,
+    private readonly mailService: MailService,
+    private readonly filesService: FilesService,
   ) {}
+
+  private loginLockoutKey(email: string): string {
+    return `login:fail:${email}`;
+  }
+
+  // Fallback gracioso: Redis indisponível não bloqueia login (cai pro
+  // throttle por IP, que já existe) — mesmo padrão de
+  // PermissionCacheService.invalidateUser.
+  private async isAccountLockedOut(email: string): Promise<boolean> {
+    try {
+      const attempts = await this.redis.client.get(this.loginLockoutKey(email));
+      return (
+        attempts !== null && Number(attempts) >= LOGIN_LOCKOUT_MAX_ATTEMPTS
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  private async recordFailedLoginAttempt(email: string): Promise<void> {
+    try {
+      const key = this.loginLockoutKey(email);
+      const attempts = await this.redis.client.incr(key);
+      if (attempts === 1) {
+        await this.redis.client.expire(key, LOGIN_LOCKOUT_WINDOW_SECONDS);
+      }
+    } catch {
+      // Best-effort: sem contador, o login segue protegido só pelo throttle
+      // por IP.
+    }
+  }
+
+  private async clearFailedLoginAttempts(email: string): Promise<void> {
+    try {
+      await this.redis.client.del(this.loginLockoutKey(email));
+    } catch {
+      // Nada a fazer — a chave expira sozinha em 15min de qualquer forma.
+    }
+  }
 
   private async getAuthUserByEmail(email: string) {
     return this.prismaBootstrap.user.findUnique({
@@ -105,12 +180,22 @@ export class AuthService {
     });
   }
 
+  // Usuário excluído/inativo ou tenant excluído/inativo não pode autenticar
+  // nem renovar sessão, mesmo com credenciais/refresh token válidos.
+  private isUserOrTenantBlocked(
+    user: NonNullable<Awaited<ReturnType<AuthService['getAuthUserById']>>>,
+  ): boolean {
+    return (
+      user.deletedAt !== null ||
+      user.status !== 'ACTIVE' ||
+      user.tenant.deletedAt !== null ||
+      user.tenant.status !== 'ACTIVE'
+    );
+  }
+
   private async mapAuthUserContext(
     user: NonNullable<Awaited<ReturnType<AuthService['getAuthUserById']>>>,
   ) {
-    const roleNames = Array.from(
-      new Set(user.roles.map((item) => item.role.type)),
-    );
     const permissionNames = Array.from(
       new Set(
         user.roles.flatMap((item) =>
@@ -119,12 +204,23 @@ export class AuthService {
       ),
     );
 
+    const currentConsent = await this.prismaBootstrap.consentRecord.findFirst({
+      where: {
+        userId: user.id,
+        document: TERMS_DOCUMENT,
+        version: CURRENT_TERMS_VERSION,
+      },
+      select: { id: true },
+    });
+
     const authUserContext: AuthUserContext = {
       id: user.id,
       email: user.email,
+      name: user.name,
       tenantId: user.tenantId,
-      roles: roleNames,
       permissions: permissionNames,
+      emailVerified: user.emailVerifiedAt !== null,
+      termsAccepted: currentConsent !== null,
     };
 
     // Popula o cache de permissões já aqui (ver P7.5/PermissionCacheService)
@@ -143,7 +239,6 @@ export class AuthService {
       sub: user.id,
       username: user.email,
       tenantId: user.tenantId,
-      roles: user.roles,
       permissions: user.permissions,
     });
   }
@@ -160,11 +255,13 @@ export class AuthService {
     userId,
     tenantId,
     familyId,
+    userAgent,
+    ip,
   }: {
     userId: string;
     tenantId: string;
     familyId: string;
-  }): Promise<string> {
+  } & SessionMeta): Promise<string> {
     const rawToken = crypto.randomBytes(48).toString('hex');
     const tokenHash = crypto
       .createHash('sha256')
@@ -178,6 +275,9 @@ export class AuthService {
         tenantId,
         familyId,
         expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+        userAgent,
+        ip,
+        lastUsedAt: new Date(),
       },
     });
 
@@ -190,12 +290,19 @@ export class AuthService {
    * Fluxo:
    * 1. Hash do token recebido → busca no banco.
    * 2. Token não existe / revogado / expirado → 401.
-   * 3. Token já foi consumido antes (revokedAt preenchido mas ainda no banco)
-   *    → REUSO DETECTADO → revoga toda a família → 401.
-   * 4. Marca o token atual como revogado.
+   * 3. Token já foi consumido antes (revokedAt preenchido mas ainda no banco):
+   *    tolera reuso só se `replacedAt` estiver preenchido (revogação por
+   *    ROTAÇÃO, não por motivo de segurança) e dentro da janela de 10s —
+   *    senão REUSO/REVOGAÇÃO DE SEGURANÇA → revoga toda a família → 401
+   *    (C4, etapa 12.5/F1: sem isso, encerrar sessão ou trocar senha não
+   *    impedia um refresh imediato com o token recém-revogado).
+   * 4. Marca o token atual como revogado E substituído (`replacedAt`).
    * 5. Emite novo par com o mesmo familyId.
    */
-  async refreshTokens(rawToken: string): Promise<AuthSessionResponse> {
+  async refreshTokens(
+    rawToken: string,
+    meta?: SessionMeta,
+  ): Promise<AuthSessionResponse> {
     const tokenHash = crypto
       .createHash('sha256')
       .update(rawToken)
@@ -211,18 +318,22 @@ export class AuthService {
     }
 
     if (storedToken.revokedAt !== null) {
-      const revokedWithinGraceWindow =
-        Date.now() - storedToken.revokedAt.getTime() <
-        REFRESH_TOKEN_REUSE_GRACE_MS;
+      const withinRotationGrace =
+        storedToken.replacedAt !== null &&
+        Date.now() - storedToken.replacedAt.getTime() <
+          REFRESH_TOKEN_REUSE_GRACE_MS;
 
-      // Dentro da janela de tolerância: provável corrida de requisições
-      // paralelas que rotacionaram o mesmo token quase ao mesmo tempo (não é
-      // reuso malicioso). Deixa passar e emite um novo par normalmente,
-      // sem punir a família nem revogar de novo o token já revogado.
-      if (!revokedWithinGraceWindow) {
-        // ⚠️  Reuso fora da janela de tolerância: o token já tinha sido
-        // revogado há tempo e alguém está tentando usá-lo de novo. Isso
-        // indica que o token pode ter sido roubado. A decisão mais segura
+      // Dentro da janela de tolerância de uma ROTAÇÃO legítima: provável
+      // corrida de requisições paralelas que rotacionaram o mesmo token
+      // quase ao mesmo tempo (não é reuso malicioso). Deixa passar e emite
+      // um novo par normalmente, sem punir a família nem revogar de novo o
+      // token já revogado.
+      if (!withinRotationGrace) {
+        // ⚠️  Cobre dois casos com a mesma resposta: (a) rotação fora da
+        // janela de tolerância — reuso tardio, possível roubo; (b)
+        // revogação de SEGURANÇA (`replacedAt` nunca setado: logout, troca
+        // de senha, "encerrar sessão/outras", reset, desativação) — essa
+        // nunca tolera reuso, nem imediato. Em ambos, a decisão mais segura
         // é revogar toda a família — forçando novo login para todos.
         await this.prismaBootstrap.refreshToken.updateMany({
           where: { familyId: storedToken.familyId },
@@ -233,16 +344,22 @@ export class AuthService {
         );
       }
     } else {
-      // Revoga o token atual antes de emitir o próximo
+      // Revoga o token atual antes de emitir o próximo — `replacedAt`
+      // marca que esta é uma rotação (não uma revogação de segurança),
+      // habilitando a tolerância de reuso acima.
       await this.prismaBootstrap.refreshToken.update({
         where: { id: storedToken.id },
-        data: { revokedAt: new Date() },
+        data: { revokedAt: new Date(), replacedAt: new Date() },
       });
     }
 
     const user = await this.getAuthUserById(storedToken.userId);
     if (!user) {
       throw new UnauthorizedException('Usuário não encontrado');
+    }
+
+    if (this.isUserOrTenantBlocked(user)) {
+      throw new UnauthorizedException('Sessão inválida. Faça login novamente.');
     }
 
     const mappedUser = await this.mapAuthUserContext(user);
@@ -253,6 +370,8 @@ export class AuthService {
         userId: user.id,
         tenantId: user.tenantId,
         familyId: storedToken.familyId,
+        userAgent: meta?.userAgent,
+        ip: meta?.ip,
       }),
     ]);
 
@@ -290,7 +409,10 @@ export class AuthService {
     });
   }
 
-  async signUpPublic(dto: SignUpPublicDto): Promise<AuthSessionResponse> {
+  async signUpPublic(
+    dto: SignUpPublicDto,
+    meta?: SessionMeta,
+  ): Promise<AuthSessionResponse> {
     const existingByEmail = await this.prismaBootstrap.user.findUnique({
       where: { email: dto.email },
     });
@@ -325,6 +447,7 @@ export class AuthService {
           type: RoleType.ADMIN,
           description: 'Administrador inicial do tenant',
           status: 'ACTIVE',
+          isSystem: true,
         },
       });
 
@@ -360,6 +483,7 @@ export class AuthService {
         data: {
           tenantId: tenant.id,
           email: dto.email,
+          name: dto.name,
           password: passwordHash,
           status: 'ACTIVE',
         },
@@ -373,6 +497,17 @@ export class AuthService {
         },
       });
 
+      // Etapa 9.1 (LGPD) — dto.acceptedTerms já garantido `true` pelo DTO.
+      await tx.consentRecord.create({
+        data: {
+          tenantId: tenant.id,
+          userId: user.id,
+          document: TERMS_DOCUMENT,
+          version: CURRENT_TERMS_VERSION,
+          ip: meta?.ip,
+        },
+      });
+
       return { userId: user.id, tenant };
     });
 
@@ -382,6 +517,8 @@ export class AuthService {
       throw new UnauthorizedException('Falha ao carregar sessao de onboarding');
     }
 
+    await this.sendVerifyEmail(user);
+
     const mappedUser = await this.mapAuthUserContext(user);
     const familyId = crypto.randomUUID();
     const [access_token, refresh_token] = await Promise.all([
@@ -390,6 +527,8 @@ export class AuthService {
         userId: user.id,
         tenantId: user.tenantId,
         familyId,
+        userAgent: meta?.userAgent,
+        ip: meta?.ip,
       }),
     ]);
 
@@ -405,22 +544,62 @@ export class AuthService {
     };
   }
 
-  async signIn(signInDto: SignInDto): Promise<AuthSessionResponse> {
+  async signIn(
+    signInDto: SignInDto,
+    meta?: SessionMeta,
+  ): Promise<AuthSessionResponse> {
     const user = await this.getAuthUserByEmail(signInDto.email);
 
-    if (!user) {
-      const message = this.i18n.translate('messages.USER.NOT_FOUND', {
+    if (await this.isAccountLockedOut(signInDto.email)) {
+      if (user) {
+        void this.auditService
+          .register({
+            tenantId: user.tenantId,
+            userId: user.id,
+            type: 'LOGIN_FAILED',
+            action: 'POST',
+            entity: 'auth',
+            payload: { reason: 'account_locked' },
+          })
+          .catch((error: unknown) => {
+            this.logger.error('Falha ao gravar auditoria de login', error);
+          });
+      }
+
+      // Mesma mensagem genérica — nunca "conta bloqueada", que revelaria
+      // que o e-mail existe.
+      const message = this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
         lang: 'pt-BR',
       });
       throw new UnauthorizedException(message);
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      signInDto.password,
-      user.password,
-    );
+    if (!user) {
+      // Mesmo tempo de resposta e mesma mensagem de uma senha errada: sem
+      // isso, o tempo do bcrypt.compare real denunciaria se o e-mail existe.
+      await bcrypt.compare(signInDto.password, DUMMY_PASSWORD_HASH);
+      await this.recordFailedLoginAttempt(signInDto.email);
+
+      const message = this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
+        lang: 'pt-BR',
+      });
+      throw new UnauthorizedException(message);
+    }
+
+    // Convite ainda não aceito (etapa 7.4): `password === null`, nunca
+    // chama bcrypt.compare com null — mas sempre chama bcrypt.compare com
+    // ALGUM hash, pra gastar o mesmo tempo do caso de senha errada.
+    const isPasswordValid =
+      user.password !== null &&
+      (await bcrypt.compare(signInDto.password, user.password));
+
+    if (user.password === null) {
+      await bcrypt.compare(signInDto.password, DUMMY_PASSWORD_HASH);
+    }
 
     if (!isPasswordValid) {
+      await this.recordFailedLoginAttempt(signInDto.email);
+
       // Diferente de um 401 genérico (token ausente/inválido): aqui o
       // usuário foi encontrado, então há tenantId/userId pra atribuir o
       // evento — ver AuditType.LOGIN_FAILED. E-mail inexistente (branch
@@ -433,8 +612,32 @@ export class AuthService {
           action: 'POST',
           entity: 'auth',
         })
-        .catch(() => {
-          // Auditoria não deve interromper o fluxo de login (nem seu erro).
+        .catch((error: unknown) => {
+          this.logger.error('Falha ao gravar auditoria de login', error);
+        });
+
+      const message = this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
+        lang: 'pt-BR',
+      });
+      throw new UnauthorizedException(message);
+    }
+
+    await this.clearFailedLoginAttempts(signInDto.email);
+
+    if (this.isUserOrTenantBlocked(user)) {
+      // Senha correta, mas conta/tenant desativado ou excluído: mesma
+      // auditoria e mesma mensagem genérica da senha errada — não damos
+      // nenhuma pista de que a senha estava certa.
+      void this.auditService
+        .register({
+          tenantId: user.tenantId,
+          userId: user.id,
+          type: 'LOGIN_FAILED',
+          action: 'POST',
+          entity: 'auth',
+        })
+        .catch((error: unknown) => {
+          this.logger.error('Falha ao gravar auditoria de login', error);
         });
 
       const message = this.i18n.translate('messages.USER.INVALID_CREDENTIALS', {
@@ -451,6 +654,8 @@ export class AuthService {
         userId: user.id,
         tenantId: user.tenantId,
         familyId,
+        userAgent: meta?.userAgent,
+        ip: meta?.ip,
       }),
     ]);
 
@@ -474,5 +679,160 @@ export class AuthService {
     }
 
     return this.mapAuthUserContext(user);
+  }
+
+  /**
+   * Sempre devolve void (sem indicar se o e-mail existe) — a resposta no
+   * controller é idêntica nos dois casos (Plano Base.md 7.3). Só manda o
+   * e-mail se o usuário existir e a conta/tenant estiverem ativos.
+   */
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.getAuthUserByEmail(email);
+
+    if (!user || this.isUserOrTenantBlocked(user)) {
+      return;
+    }
+
+    const rawToken = await this.accountTokenService.issue({
+      userId: user.id,
+      tenantId: user.tenantId,
+      type: 'RESET_PASSWORD',
+      ttlMs: 60 * 60 * 1000, // 1h
+      // Rota @Public() — sem tenant no AsyncLocalStorage, a RLS da
+      // AccountToken bloquearia o insert via PrismaService (ver
+      // account-token.service.ts). PrismaBootstrapService é a mesma role
+      // de owner que o resto desta classe já usa pros seus próprios
+      // acessos cross-tenant.
+      client: this.prismaBootstrap,
+    });
+
+    const { tenantName, tenantLogoUrl } = await resolveTenantBranding(
+      this.filesService,
+      user.tenant,
+    );
+    const { html, text } = renderAccountEmail({
+      title: 'Redefinir sua senha',
+      bodyText:
+        'Recebemos um pedido para redefinir a senha da sua conta. Se foi você, clique no botão abaixo. Se não foi, pode ignorar este e-mail.',
+      tenantName,
+      tenantLogoUrl,
+      actionUrl: `${process.env.FRONTEND_URL}/auth/reset-password?token=${rawToken}`,
+      actionLabel: 'Redefinir senha',
+    });
+
+    await this.mailService.send({
+      to: user.email,
+      subject: 'Redefinir sua senha',
+      html,
+      text,
+    });
+  }
+
+  async resetPassword(rawToken: string, newPassword: string): Promise<void> {
+    const token = await this.accountTokenService.consume(
+      rawToken,
+      'RESET_PASSWORD',
+      this.prismaBootstrap,
+    );
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await this.prismaBootstrap.user.update({
+      where: { id: token.userId },
+      data: { password: passwordHash },
+    });
+
+    await revokeSessions(this.prismaBootstrap, token.userId, { all: true });
+  }
+
+  // Convite de usuário (etapa 7.4) — define a senha pela primeira vez.
+  // Não loga automaticamente: "convite → aceite → login" no Plano Base é
+  // sequencial, o usuário faz login normal depois em /auth/login.
+  async acceptInvite(rawToken: string, password: string): Promise<void> {
+    const token = await this.accountTokenService.consume(
+      rawToken,
+      'INVITE',
+      this.prismaBootstrap,
+    );
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await this.prismaBootstrap.user.update({
+      where: { id: token.userId },
+      data: { password: passwordHash },
+    });
+  }
+
+  // Verificação de e-mail no cadastro (etapa 7.5) — manda o e-mail depois
+  // que signUpPublic já criou tenant+usuário; rota @Public(), mesmo motivo
+  // de client explícito do forgotPassword acima.
+  private async sendVerifyEmail(
+    user: NonNullable<Awaited<ReturnType<AuthService['getAuthUserById']>>>,
+  ): Promise<void> {
+    const rawToken = await this.accountTokenService.issue({
+      userId: user.id,
+      tenantId: user.tenantId,
+      type: 'VERIFY_EMAIL',
+      ttlMs: 24 * 60 * 60 * 1000, // 24h
+      client: this.prismaBootstrap,
+    });
+
+    const { tenantName, tenantLogoUrl } = await resolveTenantBranding(
+      this.filesService,
+      user.tenant,
+    );
+    const { html, text } = renderAccountEmail({
+      title: 'Confirme seu e-mail',
+      bodyText: 'Confirme seu endereço de e-mail para concluir o cadastro.',
+      tenantName,
+      tenantLogoUrl,
+      actionUrl: `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawToken}`,
+      actionLabel: 'Confirmar e-mail',
+    });
+
+    await this.mailService.send({
+      to: user.email,
+      subject: 'Confirme seu e-mail',
+      html,
+      text,
+    });
+  }
+
+  async verifyEmail(rawToken: string): Promise<void> {
+    const token = await this.accountTokenService.consume(
+      rawToken,
+      'VERIFY_EMAIL',
+      this.prismaBootstrap,
+    );
+
+    await this.prismaBootstrap.user.update({
+      where: { id: token.userId },
+      data: { emailVerifiedAt: new Date() },
+    });
+  }
+
+  // Troca de e-mail no perfil (etapa 7.6) — o link mandado pro endereço
+  // NOVO (MeService.changeEmail) é a prova de posse da caixa; só então o
+  // e-mail muda de fato. @Public() porque, assim como reset/verify, não
+  // depende de sessão — a prova é o token em si.
+  async confirmEmailChange(rawToken: string): Promise<void> {
+    const token = await this.accountTokenService.consume(
+      rawToken,
+      'CHANGE_EMAIL',
+      this.prismaBootstrap,
+    );
+
+    if (!token.newEmail) {
+      throw new BadRequestException('Token inválido ou expirado');
+    }
+
+    try {
+      await this.prismaBootstrap.user.update({
+        where: { id: token.userId },
+        data: { email: token.newEmail },
+      });
+    } catch {
+      throw new ConflictException('Este e-mail já está em uso');
+    }
   }
 }

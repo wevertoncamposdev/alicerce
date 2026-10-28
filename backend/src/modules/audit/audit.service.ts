@@ -4,6 +4,7 @@ import { AuditType } from '@core/prisma/generated/enums';
 import { Prisma } from '@core/prisma/generated/client';
 import { SearchAuditDto } from './dto/search-audit.dto';
 import { findOneOrThrow } from '@core/common/utils/find-one-or-throw.util';
+import { runWithTenantContext } from '@core/common/context/request-context';
 import {
   resolvePagination,
   buildSearchTextWhere,
@@ -23,7 +24,7 @@ interface RegisterAuditInput {
 }
 
 const AUDIT_INCLUDE = {
-  user: { select: { id: true, email: true } }, // nunca inclua "password" aqui
+  user: { select: { id: true, email: true, name: true } }, // nunca inclua "password" aqui
   tenant: { select: { id: true, legalName: true } },
 } as const;
 
@@ -31,6 +32,18 @@ const AUDIT_INCLUDE = {
 const SEARCHABLE_FIELDS = ['action'] as const;
 const FILTERABLE_FIELDS = ['entity', 'entityId', 'type'] as const;
 const SORTABLE_FIELDS = ['createdAt', 'action', 'entity'] as const;
+
+function parseAuditJson(raw: string | null): unknown {
+  if (raw === null) return null;
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch {
+    // Nunca deveria acontecer (register() sempre grava JSON.stringify),
+    // mas um 500 por um registro antigo/corrompido é pior que devolver a
+    // string crua pro front mostrar como veio.
+    return raw;
+  }
+}
 
 @Injectable()
 export class AuditService {
@@ -50,18 +63,26 @@ export class AuditService {
       return;
     }
 
-    await this.prisma.audit.create({
-      data: {
-        tenantId,
-        userId,
-        type: type ?? 'DATA_CHANGE',
-        action,
-        entity,
-        entityId,
-        before: before !== undefined ? JSON.stringify(before) : null,
-        after: JSON.stringify(payload),
-      },
-    });
+    // Rotas `@Public()` (login, cadastro, reset, aceite de convite) chamam
+    // `register()` antes do `RequestContextInterceptor` rodar — sem
+    // tenant no `AsyncLocalStorage`, a RLS recusa o insert (C3,
+    // docs/PLAN-fase-12.md). `runWithTenantContext` resolve isso com o
+    // `tenantId` já recebido como parâmetro (nunca do cliente), mesmo
+    // padrão de `PermissionCacheService.reloadPermissions`.
+    await runWithTenantContext(tenantId, () =>
+      this.prisma.audit.create({
+        data: {
+          tenantId,
+          userId,
+          type: type ?? 'DATA_CHANGE',
+          action,
+          entity,
+          entityId,
+          before: before !== undefined ? JSON.stringify(before) : null,
+          after: JSON.stringify(payload),
+        },
+      }),
+    );
   }
 
   async findAll(
@@ -77,18 +98,55 @@ export class AuditService {
       orderBy: { createdAt: 'desc' },
       include: AUDIT_INCLUDE,
     });
-    return response;
+
+    // Mesmo parse de findOne — a trilha de auditoria do MetaData drawer
+    // (getEntityAuditTrail) usa este endpoint e precisa de before/after
+    // estruturados pra montar um resumo legível (ver resolveAuditItems,
+    // frontend), não a string JSON crua.
+    return response.map((entry) => ({
+      ...entry,
+      before: parseAuditJson(entry.before),
+      after: parseAuditJson(entry.after),
+    }));
+  }
+
+  // Etapa 9.2 (LGPD, "exportar meus dados") — resumo da própria atividade,
+  // sem `before`/`after`: um admin pode ter editado o registro de OUTRA
+  // pessoa, e o diff daquela auditoria não é dado do usuário que está
+  // exportando (exportar o payload completo violaria "só dados do próprio
+  // usuário").
+  async findAllByUserId(tenantId: string, userId: string) {
+    return this.prisma.audit.findMany({
+      where: { tenantId, userId },
+      select: {
+        action: true,
+        entity: true,
+        entityId: true,
+        type: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async findOne(id: string, tenantId: string) {
-    return findOneOrThrow(
+    const entry = findOneOrThrow(
       await this.prisma.audit.findUnique({
         where: { id },
         include: AUDIT_INCLUDE,
       }),
-      (entry) => entry.tenantId === tenantId,
+      (item) => item.tenantId === tenantId,
       'Registro de auditoria não encontrado',
     );
+
+    // `before`/`after` são salvos como JSON stringificado (ver register())
+    // — devolvidos já parseados pro consumidor (detail com diff, 8.5) não
+    // precisar fazer JSON.parse duas vezes nem lidar com string crua.
+    return {
+      ...entry,
+      before: parseAuditJson(entry.before),
+      after: parseAuditJson(entry.after),
+    };
   }
 
   async search(query: SearchAuditDto, tenantId: string) {
@@ -98,6 +156,15 @@ export class AuditService {
       tenantId,
       ...(query.entity ? { entity: query.entity } : {}),
       ...(query.entityId ? { entityId: query.entityId } : {}),
+      ...(query.userId ? { userId: query.userId } : {}),
+      ...(query.from || query.to
+        ? {
+            createdAt: {
+              ...(query.from ? { gte: new Date(query.from) } : {}),
+              ...(query.to ? { lte: new Date(query.to) } : {}),
+            },
+          }
+        : {}),
       ...buildSearchTextWhere(query.searchText, SEARCHABLE_FIELDS),
       ...buildWhitelistedFilters(query.filters, FILTERABLE_FIELDS),
     };

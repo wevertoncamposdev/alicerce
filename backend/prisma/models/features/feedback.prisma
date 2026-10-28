@@ -10,7 +10,7 @@ model Feedback {
     id          String         @id @default(uuid(7)) @db.Uuid
     tenantId    String         @db.Uuid
     title       String
-    description String
+    description String @default("")
     status      FeedbackStatus @default(RECEIVED)
     createdAt   DateTime       @default(now())
     updatedAt   DateTime       @updatedAt

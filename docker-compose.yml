@@ -25,18 +25,37 @@ services:
       timeout: 5s
       retries: 10
 
+  # Execução única: aplica as migrations pendentes e sincroniza o catálogo
+  # de permissões ANTES do backend subir — sem isso, nada neste compose
+  # de fato criava as tabelas/role `app_runtime` (o `Dockerfile` do backend
+  # só builda e roda `node dist/src/main`, nunca `migrate deploy`). Usa o
+  # estágio `build` da imagem do backend (tem o CLI do Prisma e os
+  # `scripts/`, que a imagem final de runtime não leva).
+  migrate:
+    build:
+      context: ./backend
+      target: build
+    environment:
+      DATABASE_URL: postgresql://alicerce:alicerce@db:5432/alicerce
+    command: sh -c "npx prisma migrate deploy && npm run sync:permissions"
+    depends_on:
+      db:
+        condition: service_healthy
+
   backend:
     build: ./backend
     environment:
       DATABASE_URL: postgresql://alicerce:alicerce@db:5432/alicerce
-      # Role de runtime sujeita a RLS (ver migration add_app_runtime_role) —
-      # criada automaticamente na primeira migration aplicada pelo backend.
+      # Role de runtime sujeita a RLS (migration add_app_runtime_role,
+      # aplicada pelo serviço `migrate` acima) — senha de dev aceitável só
+      # aqui; em produção crie a role manualmente, ver docs/deploy.md §4.
       APP_DATABASE_URL: postgresql://app_runtime:app_runtime@db:5432/alicerce
       # Cache de permissões (P7.5) — se o Redis cair em produção, a app
       # continua no ar (fail-open para o Postgres, ver PermissionCacheService).
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-dev-only-change-me}
       COOKIE_SECRET: ${COOKIE_SECRET:-dev-only-change-me}
+      PLATFORM_JWT_SECRET: ${PLATFORM_JWT_SECRET:-dev-only-change-me-too}
       CORS_ORIGINS: http://localhost:3000
       PORT: 5000
     ports:
@@ -46,6 +65,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   frontend:
     build: ./frontend

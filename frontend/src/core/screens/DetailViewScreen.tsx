@@ -1,4 +1,5 @@
 // screens/DetailViewScreen.tsx
+import { notFound } from "next/navigation";
 import { getModule } from "@core/registry";
 import { createDataProvider } from "@core/data-provider";
 import { getEntityAuditTrail } from "@core/data-provider/rest/audit";
@@ -11,8 +12,15 @@ import { AutoSaveIndicator } from "@core/components/Layout/AutoSaveIndicator";
 import { MetaDataSidebar } from "@core/components/DetailView/MetaDataView/MetaDataSidebar";
 import { MetaDataView } from "@core/components/DetailView/MetaDataView";
 import type { AuditFeedItem, ContextItem } from "@core/components/DetailView/MetaDataView/types";
+import type { DetailContext } from "@core/registry/types";
 
-export async function DetailViewScreen({ moduleName, id }: { moduleName: string; id: string }) {
+export async function DetailViewScreen({
+    moduleName,
+    id,
+}: {
+    moduleName: string;
+    id: string;
+}) {
     const mod = getModule(moduleName);
     const dataProvider = createDataProvider();
 
@@ -28,29 +36,49 @@ export async function DetailViewScreen({ moduleName, id }: { moduleName: string;
                 </div>
             );
         }
+        // Etapa 10.4 — id inexistente mostra o not-found.tsx do grupo (app)
+        // em vez de cair sem tratamento no error.tsx genérico.
+        if (err instanceof ApiServerError && err.status === 404) {
+            notFound();
+        }
         throw err;
     }
 
     const [contextItems, auditItems] = await Promise.all([
         resolveContextItems(mod, record),
-        resolveAuditItems(mod, moduleName, id),
+        resolveAuditItems(mod, moduleName, id, record),
     ]);
+
+    const metaDataContent = <MetaDataView contextItems={contextItems} auditItems={auditItems} />;
+    const context: DetailContext<Record<string, unknown>> = { record, contextItems, auditItems };
+    const headerTitle =
+        mod.detailLayout?.header?.(context).title ??
+        (record.title as string | undefined) ??
+        (record.name as string | undefined) ??
+        mod.label;
+    const breadcrumb = [
+        { label: mod.label, href: `/${moduleName}` },
+        { label: headerTitle },
+    ];
 
     return (
         <AutoSaveStatusProvider>
             <AppTopbar
                 title={mod.label}
+                breadcrumb={breadcrumb}
                 autosave={<AutoSaveIndicator />}
                 actions={
-                    <MetaDataSidebar>
-                        <MetaDataView contextItems={contextItems} auditItems={auditItems} />
-                    </MetaDataSidebar>
+                    <>
+                        {mod.detailLayout?.toolbar?.(context)}
+                        <MetaDataSidebar>{metaDataContent}</MetaDataSidebar>
+                    </>
                 }
             />
-            <div className="px-4 py-3">
+            <div className="mx-auto w-full max-w-[1400px] space-y-4 px-6 py-4">
                 <DetailView
                     moduleDefinition={mod}
                     record={record}
+                    recordId={id}
                     contextItems={contextItems}
                     auditItems={auditItems}
                 />
@@ -59,22 +87,48 @@ export async function DetailViewScreen({ moduleName, id }: { moduleName: string;
     );
 }
 
-async function resolveContextItems(mod: ReturnType<typeof getModule>, record: unknown): Promise<ContextItem[]> {
+export async function resolveContextItems(mod: ReturnType<typeof getModule>, record: unknown): Promise<ContextItem[]> {
     if (!mod.detailConfig?.loadContext) return [];
     return mod.detailConfig.loadContext(record);
 }
 
-function normalizeAuditEntityName(moduleName: string) {
+export function normalizeAuditEntityName(moduleName: string) {
     const trimmed = moduleName.trim();
     if (!trimmed) return trimmed;
     return trimmed.endsWith("s") ? trimmed.slice(0, -1) : trimmed;
 }
 
-async function resolveAuditItems(
+// Resumo legível pro item da timeline do drawer de Metadados (8.6,
+// Plano Base.md — a referência mostra frases como "Atualização de
+// atendimento", não o before/after cru). Sem conhecimento de domínio por
+// módulo, o melhor resumo genérico é: o que foi criado/removido, ou quais
+// campos mudaram numa atualização.
+function buildAuditSummary(action: string, before: unknown, after: unknown): string {
+    const beforeObj = before && typeof before === "object" ? (before as Record<string, unknown>) : null;
+    const afterObj = after && typeof after === "object" ? (after as Record<string, unknown>) : null;
+
+    if (action === "DELETE") return "Registro removido";
+    if (!beforeObj && afterObj) return "Registro criado";
+    if (!afterObj) return "—";
+
+    if (beforeObj) {
+        const changedFields = Object.keys(afterObj).filter(
+            (key) => JSON.stringify(beforeObj[key]) !== JSON.stringify(afterObj[key]),
+        );
+        if (changedFields.length === 0) return "Nenhum campo alterado";
+        return `Campo(s) alterado(s): ${changedFields.join(", ")}`;
+    }
+
+    return `Campo(s) definidos: ${Object.keys(afterObj).join(", ")}`;
+}
+
+export async function resolveAuditItems(
     mod: ReturnType<typeof getModule>,
     moduleName: string,
     id: string,
+    record: unknown,
 ): Promise<AuditFeedItem[]> {
+    if (mod.detailConfig?.loadAudit) return mod.detailConfig.loadAudit(record);
     if (!mod.detailConfig?.auditEnabled) return [];
 
     const entityName = normalizeAuditEntityName(moduleName);
@@ -86,6 +140,6 @@ async function resolveAuditItems(
         createdAt: entry.createdAt,
         userEmail: entry.user.email,
         tenantName: entry.tenant.legalName,
-        summary: entry.after ? `Antes: ${entry.before ?? "—"} | Depois: ${entry.after}` : "—",
+        summary: buildAuditSummary(entry.action, entry.before, entry.after),
     }));
 }

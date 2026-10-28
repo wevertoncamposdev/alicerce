@@ -1,97 +1,118 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
 import { PrismaService } from '@core/prisma/prisma.service';
-import { PermissionCacheService } from '@core/authorization/permission-cache.service';
-
-const prismaMock = {
-  permission: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
-  rolePermission: { findMany: jest.fn() },
-  userRole: { findMany: jest.fn() },
-};
-
-const permissionCacheMock = {
-  invalidateUsers: jest.fn(),
-};
 
 describe('PermissionsService', () => {
   let service: PermissionsService;
 
+  const prismaMock = {
+    permission: {
+      findMany: jest.fn(),
+      count: jest.fn(),
+    },
+    rolePermission: {
+      findMany: jest.fn(),
+    },
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
-    prismaMock.rolePermission.findMany.mockResolvedValue([]);
-    prismaMock.userRole.findMany.mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PermissionsService,
         { provide: PrismaService, useValue: prismaMock },
-        { provide: PermissionCacheService, useValue: permissionCacheMock },
       ],
     }).compile();
 
     service = module.get<PermissionsService>(PermissionsService);
   });
 
-  // P7.5: mudar/remover uma permissão afeta todo mundo que tem qualquer role
-  // que carregue essa permissão — fan-out permission → roles → usuários.
-  describe('permission cache invalidation', () => {
-    it('update: invalidates every user reachable through a role holding this permission', async () => {
-      prismaMock.permission.findUnique.mockResolvedValueOnce({
-        id: 'perm-1',
-        tenantId: 't1',
-        deletedAt: null,
-      });
-      prismaMock.permission.update.mockResolvedValueOnce({ id: 'perm-1' });
-      prismaMock.rolePermission.findMany.mockResolvedValueOnce([
-        { roleId: 'role-1' },
-        { roleId: 'role-2' },
-      ]);
-      prismaMock.userRole.findMany.mockResolvedValueOnce([
-        { userId: 'user-1' },
-        { userId: 'user-2' },
-      ]);
+  describe('findAll', () => {
+    it('flattens the role relation into a plain roles[] (no N+1 per row)', async () => {
+      prismaMock.permission.findMany.mockResolvedValueOnce([
+        {
+          id: 'perm-1',
+          name: 'user.read',
+          resource: 'users',
+          roles: [
+            { role: { id: 'role-1', name: 'ADMIN' } },
+            { role: { id: 'role-2', name: 'VIEWER' } },
+          ],
+        },
+      ] as never);
 
-      await service.update('perm-1', { name: 'user.read.renamed' }, 't1');
+      const result = await service.findAll('tenant-1');
 
-      expect(prismaMock.userRole.findMany).toHaveBeenCalledWith({
-        where: { tenantId: 't1', roleId: { in: ['role-1', 'role-2'] } },
-        select: { userId: true },
-      });
-      expect(permissionCacheMock.invalidateUsers).toHaveBeenCalledWith('t1', [
-        'user-1',
-        'user-2',
+      expect(result).toEqual([
+        {
+          id: 'perm-1',
+          name: 'user.read',
+          resource: 'users',
+          roles: [
+            { id: 'role-1', name: 'ADMIN' },
+            { id: 'role-2', name: 'VIEWER' },
+          ],
+        },
       ]);
+      expect(prismaMock.permission.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          include: {
+            roles: { select: { role: { select: { id: true, name: true } } } },
+          },
+        }),
+      );
     });
 
-    it('remove: invalidates affected users before soft-deleting', async () => {
-      prismaMock.permission.findUnique.mockResolvedValueOnce({
-        id: 'perm-1',
-        tenantId: 't1',
-        deletedAt: null,
-      });
-      prismaMock.rolePermission.findMany.mockResolvedValueOnce([
-        { roleId: 'role-1' },
-      ]);
-      prismaMock.userRole.findMany.mockResolvedValueOnce([
-        { userId: 'user-3' },
-      ]);
-      prismaMock.permission.update.mockResolvedValueOnce({ id: 'perm-1' });
+    it('dedupes a role that grants the same permission via more than one RolePermission row', async () => {
+      // Chave composta de RolePermission inclui `resource` — dados antigos
+      // com `resource` custom podem coexistir com a concessão de catálogo
+      // (resource: null) pro mesmo papel+permissão.
+      prismaMock.permission.findMany.mockResolvedValueOnce([
+        {
+          id: 'perm-1',
+          name: 'audit.read',
+          resource: 'audit',
+          roles: [
+            { role: { id: 'role-1', name: 'ADMIN' } },
+            { role: { id: 'role-1', name: 'ADMIN' } },
+            { role: { id: 'role-1', name: 'ADMIN' } },
+          ],
+        },
+      ] as never);
 
-      await service.remove('perm-1', 't1');
+      const result = await service.findAll('tenant-1');
 
-      expect(permissionCacheMock.invalidateUsers).toHaveBeenCalledWith('t1', [
-        'user-3',
-      ]);
+      expect(result[0].roles).toEqual([{ id: 'role-1', name: 'ADMIN' }]);
     });
+  });
 
-    it('update: throws NotFoundException without touching the cache when the permission does not exist', async () => {
-      prismaMock.permission.findUnique.mockResolvedValueOnce(null);
+  describe('findRolesOfPermission', () => {
+    it('dedupes a role that grants the same permission via more than one RolePermission row', async () => {
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce([
+        { role: { id: 'role-1', name: 'ADMIN', type: 'ADMIN' } },
+        { role: { id: 'role-1', name: 'ADMIN', type: 'ADMIN' } },
+      ] as never);
 
-      await expect(
-        service.update('missing', { name: 'x' }, 't1'),
-      ).rejects.toBeInstanceOf(NotFoundException);
-      expect(permissionCacheMock.invalidateUsers).not.toHaveBeenCalled();
+      const result = await service.findRolesOfPermission('perm-1', 'tenant-1');
+
+      expect(result).toEqual([{ id: 'role-1', name: 'ADMIN', type: 'ADMIN' }]);
+    });
+  });
+
+  describe('search', () => {
+    it('flattens the role relation for every item', async () => {
+      prismaMock.permission.findMany.mockResolvedValueOnce([
+        { id: 'perm-1', name: 'role.assign', resource: 'roles', roles: [] },
+      ] as never);
+      prismaMock.permission.count.mockResolvedValueOnce(1);
+
+      const result = await service.search({}, 'tenant-1');
+
+      expect(result.items).toEqual([
+        { id: 'perm-1', name: 'role.assign', resource: 'roles', roles: [] },
+      ]);
+      expect(result.total).toBe(1);
     });
   });
 });

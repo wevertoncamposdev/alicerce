@@ -1,12 +1,13 @@
 import "dotenv/config";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { Prisma, PrismaClient } from '@core/prisma/generated/client';
+import { PrismaClient } from '@core/prisma/generated/client';
 import * as bcrypt from 'bcrypt';
+import { syncPermissionCatalog } from '@core/authorization/permission-catalog-sync';
 import {
-  PERMISSION_CATALOG,
-  TENANT_ADMIN_PERMISSION_NAMES,
-} from '@core/authorization/permission-catalog';
+  TERMS_DOCUMENT,
+  CURRENT_TERMS_VERSION,
+} from '@core/auth/legal-terms.constants';
 
 const connectionString = `${process.env.DATABASE_URL}`;
 const pool = new Pool({ connectionString });
@@ -36,62 +37,55 @@ async function main() {
         type: 'ADMIN',
         description: 'Administrador do sistema',
         status: 'ACTIVE',
+        isSystem: true,
       },
     });
   }
 
-  const permissionSeeds: Prisma.PermissionCreateManyInput[] =
-    PERMISSION_CATALOG.map((permission) => ({
-      tenantId: tenant.id,
-      name: permission.name,
-      type: permission.type,
-      resource: permission.resource,
-      description: permission.description,
-    }));
-
-  await prisma.permission.createMany({
-    data: permissionSeeds,
-    skipDuplicates: true,
-  });
-
-  const tenantAdminPermissions = await prisma.permission.findMany({
-    where: { tenantId: tenant.id, name: { in: [...TENANT_ADMIN_PERMISSION_NAMES] } },
-  });
-  for (const permission of tenantAdminPermissions) {
-    const exists = await prisma.rolePermission.findFirst({
-      where: {
-        tenantId: tenant.id,
-        roleId: adminRole.id,
-        permissionId: permission.id,
-      },
-    });
-
-    if (!exists) {
-      await prisma.rolePermission.create({
-        data: {
-          tenantId: tenant.id,
-          roleId: adminRole.id,
-          permissionId: permission.id,
-        },
-      });
-    }
-  }
+  // Cria as permissões do catálogo que faltarem neste tenant e garante que
+  // todo papel `isSystem` (o ADMIN acima) tenha todas as concedíveis —
+  // substitui o loop manual de rolePermission que existia aqui antes.
+  await syncPermissionCatalog(prisma);
 
   const passwordHash = await bcrypt.hash('admin123', 10);
+  // D11 (docs/PLAN-fundacao-ux.md): sem emailVerifiedAt/ConsentRecord, os
+  // dois banners de app/(app)/layout.tsx (e-mail não confirmado, termos
+  // não aceitos) apareciam sempre em dev, mesmo logo após o seed.
   const user = await prisma.user.upsert({
     where: { email: 'admin@exemplo.com' },
     update: {
       password: passwordHash,
       status: 'ACTIVE',
+      emailVerifiedAt: new Date(),
     },
     create: {
       tenantId: tenant.id,
       email: 'admin@exemplo.com',
       password: passwordHash,
       status: 'ACTIVE',
+      emailVerifiedAt: new Date(),
     },
     include: { roles: true },
   });
+
+  const consentExists = await prisma.consentRecord.findFirst({
+    where: {
+      userId: user.id,
+      document: TERMS_DOCUMENT,
+      version: CURRENT_TERMS_VERSION,
+    },
+  });
+
+  if (!consentExists) {
+    await prisma.consentRecord.create({
+      data: {
+        tenantId: tenant.id,
+        userId: user.id,
+        document: TERMS_DOCUMENT,
+        version: CURRENT_TERMS_VERSION,
+      },
+    });
+  }
 
   const userRoleExists = await prisma.userRole.findFirst({
     where: {

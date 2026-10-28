@@ -3,6 +3,33 @@ import { getSessionTenantId, getSessionToken, clearSessionCookies } from "@lib/s
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL ?? "http://localhost:5000/api";
 
+// D6 (docs/PLAN-fundacao-ux.md): até aqui toda resposta OK virava JSON —
+// quebraria num corpo binário (GET /files/:id/content, driver local) e
+// num redirect seguido automaticamente nunca chegaria ao browser (driver
+// s3/R2, precisa que o <img> siga o 302 ele mesmo pra CSP/host do bucket
+// funcionarem). Usado tanto no fluxo normal quanto no retry pós-refresh.
+async function buildProxyResponse(response: Response): Promise<NextResponse> {
+    if (response.status === 204) {
+        return new NextResponse(null, { status: 204 });
+    }
+
+    const location = response.headers.get("location");
+    if (response.status >= 300 && response.status < 400 && location) {
+        return new NextResponse(null, { status: response.status, headers: { Location: location } });
+    }
+
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+        return new NextResponse(response.body, {
+            status: response.status,
+            headers: contentType ? { "Content-Type": contentType } : undefined,
+        });
+    }
+
+    const payload = await response.json().catch(() => null);
+    return NextResponse.json(payload, { status: response.status });
+}
+
 /**
  * app/api/proxy/[...path]/route.ts
  *
@@ -52,6 +79,12 @@ async function handler(request: NextRequest, context: { params: Promise<{ path: 
             headers,
             body,
             cache: "no-store",
+            // D6 (docs/PLAN-fundacao-ux.md): GET /files/:id/content pode
+            // devolver um 302 pra URL assinada do storage provider (driver
+            // s3/R2) — sem isto, o fetch já seguiria o redirect aqui dentro
+            // do servidor Next, baixando o binário no meio do caminho em
+            // vez de deixar o browser seguir direto pro bucket.
+            redirect: "manual",
         });
     };
 
@@ -86,9 +119,7 @@ async function handler(request: NextRequest, context: { params: Promise<{ path: 
 
                 // Repassa os cabeçalhos de Set-Cookie do refreshResponse para que o browser
                 // receba o novo access e refresh tokens atualizados
-                const finalResponse = retryResponse.status === 204
-                    ? new NextResponse(null, { status: 204 })
-                    : NextResponse.json(await retryResponse.json().catch(() => null), { status: retryResponse.status });
+                const finalResponse = await buildProxyResponse(retryResponse);
 
                 if (cookieHeader) {
                     finalResponse.headers.append("Set-Cookie", cookieHeader);
@@ -103,12 +134,7 @@ async function handler(request: NextRequest, context: { params: Promise<{ path: 
         return NextResponse.json({ message: "Sessão expirada. Faça login novamente." }, { status: 401 });
     }
 
-    if (response.status === 204) {
-        return new NextResponse(null, { status: 204 });
-    }
-
-    const payload = await response.json().catch(() => null);
-    return NextResponse.json(payload, { status: response.status });
+    return buildProxyResponse(response);
 }
 
 export {

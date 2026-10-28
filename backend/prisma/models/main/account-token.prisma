@@ -1,0 +1,34 @@
+/// Token de uso único genérico (Fase 7, ADR 0011) — convite, redefinir
+/// senha, verificar e-mail, trocar e-mail. `consume()` é a única porta de
+/// saída (ver AccountTokenService) e nunca diferencia "não existe" de
+/// "expirado" de "já usado" no erro.
+enum AccountTokenType {
+    INVITE
+    RESET_PASSWORD
+    VERIFY_EMAIL
+    CHANGE_EMAIL
+}
+
+model AccountToken {
+    id       String @id @default(uuid(7)) @db.Uuid
+    tenantId String @db.Uuid
+    userId   String @db.Uuid
+
+    type      AccountTokenType
+    tokenHash String           @unique @db.VarChar(64)
+    expiresAt DateTime
+    usedAt    DateTime?
+
+    // Só CHANGE_EMAIL: guarda o e-mail novo até a confirmação — não
+    // precisa de uma tabela separada só para isso.
+    newEmail String? @db.VarChar(255)
+
+    createdAt DateTime @default(now())
+
+    tenant Tenant @relation(fields: [tenantId], references: [id])
+    user   User   @relation(fields: [userId], references: [id])
+
+    @@index([tenantId])
+    @@index([userId, type])
+    @@map("account_tokens")
+}

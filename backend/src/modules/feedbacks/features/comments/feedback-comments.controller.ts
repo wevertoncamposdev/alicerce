@@ -5,12 +5,12 @@ import {
   Delete,
   Body,
   Param,
+  ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { CurrentUserId } from '@core/common/decorators/current-user-id.decorator';
-import { Roles } from '@core/common/decorators/roles.decorator';
 import { Permissions } from '@core/common/decorators/permissions.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 import { FeedbackCommentsService } from './feedback-comments.service';
@@ -24,22 +24,20 @@ export class FeedbackCommentsController {
   constructor(private readonly commentsService: FeedbackCommentsService) {}
 
   @Get()
-  @Roles('ADMIN', 'USER')
   @Permissions('feedback.read')
   @ApiOperation({ summary: 'Listar comentários de um feedback' })
   findAll(
-    @Param('feedbackId') feedbackId: string,
+    @Param('feedbackId', new ParseUUIDPipe()) feedbackId: string,
     @TenantId() tenantId: string,
   ) {
     return this.commentsService.findAll(feedbackId, tenantId);
   }
 
   @Post()
-  @Roles('ADMIN', 'USER')
   @Permissions('feedback.update')
   @ApiOperation({ summary: 'Comentar em um feedback' })
   create(
-    @Param('feedbackId') feedbackId: string,
+    @Param('feedbackId', new ParseUUIDPipe()) feedbackId: string,
     @Body() dto: CreateFeedbackCommentDto,
     @TenantId() tenantId: string,
     @CurrentUserId() userSub: string,
@@ -48,10 +46,12 @@ export class FeedbackCommentsController {
   }
 
   @Delete(':id')
-  @Roles('ADMIN', 'USER')
   @Permissions('feedback.update')
   @ApiOperation({ summary: 'Remover comentário' })
-  remove(@Param('id') id: string, @TenantId() tenantId: string) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
     return this.commentsService.remove(id, tenantId);
   }
 }

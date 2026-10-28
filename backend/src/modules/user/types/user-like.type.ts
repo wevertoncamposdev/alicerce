@@ -1,14 +1,14 @@
 /**
- * Forma mínima que UserMapper/UserValidator esperam — não é o model `User`
- * do Prisma (que não tem `name`/`birthDate` hoje; são campos legados desta
- * camada, pendentes da limpeza de entidades do AGENTS.md Fase 2). Existe só
- * para tirar o `any` implícito destes dois arquivos.
+ * Forma mínima que UserMapper espera — não é o model `User` do Prisma
+ * inteiro, só os campos que o mapper de fato usa.
  */
 export interface UserLike {
   id: string;
   email: string;
   name?: string | null;
-  birthDate?: Date | null;
+  status: string;
+  avatarFileId?: string | null;
+  password?: string | null;
   createdAt: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;

@@ -1,6 +1,6 @@
 import { AppTopbar } from "@core/components/Layout/AppTopbar";
 import { apiServer, ApiServerError } from "@lib/api-server";
-import { getCurrentUser, hasRole } from "@lib/auth-server";
+import { getCurrentUser } from "@lib/auth-server";
 import { searchPermissions } from "@modules/permissions/config/provider";
 import { searchRoles } from "@modules/roles/config/provider";
 import { searchUsers } from "@modules/users/config/provider";
@@ -32,7 +32,9 @@ type DashboardAuditEntry = {
 export default async function MainPage() {
   const currentUser = await getCurrentUser();
   const tenantId = currentUser?.tenantId;
-  const isAdmin = !!currentUser && hasRole(currentUser, "ADMIN");
+  const userPermissions = currentUser?.user.permissions ?? [];
+  const canListRoles = userPermissions.includes("role.read");
+  const canListPermissions = userPermissions.includes("permission.read");
 
   let error: string | null = null;
   let users = 0;
@@ -43,8 +45,8 @@ export default async function MainPage() {
   try {
     const [usersResult, rolesResult, permissionsResult, auditResult] = await Promise.allSettled([
       searchUsers({ pagination: { pageIndex: 0, pageSize: 1 } }),
-      isAdmin ? searchRoles({ pagination: { pageIndex: 0, pageSize: 1 } }) : Promise.resolve({ pagination: { total: 0 } }),
-      isAdmin ? searchPermissions({ pagination: { pageIndex: 0, pageSize: 1 } }) : Promise.resolve({ pagination: { total: 0 } }),
+      canListRoles ? searchRoles({ pagination: { pageIndex: 0, pageSize: 1 } }) : Promise.resolve({ pagination: { total: 0 } }),
+      canListPermissions ? searchPermissions({ pagination: { pageIndex: 0, pageSize: 1 } }) : Promise.resolve({ pagination: { total: 0 } }),
       tenantId ? apiServer.get<DashboardAuditEntry[]>(`tenant/${tenantId}/audit`) : Promise.resolve([]),
     ]);
 

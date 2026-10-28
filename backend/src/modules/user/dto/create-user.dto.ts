@@ -5,10 +5,14 @@ import {
   IsString,
   IsUUID,
   MaxLength,
-  MinLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { NormalizeEmail } from '@core/common/validators/normalize-email.decorator';
+import { TrimToNull } from '@core/common/transformers/trim-to-null';
 
+// Sem campo de senha (etapa 7.4, Plano Base.md): admin nunca mais define a
+// senha de outra pessoa — `POST /user` convida (ver UsersService.invite),
+// quem aceita o convite é quem escolhe a própria senha.
 export class CreateUserDto {
   @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
@@ -16,15 +20,17 @@ export class CreateUserDto {
   tenantId?: string;
 
   @ApiProperty({ maxLength: 255 })
+  @NormalizeEmail()
   @IsEmail()
   @MaxLength(255)
   email!: string;
 
-  @ApiProperty({ minLength: 6, maxLength: 100 })
+  @ApiPropertyOptional({ maxLength: 255 })
+  @IsOptional()
+  @TrimToNull()
   @IsString()
-  @MinLength(6)
-  @MaxLength(100)
-  password!: string;
+  @MaxLength(255)
+  name?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

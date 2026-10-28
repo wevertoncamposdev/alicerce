@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
@@ -8,6 +12,8 @@ import { TenantErrorCode } from './domain/errors/tenant-error-codes';
 import { TenantErrorMapper } from './mappers/tenant-error.mapper';
 import { TenantRepository } from './persistence/repository/tenant.repository';
 import { SearchTenantsDto } from './dto/search-tenant.dto';
+import { buildFileContentUrl, FilesService } from '@core/files/file.service';
+import { isValidDocumentForType } from '@core/common/validators/is-document.validator';
 
 @Injectable()
 export class TenantService {
@@ -16,6 +22,7 @@ export class TenantService {
     private readonly tenantBusinessRules: TenantBusinessRules,
     private readonly tenantErrorMapper: TenantErrorMapper,
     private readonly prisma: PrismaService,
+    private readonly filesService: FilesService,
   ) {}
 
   async create(createTenantDto: CreateTenantDto) {
@@ -61,21 +68,68 @@ export class TenantService {
         });
       }
 
-      return tenant;
+      // D6: URL same-origin (proxy BFF) — ver user.service.ts#findOne.
+      const logoUrl = tenant.logoFileId
+        ? buildFileContentUrl(tenant.logoFileId)
+        : null;
+
+      return { ...tenant, logoUrl };
     } catch (error) {
       this.tenantErrorMapper.mapAndThrow(error, 'findOne');
     }
   }
 
+  // `requesterId` só vem de /tenant/current (ver TenantController) — a
+  // checagem de posse do `logoFileId` (ver ADR 0010) só se aplica ao
+  // self-service; a rota admin /tenant/:id (reservada pro management
+  // futuro, Fase 11) não passa esse parâmetro.
   async update(
     id: string,
     updateTenantDto: UpdateTenantDto,
     requestTenantId: string,
+    requesterId?: string,
   ) {
     this.tenantBusinessRules.validateTenantId(id);
     this.assertOwnTenant(id, requestTenantId);
 
+    if (updateTenantDto.logoFileId && requesterId) {
+      await this.filesService.assertUploadedBy(
+        updateTenantDto.logoFileId,
+        requestTenantId,
+        requesterId,
+      );
+    }
+
     try {
+      const existing = await this.tenantRepository.findById(id);
+      if (!existing) {
+        throw new NotFoundException({
+          message: 'Tenant não encontrado',
+          code: TenantErrorCode.NOT_FOUND,
+          details: { id },
+        });
+      }
+
+      // D4 (docs/PLAN-fundacao-ux.md): o DTO só vê o payload parcial deste
+      // PATCH — um PATCH que manda só `document` (sem `documentType`) não
+      // tem como validar o dígito verificador sozinho. Mescla com o
+      // registro já salvo antes de validar, pra cobrir exatamente esse caso.
+      const merged = { ...existing, ...updateTenantDto };
+      if (!isValidDocumentForType(merged.documentType, merged.document)) {
+        throw new BadRequestException({
+          message: 'Documento inválido para o tipo selecionado.',
+          code: TenantErrorCode.DOCUMENT_INVALID,
+          details: {
+            errors: [
+              {
+                field: 'document',
+                message: 'Documento inválido para o tipo selecionado.',
+              },
+            ],
+          },
+        });
+      }
+
       const data: Prisma.TenantUpdateInput = { ...updateTenantDto };
 
       return await this.tenantRepository.updateById(id, data);
