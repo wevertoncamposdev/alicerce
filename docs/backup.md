@@ -57,6 +57,33 @@ pode ter ganhado entradas novas entre a data do backup e agora — o sync
 preenche o que faltar em cada tenant, sem duplicar o que já existe
 (idempotente).
 
+## Railway
+
+`scripts/backup-db.ts`/`restore-db.ts` rodam `pg_dump`/`pg_restore` contra
+`DATABASE_URL` do seu ambiente local — no Railway, a variável `DATABASE_URL`
+do serviço `backend` é a **privada** (só alcançável por outros serviços do
+mesmo projeto Railway, ver `docs/deploy.md` §8.2). Rodando do seu
+computador, use a pública (`DATABASE_PUBLIC_URL`, já configurada como
+variável extra no `backend` por causa da seção 8.4 de `docs/deploy.md`):
+
+```bash
+cd backend
+railway run --service backend -- sh -c 'DATABASE_URL="$DATABASE_PUBLIC_URL" npm run backup:db'
+railway run --service backend -- sh -c 'DATABASE_URL="$DATABASE_PUBLIC_URL" npm run restore:db -- ./backups/<arquivo>.dump'
+```
+
+Precisa de `pg_dump`/`pg_restore` instalados localmente, numa versão
+compatível com o Postgres do plugin Railway — confira rodando `SELECT
+version();` via `railway connect postgres`.
+
+**Agendamento diário** ("Quando rodar" acima): o Railway tem **Cron Jobs**
+(serviço com `deploy.cronSchedule` no `railway.json`/dashboard, rodando
+`npm run backup:db` direto dentro do projeto — aí sim contra a
+`DATABASE_URL` privada, sem precisar do proxy público). Redirecione a
+saída desse job pra um storage durável (S3/R2 — mesma recomendação da
+seção "Backup" acima) em vez de confiar no filesystem efêmero do
+container.
+
 ## Teste de restauração
 
 Antes de confiar na rotina em produção, valide uma vez (em staging, nunca

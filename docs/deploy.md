@@ -110,3 +110,133 @@ só `DATABASE_URL`/`APP_DATABASE_URL`/`REDIS_URL` — o resto do compose
   devolve as permissões esperadas (prova que o sync de permissões rodou).
 - Se `MAIL_DRIVER=smtp`/`resend`: disparar um "esqueci minha senha" e
   confirmar que o e-mail chega.
+
+## 8. Railway
+
+> Provedor escolhido pra F5 (`docs/Plan-Finalizacao.md`). Adapta os passos
+> 1–7 acima: dois serviços a partir dos `Dockerfile`s existentes
+> (`backend/`, `frontend/`) + Postgres e Redis gerenciados pelo próprio
+> Railway — sem `docker-compose.yml` nem o serviço `migrate` dele (cada
+> serviço Railway builda e roda sozinho; variáveis entre serviços se
+> referenciam com `${{ServiceName.VAR}}`).
+>
+> **Sobre `railway.json`:** este repo tem `backend/railway.json` e
+> `frontend/railway.json` (builder Dockerfile + healthcheck + restart
+> policy). Esse formato ("Config as Code") está **deprecado** pelo próprio
+> Railway em favor de "Infrastructure as Code" (`.railway/railway.ts`),
+> mas continua funcionando até **2026-12-01**. Se essa data já passou
+> quando você for ler isto, confira a documentação atual do Railway antes
+> de confiar nesses dois arquivos — o que não expira é configurar Root
+> Directory/Builder/Healthcheck direto no dashboard de cada serviço
+> (Settings → Build / Settings → Deploy), que funciona do mesmo jeito.
+
+### 8.1 Criar os serviços
+
+Num Project novo no Railway:
+
+1. **New → Database → Add PostgreSQL** e **New → Database → Add Redis**
+   (plugins gerenciados — não precisa de imagem própria).
+2. **New → GitHub Repo**, apontando pro repositório, duas vezes (um
+   serviço por pasta):
+   - `backend`: Settings → Root Directory `backend/`. Com `backend/railway.json`
+     no repo, o builder e o healthcheck já vêm configurados; sem ele (ou
+     depois de dez/2026), configure manualmente: Build → Builder =
+     Dockerfile, Dockerfile Path = `Dockerfile`; Deploy → Healthcheck Path
+     = `/api/health`.
+   - `frontend`: Settings → Root Directory `frontend/`. Mesma ideia com
+     `frontend/railway.json` (sem healthcheck path — o Next não tem um
+     endpoint dedicado, o Railway cai pro check de porta TCP).
+3. `backend` → Settings → Networking: **não gere domínio público** (só o
+   Next fala com ele, pela rede privada do Railway — ver F5: "o backend
+   não precisa ficar público"). `frontend` → Settings → Networking:
+   gere o domínio público (ou aponte um domínio próprio em Domains).
+
+### 8.2 Variáveis de ambiente
+
+Backend (`backend` → Variables), além da tabela da seção 2:
+
+| Variável | Valor |
+| --- | --- |
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (privada — só outros serviços do projeto alcançam) |
+| `DATABASE_PUBLIC_URL` | `${{Postgres.DATABASE_PUBLIC_URL}}` — **não é lida pela app**; só existe aqui pra comandos avulsos (migrate/backup) rodados do seu computador via `railway run` (§8.4/§8.5), que não alcançam a URL privada |
+| `APP_DATABASE_URL` | monte à mão depois de criar a role, ver §8.3 |
+| `APP_DATABASE_PUBLIC_URL` | idem, variante pública — **também não é lida pela app**; só pra scripts que usam `PrismaService`/`app_runtime` (ex. `create:platform-user`) rodados do seu computador, ver §8.3 |
+| `REDIS_URL` | `${{Redis.REDIS_URL}}` |
+| `JWT_SECRET` / `PLATFORM_JWT_SECRET` / `COOKIE_SECRET` | três valores diferentes de `openssl rand -hex 32` |
+| `CORS_ORIGINS` | `https://${{frontend.RAILWAY_PUBLIC_DOMAIN}}` |
+| `FRONTEND_URL` | mesma coisa: `https://${{frontend.RAILWAY_PUBLIC_DOMAIN}}` |
+| `NODE_ENV` | `production` |
+| `PORT` | **não defina** — o Railway injeta a própria e a app já lê `process.env.PORT` |
+
+Frontend (`frontend` → Variables):
+
+| Variável | Valor |
+| --- | --- |
+| `INTERNAL_API_URL` | `http://${{backend.RAILWAY_PRIVATE_DOMAIN}}:5000/api` |
+
+`PORT` também não se define aqui — mesmo motivo.
+
+### 8.3 Role de runtime (`app_runtime`)
+
+O plugin Postgres do Railway só dá a connection string do owner. Abra um
+`psql` já autenticado contra ele:
+
+```bash
+railway connect postgres
+```
+
+Dentro do `psql`, rode o SQL da seção 4 acima (`CREATE ROLE app_runtime
+...`) com uma senha forte (`openssl rand -hex 24`, por exemplo). Depois,
+em `backend` → Variables, defina as duas variantes (mesma senha nas duas,
+só o host/porta mudam):
+
+```text
+APP_DATABASE_URL=postgresql://app_runtime:<senha que você criou>@${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}
+APP_DATABASE_PUBLIC_URL=postgresql://app_runtime:<a mesma senha>@${{Postgres.RAILWAY_TCP_PROXY_DOMAIN}}:${{Postgres.RAILWAY_TCP_PROXY_PORT}}/${{Postgres.PGDATABASE}}
+```
+
+(`PGHOST`/`PGPORT` do plugin Postgres resolvem pro domínio privado — é o
+que a app de verdade usa em runtime, nunca pelo proxy público.
+`RAILWAY_TCP_PROXY_DOMAIN`/`RAILWAY_TCP_PROXY_PORT`, os mesmos que o
+próprio plugin usa pra montar `DATABASE_PUBLIC_URL`, são a variante
+alcançável do seu computador — só serve pra scripts avulsos como
+`create:platform-user`, que conectam com `PrismaService`/`app_runtime`.)
+
+### 8.4 Migrações e sync de permissões
+
+O estágio final do `backend/Dockerfile` não leva o CLI do Prisma nem
+`scripts/` (só `dist/` + deps de produção, de propósito — imagem enxuta).
+Rode migrate/sync do seu computador com o Railway CLI, que injeta as
+variáveis do serviço — mas troque `DATABASE_URL` pela pública na hora,
+porque o comando roda na sua máquina, fora da rede privada do Railway:
+
+```bash
+railway link        # uma vez, associa este repo ao projeto Railway
+cd backend           # prisma.config.ts e os scripts vivem aqui — não rode da raiz
+railway run --service backend -- sh -c 'DATABASE_URL="$DATABASE_PUBLIC_URL" npx prisma migrate deploy'
+railway run --service backend -- sh -c 'DATABASE_URL="$DATABASE_PUBLIC_URL" npm run sync:permissions'
+```
+
+(Confira `railway run --help` se a flag `--service` mudou de nome na
+versão instalada.) Repita essas duas linhas a cada deploy que mude
+migrations ou o catálogo de permissões — os dois comandos são
+idempotentes.
+
+### 8.5 Deploy
+
+Com os serviços criados e as variáveis preenchidas, o Railway builda e
+sobe sozinho a cada push na branch configurada (ou `railway up` pra um
+deploy manual a partir do seu checkout local). HTTPS já vem de graça no
+domínio `*.up.railway.app` (ou no seu domínio próprio, via Settings →
+Domains).
+
+### 8.6 Verificação
+
+Mesma seção 7 acima. Como o backend não tem domínio público, teste o
+health check de dentro da rede do Railway:
+
+```bash
+railway run --service backend -- sh -c 'curl -s http://localhost:5000/api/health'
+```
+
+E o login de verdade pela tela, no domínio público do frontend.
