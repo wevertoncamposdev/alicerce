@@ -153,6 +153,12 @@ test('upload de avatar em /perfil mostra o preview (previewField fim-a-fim, C2)'
   // colidir com o avatar maior (size-20) do cabeçalho da página.
   const preview = sharedPage.locator('img.size-12.rounded-full');
   await expect(preview).toBeVisible({ timeout: 10_000 });
-  const src = await preview.getAttribute('src');
-  expect(src).toBeTruthy();
+
+  // D8 (docs/PLAN-fundacao-ux.md): `src` truthy não prova que a imagem
+  // carregou — a URL podia apontar pro backend, bloqueada pela CSP (D6),
+  // e o teste passava do mesmo jeito. `naturalWidth > 0` só fica verdadeiro
+  // depois do <img> carregar os bytes de verdade.
+  await expect
+    .poll(() => preview.evaluate((img: HTMLImageElement) => img.naturalWidth), { timeout: 10_000 })
+    .toBeGreaterThan(0);
 });
