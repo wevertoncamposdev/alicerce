@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - name: Install backend deps
@@ -52,7 +52,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - name: Install backend deps
@@ -68,7 +68,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - name: Install frontend deps
@@ -123,7 +123,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - name: Install backend deps
@@ -172,7 +172,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - name: Install backend deps
@@ -206,7 +206,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - name: Install backend deps
@@ -226,7 +226,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - name: Install backend deps
