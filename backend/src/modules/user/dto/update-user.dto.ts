@@ -18,6 +18,11 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(255)
+  name?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(100)
   @IsStrongPassword()
   password?: string;
