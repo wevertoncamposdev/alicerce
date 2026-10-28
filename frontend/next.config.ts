@@ -13,6 +13,17 @@ const nextConfig: NextConfig = {
     // saída antes de terminar, deixando o .next sem BUILD_ID. Upgrade de
     // dependência aqui é só via /upgrade-deps, nunca automático.
     agentUpgrade: false,
+    // D7 (docs/PLAN-fundacao-ux.md): default do Next é 1 MB — o backend
+    // aceita até 5 MB (`UPLOAD_MAX_SIZE_BYTES`, backend/.env.example).
+    // Fixo (não lido de env): backend e frontend são processos/serviços
+    // separados em produção, não dá pra garantir que os dois leem a mesma
+    // variável — se `UPLOAD_MAX_SIZE_BYTES` mudar no backend, ajuste este
+    // valor também. A margem sobre 5 MB cobre o envelope multipart; o
+    // resize no browser (`resize-image.ts`) já reduz a maioria das fotos
+    // bem abaixo disso antes de chegar aqui.
+    serverActions: {
+      bodySizeLimit: "6mb",
+    },
   },
   // Bundle mínimo autocontido em .next/standalone — usado pelo Dockerfile
   // para não precisar copiar node_modules inteiro na imagem final.

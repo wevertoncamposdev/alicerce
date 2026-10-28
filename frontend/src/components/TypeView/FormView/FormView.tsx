@@ -14,6 +14,7 @@ import { Button } from "@components/ui/button";
 import { useAutoSaveController } from "@/hooks/use-autosave-controller";
 import { autoSaveRecord, uploadFileAction } from "@core/registry/actions";
 import { validateFormPayload } from "@core/registry/form-validation";
+import { resizeImageToWebp } from "@lib/resize-image";
 import type { FormFieldConfig } from "@core/registry/types";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 import { useCreateSheetContext } from "@/contexts/create-sheet-context";
@@ -122,12 +123,18 @@ function ImageFieldInput<T extends object>({
         setUploading(true);
         setError(null);
         try {
+            // D7 (docs/PLAN-fundacao-ux.md): reduz pra ~512px/WebP antes de
+            // subir — além de mais leve pra exibir, evita bater no limite de
+            // tamanho de Server Action na maioria dos casos (foto de câmera
+            // de celular facilmente passa de 1 MB).
+            const resized = await resizeImageToWebp(file);
+
             const formData = new FormData();
             // `ownerType` precisa vir ANTES de `file` (ver file.controller.ts
             // no backend — @fastify/multipart só acumula `.fields` com o que
             // leu antes do primeiro arquivo).
             if (field.uploadOwnerType) formData.append("ownerType", field.uploadOwnerType);
-            formData.append("file", file);
+            formData.append("file", resized);
 
             const uploaded = await uploadFileAction(formData);
             // `flushSync`: sem isso, `onChange` só aplica o novo valor no

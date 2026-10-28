@@ -17,6 +17,9 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 - Preview de avatar/logo passa a ser same-origin via proxy BFF
   (`GET /files/:id/content`), em vez de apontar direto pro backend —
   funciona com CSP e com backend sem domínio público (D6, ADR 0014).
+- Upload de foto acima de 1 MB não dá mais 500: limite de Server Action
+  subiu pra 6 MB e a imagem é redimensionada (~512px, WebP) no browser
+  antes de enviar (D7, ADR 0014).
 
 ---
 
