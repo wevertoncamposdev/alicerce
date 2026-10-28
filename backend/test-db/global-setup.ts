@@ -59,11 +59,6 @@ export default async function globalSetup(): Promise<void> {
 
   // `shell: true` — no Windows, `npx`/`npm` são `.cmd`; `execFileSync` sem
   // shell não resolve a extensão e falha com ENOENT.
-  // Prisma 7 removeu `--skip-seed` de `migrate reset` (só aceita
-  // -h/--config/--schema/-f) — sem a flag, ele roda o seed de dev
-  // (`prisma/seed.ts`) depois de resetar; inócuo aqui (o
-  // `syncPermissionCatalog` abaixo roda de novo e é idempotente), só mais
-  // lento.
   execFileSync('npx', ['prisma', 'migrate', 'reset', '--force'], {
     cwd: BACKEND_ROOT,
     env: process.env,
@@ -71,6 +66,22 @@ export default async function globalSetup(): Promise<void> {
     shell: true,
   });
 
+  // D11 (docs/PLAN-fundacao-ux.md): `migrate reset --force` NÃO roda o
+  // seed sozinho nesta configuração (`prisma.config.ts`, formato novo) —
+  // testado direto: o output termina na lista de migrations aplicadas,
+  // sem nenhuma seção de seed. Sem este passo explícito,
+  // `admin@exemplo.com`/`tenant-exemplo` nunca existem em `alicerce_test`
+  // e nenhum teste que dependa do seed (ex.: `seed.db-spec.ts`) encontra
+  // nada. (Comentário antigo aqui assumia o auto-seed; estava errado.)
+  execFileSync('npm', ['run', 'seed'], {
+    cwd: BACKEND_ROOT,
+    env: process.env,
+    stdio: 'inherit',
+    shell: true,
+  });
+
+  // Idempotente — já roda dentro do seed acima, mas o módulo de tenant/
+  // role pode mudar o catálogo sem passar pelo seed; mantém a garantia.
   execFileSync('npm', ['run', 'sync:permissions'], {
     cwd: BACKEND_ROOT,
     env: process.env,

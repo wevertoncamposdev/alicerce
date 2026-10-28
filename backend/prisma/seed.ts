@@ -4,6 +4,10 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from '@core/prisma/generated/client';
 import * as bcrypt from 'bcrypt';
 import { syncPermissionCatalog } from '@core/authorization/permission-catalog-sync';
+import {
+  TERMS_DOCUMENT,
+  CURRENT_TERMS_VERSION,
+} from '@core/auth/legal-terms.constants';
 
 const connectionString = `${process.env.DATABASE_URL}`;
 const pool = new Pool({ connectionString });
@@ -44,20 +48,44 @@ async function main() {
   await syncPermissionCatalog(prisma);
 
   const passwordHash = await bcrypt.hash('admin123', 10);
+  // D11 (docs/PLAN-fundacao-ux.md): sem emailVerifiedAt/ConsentRecord, os
+  // dois banners de app/(app)/layout.tsx (e-mail não confirmado, termos
+  // não aceitos) apareciam sempre em dev, mesmo logo após o seed.
   const user = await prisma.user.upsert({
     where: { email: 'admin@exemplo.com' },
     update: {
       password: passwordHash,
       status: 'ACTIVE',
+      emailVerifiedAt: new Date(),
     },
     create: {
       tenantId: tenant.id,
       email: 'admin@exemplo.com',
       password: passwordHash,
       status: 'ACTIVE',
+      emailVerifiedAt: new Date(),
     },
     include: { roles: true },
   });
+
+  const consentExists = await prisma.consentRecord.findFirst({
+    where: {
+      userId: user.id,
+      document: TERMS_DOCUMENT,
+      version: CURRENT_TERMS_VERSION,
+    },
+  });
+
+  if (!consentExists) {
+    await prisma.consentRecord.create({
+      data: {
+        tenantId: tenant.id,
+        userId: user.id,
+        document: TERMS_DOCUMENT,
+        version: CURRENT_TERMS_VERSION,
+      },
+    });
+  }
 
   const userRoleExists = await prisma.userRole.findFirst({
     where: {
