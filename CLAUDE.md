@@ -14,6 +14,9 @@
 | `core/`, auth, RLS, migration destrutiva | Plan mode + checkpoint completo |
 | Decisão difícil de desfazer | ADR |
 
+- Fundação de UX (`docs/PLAN-fundacao-ux.md`, U0–U9): escopo de `core/`
+  autorizado pelo ADR 0014, lista por etapa. Fora da lista da etapa em
+  execução, pare e pergunte antes de editar `core/`.
 - Módulo novo: use a skill `/novo-modulo`.
 - Upgrade de dependência: só quando eu chamar `/upgrade-deps`. Nunca por iniciativa própria.
 - Checkpoint rápido (por commit): `tsc --noEmit && lint && test` (backend) /
