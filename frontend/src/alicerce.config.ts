@@ -71,7 +71,9 @@ export const alicerceModules = defineModuleManifest([
         basePath: "/permissions",
         permission: "permission.read",
         navGroup: "hidden",
-        actionPermissions: { create: "permission.create", update: "permission.update", delete: "permission.delete" },
+        // Catálogo só de leitura (ADR 0007) — sem create/update/delete
+        // próprios, nada aqui.
+        actionPermissions: {},
     },
     {
         key: "audit",
