@@ -326,10 +326,7 @@ describe('UsersService', () => {
       expect(filesServiceMock.getSignedUrlOrNull).not.toHaveBeenCalled();
     });
 
-    it('findOne resolves avatarUrl when avatarFileId is set', async () => {
-      filesServiceMock.getSignedUrlOrNull.mockResolvedValueOnce(
-        'https://signed.example/avatar.png',
-      );
+    it('findOne resolves avatarUrl as a same-origin proxy URL when avatarFileId is set (D6)', async () => {
       repository.findById.mockResolvedValueOnce({
         id: userId,
         email: 'with-avatar@example.com',
@@ -342,12 +339,12 @@ describe('UsersService', () => {
 
       const result = await service.findOne(userId, tenantId);
 
-      expect(filesServiceMock.getSignedUrlOrNull).toHaveBeenCalledWith(
-        'file-id',
-        tenantId,
-      );
+      // D6: avatarUrl é montada direto (buildFileContentUrl), sem chamar
+      // o storage provider — getSignedUrlOrNull continua reservado pro
+      // caso de e-mail (resolveTenantBranding).
+      expect(filesServiceMock.getSignedUrlOrNull).not.toHaveBeenCalled();
       expect(result).toMatchObject({
-        avatarUrl: 'https://signed.example/avatar.png',
+        avatarUrl: '/api/proxy/files/file-id/content',
       });
     });
 

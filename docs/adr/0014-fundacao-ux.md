@@ -24,9 +24,14 @@
     precisa ser Server Action; função pura não pode ficar lá); e, fora de
     `core/` mas tratado com o mesmo cuidado desde
     o ADR 0005 (é o motor de autosave), `frontend/src/components/TypeView/
-    FormView/FormView.tsx` e `frontend/src/hooks/use-autosave-controller.ts`.
-    Lista ampliada na sessão da U0.2 (D2/D4/D5) — os itens novos vieram de
-    investigação durante a implementação, não do desenho original.
+    FormView/FormView.tsx` e `frontend/src/hooks/use-autosave-controller.ts`;
+    `backend/src/core/auth/me.service.ts` (D6 — `avatarUrl` same-origin);
+    e `frontend/src/app/api/proxy/[...path]/route.ts` (D6 — único Route
+    Handler genérico permitido pelo `AGENTS.md` §4.1.1, motor de toda
+    chamada do browser, mesmo tratamento do FormView/autosave).
+    Lista ampliada nas sessões da U0.2 (D2/D4/D5) e U0.4 (D6) — os itens
+    novos vieram de investigação durante a implementação, não do desenho
+    original.
   - **U1** (demo JSON): `frontend/src/core/data-provider/` (novo
     `json.ts`). Nomes de domínio só em `modules/develop/demo/`.
   - **U2** (linguagem): `frontend/src/core/registry/` (novo `labels.ts`).

@@ -28,6 +28,16 @@ function maxUploadSizeBytes(): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 5 * 1024 * 1024;
 }
 
+// D6 (docs/PLAN-fundacao-ux.md): URL same-origin pro preview DENTRO do
+// app (autosave do FormView, cabeçalho/sidebar) — passa pelo proxy BFF
+// genérico, nunca aponta pro backend/storage direto. Não serve pra
+// e-mail (ver `resolve-tenant-branding.util.ts`, que continua usando
+// `getSignedUrlOrNull` — um cliente de e-mail não resolve URL relativa
+// ao nosso frontend).
+export function buildFileContentUrl(fileId: string): string {
+  return `/api/proxy/files/${fileId}/content`;
+}
+
 @Injectable()
 export class FilesService {
   constructor(
@@ -83,6 +93,14 @@ export class FilesService {
     const file = await this.getFileOrThrow(id, tenantId);
     const url = await this.storage.getSignedUrl(file.key);
     return { url, expiresAt: new Date(Date.now() + 3600 * 1000).toISOString() };
+  }
+
+  // D6: usado por `GET /files/:id/content` — tenant-scoping vem de
+  // `getFileOrThrow`, igual todo o resto deste service.
+  async getContent(id: string, tenantId: string) {
+    const file = await this.getFileOrThrow(id, tenantId);
+    const content = await this.storage.getContent(file.key);
+    return { ...content, mime: file.mime };
   }
 
   // Resolver avatarUrl/logoUrl pra exibição não deve derrubar a página com

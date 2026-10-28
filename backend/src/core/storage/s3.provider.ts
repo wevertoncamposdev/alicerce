@@ -5,7 +5,10 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import type { StorageProvider } from './storage-provider.interface';
+import type {
+  StorageContent,
+  StorageProvider,
+} from './storage-provider.interface';
 
 // Driver de produção — fala com AWS S3, Cloudflare R2 ou MinIO (todos
 // implementam o mesmo protocolo S3; `S3_ENDPOINT` troca o destino sem
@@ -57,6 +60,13 @@ export class S3StorageProvider implements StorageProvider {
       new GetObjectCommand({ Bucket: this.bucket, Key: key }),
       { expiresIn: expiresInSeconds },
     );
+  }
+
+  // D6: redirect de curta duração (60s) — é só pro browser seguir
+  // imediatamente, não pra guardar/compartilhar o link (diferente do
+  // `getSignedUrl` de 1h usado em `GET /files/:id/url`).
+  async getContent(key: string): Promise<StorageContent> {
+    return { kind: 'redirect', url: await this.getSignedUrl(key, 60) };
   }
 
   async delete(key: string): Promise<void> {

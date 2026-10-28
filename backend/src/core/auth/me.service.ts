@@ -7,7 +7,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { findOneOrThrow } from '@core/common/utils/find-one-or-throw.util';
-import { FilesService } from '@core/files/file.service';
+import { buildFileContentUrl, FilesService } from '@core/files/file.service';
 import { MailService } from '@core/mail/mail.service';
 import { AccountTokenService } from '@core/auth/account-token.service';
 import { AuditService } from '@modules/audit/audit.service';
@@ -76,7 +76,7 @@ export class MeService {
     return storedToken?.familyId;
   }
 
-  async getMe(userId: string, tenantId: string) {
+  async getMe(userId: string) {
     const user = findOneOrThrow(
       await this.prisma.user.findUnique({
         where: { id: userId },
@@ -86,8 +86,9 @@ export class MeService {
       'Usuário não encontrado',
     );
 
+    // D6: URL same-origin (proxy BFF) — ver user.service.ts#findOne.
     const avatarUrl = user.avatarFileId
-      ? await this.filesService.getSignedUrlOrNull(user.avatarFileId, tenantId)
+      ? buildFileContentUrl(user.avatarFileId)
       : null;
 
     return { ...user, avatarUrl };
@@ -100,7 +101,7 @@ export class MeService {
   // conteúdo de módulos de domínio, que este serviço não conhece.
   async exportMyData(userId: string, tenantId: string) {
     const [profile, sessions, consents, activity] = await Promise.all([
-      this.getMe(userId, tenantId),
+      this.getMe(userId),
       this.listSessions(userId, undefined),
       this.prisma.consentRecord.findMany({
         where: { userId },
@@ -128,8 +129,9 @@ export class MeService {
       select: ME_SELECT,
     });
 
+    // D6: URL same-origin (proxy BFF) — ver user.service.ts#findOne.
     const avatarUrl = user.avatarFileId
-      ? await this.filesService.getSignedUrlOrNull(user.avatarFileId, tenantId)
+      ? buildFileContentUrl(user.avatarFileId)
       : null;
 
     return { ...user, avatarUrl };

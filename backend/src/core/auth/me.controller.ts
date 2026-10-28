@@ -33,7 +33,7 @@ export class MeController {
 
   @Get()
   getMe(@Request() req: AuthenticatedRequest) {
-    return this.meService.getMe(req.user.sub, req.user.tenantId);
+    return this.meService.getMe(req.user.sub);
   }
 
   @Patch()

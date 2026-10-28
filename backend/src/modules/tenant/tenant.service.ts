@@ -12,7 +12,7 @@ import { TenantErrorCode } from './domain/errors/tenant-error-codes';
 import { TenantErrorMapper } from './mappers/tenant-error.mapper';
 import { TenantRepository } from './persistence/repository/tenant.repository';
 import { SearchTenantsDto } from './dto/search-tenant.dto';
-import { FilesService } from '@core/files/file.service';
+import { buildFileContentUrl, FilesService } from '@core/files/file.service';
 import { isValidDocumentForType } from '@core/common/validators/is-document.validator';
 
 @Injectable()
@@ -68,11 +68,9 @@ export class TenantService {
         });
       }
 
+      // D6: URL same-origin (proxy BFF) — ver user.service.ts#findOne.
       const logoUrl = tenant.logoFileId
-        ? await this.filesService.getSignedUrlOrNull(
-            tenant.logoFileId,
-            requestTenantId,
-          )
+        ? buildFileContentUrl(tenant.logoFileId)
         : null;
 
       return { ...tenant, logoUrl };

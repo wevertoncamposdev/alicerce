@@ -13,7 +13,7 @@ import { PermissionCacheService } from '@core/authorization/permission-cache.ser
 import { revokeSessions } from '@core/auth/session-revocation.util';
 import { AccountTokenService } from '@core/auth/account-token.service';
 import { MailService } from '@core/mail/mail.service';
-import { FilesService } from '@core/files/file.service';
+import { buildFileContentUrl, FilesService } from '@core/files/file.service';
 import { resolveTenantBranding } from '@core/mail/resolve-tenant-branding.util';
 import { renderAccountEmail } from '@core/mail/templates/account-email.template';
 
@@ -284,11 +284,12 @@ export class UsersService {
 
       // Resolvido só aqui (detail, um registro) — mesmo padrão de
       // MeService/TenantService. A lista não precisa (não mostra avatar).
+      // D6: URL same-origin (proxy BFF), não a URL assinada do storage
+      // provider — essa é só pra consumo dentro do app, não precisa
+      // validar o arquivo de novo aqui (GET /files/:id/content já faz
+      // o tenant-scoping de verdade quando o browser busca a imagem).
       const avatarUrl = user.avatarFileId
-        ? await this.filesService.getSignedUrlOrNull(
-            user.avatarFileId,
-            tenantId,
-          )
+        ? buildFileContentUrl(user.avatarFileId)
         : null;
 
       return { ...withPendingInvite(user), avatarUrl };

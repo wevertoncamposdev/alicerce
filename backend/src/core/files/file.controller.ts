@@ -9,9 +9,10 @@ import {
   ParseUUIDPipe,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
-import type { FastifyRequest } from 'fastify';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { CurrentUserId } from '@core/common/decorators/current-user-id.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
@@ -64,6 +65,27 @@ export class FilesController {
     @TenantId() tenantId: string,
   ) {
     return this.filesService.getSignedUrl(id, tenantId);
+  }
+
+  // D6 (docs/PLAN-fundacao-ux.md): servido same-origin via proxy BFF
+  // (buildFileContentUrl), nunca a URL direta do storage provider.
+  // `@Res()` sem passthrough — controle manual total, mais simples que
+  // misturar redirect com o pipeline normal de resposta do Nest.
+  @Get(':id/content')
+  async getContent(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+    @Res() res: FastifyReply,
+  ) {
+    const content = await this.filesService.getContent(id, tenantId);
+
+    if (content.kind === 'redirect') {
+      res.redirect(content.url, 302);
+      return;
+    }
+
+    res.type(content.mime);
+    res.send(content.data);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)

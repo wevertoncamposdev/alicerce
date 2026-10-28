@@ -1,6 +1,10 @@
 import * as fs from 'fs/promises';
+import { createReadStream } from 'fs';
 import * as path from 'path';
-import type { StorageProvider } from './storage-provider.interface';
+import type {
+  StorageContent,
+  StorageProvider,
+} from './storage-provider.interface';
 import { signLocalKey } from './local-signed-url.util';
 
 // Driver de dev — grava em disco local. Nunca registrado diretamente no
@@ -29,6 +33,13 @@ export class LocalDiskStorageProvider implements StorageProvider {
     return Promise.resolve(
       `${this.publicUrl}/api/storage/local/${encodeURIComponent(key)}?${params.toString()}`,
     );
+  }
+
+  getContent(key: string): Promise<StorageContent> {
+    return Promise.resolve({
+      kind: 'stream',
+      data: createReadStream(this.resolvePath(key)),
+    });
   }
 
   async delete(key: string): Promise<void> {

@@ -14,6 +14,9 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
   em campo vazio (D2, ADR 0014).
 - Erro de validação chega estruturado por campo até a tela, mesmo em
   produção (D5, ADR 0014).
+- Preview de avatar/logo passa a ser same-origin via proxy BFF
+  (`GET /files/:id/content`), em vez de apontar direto pro backend —
+  funciona com CSP e com backend sem domínio público (D6, ADR 0014).
 
 ---
 

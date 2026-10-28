@@ -22,6 +22,7 @@ import { RedisService } from '@core/redis/redis.service';
 import { AuditService } from '@modules/audit/audit.service';
 import {
   STORAGE_PROVIDER,
+  StorageContent,
   StorageProvider,
 } from '@core/storage/storage-provider.interface';
 
@@ -84,6 +85,13 @@ class MockStorageProvider implements StorageProvider {
 
   getSignedUrl(key: string): Promise<string> {
     return Promise.resolve(`https://storage.example.com/${key}?signed=1`);
+  }
+
+  getContent(key: string): Promise<StorageContent> {
+    return Promise.resolve({
+      kind: 'redirect',
+      url: `https://storage.example.com/${key}?signed=1`,
+    });
   }
 
   delete(key: string): Promise<void> {

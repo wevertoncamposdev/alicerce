@@ -240,3 +240,34 @@ railway run --service backend -- sh -c 'curl -s http://localhost:5000/api/health
 ```
 
 E o login de verdade pela tela, no domínio público do frontend.
+
+### 8.7 Arquivos (`STORAGE_DRIVER=s3`) — Cloudflare R2
+
+D6 (`docs/PLAN-fundacao-ux.md`): com `STORAGE_DRIVER=local` (o default) o
+preview de avatar/logo já funciona em qualquer deploy — `GET /files/:id/
+content` serve os bytes same-origin pelo proxy BFF, mesmo com o backend
+sem domínio público (§8.1). Só o upload em si some a cada redeploy
+(disco do container não é persistente) — pra isso de verdade persistir,
+troque pro driver `s3`, que fala o mesmo protocolo com R2:
+
+Em `backend` → Variables, além da tabela do §8.2:
+
+| Variável | Valor |
+| --- | --- |
+| `STORAGE_DRIVER` | `s3` |
+| `S3_BUCKET` | nome do bucket criado no Cloudflare R2 |
+| `S3_REGION` | `auto` (R2 ignora região de verdade, mas o SDK exige o campo) |
+| `S3_ENDPOINT` | `https://<account_id>.r2.cloudflarestorage.com` |
+| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | gerados em R2 → Manage API Tokens |
+
+Bucket **privado** (sem acesso público anônimo) — o acesso é sempre via
+URL assinada de curta duração que `GET /files/:id/content` gera na hora
+(`S3StorageProvider.getContent`, 60s), nunca um link público fixo.
+
+Com `STORAGE_DRIVER=s3`, essa mesma rota devolve um **redirect** (302)
+pro link assinado do R2, em vez dos bytes — o browser segue direto pro
+bucket, fora do proxy. Pra isso não ser bloqueado pela CSP, adicione o
+host do bucket (`<account_id>.r2.cloudflarestorage.com`) em `img-src` de
+`frontend/src/proxy.ts` (`buildCsp`) antes de ligar o driver `s3` em
+produção — hoje `img-src` é só `'self' data: blob:`, suficiente pro
+driver `local`, mas não alcança um host externo.
