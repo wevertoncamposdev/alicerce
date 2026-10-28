@@ -8,6 +8,11 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 ## [Unreleased]
 
+### Fixed
+
+- Autosave envia só os campos alterados desde o último save, nunca `""`
+  em campo vazio (D2, ADR 0014).
+
 ---
 
 ## [1.0.0] - 2026-10-17

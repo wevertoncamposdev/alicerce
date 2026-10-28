@@ -84,7 +84,7 @@ export function DraftProvider<T extends object>({
                 setStatus("saved");
                 const nextField = nextFieldNameAfter(fields, lastFocusedFieldRef.current);
                 router.replace(`/${model}/${result.id}${nextField ? `?focus=${nextField}` : ""}`);
-                return draft;
+                return values;
             }
 
             const updated = await autoSaveRecord<Record<string, string>>(model, idRef.current, draft);

@@ -8,14 +8,22 @@
   etapa, parar e perguntar antes de editar.
   - **U0** (correções D1–D12): `backend/src/core/common/validators/
     is-document.validator.ts`; `backend/src/core/common/transformers/`
-    (novo — `OnlyDigits`, `Uf`, `TrimToNull`); `backend/src/core/storage/**`
-    e `backend/src/core/files/**` (endpoint `GET /files/:id/content`);
-    `backend/src/main.ts` (erro estruturado do `ValidationPipe`);
+    (novo — `OnlyDigits`, `Uf`, `TrimToNull`); `backend/src/core/common/
+    validation-error.util.ts` (novo — erro de validação por campo, D5);
+    `backend/src/core/storage/**` e `backend/src/core/files/**` (endpoint
+    `GET /files/:id/content`); `backend/src/configure-app.ts` (erro
+    estruturado do `ValidationPipe` — **correção**: não é `main.ts`, a
+    config foi extraída pra `configure-app.ts` na Fase 12/ADR 0013);
     `frontend/src/proxy.ts` (CSP/`img-src`, `matcher`); `frontend/
     next.config.ts` (`serverActions.bodySizeLimit`); `frontend/src/core/
-    components/Layout/AppSidebar.tsx`; e, fora de `core/` mas tratado com o
-    mesmo cuidado desde o ADR 0005, `frontend/src/components/TypeView/
-    FormView/FormView.tsx`.
+    components/Layout/AppSidebar.tsx`; `frontend/src/core/registry/
+    form-validation.ts` (schema parcial do autosave, D2 — já estava
+    listado só pra U4, a U0 também precisa); `frontend/src/core/registry/
+    actions.ts`; e, fora de `core/` mas tratado com o mesmo cuidado desde
+    o ADR 0005 (é o motor de autosave), `frontend/src/components/TypeView/
+    FormView/FormView.tsx` e `frontend/src/hooks/use-autosave-controller.ts`.
+    Lista ampliada na sessão da U0.2 (D2/D4/D5) — os itens novos vieram de
+    investigação durante a implementação, não do desenho original.
   - **U1** (demo JSON): `frontend/src/core/data-provider/` (novo
     `json.ts`). Nomes de domínio só em `modules/develop/demo/`.
   - **U2** (linguagem): `frontend/src/core/registry/` (novo `labels.ts`).

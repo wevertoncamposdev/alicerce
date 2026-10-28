@@ -5,9 +5,30 @@ import * as React from "react";
 type UseAutoSaveControllerOptions<TDraft extends object> = {
     draft: TDraft;
     enabled?: boolean;
-    onSave: (draft: TDraft) => Promise<TDraft>;
+    onSave: (patch: Partial<TDraft>) => Promise<TDraft>;
     onError?: (error: unknown) => void;
 };
+
+// D2 (docs/PLAN-fundacao-ux.md): manda só o que mudou desde o último save,
+// nunca a seção inteira — campo nunca tocado não deveria disputar validação
+// de novo. Normaliza "" <-> null dos dois lados antes de comparar: o valor
+// que sai pro backend pra um campo esvaziado é sempre `null` (nunca ""), e
+// isso não pode continuar marcando o mesmo campo como "mudou" pra sempre só
+// porque o input (que só conhece string) volta a mostrar "".
+function normalizeEmpty(value: unknown): unknown {
+    return value === "" ? null : value;
+}
+
+function diffDraft<TDraft extends object>(previous: TDraft, next: TDraft): Partial<TDraft> {
+    const patch: Partial<TDraft> = {};
+    for (const key of Object.keys(next) as (keyof TDraft)[]) {
+        const normalizedNext = normalizeEmpty(next[key]);
+        const normalizedPrevious = normalizeEmpty(previous[key]);
+        if (JSON.stringify(normalizedNext) === JSON.stringify(normalizedPrevious)) continue;
+        patch[key] = normalizedNext as TDraft[keyof TDraft];
+    }
+    return patch;
+}
 
 export function useAutoSaveController<TDraft extends object>({
     draft,
@@ -35,7 +56,7 @@ export function useAutoSaveController<TDraft extends object>({
         if (!enabled) return;
         const candidate = draftRef.current;
 
-        if (JSON.stringify(candidate) === JSON.stringify(lastSavedRef.current)) {
+        if (Object.keys(diffDraft(lastSavedRef.current, candidate)).length === 0) {
             return;
         }
 
@@ -49,11 +70,14 @@ export function useAutoSaveController<TDraft extends object>({
 
         let current: TDraft | null = candidate;
         while (current) {
-            try {
-                const saved = await onSave(current);
-                lastSavedRef.current = saved;
-            } catch (error) {
-                onError?.(error);
+            const patch = diffDraft(lastSavedRef.current, current);
+            if (Object.keys(patch).length > 0) {
+                try {
+                    const saved = await onSave(patch);
+                    lastSavedRef.current = saved;
+                } catch (error) {
+                    onError?.(error);
+                }
             }
             current = queuedRef.current;
             queuedRef.current = null;
