@@ -160,7 +160,12 @@ export function proxy(request: NextRequest) {
 export const config = {
     matcher: [
         {
-            source: "/((?!api|_next/static|_next/image|favicon.ico).*)",
+            // D9 (docs/PLAN-fundacao-ux.md): antes só excluía `favicon.ico`
+            // nomeado — qualquer outro ícone/manifest (icon.png,
+            // site.webmanifest, favicon-16x16.png...) ainda caía na
+            // verificação de sessão e redirecionava pro login deslogado.
+            // Regra genérica: qualquer caminho com extensão de arquivo.
+            source: "/((?!api|_next/static|_next/image|.*\\..*$).*)",
             missing: [
                 { type: "header", key: "next-router-prefetch" },
                 { type: "header", key: "purpose", value: "prefetch" },
