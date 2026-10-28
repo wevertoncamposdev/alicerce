@@ -276,6 +276,13 @@ Relação "Familiares" (lista de pessoas em memória, nome como `rowLink` para
 `/develop/detail-showcase/<id>`) é o caso de validação de "Relações como links" (§3): abrir
 Pessoa 1 → clicar em Pessoa 2 → Detail de Pessoa 2 com breadcrumb "Showcase / Pessoa 2".
 
+Segundo exemplo de validação: a demo em JSON (`modules/develop/demo/**`,
+U1 — `docs/PLAN-fundacao-ux.md`), com busca/paginação/ordenação reais
+(o Showcase ignora `args`) e três módulos ligados entre si (Pessoas,
+Atividades, Atendimentos) — navegação só por link entre eles, mesmo
+padrão de "Relações como links" do Showcase, agora com dados de
+verdade por trás da lista. Ver `docs/ui/list-page.md`.
+
 ## 10. Critérios de aceite
 
 - [ ] `/develop/detail-showcase` em 1440px é visualmente equivalente à referência (zonas, proporções, densidade).
