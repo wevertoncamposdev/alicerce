@@ -8,6 +8,12 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 ## [Unreleased]
 
+### Added
+
+- `createJsonDataHandlers` (`core/data-provider/json.ts`): motor de
+  dados em memória com o mesmo contrato dos handlers REST, pra módulos
+  de demonstração (U1, ADR 0014).
+
 ### Fixed
 
 - Autosave envia só os campos alterados desde o último save, nunca `""`
