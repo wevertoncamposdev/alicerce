@@ -1,6 +1,7 @@
-import { CalendarPlus, History } from "lucide-react";
+import { CalendarPlus, Clock, History } from "lucide-react";
 import type { AuditFeedItem } from "./types";
 import { EmptyState } from "@components/ui/empty-state";
+import { Card } from "@components/ui/card";
 import { formatAuditDate } from "./format";
 
 function actionLabel(action: string) {
@@ -36,29 +37,34 @@ export function AuditPanel({ items }: { items: AuditFeedItem[] }) {
     const lastUpdated = newestOf(items);
 
     return (
-        <div className="space-y-5 text-sm">
-            <div className="flex items-start gap-3">
-                <CalendarPlus className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                <div>
-                    <div className="font-medium text-foreground">Registro criado em</div>
-                    <div className="text-muted-foreground">
-                        {formatAuditDate(created.createdAt)} · por {created.userEmail}
+        <div className="space-y-4 text-sm">
+            <Card className="space-y-4 p-4">
+                <div className="flex items-start gap-3">
+                    <CalendarPlus className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                    <div>
+                        <div className="font-medium text-foreground">Registro criado em</div>
+                        <div className="text-muted-foreground">
+                            {formatAuditDate(created.createdAt)} · por {created.userEmail}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="flex items-start gap-3">
-                <History className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                <div>
-                    <div className="font-medium text-foreground">Última atualização</div>
-                    <div className="text-muted-foreground">
-                        {formatAuditDate(lastUpdated.createdAt)} · por {lastUpdated.userEmail}
+                <div className="flex items-start gap-3">
+                    <Clock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                    <div>
+                        <div className="font-medium text-foreground">Última atualização</div>
+                        <div className="text-muted-foreground">
+                            {formatAuditDate(lastUpdated.createdAt)} · por {lastUpdated.userEmail}
+                        </div>
                     </div>
                 </div>
-            </div>
+            </Card>
 
-            <div>
-                <div className="mb-3 font-medium text-foreground">Histórico de alterações</div>
+            <Card className="p-4">
+                <div className="mb-3 flex items-center gap-2 font-medium text-foreground">
+                    <History className="size-4 text-muted-foreground" />
+                    Histórico de alterações
+                </div>
                 <div className="space-y-4 border-l border-border/60 pl-4">
                     {items.map((item) => (
                         <div key={item.id} className="relative">
@@ -75,7 +81,7 @@ export function AuditPanel({ items }: { items: AuditFeedItem[] }) {
                         </div>
                     ))}
                 </div>
-            </div>
+            </Card>
         </div>
     );
 }

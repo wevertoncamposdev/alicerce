@@ -44,7 +44,7 @@ export function MetaDataSidebar({
             </TooltipProvider>
 
             <DrawerContent className="sm:max-w-[400px]">
-                <DrawerHeader className="flex items-center justify-between gap-2">
+                <DrawerHeader className="flex items-center justify-between gap-2 border-b pb-4">
                     <div className="space-y-1">
                         <DrawerTitle>Metadados</DrawerTitle>
                         <DrawerDescription>Contexto e auditoria do registro.</DrawerDescription>

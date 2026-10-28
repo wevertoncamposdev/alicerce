@@ -21,6 +21,7 @@ import {
     TableRow,
 } from "@components/ui/table";
 
+import { Card } from "@components/ui/card";
 import { Button } from "@components/ui/button";
 import { appTableFeatures, type AppTableFeatures } from "@core/table-features";
 import type { SearchResult, SortSpec } from "@core/data-provider/types";
@@ -90,70 +91,72 @@ export function ListView<T extends { id: string | number }>({
     return (
         <div className="space-y-4">
 
-            {/* Tabela */}
-            <Table>
-                <TableHeader className="sticky top-0 bg-background z-10">
-                    {table.getHeaderGroups().map((headerGroup) => (
-                        <TableRow key={headerGroup.id}>
+            {/* Tabela — mesmo "outline" (Card) usado em RelationCard/SectionCard. */}
+            <Card className="p-0">
+                <Table>
+                    <TableHeader className="sticky top-0 z-10 bg-muted/30">
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id}>
 
-                            {headerGroup.headers.map((header) => (
-                                <TableHead
-                                    key={header.id}
-                                    onClick={header.column.getToggleSortingHandler()}
-                                    className="cursor-pointer select-none"
-                                >
-                                    <div className="flex items-center gap-2">
+                                {headerGroup.headers.map((header) => (
+                                    <TableHead
+                                        key={header.id}
+                                        onClick={header.column.getToggleSortingHandler()}
+                                        className="cursor-pointer select-none"
+                                    >
+                                        <div className="flex items-center gap-2">
 
+                                            {flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )}
+
+                                            {header.column.getIsSorted() === "asc" && (
+                                                <ArrowUp className="h-3 w-3" />
+                                            )}
+
+                                            {header.column.getIsSorted() === "desc" && (
+                                                <ArrowDown className="h-3 w-3" />
+                                            )}
+
+                                        </div>
+                                    </TableHead>
+                                ))}
+
+                            </TableRow>
+                        ))}
+                    </TableHeader>
+
+                    <TableBody>
+
+                        {table.getRowModel().rows.map((row) => (
+                            <TableRow
+                                key={row.id}
+                                className="cursor-pointer hover:bg-muted/50"
+                                onClick={() =>
+                                    router.push(
+                                        `${detail}/${row.original.id}`
+                                    )
+                                }
+                            >
+                                {row.getVisibleCells().map((cell) => (
+                                    <TableCell
+                                        key={cell.id}
+                                        className="max-w-[300px] truncate"
+                                    >
                                         {flexRender(
-                                            header.column.columnDef.header,
-                                            header.getContext()
+                                            cell.column.columnDef.cell,
+                                            cell.getContext()
                                         )}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
 
-                                        {header.column.getIsSorted() === "asc" && (
-                                            <ArrowUp className="h-3 w-3" />
-                                        )}
+                    </TableBody>
 
-                                        {header.column.getIsSorted() === "desc" && (
-                                            <ArrowDown className="h-3 w-3" />
-                                        )}
-
-                                    </div>
-                                </TableHead>
-                            ))}
-
-                        </TableRow>
-                    ))}
-                </TableHeader>
-
-                <TableBody>
-
-                    {table.getRowModel().rows.map((row) => (
-                        <TableRow
-                            key={row.id}
-                            className="cursor-pointer hover:bg-muted/50"
-                            onClick={() =>
-                                router.push(
-                                    `${detail}/${row.original.id}`
-                                )
-                            }
-                        >
-                            {row.getVisibleCells().map((cell) => (
-                                <TableCell
-                                    key={cell.id}
-                                    className="max-w-[300px] truncate"
-                                >
-                                    {flexRender(
-                                        cell.column.columnDef.cell,
-                                        cell.getContext()
-                                    )}
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    ))}
-
-                </TableBody>
-
-            </Table>
+                </Table>
+            </Card>
 
             {/* Paginação — sempre do servidor (SearchResult.pagination), nunca recalculada localmente */}
             <div className="flex items-center justify-between">
