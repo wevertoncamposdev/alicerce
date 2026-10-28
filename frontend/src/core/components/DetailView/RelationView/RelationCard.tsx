@@ -15,11 +15,6 @@ export function RelationCard({ tabs }: { tabs: RelationTabConfig[] }) {
 
     return (
         <Card className="p-0">
-            <div className="flex items-center gap-2 px-5 pt-5 text-sm font-semibold">
-                <Link2 className="size-4 text-muted-foreground" />
-                <span>Relacionamentos</span>
-            </div>
-
             <Tabs defaultValue={tabs[0].key} className="mt-3">
                 <TabsList variant="line" className="w-full justify-start border-b px-5">
                     {tabs.map((tab) => {

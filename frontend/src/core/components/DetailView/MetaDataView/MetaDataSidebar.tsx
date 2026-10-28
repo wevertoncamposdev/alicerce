@@ -44,24 +44,7 @@ export function MetaDataSidebar({
             </TooltipProvider>
 
             <DrawerContent className="sm:max-w-[400px]">
-                <DrawerHeader className="flex items-center justify-between gap-2 border-b pb-4">
-                    <div className="space-y-1">
-                        <DrawerTitle>Metadados</DrawerTitle>
-                        <DrawerDescription>Contexto e auditoria do registro.</DrawerDescription>
-                    </div>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        aria-label="Fechar metadados"
-                        onClick={() => setOpen(false)}
-                    >
-                        <X className="size-4" />
-                    </Button>
-                </DrawerHeader>
-
-                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">{children}</div>
+                <div className="min-h-0 mt-4 flex-1 overflow-y-auto px-4 pb-4">{children}</div>
             </DrawerContent>
         </Drawer>
     );
