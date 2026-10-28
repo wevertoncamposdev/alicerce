@@ -10,6 +10,9 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DocumentType } from '@core/prisma/generated/enums';
 import { IsDocument } from '@core/common/validators/is-document.validator';
 import { NormalizeEmail } from '@core/common/validators/normalize-email.decorator';
+import { OnlyDigits } from '@core/common/transformers/only-digits';
+import { TrimToNull } from '@core/common/transformers/trim-to-null';
+import { Uf } from '@core/common/transformers/uf';
 
 export class CreateTenantDto {
   @ApiProperty({
@@ -31,6 +34,7 @@ export class CreateTenantDto {
 
   @ApiPropertyOptional({ description: 'Nome fantasia', maxLength: 255 })
   @IsOptional()
+  @TrimToNull()
   @IsString()
   @MaxLength(255)
   tradeName?: string;
@@ -41,10 +45,11 @@ export class CreateTenantDto {
   documentType?: DocumentType;
 
   @ApiPropertyOptional({
-    description: 'CPF (11 dígitos) ou CNPJ (14 dígitos), só números',
+    description: 'CPF (11 dígitos) ou CNPJ (14 dígitos), aceita máscara',
     maxLength: 20,
   })
   @IsOptional()
+  @OnlyDigits()
   @IsString()
   @MaxLength(20)
   @IsDocument()
@@ -52,61 +57,72 @@ export class CreateTenantDto {
 
   @ApiPropertyOptional({ maxLength: 255 })
   @IsOptional()
+  @TrimToNull()
   @NormalizeEmail()
   @IsEmail()
   @MaxLength(255)
   email?: string;
 
-  @ApiPropertyOptional({ maxLength: 20 })
+  @ApiPropertyOptional({ maxLength: 20, description: 'Aceita máscara' })
   @IsOptional()
+  @OnlyDigits()
   @IsString()
   @MaxLength(20)
   phone?: string;
 
   @ApiPropertyOptional({ maxLength: 255 })
   @IsOptional()
+  @TrimToNull()
   @IsString()
   @MaxLength(255)
   website?: string;
 
   @ApiPropertyOptional({ maxLength: 255 })
   @IsOptional()
+  @TrimToNull()
   @IsString()
   @MaxLength(255)
   addressStreet?: string;
 
   @ApiPropertyOptional({ maxLength: 20 })
   @IsOptional()
+  @TrimToNull()
   @IsString()
   @MaxLength(20)
   addressNumber?: string;
 
   @ApiPropertyOptional({ maxLength: 100 })
   @IsOptional()
+  @TrimToNull()
   @IsString()
   @MaxLength(100)
   addressComplement?: string;
 
   @ApiPropertyOptional({ maxLength: 100 })
   @IsOptional()
+  @TrimToNull()
   @IsString()
   @MaxLength(100)
   addressNeighborhood?: string;
 
   @ApiPropertyOptional({ maxLength: 100 })
   @IsOptional()
+  @TrimToNull()
   @IsString()
   @MaxLength(100)
   addressCity?: string;
 
-  @ApiPropertyOptional({ maxLength: 2, description: 'UF' })
+  @ApiPropertyOptional({
+    maxLength: 2,
+    description: 'UF — sigla (ex.: SP) ou nome do estado',
+  })
   @IsOptional()
-  @IsString()
-  @MaxLength(2)
+  @Uf()
   addressState?: string;
 
-  @ApiPropertyOptional({ maxLength: 10 })
+  @ApiPropertyOptional({ maxLength: 10, description: 'CEP, aceita máscara' })
   @IsOptional()
+  @OnlyDigits()
   @IsString()
   @MaxLength(10)
   addressZipCode?: string;

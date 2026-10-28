@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 import { IsStrongPassword } from '@core/common/validators/strong-password.validator';
 import { NormalizeEmail } from '@core/common/validators/normalize-email.decorator';
+import { TrimToNull } from '@core/common/transformers/trim-to-null';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -17,6 +18,7 @@ export class UpdateUserDto {
   email?: string;
 
   @IsOptional()
+  @TrimToNull()
   @IsString()
   @MaxLength(255)
   name?: string;

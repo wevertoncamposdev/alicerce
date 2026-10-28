@@ -1,9 +1,11 @@
 import { IsIn, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { TrimToNull } from '@core/common/transformers/trim-to-null';
 
 const THEME_VALUES = ['light', 'dark', 'system'] as const;
 
 export class UpdateMeDto {
   @IsOptional()
+  @TrimToNull()
   @IsString()
   @MaxLength(255)
   name?: string;
