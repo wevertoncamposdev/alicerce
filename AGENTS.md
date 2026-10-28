@@ -21,16 +21,19 @@ código de auth, zero código de tenant.
 ## 2. Estado do projeto: base congelada na v1
 
 - A base (`backend/src/core/`, `frontend/src/core/`, auth, tenancy, RBAC,
-  auditoria, gerador) está **congelada na v1**.
+  auditoria, gerador) está **congelada na v1**. Congelada de verdade: não é
+  "evita se puder", é "só muda com motivo registrado".
 - O trabalho padrão é **criar e evoluir módulos de domínio**.
-- A base só muda quando um módulo real precisar de algo que ela não oferece.
-  Nesse caso: parar, explicar o que falta, registrar a decisão num ADR em
-  `docs/adr/` e só então alterar o core.
+- A base só muda por um bug real ou porque um módulo real precisa de algo
+  que ela não oferece. Nesse caso: parar, explicar o que falta, registrar
+  uma linha no `CHANGELOG.md` e só então alterar o core. ADR
+  (`docs/adr/NNNN-titulo.md`) só para decisão difícil de desfazer (troca de
+  stack, modelo de dados central, segurança) — não pra todo toque em `core/`.
 - Não refatorar, renomear ou reorganizar o que já funciona sem um módulo
-  real que exija.
-- Funcionalidades futuras da base (notifications, files, billing, management
-  etc.) estão em `docs/roadmap.md`. São **sob demanda**, sem ordem, e não são
-  tarefa pendente.
+  real ou um bug que exija.
+- Funcionalidades futuras da base, nunca construídas (notifications, files,
+  billing, management etc.): `docs/roadmap.md`, sob demanda, sem ordem. Itens
+  adiados da v1 com gatilho concreto pra retomar: `docs/backlog.md`.
 - Upgrades de dependência só na janela mensal, em branch própria, nunca no
   meio de uma feature.
 
@@ -147,14 +150,17 @@ O gerador faz os dois.
    apresentar o plano e esperar aprovação.
 3. **Parar e perguntar** antes de qualquer mudança de grande raio: muda o
    significado de um model, afeta algo fora do módulo em edição, toca o
-   core, ou tem várias opções razoáveis.
-4. **Implementar** e rodar o checkpoint antes de cada commit:
+   core, ou tem várias opções razoáveis. Ver "processo proporcional ao
+   risco" no `CLAUDE.md`.
+4. **Implementar** e rodar o checkpoint rápido antes de cada commit:
 
 ```bash
    cd backend  && npx tsc --noEmit && npm run lint && npm test
    cd frontend && npx tsc --noEmit && npm run lint && npm run build
 ```
 
+   Antes de merge em `main`/deploy, ou em mudança que toca `core/`/auth/
+   RLS/migration destrutiva, rode o checkpoint completo (`CLAUDE.md`).
    Se algo falhar, corrigir antes de seguir. Nunca desabilitar regra de lint
    ou teste para passar.
 5. **Commit** em Conventional Commits, escopo pelo módulo:
@@ -172,7 +178,8 @@ O gerador faz os dois.
 ## 7. Documentação
 
 - Decisões estruturais viram ADR em `docs/adr/NNNN-titulo.md`.
-- `PLAN.md` é curto e trata só do trabalho atual.
+- `PLAN.md` é curto e trata só do trabalho atual. `docs/backlog.md` guarda
+  itens adiados com gatilho — só viram tarefa quando o gatilho acontecer.
 - `docs/guia-novo-modulo.md` é o manual de uso do template e fica sempre em dia.
 - Portar componente do repositório de referência (`system_development`):
   usar a skill `/portar-componente`. Nunca copiar de lá sem ela.
