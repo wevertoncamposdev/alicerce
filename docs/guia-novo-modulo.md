@@ -46,11 +46,10 @@ Nome sempre singular, kebab-case.
   ajustados para os campos reais (o gerador deixa só `title`).
 - **Feature filha (`FeedbackComment`)**: não existe no gerador (que cobre só
   módulo independente, sem `--feature-of`). Foi criada à mão em
-  `backend/src/modules/feedbacks/features/comments/`, seguindo exatamente o
-  padrão já usado por `examples/features/notes/` (rota nested
-  `feedbacks/:feedbackId/comments`, `onDelete: Cascade` no schema). No
-  frontend, exibida via `RelationTablePanel` (mesmo componente que as notes
-  de `examples` já usavam).
+  `backend/src/modules/feedbacks/features/comments/` (rota nested
+  `feedbacks/:feedbackId/comments`, `onDelete: Cascade` no schema) — é o
+  exemplo canônico de Feature filha pra copiar ao criar uma nova. No
+  frontend, exibida via `RelationTablePanel`.
 - **Permissão especial (`feedback.manage`)**: adicionada manualmente ao
   `permission-catalog.ts` (o gerador só cria as 4 básicas). Uma rota própria
   (`PATCH /feedbacks/:id/status`) e um método de service próprios
