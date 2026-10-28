@@ -424,16 +424,25 @@ function EditFormView<T extends object>({
 
             setFieldErrors({});
             setStatus("saving");
-            const updated = await autoSaveRecord<T>(model, recordId, draft);
+            const result = await autoSaveRecord<T>(model, recordId, draft);
+            if (!result.ok) {
+                if (result.fieldErrors) {
+                    setFieldErrors((prev) => ({ ...prev, ...result.fieldErrors }));
+                }
+                throw new Error(result.message);
+            }
             setStatus("saved");
             // Client-side, não chama revalidatePath (AGENTS §4.1.8) — só atualiza título do
             // header/breadcrumb/auditoria no servidor sem resetar o estado local do form.
             router.refresh();
-            return pickEditableFields(updated);
+            return pickEditableFields(result.data);
         },
         onError: (err) => {
             console.error("[autosave]", err);
-            setStatus("error", "Falha ao salvar. Tentando novamente na próxima alteração.");
+            // D5 (docs/PLAN-fundacao-ux.md): a mensagem já vem específica (erro de
+            // campo ou validação local) quando `err` é o `Error` que o `onSave`
+            // lança — só cai no genérico pra erro de verdade inesperado.
+            setStatus("error", err instanceof Error ? err.message : "Falha ao salvar. Tentando novamente na próxima alteração.");
         },
     });
 

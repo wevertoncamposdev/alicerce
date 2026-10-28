@@ -76,7 +76,9 @@ export function DraftProvider<T extends object>({
             if (!idRef.current) {
                 const result = await createRecordDraftAction(model, draft);
                 if (!result.ok) {
-                    setStatus("error", result.message);
+                    if (result.fieldErrors) {
+                        setFieldErrors((prev) => ({ ...prev, ...result.fieldErrors }));
+                    }
                     throw new Error(result.message);
                 }
 
@@ -87,13 +89,22 @@ export function DraftProvider<T extends object>({
                 return values;
             }
 
-            const updated = await autoSaveRecord<Record<string, string>>(model, idRef.current, draft);
+            const result = await autoSaveRecord<Record<string, string>>(model, idRef.current, draft);
+            if (!result.ok) {
+                if (result.fieldErrors) {
+                    setFieldErrors((prev) => ({ ...prev, ...result.fieldErrors }));
+                }
+                throw new Error(result.message);
+            }
             setStatus("saved");
-            return updated;
+            return result.data;
         },
         onError: (err) => {
             console.error("[draft-autosave]", err);
-            setStatus("error", "Falha ao salvar. Tentando novamente na próxima alteração.");
+            // D5 (docs/PLAN-fundacao-ux.md): mensagem específica quando o `onSave`
+            // já lançou com ela (erro de campo ou validação local); genérico só
+            // pra erro de verdade inesperado.
+            setStatus("error", err instanceof Error ? err.message : "Falha ao salvar. Tentando novamente na próxima alteração.");
         },
     });
 

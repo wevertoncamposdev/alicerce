@@ -12,6 +12,8 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 - Autosave envia só os campos alterados desde o último save, nunca `""`
   em campo vazio (D2, ADR 0014).
+- Erro de validação chega estruturado por campo até a tela, mesmo em
+  produção (D5, ADR 0014).
 
 ---
 

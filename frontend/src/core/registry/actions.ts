@@ -3,39 +3,12 @@
 import { createDataProvider } from "@core/data-provider";
 import { getModule } from "@core/registry";
 import { validateFormPayload } from "@core/registry/form-validation";
+import { resolveActionErrorMessage, resolveActionFieldErrors } from "@core/registry/action-errors";
 import type { FormFieldConfig } from "@core/registry/types";
 import type { SearchArgs, SearchResult } from "@core/data-provider/types";
 import { apiServer } from "@lib/api-server";
 
 type ActionState = { ok: boolean; message?: string; fieldErrors?: Record<string, string> };
-
-function resolveActionErrorMessage(error: unknown): string {
-    if (typeof error === "string") {
-        return error;
-    }
-
-    if (error instanceof Error) {
-        return error.message;
-    }
-
-    if (error && typeof error === "object") {
-        const maybeMessage = (error as { message?: unknown }).message;
-        if (typeof maybeMessage === "string") {
-            return maybeMessage;
-        }
-
-        if (Array.isArray(maybeMessage)) {
-            return maybeMessage.filter((item): item is string => typeof item === "string").join("; ");
-        }
-
-        const maybeData = (error as { data?: { message?: unknown } }).data;
-        if (maybeData && typeof maybeData.message === "string") {
-            return maybeData.message;
-        }
-    }
-
-    return "Não foi possível criar o registro.";
-}
 
 export async function createRecordFormAction(
     model: string,
@@ -68,12 +41,18 @@ export async function createRecordFormAction(
         return { ok: true, message: "Criado com sucesso." };
     } catch (err) {
         console.error("[createRecordFormAction]", err);
-        return { ok: false, message: resolveActionErrorMessage(err) };
+        return {
+            ok: false,
+            message: resolveActionErrorMessage(err),
+            fieldErrors: resolveActionFieldErrors(err),
+        };
     }
 }
 
 
-type CreateDraftResult = { ok: true; id: string } | { ok: false; message: string };
+type CreateDraftResult =
+    | { ok: true; id: string }
+    | { ok: false; message: string; fieldErrors?: Record<string, string> };
 
 /**
  * Server Action pro fluxo de criação pelo Detail (ADR 0005, "Novo" com
@@ -101,9 +80,17 @@ export async function createRecordDraftAction(
         return { ok: true, id };
     } catch (err) {
         console.error("[createRecordDraftAction]", err);
-        return { ok: false, message: resolveActionErrorMessage(err) };
+        return {
+            ok: false,
+            message: resolveActionErrorMessage(err),
+            fieldErrors: resolveActionFieldErrors(err),
+        };
     }
 }
+
+export type AutoSaveResult<T> =
+    | { ok: true; data: T }
+    | { ok: false; message: string; fieldErrors?: Record<string, string> };
 
 /**
  * Server Action genérica para autosave de campo/registro.
@@ -112,14 +99,31 @@ export async function createRecordDraftAction(
  *
  * Propositalmente NÃO chama revalidatePath (ver decisão 3.4 da Fase 5):
  * o estado do formulário é local (client), o servidor só precisa persistir.
+ *
+ * D5 (docs/PLAN-fundacao-ux.md): esta era a única action deste arquivo que
+ * deixava o erro atravessar a fronteira do Server Action por `throw` em vez
+ * de capturar e devolver um resultado — um erro lançado aqui chega no
+ * client sem detalhe nenhum (Next esconde a mensagem de erro de Server
+ * Action fora de dev). Agora sempre resolve, igual `createRecordFormAction`/
+ * `createRecordDraftAction`.
  */
 export async function autoSaveRecord<T extends object>(
     model: string,
     id: string,
     patch: Partial<T>,
-): Promise<T> {
-    const dataProvider = createDataProvider();
-    return dataProvider.update<T>(model, id, patch);
+): Promise<AutoSaveResult<T>> {
+    try {
+        const dataProvider = createDataProvider();
+        const data = await dataProvider.update<T>(model, id, patch);
+        return { ok: true, data };
+    } catch (err) {
+        console.error("[autoSaveRecord]", err);
+        return {
+            ok: false,
+            message: resolveActionErrorMessage(err),
+            fieldErrors: resolveActionFieldErrors(err),
+        };
+    }
 }
 
 /**

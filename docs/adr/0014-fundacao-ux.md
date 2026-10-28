@@ -19,7 +19,10 @@
     components/Layout/AppSidebar.tsx`; `frontend/src/core/registry/
     form-validation.ts` (schema parcial do autosave, D2 — já estava
     listado só pra U4, a U0 também precisa); `frontend/src/core/registry/
-    actions.ts`; e, fora de `core/` mas tratado com o mesmo cuidado desde
+    actions.ts` e `frontend/src/core/registry/action-errors.ts` (novo —
+    extraído de `actions.ts` porque todo export de um módulo `"use server"`
+    precisa ser Server Action; função pura não pode ficar lá); e, fora de
+    `core/` mas tratado com o mesmo cuidado desde
     o ADR 0005 (é o motor de autosave), `frontend/src/components/TypeView/
     FormView/FormView.tsx` e `frontend/src/hooks/use-autosave-controller.ts`.
     Lista ampliada na sessão da U0.2 (D2/D4/D5) — os itens novos vieram de

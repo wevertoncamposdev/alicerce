@@ -1,10 +1,11 @@
-import { Logger } from '@nestjs/common';
+import { BadRequestException, Logger } from '@nestjs/common';
 import { ValidationPipe } from '@nestjs/common/pipes/validation.pipe';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
 import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
+import { flattenValidationErrors } from '@core/common/validation-error.util';
 
 // Extraído de main.ts (Fase 12, etapa 12.1, ADR 0013) para ser reusado
 // tanto pela app real (bootstrap em main.ts) quanto pelos testes e2e contra
@@ -13,7 +14,6 @@ import multipart from '@fastify/multipart';
 // qualquer falha que dependa desse pipeline.
 export async function configureApp(app: NestFastifyApplication): Promise<void> {
   const logger = new Logger('ConfigureApp');
-  const isProduction = process.env.NODE_ENV === 'production';
 
   // Em BFF, normalmente só existe UMA origem confiável: o servidor Next.
   // Evite usar '*' mesmo em dev — mantenha a lista explícita.
@@ -72,12 +72,23 @@ export async function configureApp(app: NestFastifyApplication): Promise<void> {
   // AllExceptionsFilter, LoggingInterceptor e AuditInterceptor são
   // registrados como APP_FILTER/APP_INTERCEPTOR em app.module.ts — não aqui
   // — para todo comportamento "global" do app ficar visível num só lugar.
+  // D5 (docs/PLAN-fundacao-ux.md): `disableErrorMessages` escondia TUDO em
+  // produção (o front nunca sabia qual campo falhou) — substituído por um
+  // `exceptionFactory` que decide explicitamente o que expor: nome de campo
+  // e mensagem de validação não são sensíveis (continuam sempre visíveis,
+  // em português); stack e detalhe interno nunca passam por aqui, então não
+  // tem o que esconder só em produção.
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      disableErrorMessages: isProduction, // não vaza detalhe de validação em prod
+      exceptionFactory: (errors) =>
+        new BadRequestException({
+          message: 'Dados inválidos.',
+          code: 'VALIDATION_ERROR',
+          details: { errors: flattenValidationErrors(errors) },
+        }),
     }),
   );
 }
