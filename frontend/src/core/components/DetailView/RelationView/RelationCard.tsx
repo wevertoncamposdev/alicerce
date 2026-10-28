@@ -17,7 +17,7 @@ export function RelationCard({ tabs }: { tabs: RelationTabConfig[] }) {
     return (
         <Card className="p-0">
             <Tabs defaultValue={tabs[0].key}>
-                <TabsList variant="line" className="w-full justify-start border-b px-5">
+                <TabsList variant="line" className="w-full justify-start border-b px-5 mt-4">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         return (

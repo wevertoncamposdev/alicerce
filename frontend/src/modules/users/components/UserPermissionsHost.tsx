@@ -7,9 +7,6 @@ import { EmptyState } from "@components/ui/empty-state";
 export function UserPermissionsHost({ items }: { items: PermissionEntity[] }) {
     return (
         <div className="space-y-2">
-            <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-muted-foreground">Permissões efetivas</h3>
-            </div>
 
             <div className="overflow-hidden rounded-md border">
                 <table className="w-full table-auto text-sm">
