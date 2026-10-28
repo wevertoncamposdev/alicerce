@@ -87,23 +87,32 @@ describe('Auditoria de login (Postgres real)', () => {
     expect(rows.length).toBeGreaterThan(0);
   });
 
-  // Depende de bloqueio por conta via Redis (etapa 1.6) — sem Redis real
-  // neste ambiente o bloqueio nem chega a acontecer; falha por um motivo
-  // extra além do C3, mas `it.failing` continua correto nos dois casos.
-  // Validar o motivo exato (RLS, não Redis) fica para o CI, que sobe um
-  // service `redis` de verdade. App dedicado (não o `testApp` do describe)
-  // pra não gastar o limite de 5/min de `/auth/login` dos outros cenários
-  // (o throttle é por instância, em memória — ver etapa 12.13).
-  it.failing('conta bloqueada grava LOGIN_FAILED com reason account_locked', async () => {
+  // D10 (docs/PLAN-fundacao-ux.md): `isAccountLockedOut` (auth.service.ts,
+  // `LOGIN_LOCKOUT_MAX_ATTEMPTS = 5`) roda ANTES de processar a tentativa
+  // — o contador só chega a 5 na 5ª falha, então seria a 6ª chamada a
+  // encontrar a conta já bloqueada. Mas as mesmas rotas de auth têm um
+  // throttle de 5/60s (`BRUTE_FORCE_THROTTLE`, hardcoded no controller —
+  // `THROTTLE_DISABLED` do test-db só afeta o throttle global "default",
+  // não o valor que `@Throttle()` fixa por rota): 6 chamadas HTTP reais
+  // numa linha batem nesse limite antes da 6ª nem chegar no código de
+  // bloqueio, e nunca geram o audit. Em vez de reproduzir isso com tempo
+  // real (precisaria esperar o throttle expirar, ~60s), semeia o contador
+  // do Redis direto no valor que a 5ª falha real deixaria — testa
+  // exatamente o código (`isAccountLockedOut` lendo o contador real) sem
+  // depender de timing. "5 falhas reais constroem o contador" já é
+  // provado por `lockout.db-spec.ts`, que fica como está.
+  // App dedicado (não o `testApp` do describe) pra não gastar o limite de
+  // 5/min de `/auth/login` dos outros cenários (o throttle é por
+  // instância, em memória — ver etapa 12.13).
+  it('conta bloqueada grava LOGIN_FAILED com reason account_locked', async () => {
     const lockoutApp = await createTestApp();
     try {
       const victim = await registerTenant(lockoutApp.app, { password: 'SenhaForte123' });
+      await lockoutApp.redis.client.set(`login:fail:${victim.email}`, '5');
 
-      for (let i = 0; i < 5; i += 1) {
-        await request(lockoutApp.app.getHttpServer())
-          .post('/api/auth/login')
-          .send({ email: victim.email, password: 'senha-errada-123' });
-      }
+      await request(lockoutApp.app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: victim.email, password: 'senha-errada-123' });
 
       const rows = await auditRowsFor(victim.userId, 'LOGIN_FAILED');
       const locked = rows.find((row) => {
