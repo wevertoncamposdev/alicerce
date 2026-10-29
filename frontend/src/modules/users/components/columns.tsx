@@ -2,6 +2,10 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import type { AppTableFeatures } from "@core/table-features";
+import { Badge } from "@components/ui/badge";
+import { STATUS_BADGE_CLASSNAME } from "@core/components/DetailView/statusBadgeClasses";
+import { EnumBadge } from "@core/components/DetailView/EnumBadge";
+import { UserStatusEnum } from "./UserStatusBadge";
 import type { UserEntity } from "../types/types";
 
 export const userColumns: ColumnDef<AppTableFeatures, UserEntity>[] = [
@@ -14,8 +18,14 @@ export const userColumns: ColumnDef<AppTableFeatures, UserEntity>[] = [
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => (row.original.pendingInvite ? "Convite pendente" : row.original.status),
+        cell: ({ row }) =>
+            row.original.pendingInvite ? (
+                <Badge className={STATUS_BADGE_CLASSNAME.warning}>Convite pendente</Badge>
+            ) : (
+                <EnumBadge enumDef={UserStatusEnum} value={row.original.status} />
+            ),
     },
+    // `tenantId` fica (U3 remove colunas técnicas das listas, não a U2).
     { accessorKey: "tenantId", header: "Tenant ID" },
     {
         accessorKey: "createdAt",

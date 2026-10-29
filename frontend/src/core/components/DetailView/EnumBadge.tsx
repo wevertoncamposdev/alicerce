@@ -4,13 +4,13 @@ import type { EnumDefinition } from "@core/registry/enum";
 
 // U2 (docs/PLAN-fundacao-ux.md, ADR 0014): ponto único de render pra
 // qualquer badge de `defineEnum` — lista, coluna ou header de detail.
-export function EnumBadge<V extends string>({
+export function EnumBadge({
     enumDef,
     value,
     className,
 }: {
-    enumDef: EnumDefinition<V>;
-    value: V | (string & {});
+    enumDef: EnumDefinition<string>;
+    value: string;
     className?: string;
 }) {
     return (

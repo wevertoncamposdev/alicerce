@@ -11,10 +11,15 @@ export type EnumValueConfig = {
     tone: StatusBadgeSemantic;
 };
 
+// `label`/`tone` recebem `string`, não `V` — um enum de 4 valores e um de
+// 2 precisam compartilhar o mesmo tipo de função pra `EnumDefinition<V>`
+// ser atribuível a `EnumDefinition<string>` (ex.: `EnumBadge` genérico
+// recebendo qualquer `defineEnum`); `V` só aparece em `options()`, onde
+// a variância de retorno não quebra essa atribuição.
 export type EnumDefinition<V extends string> = {
     name: string;
-    label: (value: V | (string & {})) => string;
-    tone: (value: V | (string & {})) => StatusBadgeSemantic;
+    label: (value: string) => string;
+    tone: (value: string) => StatusBadgeSemantic;
     options: () => Array<{ value: V; label: string }>;
 };
 
