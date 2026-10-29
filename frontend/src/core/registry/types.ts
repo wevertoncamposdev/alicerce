@@ -1,6 +1,7 @@
 // lib/registry/types.ts
 import type { SearchArgs, SearchResult } from "@core/data-provider/types";
 import type { ContextItem, AuditFeedItem } from "@core/components/DetailView/MetaDataView/types";
+import type { EnumDefinition } from "@core/registry/enum";
 import type React from "react";
 import type { LucideIcon } from "lucide-react";
 
@@ -110,6 +111,30 @@ export type ListContext<T> = {
  * TypeViewScreen usa `views` (a lista de chaves) pra saber quais existem.
  */
 export type ListLayout<T> = Partial<Record<string, (ctx: ListContext<T>) => React.ReactNode>>;
+
+// ============================================================
+// NOVO (U3) — tipo de coluna declarativo, pra quem optar por ele em vez
+// de `ColumnDef<AppTableFeatures,T>[]` cru do TanStack. `core/components/
+// Layout/column-builder.tsx` (buildColumns) transforma isso num
+// ColumnDef de verdade — ver docs/ui/list-page.md.
+// ============================================================
+
+type ColumnConfigBase<T> = { key: keyof T & string; label: string };
+
+export type ColumnConfig<T> =
+    | (ColumnConfigBase<T> & { type: "text" })
+    | (ColumnConfigBase<T> & {
+          type: "title";
+          href: (record: T) => string;
+          avatar?: { fallback: (record: T) => string; src?: keyof T & string };
+          subtitle?: keyof T & string;
+      })
+    | (ColumnConfigBase<T> & { type: "badge"; enumDef: EnumDefinition<string> })
+    | (ColumnConfigBase<T> & { type: "date" | "datetime" })
+    | (ColumnConfigBase<T> & { type: "money" })
+    | (ColumnConfigBase<T> & { type: "relation"; href: (record: T) => string | null })
+    | (ColumnConfigBase<T> & { type: "tags" })
+    | (ColumnConfigBase<T> & { type: "count" });
 
 // ============================================================
 // NOVO — o que hoje é montado na mão em favorites/[id]/page.tsx

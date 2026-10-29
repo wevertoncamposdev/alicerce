@@ -40,8 +40,15 @@
     existe lá (nenhum outro arquivo do DetailView, que fica reservado
     pra U4).
   - **U3** (TypeView v2): `frontend/src/core/table-features.ts`,
-    `frontend/src/core/components/Layout/` (lista/colunas),
-    `frontend/src/core/registry/types.ts` (tipos de coluna).
+    `frontend/src/core/components/Layout/` (lista/colunas) — novo
+    `column-builder.tsx` —, `frontend/src/core/registry/types.ts`
+    (tipos de coluna), `frontend/src/core/registry/csv-export.ts`
+    (novo — exportar CSV do resultado de busca, mesma permissão de
+    leitura que `search` já checa); e, fora de `core/` mas tratado com
+    o mesmo cuidado desde o ADR 0005 (mesmo grupo de
+    `FormView.tsx`/`ListView.tsx`), `frontend/src/components/TypeView/
+    ListView/` — novos `ColumnVisibilityMenu.tsx` e
+    `QuickFilterChips.tsx`.
   - **U4** (DetailView v2): `frontend/src/core/components/DetailView/**`
     (exceto `RelationView/` e `MetaDataView/`, cobertos nas etapas
     seguintes), `frontend/src/core/registry/types.ts` (tipos de campo),

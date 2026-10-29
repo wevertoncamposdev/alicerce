@@ -17,6 +17,11 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
   `defineEnum`/`EnumBadge` (`core/registry/enum.ts`,
   `core/components/DetailView/EnumBadge.tsx`): ponto central de rótulo
   e tom de cor, pra tirar verbo HTTP/enum cru da tela (U2, ADR 0014).
+- `ColumnConfig`/`buildColumns` (`core/registry/types.ts`,
+  `core/components/Layout/column-builder.tsx`): tipo de coluna
+  declarativo (text/title/badge/date/datetime/money/relation/tags/
+  count) pra lista, opcional — alternativa ao `ColumnDef` cru do
+  TanStack (U3, ADR 0014).
 
 ### Fixed
 
