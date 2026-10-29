@@ -49,18 +49,23 @@ function humanizeFieldName(field: string): string {
 }
 
 /**
- * Rótulo de um campo dentro de um módulo já registrado (`model` bate
- * com `defineRecordModule({ model })`). Só funciona para módulos reais
- * (passam por `getModule`, que exige registro em `bootstrap.ts`) — a
- * demo nunca aparece em auditoria, não precisa disso.
+ * Rótulo de um campo dentro de um módulo já registrado. Aceita singular
+ * ou plural (mesma flexibilidade de `entityLabel` — a auditoria chama
+ * com o singular que `resolveAuditEntityFromUrl` grava). Só funciona
+ * para módulos reais (passam por `getModule`, que exige registro em
+ * `bootstrap.ts`) — a demo nunca aparece em auditoria, não precisa disso.
  */
 export function fieldLabel(model: string, field: string): string {
-    try {
-        const mod = getModule(model);
-        const found = mod.formFields.find((f) => f.name === field);
-        if (found) return found.label;
-    } catch {
-        // módulo não registrado — cai no fallback abaixo
+    const normalized = model.toLowerCase();
+    const plural = normalized.endsWith("s") ? normalized : `${normalized}s`;
+
+    for (const candidate of [normalized, plural]) {
+        try {
+            const found = getModule(candidate).formFields.find((f) => f.name === field);
+            if (found) return found.label;
+        } catch {
+            // módulo não registrado sob esse nome — tenta o próximo candidato
+        }
     }
 
     return humanizeFieldName(field);

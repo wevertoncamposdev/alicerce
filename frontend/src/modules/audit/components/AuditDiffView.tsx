@@ -1,4 +1,13 @@
 import { EmptyState } from "@components/ui/empty-state";
+import { fieldLabel } from "@core/registry/labels";
+
+// U2 (docs/PLAN-fundacao-ux.md): nunca aparecem no diff, em nenhuma
+// entidade — não são campo de negócio, e `password`/`passwordHash`
+// nem deveriam estar no `before`/`after` (o backend já tem sua própria
+// lista em `audit.interceptor.ts`, `SENSITIVE_KEYS` — esta é só a
+// defesa do lado da UI, caso algum dia um novo campo sensível escape
+// de lá antes de ser adicionado aqui também).
+const TECHNICAL_KEYS = new Set(["id", "tenantId", "createdAt", "updatedAt", "password", "passwordHash"]);
 
 // `before`/`after` chegam parseados (objeto) quando vêm de GET /audit/:id
 // (backend já faz JSON.parse — ver AuditService.findOne); se por algum
@@ -25,10 +34,12 @@ function formatValue(value: unknown): string {
 // Diff campo-a-campo antes/depois (Plano Base.md 8.5) — não tenta ser um
 // diff de texto genérico, só compara os valores de cada chave presente em
 // antes e/ou depois, destacando o que mudou.
-export function AuditDiffView({ before, after }: { before: unknown; after: unknown }) {
+export function AuditDiffView({ entity, before, after }: { entity: string; before: unknown; after: unknown }) {
     const beforeObj = toRecord(before);
     const afterObj = toRecord(after);
-    const keys = [...new Set([...Object.keys(beforeObj), ...Object.keys(afterObj)])].sort();
+    const keys = [...new Set([...Object.keys(beforeObj), ...Object.keys(afterObj)])]
+        .filter((key) => !TECHNICAL_KEYS.has(key))
+        .sort();
 
     if (keys.length === 0) {
         return <EmptyState title="Sem alterações registradas para este evento." className="py-6" />;
@@ -50,7 +61,7 @@ export function AuditDiffView({ before, after }: { before: unknown; after: unkno
                         key={key}
                         className={`grid grid-cols-[minmax(100px,1fr)_2fr_2fr] gap-2 border-t px-3 py-2 ${changed ? "bg-amber-500/5" : ""}`}
                     >
-                        <span className="font-medium text-muted-foreground">{key}</span>
+                        <span className="font-medium text-muted-foreground">{fieldLabel(entity, key)}</span>
                         <span className={changed ? "text-muted-foreground line-through" : "text-muted-foreground"}>
                             {formatValue(beforeVal)}
                         </span>
