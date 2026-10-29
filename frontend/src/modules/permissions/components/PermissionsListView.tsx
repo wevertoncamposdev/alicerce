@@ -4,17 +4,18 @@ import Link from "next/link";
 import { EmptyState } from "@components/ui/empty-state";
 import type { PermissionEntity } from "../types/types";
 
+type PermissionRow = PermissionEntity & { resourceLabel: string; actionText: string };
+
 // Somente leitura (Plano Base.md 8.4) — sem criar/editar/excluir, lista
 // agrupada por recurso com descrição e em quais papéis cada permissão está.
-export function PermissionsListView({ data }: { data: PermissionEntity[] }) {
+export function PermissionsListView({ data }: { data: PermissionRow[] }) {
     const groups = React.useMemo(() => {
-        const byResource = new Map<string, PermissionEntity[]>();
+        const byResource = new Map<string, PermissionRow[]>();
         for (const permission of data) {
-            const resource = permission.resource ?? "outros";
-            if (!byResource.has(resource)) {
-                byResource.set(resource, []);
+            if (!byResource.has(permission.resourceLabel)) {
+                byResource.set(permission.resourceLabel, []);
             }
-            byResource.get(resource)!.push(permission);
+            byResource.get(permission.resourceLabel)!.push(permission);
         }
         return [...byResource.entries()].sort(([a], [b]) => a.localeCompare(b));
     }, [data]);
@@ -25,14 +26,14 @@ export function PermissionsListView({ data }: { data: PermissionEntity[] }) {
 
     return (
         <div className="space-y-6">
-            {groups.map(([resource, permissions]) => (
-                <div key={resource} className="space-y-2">
-                    <h3 className="text-sm font-semibold capitalize">{resource}</h3>
+            {groups.map(([resourceLabel, permissions]) => (
+                <div key={resourceLabel} className="space-y-2">
+                    <h3 className="text-sm font-semibold">{resourceLabel}</h3>
                     <div className="overflow-hidden rounded-md border">
                         <table className="w-full table-auto text-sm">
                             <thead className="bg-muted/50 text-left">
                                 <tr>
-                                    <th className="px-3 py-2">Nome</th>
+                                    <th className="px-3 py-2">Ação</th>
                                     <th className="px-3 py-2">Descrição</th>
                                     <th className="px-3 py-2">Papéis</th>
                                 </tr>
@@ -40,10 +41,11 @@ export function PermissionsListView({ data }: { data: PermissionEntity[] }) {
                             <tbody>
                                 {permissions.map((permission) => (
                                     <tr key={permission.id} className="border-t">
-                                        <td className="px-3 py-2 font-medium">
-                                            <Link href={`/permissions/${permission.id}`} className="text-foreground hover:underline">
-                                                {permission.name}
+                                        <td className="px-3 py-2">
+                                            <Link href={`/permissions/${permission.id}`} className="font-medium text-foreground hover:underline">
+                                                {permission.actionText}
                                             </Link>
+                                            <div className="text-xs text-muted-foreground">{permission.name}</div>
                                         </td>
                                         <td className="px-3 py-2 text-muted-foreground">{permission.description ?? "—"}</td>
                                         <td className="px-3 py-2 text-muted-foreground">
