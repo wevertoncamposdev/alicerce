@@ -1,6 +1,7 @@
 'use server';
 
 import { apiServer } from '@lib/api-server';
+import { toPermissionMatrixViewModel, type PermissionMatrixViewModel } from '@modules/roles/config/permission-matrix-view-model';
 
 // Nota: autenticação agora é via cookie httpOnly, lida direto do servidor
 // por `apiServer` (AGENTS §4.1) — nenhum destes métodos precisa receber
@@ -40,14 +41,19 @@ export interface PermissionMatrixGroup {
 }
 
 // Etapa 3.5 (Plano Base.md) — matriz de permissões por recurso. Usada pela
-// aba Permissões do Detail de Papéis (8.3).
-export async function getPermissionMatrix(roleId: string): Promise<PermissionMatrixGroup[]> {
-    return apiServer.get<PermissionMatrixGroup[]>(`roles/${roleId}/permission-matrix`);
+// aba Permissões do Detail de Papéis (8.3). `entityLabel`/
+// `permissionActionLabel` (dentro de `toPermissionMatrixViewModel`) são
+// `server-only` — RolePermissionMatrix.tsx é "use client", então a
+// tradução só pode acontecer aqui, numa Server Action, nunca lá.
+export async function getPermissionMatrix(roleId: string): Promise<PermissionMatrixViewModel> {
+    const groups = await apiServer.get<PermissionMatrixGroup[]>(`roles/${roleId}/permission-matrix`);
+    return toPermissionMatrixViewModel(groups);
 }
 
 // Troca o conjunto INTEIRO de permissões de catálogo do papel — não é um
 // toggle por checkbox, é "manda o conjunto completo marcado" (ver
 // RolesService.replacePermissions, backend).
-export async function replaceRolePermissions(roleId: string, permissionIds: string[]): Promise<PermissionMatrixGroup[]> {
-    return apiServer.put<PermissionMatrixGroup[]>(`roles/${roleId}/permissions`, { permissionIds });
+export async function replaceRolePermissions(roleId: string, permissionIds: string[]): Promise<PermissionMatrixViewModel> {
+    const groups = await apiServer.put<PermissionMatrixGroup[]>(`roles/${roleId}/permissions`, { permissionIds });
+    return toPermissionMatrixViewModel(groups);
 }
