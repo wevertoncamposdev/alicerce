@@ -24,14 +24,24 @@ import {
 import { Card } from "@components/ui/card";
 import { Button } from "@components/ui/button";
 import { appTableFeatures, type AppTableFeatures } from "@core/table-features";
+import { buildColumns } from "@core/components/Layout/column-builder";
 import type { SearchResult, SortSpec } from "@core/data-provider/types";
+import type { ColumnConfig } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
 
 const { serializeListState } = createListQueryState();
 
+// U3 (docs/PLAN-fundacao-ux.md): `columns` aceita o `ColumnDef` cru de
+// sempre OU o `ColumnConfig` declarativo novo (adoção incremental,
+// módulo a módulo) — só olha o primeiro item pra decidir qual é, não
+// dá pra misturar os dois tipos no mesmo array.
+function isColumnConfig<T extends object>(value: unknown): value is ColumnConfig<T> {
+    return typeof value === "object" && value !== null && "type" in value;
+}
+
 type Props<T extends { id: string | number }> = {
     data: T[];
-    columns: ColumnDef<AppTableFeatures, T>[];
+    columns: ColumnDef<AppTableFeatures, T>[] | ColumnConfig<T>[];
     detail: string;
     pagination: SearchResult<T>["pagination"];
     sort?: SortSpec[];
@@ -39,7 +49,7 @@ type Props<T extends { id: string | number }> = {
 
 export function ListView<T extends { id: string | number }>({
     data,
-    columns,
+    columns: columnsProp,
     detail,
     pagination,
     sort,
@@ -47,6 +57,11 @@ export function ListView<T extends { id: string | number }>({
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+
+    const columns =
+        columnsProp.length > 0 && isColumnConfig<T>(columnsProp[0])
+            ? buildColumns(columnsProp as ColumnConfig<T>[])
+            : (columnsProp as ColumnDef<AppTableFeatures, T>[]);
 
     // Convertido direto do `sort` que chegou da URL/servidor (ver
     // SearchArgs.sort) — nunca é estado local: clicar numa coluna navega
@@ -91,71 +106,76 @@ export function ListView<T extends { id: string | number }>({
     return (
         <div className="space-y-4">
 
-            {/* Tabela — mesmo "outline" (Card) usado em RelationCard/SectionCard. */}
-            <Card className="p-0">
-                <Table>
-                    <TableHeader className="sticky top-0 z-10 bg-muted/30">
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
+            {/* Tabela — mesmo "outline" (Card) usado em RelationCard/SectionCard.
+                `overflow-x-auto` aqui, não na página: lista com muitas colunas
+                rola só dentro do card, nunca empurra o layout inteiro pros
+                lados (U3 — critério de aceite do smoke a 375px). */}
+            <Card className="overflow-hidden p-0">
+                <div className="overflow-x-auto">
+                    <Table>
+                        <TableHeader className="sticky top-0 z-10 bg-muted/30">
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id}>
 
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead
-                                        key={header.id}
-                                        onClick={header.column.getToggleSortingHandler()}
-                                        className="cursor-pointer select-none"
-                                    >
-                                        <div className="flex items-center gap-2">
+                                    {headerGroup.headers.map((header, index) => (
+                                        <TableHead
+                                            key={header.id}
+                                            onClick={header.column.getToggleSortingHandler()}
+                                            className={`cursor-pointer select-none ${index === 0 ? "sticky left-0 z-20 bg-muted/30" : ""}`}
+                                        >
+                                            <div className="flex items-center gap-2">
 
+                                                {flexRender(
+                                                    header.column.columnDef.header,
+                                                    header.getContext()
+                                                )}
+
+                                                {header.column.getIsSorted() === "asc" && (
+                                                    <ArrowUp className="h-3 w-3" />
+                                                )}
+
+                                                {header.column.getIsSorted() === "desc" && (
+                                                    <ArrowDown className="h-3 w-3" />
+                                                )}
+
+                                            </div>
+                                        </TableHead>
+                                    ))}
+
+                                </TableRow>
+                            ))}
+                        </TableHeader>
+
+                        <TableBody>
+
+                            {table.getRowModel().rows.map((row) => (
+                                <TableRow
+                                    key={row.id}
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() =>
+                                        router.push(
+                                            `${detail}/${row.original.id}`
+                                        )
+                                    }
+                                >
+                                    {row.getVisibleCells().map((cell, index) => (
+                                        <TableCell
+                                            key={cell.id}
+                                            className={`max-w-[300px] truncate ${index === 0 ? "sticky left-0 z-[5] bg-background" : ""}`}
+                                        >
                                             {flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext()
+                                                cell.column.columnDef.cell,
+                                                cell.getContext()
                                             )}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))}
 
-                                            {header.column.getIsSorted() === "asc" && (
-                                                <ArrowUp className="h-3 w-3" />
-                                            )}
+                        </TableBody>
 
-                                            {header.column.getIsSorted() === "desc" && (
-                                                <ArrowDown className="h-3 w-3" />
-                                            )}
-
-                                        </div>
-                                    </TableHead>
-                                ))}
-
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-
-                    <TableBody>
-
-                        {table.getRowModel().rows.map((row) => (
-                            <TableRow
-                                key={row.id}
-                                className="cursor-pointer hover:bg-muted/50"
-                                onClick={() =>
-                                    router.push(
-                                        `${detail}/${row.original.id}`
-                                    )
-                                }
-                            >
-                                {row.getVisibleCells().map((cell) => (
-                                    <TableCell
-                                        key={cell.id}
-                                        className="max-w-[300px] truncate"
-                                    >
-                                        {flexRender(
-                                            cell.column.columnDef.cell,
-                                            cell.getContext()
-                                        )}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
-
-                    </TableBody>
-
-                </Table>
+                    </Table>
+                </div>
             </Card>
 
             {/* Paginação — sempre do servidor (SearchResult.pagination), nunca recalculada localmente */}
