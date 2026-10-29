@@ -34,7 +34,11 @@
     original.
   - **U1** (demo JSON): `frontend/src/core/data-provider/` (novo
     `json.ts`). Nomes de domínio só em `modules/develop/demo/`.
-  - **U2** (linguagem): `frontend/src/core/registry/` (novo `labels.ts`).
+  - **U2** (linguagem): `frontend/src/core/registry/` (novo `labels.ts`,
+    novo `enum.ts`); `frontend/src/core/components/DetailView/` — só o
+    novo `EnumBadge.tsx`, ao lado do `statusBadgeClasses.ts` que já
+    existe lá (nenhum outro arquivo do DetailView, que fica reservado
+    pra U4).
   - **U3** (TypeView v2): `frontend/src/core/table-features.ts`,
     `frontend/src/core/components/Layout/` (lista/colunas),
     `frontend/src/core/registry/types.ts` (tipos de coluna).

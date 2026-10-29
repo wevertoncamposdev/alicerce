@@ -4,20 +4,14 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { updateFeedbackStatus } from "@modules/feedbacks/config/status-action";
+import { FeedbackStatusEnum } from "@modules/feedbacks/config/status-enum";
+import { EnumBadge } from "@core/components/DetailView/EnumBadge";
 import { useAuth } from "@/contexts/auth-context";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 import useApiError from "@/hooks/useApiError";
 import type { FeedbackEntity, FeedbackStatus } from "@modules/feedbacks/types/types";
 
-const STATUS_OPTIONS: Array<{ value: FeedbackStatus; label: string }> = [
-    { value: "RECEIVED", label: "Recebido" },
-    { value: "IN_REVIEW", label: "Em análise" },
-    { value: "PLANNED", label: "Planejado" },
-    { value: "DONE", label: "Concluído" },
-    { value: "DECLINED", label: "Recusado" },
-];
-
-const STATUS_LABELS = Object.fromEntries(STATUS_OPTIONS.map((o) => [o.value, o.label])) as Record<FeedbackStatus, string>;
+const STATUS_OPTIONS = FeedbackStatusEnum.options();
 
 // Mudar o status é uma permissão separada (`feedback.manage`) da edição comum
 // (`feedback.update`) — o backend já bloqueia quem não tem a permissão
@@ -32,11 +26,7 @@ export function FeedbackStatusControl({ feedback }: { feedback: FeedbackEntity }
     const [isSaving, setIsSaving] = React.useState(false);
 
     if (!hasPermission("feedback.manage")) {
-        return (
-            <span className="inline-flex items-center rounded-md border px-2 py-1 text-sm text-muted-foreground">
-                {STATUS_LABELS[status] ?? status}
-            </span>
-        );
+        return <EnumBadge enumDef={FeedbackStatusEnum} value={status} />;
     }
 
     async function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {

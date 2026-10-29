@@ -10,6 +10,26 @@ import { readAuditEntry, searchAuditEntries, listAuditUserOptions } from "@modul
 import type { AuditEntry } from "@modules/audit/types/types";
 import type { ContextItem } from "@core/components/DetailView/MetaDataView/types";
 import { resolveAuditEntityHref } from "@modules/audit/config/entity-link";
+import { toAuditRow } from "@modules/audit/config/row-view-model";
+import { actionLabel, entityLabel } from "@core/registry/labels";
+
+// U2 (docs/PLAN-fundacao-ux.md): `type` carrega o evento semântico
+// quando não é um CRUD comum (ver `audit.interceptor.ts`,
+// `resolveAuditType`) — some sobrepõe `${ação} ${entidade}` no título.
+// `DATA_CHANGE` (o caso comum) não está aqui de propósito: cai no ramo
+// padrão abaixo.
+const AUDIT_TYPE_TITLE: Partial<Record<string, string>> = {
+    LOGIN: "Entrou",
+    LOGOUT: "Saiu",
+    LOGIN_FAILED: "Tentativa de acesso recusada",
+    ACCESS_DENIED: "Acesso negado",
+    PERMISSION_CHANGE: "Alterou permissões",
+};
+
+function auditTitle(record: AuditEntry): string {
+    return (record.type && AUDIT_TYPE_TITLE[record.type])
+        ?? `${actionLabel(record.action)} ${entityLabel(record.entity)}`;
+}
 
 const { parseListState: parseBaseListState, serializeListState } = createListQueryState();
 
@@ -38,7 +58,8 @@ async function AuditListSection({
     pagination: SearchResult<AuditEntry>["pagination"];
 }) {
     const users = await listAuditUserOptions();
-    return <AuditListView data={data} pagination={pagination} users={users} />;
+    const rows = data.map(toAuditRow);
+    return <AuditListView data={rows} pagination={pagination} users={users} />;
 }
 
 function loadAuditContext(record: AuditEntry): ContextItem[] {
@@ -50,9 +71,9 @@ function loadAuditContext(record: AuditEntry): ContextItem[] {
 
 const auditDetailLayout: DetailLayout<AuditEntry> = {
     header: ({ record }) => ({
-        title: `${record.action} ${record.entity}`,
+        title: auditTitle(record),
         subtitle: [
-            record.user?.name ?? record.user?.email ?? record.userId,
+            record.user?.name ?? record.user?.email ?? "Usuário removido",
             new Date(record.createdAt).toLocaleString("pt-BR"),
         ],
     }),
@@ -64,19 +85,23 @@ const auditDetailLayout: DetailLayout<AuditEntry> = {
             column: 1,
             render: ({ record }) => {
                 const href = resolveAuditEntityHref(record.entity, record.entityId);
+                // Referência curta (8 chars, sem o UUID inteiro) — mesmo
+                // critério de `row-view-model.ts`, pro link do "Registro
+                // afetado" não mostrar o identificador técnico completo.
+                const short = record.entityId ? record.entityId.slice(0, 8) : null;
                 return (
                     <dl className="grid grid-cols-[minmax(110px,40%)_1fr] gap-x-4 gap-y-2.5 text-sm">
                         <dt className="text-muted-foreground">Ação</dt>
-                        <dd className="text-foreground">{record.action}</dd>
+                        <dd className="text-foreground">{actionLabel(record.action)}</dd>
                         <dt className="text-muted-foreground">Entidade</dt>
-                        <dd className="text-foreground">{record.entity}</dd>
+                        <dd className="text-foreground">{entityLabel(record.entity)}</dd>
                         <dt className="text-muted-foreground">Registro afetado</dt>
                         <dd className="text-foreground">
-                            {record.entityId ? (
+                            {short ? (
                                 href ? (
-                                    <a href={href} className="hover:underline">{record.entityId}</a>
+                                    <a href={href} className="hover:underline">{short}</a>
                                 ) : (
-                                    record.entityId
+                                    short
                                 )
                             ) : "—"}
                         </dd>
@@ -89,7 +114,9 @@ const auditDetailLayout: DetailLayout<AuditEntry> = {
             title: "Alterações",
             icon: FileText,
             column: 1,
-            render: ({ record }) => <AuditDiffView before={record.before} after={record.after} />,
+            render: ({ record }) => (
+                <AuditDiffView entity={record.entity} before={record.before} after={record.after} />
+            ),
         },
     ],
 };

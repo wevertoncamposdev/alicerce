@@ -1,7 +1,6 @@
 import { Building2 } from "lucide-react";
 import { platformApiServer } from "@lib/platform-api-server";
 import { EmptyState } from "@components/ui/empty-state";
-import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/index";
 import {
   Table,
@@ -11,6 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table";
+import { defineEnum } from "@core/registry/enum";
+import { EnumBadge } from "@core/components/DetailView/EnumBadge";
 import { updateTenantStatusAction } from "./actions";
 
 interface ManagementTenant {
@@ -21,6 +22,16 @@ interface ManagementTenant {
   userCount: number;
   feedbackCount: number;
 }
+
+// U2 (docs/PLAN-fundacao-ux.md): mesmo enum `Status` do Prisma que User
+// usa (`modules/users/components/UserStatusBadge.tsx`) — tela de
+// platform-admin, fora do registry de módulos, então o enum fica local.
+const TenantStatusEnum = defineEnum("TenantStatus", {
+  ACTIVE: { label: "Ativa", tone: "success" },
+  INACTIVE: { label: "Inativa", tone: "neutral" },
+  SUSPENDED: { label: "Suspensa", tone: "warning" },
+  ARCHIVED: { label: "Arquivada", tone: "danger" },
+});
 
 export default async function PlatformTenantsPage() {
   const tenants = await platformApiServer.get<ManagementTenant[]>("management/tenants");
@@ -53,9 +64,7 @@ export default async function PlatformTenantsPage() {
                     <div className="text-xs text-muted-foreground">{tenant.slug}</div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={tenant.status === "ACTIVE" ? "default" : "destructive"}>
-                      {tenant.status}
-                    </Badge>
+                    <EnumBadge enumDef={TenantStatusEnum} value={tenant.status} />
                   </TableCell>
                   <TableCell>{tenant.userCount}</TableCell>
                   <TableCell>{tenant.feedbackCount}</TableCell>

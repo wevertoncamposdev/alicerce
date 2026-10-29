@@ -17,7 +17,7 @@ O conteúdo da imagem (Pessoa, CPF, Tags...) é exemplo; o Alicerce é genérico
 ## 1. Onde estamos (código real)
 
 | Peça | Arquivo | Situação |
-|---|---|---|
+| --- | --- | --- |
 | Screen | `core/screens/DetailViewScreen.tsx` | Carrega record, context, audit. Mantém. |
 | Motor | `core/components/DetailView/DetailView.tsx` | Flex `main` + `aside 360px`. **Substituir pela anatomia abaixo.** |
 | Casco | `core/components/DetailView/DetailShell.tsx` | Só `space-y`. Vira o container da página. |
@@ -33,7 +33,7 @@ Usam `detailLayout` hoje: `feedbacks`, `users`, `roles`, `permissions`, `tenants
 
 ## 2. Anatomia
 
-```
+```bash
 AppTopbar: breadcrumb (Feedbacks / <título>)      [toolbar do módulo][Metadados]
 ──────────────────────────────────────────────────────────────
 ┌────────────────────────────────────────────────────────────┐
@@ -107,7 +107,7 @@ Usar só os tokens de `app/globals.css` (`--primary`, `--muted-foreground`, `--b
 Nada de cor hexadecimal solta. Badges de status por mapa semântico:
 
 | semântica | classes |
-|---|---|
+| --- | --- |
 | neutral | `bg-muted text-muted-foreground` |
 | info | `bg-primary/10 text-primary` |
 | success | `bg-emerald-500/10 text-emerald-700 dark:text-emerald-400` |
@@ -218,6 +218,7 @@ export type FormFieldConfig<T> = {
 ```
 
 Regras do motor (`DetailView.tsx`):
+
 - `header` ausente → header mínimo: título = `record.title ?? record.name ?? mod.label`, sem avatar.
 - `sections` presente → grid de §3; senão → renderiza `main` como hoje (módulos não migrados).
 - `relations` → sempre dentro do Relation card de §3; itens cujo módulo tem Detail recebem `rowLink`
@@ -246,6 +247,7 @@ Cada bloco de conteúdo (abaixo) fica dentro de um `Card` — mesmo outline de `
 texto) já identifica o conteúdo.
 
 Aba Auditoria, de cima para baixo:
+
 1. Card com "Registro criado em" (ícone `CalendarPlus`, data `dd/MM/yyyy • HH:mm`, "por {email}")
    e "Última atualização" (ícone `Clock`, mesmo formato) juntos.
 2. Card "Histórico de alterações" (ícone `History`): timeline vertical (`border-l` + bolinha
@@ -275,6 +277,13 @@ Sem backend. Serve só para comparar com a imagem. O Feedback é magro demais pa
 Relação "Familiares" (lista de pessoas em memória, nome como `rowLink` para
 `/develop/detail-showcase/<id>`) é o caso de validação de "Relações como links" (§3): abrir
 Pessoa 1 → clicar em Pessoa 2 → Detail de Pessoa 2 com breadcrumb "Showcase / Pessoa 2".
+
+Segundo exemplo de validação: a demo em JSON (`modules/develop/demo/**`,
+U1 — `docs/PLAN-fundacao-ux.md`), com busca/paginação/ordenação reais
+(o Showcase ignora `args`) e três módulos ligados entre si (Pessoas,
+Atividades, Atendimentos) — navegação só por link entre eles, mesmo
+padrão de "Relações como links" do Showcase, agora com dados de
+verdade por trás da lista. Ver `docs/ui/list-page.md`.
 
 ## 10. Critérios de aceite
 

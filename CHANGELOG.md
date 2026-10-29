@@ -8,6 +8,16 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 ## [Unreleased]
 
+### Added
+
+- `createJsonDataHandlers` (`core/data-provider/json.ts`): motor de
+  dados em memória com o mesmo contrato dos handlers REST, pra módulos
+  de demonstração (U1, ADR 0014).
+- `entityLabel`/`fieldLabel`/`actionLabel` (`core/registry/labels.ts`) e
+  `defineEnum`/`EnumBadge` (`core/registry/enum.ts`,
+  `core/components/DetailView/EnumBadge.tsx`): ponto central de rótulo
+  e tom de cor, pra tirar verbo HTTP/enum cru da tela (U2, ADR 0014).
+
 ### Fixed
 
 - Autosave envia só os campos alterados desde o último save, nunca `""`

@@ -24,7 +24,7 @@
 ### Defeitos reais (reproduzidos contra o app rodando)
 
 | # | Sintoma que você viu | Causa confirmada | Onde |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | D1 | Nome do usuário não salva | `UpdateUserDto` não tem `name`; com `forbidNonWhitelisted`, todo autosave do nome volta 400 | `modules/user/dto/update-user.dto.ts` |
 | D2 | Instituição não salva quando o formulário é preenchido | O autosave manda **a seção inteira** a cada alteração, com `""` nos campos vazios. `documentType: ""`, `email: ""` e `logoFileId: ""` reprovam o lote todo (400) e a tela só diz "Falha ao salvar" | `FormView.tsx` (motor) + DTOs |
 | D3 | CNPJ com máscara e UF por extenso rejeitados | Validador só aceita dígitos; UF `MaxLength(2)` sem lista; nenhum campo normaliza máscara | `is-document.validator.ts`, `update-tenant.dto.ts` |
@@ -65,7 +65,7 @@ escritório) usaria o mecanismo sem mudar nada, é Alicerce. Se tem nome ou
 regra de ONG, é TerceiroGestor.
 
 | Tema | Alicerce (base) | TerceiroGestor (produto) |
-|---|---|---|
+| --- | --- | --- |
 | Instituição | Tenant **mínimo e universal**: razão social, nome fantasia, documento, contato, endereço, logo | Módulo `perfil-institucional` como **Extensão 1:1** do tenant: registros (CMAS, CEBAS, utilidade pública), CNAE, missão, diretoria, dados para página pública |
 | Pessoa / usuário | User **mínimo**: nome, e-mail, avatar, telefone, status, idioma, tema | Módulo `pessoas` com `userId` opcional (1:1): uma Pessoa pode existir sem login (atendido), e todo usuário da equipe aponta para sua Pessoa |
 | Notas, tags, anexos | Recursos **polimórficos** de qualquer registro, ligados por `entity` + `entityId` (mesmo padrão de `Audit` e `File`), ativados por módulo no contrato | Só liga `metadata: { notes, tags, attachments }` nos módulos |
@@ -130,7 +130,7 @@ preview. Nomes de domínio ficam só em `modules/develop/demo/`, nunca em
 ## 4. Etapas
 
 | Etapa | O quê | Toca `core/` | Depende de |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | U0 | Correções D1–D12 → tag `v1.0.0` | Sim | — |
 | U1 | Demo JSON (Pessoas, Atividades, Atendimentos) — **portão** | Sim (provider JSON) | U0 |
 | U2 | Linguagem: rótulos, status com badge, auditoria e permissões humanizadas | Sim | U1 |
@@ -154,6 +154,7 @@ referência.
 `UpdateUserDto`. Teste em `test-db`: editar o nome pela API persiste.
 
 **U0.2 Autosave robusto (D2, D4, D5) — motor, vale para todo módulo.**
+
 - Front (`FormView`): mandar **só os campos alterados** desde o último
   salvamento; campo opcional vazio vai como `null`, nunca `""`.
 - Back: `IsOptional` aceita `null` para limpar o campo; DTOs de update sem
@@ -171,6 +172,7 @@ referência.
 validando a lista de 27 UFs, `TrimToNull`). Aplicar no tenant e no user.
 
 **U0.4 Arquivos de ponta a ponta (D6, D7, D8).**
+
 - Backend: `GET /files/:id/content` (autenticado, tenant-scoped) que
   devolve os bytes (driver `local`) ou um 302 para URL assinada de curta
   duração (driver `s3`, inclusive Cloudflare R2).

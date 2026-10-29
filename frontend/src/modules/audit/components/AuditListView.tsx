@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { AuditEntry } from "@modules/audit/types/types";
+import type { AuditRow } from "@modules/audit/config/row-view-model";
 import type { AuditUserOption } from "@modules/audit/config/provider";
 import { EmptyState } from "@components/ui/empty-state";
 import { Button } from "@components/ui/button";
@@ -20,8 +20,8 @@ const AUDIT_TYPE_OPTIONS = [
 ];
 
 type AuditListViewProps = {
-    data: AuditEntry[];
-    pagination: SearchResult<AuditEntry>["pagination"];
+    data: AuditRow[];
+    pagination: SearchResult<AuditRow>["pagination"];
     users: AuditUserOption[];
 };
 
@@ -160,12 +160,18 @@ export function AuditListView({ data, pagination, users }: AuditListViewProps) {
                                 <tr key={entry.id} className="border-t">
                                     <td className="px-3 py-2 font-medium">
                                         <Link href={`/audit/${entry.id}`} className="text-foreground hover:underline">
-                                            {entry.action}
+                                            {entry.actionText}
                                         </Link>
                                     </td>
-                                    <td className="px-3 py-2">{entry.entity}</td>
-                                    <td className="px-3 py-2">{entry.entityId ?? "—"}</td>
-                                    <td className="px-3 py-2">{entry.user?.name ?? entry.user?.email ?? entry.userId}</td>
+                                    <td className="px-3 py-2">{entry.entityText}</td>
+                                    <td className="px-3 py-2">
+                                        {entry.recordHref ? (
+                                            <Link href={entry.recordHref} className="hover:underline">
+                                                {entry.recordShort}
+                                            </Link>
+                                        ) : "—"}
+                                    </td>
+                                    <td className="px-3 py-2">{entry.userText}</td>
                                     <td className="px-3 py-2">{entry.createdAt?.slice(0, 16).replace("T", ", ") ?? "—"}</td>
                                 </tr>
                             ))

@@ -1,21 +1,15 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { AppTableFeatures } from "@core/table-features";
+import { EnumBadge } from "@core/components/DetailView/EnumBadge";
+import { FeedbackStatusEnum } from "@modules/feedbacks/config/status-enum";
 import type { FeedbackEntity } from "@modules/feedbacks/types/types";
-
-const STATUS_LABELS: Record<FeedbackEntity["status"], string> = {
-    RECEIVED: "Recebido",
-    IN_REVIEW: "Em análise",
-    PLANNED: "Planejado",
-    DONE: "Concluído",
-    DECLINED: "Recusado",
-};
 
 export const feedbackColumns: ColumnDef<AppTableFeatures, FeedbackEntity>[] = [
     { accessorKey: "title", header: "Título" },
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => STATUS_LABELS[row.original.status] ?? row.original.status,
+        cell: ({ row }) => <EnumBadge enumDef={FeedbackStatusEnum} value={row.original.status} />,
     },
     {
         accessorKey: "createdAt",

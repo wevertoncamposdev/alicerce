@@ -8,6 +8,8 @@ import { PermissionsListView } from "@modules/permissions/components/Permissions
 import { searchPermissions, readPermission, readPermissionRoles } from "./provider";
 import type { PermissionEntity, ContextItem } from "../types/types";
 import PermissionRolesHost from "@modules/permissions/components/PermissionRolesHost";
+import { permissionActionLabel } from "@modules/permissions/config/action-label";
+import { entityLabel } from "@core/registry/labels";
 
 // Somente leitura (Plano Base.md 8.4) — sem create/update/delete em
 // dataHandlers, então nenhum botão de criar/editar/excluir pode aparecer.
@@ -23,7 +25,19 @@ const formFields: FormFieldConfig<PermissionEntity>[] = [
 const { parseListState, serializeListState } = createListQueryState();
 
 const permissionsListLayout: ListLayout<PermissionEntity> = {
-    list: ({ data }) => <PermissionsListView data={data} />,
+    // `entityLabel` é `server-only` — não pode rodar dentro de
+    // PermissionsListView.tsx ("use client"); mesmo motivo de
+    // `modules/audit/config/row-view-model.ts`, traduzido aqui antes de
+    // descer como prop.
+    list: ({ data }) => (
+        <PermissionsListView
+            data={data.map((permission) => ({
+                ...permission,
+                resourceLabel: entityLabel(permission.resource ?? "outros"),
+                actionText: permissionActionLabel(permission.name),
+            }))}
+        />
+    ),
 };
 
 const permissionsDetailLayout: DetailLayout<PermissionEntity> = {

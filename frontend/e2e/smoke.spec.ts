@@ -98,6 +98,33 @@ for (const { path, label } of routes) {
     const scrollWidth = await sharedPage.evaluate(() => document.documentElement.scrollWidth);
     expect(scrollWidth).toBeLessThanOrEqual(375);
   });
+
+  // U2 (docs/PLAN-fundacao-ux.md) — critério de aceite: nenhum verbo
+  // HTTP cru nem UUID inteiro visível ao usuário. `innerText`, não
+  // `innerHTML`: não pega `class`/`href`/atributo nenhum, só o que
+  // renderiza na tela — `<option value="ACTIVE">` não entra aqui (value
+  // não é texto renderizado), por isso "ACTIVE" não está no regex: com
+  // defineEnum (core/registry/enum.ts) já tirando o enum cru das telas
+  // que tinham esse status, incluir "ACTIVE" aqui só arriscaria falso
+  // positivo em algum <select> nativo que ainda guarde o valor cru.
+  test(`rota ${label} (${path}) sem verbo HTTP nem UUID visível ao usuário`, async () => {
+    await sharedPage.goto(path);
+    await sharedPage.waitForLoadState('networkidle');
+
+    const text = await sharedPage.evaluate(() => document.body.innerText);
+
+    const httpVerbs = text.match(/\b(POST|PATCH|PUT|DELETE)\b/g) ?? [];
+    expect(httpVerbs).toEqual([]);
+
+    // `/users`: a coluna "Tenant ID" ainda mostra o UUID cru de
+    // propósito — remover coluna técnica é U3 (docs/PLAN-fundacao-ux.md
+    // §4/U3), não U2 (rótulo/tom). Único ponto conhecido onde um UUID
+    // inteiro ainda é esperado; qualquer outra rota não pode ter nenhum.
+    if (label === 'users') return;
+
+    const uuids = text.match(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi) ?? [];
+    expect(uuids).toEqual([]);
+  });
 }
 
 test('nonce da CSP muda a cada requisição', async () => {
