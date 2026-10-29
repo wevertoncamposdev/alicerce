@@ -1,11 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { AppTableFeatures } from "@core/table-features";
+import { EnumBadge } from "@core/components/DetailView/EnumBadge";
+import { PessoaStatusEnum } from "@modules/develop/demo/_shared/enums";
 import type { Pessoa } from "../types/types";
-
-const STATUS_LABELS: Record<Pessoa["status"], string> = {
-    ATIVO: "Ativo",
-    INATIVO: "Inativo",
-};
 
 export const pessoaColumns: ColumnDef<AppTableFeatures, Pessoa>[] = [
     { accessorKey: "nome", header: "Nome" },
@@ -13,7 +10,7 @@ export const pessoaColumns: ColumnDef<AppTableFeatures, Pessoa>[] = [
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => STATUS_LABELS[row.original.status] ?? row.original.status,
+        cell: ({ row }) => <EnumBadge enumDef={PessoaStatusEnum} value={row.original.status} />,
     },
     { accessorKey: "telefone", header: "Telefone" },
 ];

@@ -7,9 +7,11 @@ import { createRecordFormAction } from "@core/registry/actions";
 import { FormView } from "@components/TypeView/FormView/FormView";
 import { ShowcaseRelationTable } from "@modules/develop/showcase/ShowcaseRelationTable";
 import { AtividadesListView } from "@modules/develop/demo/atividades/components/AtividadesListView";
+import { EnumBadge } from "@core/components/DetailView/EnumBadge";
 
 import { searchAtividades, readAtividade, createAtividade, updateAtividade, deleteAtividade } from "./provider";
 import { PESSOAS, VINCULOS } from "@modules/develop/demo/_shared/seed-data";
+import { AtividadeStatusEnum } from "@modules/develop/demo/_shared/enums";
 import type { Atividade } from "../types/types";
 
 // U1 (docs/PLAN-fundacao-ux.md): seções só de leitura, mesmo motivo do
@@ -41,12 +43,11 @@ const atividadesListLayout: ListLayout<Atividade> = {
     form: () => <FormView<Atividade> mode="create" fields={formFields} createAction={createAtividadeAction} />,
 };
 
-const STATUS_LABEL: Record<Atividade["status"], string> = { ATIVA: "Ativa", INATIVA: "Inativa" };
-
 const atividadesDetailLayout: DetailLayout<Atividade> = {
     header: ({ record }) => ({
         title: record.nome,
-        subtitle: [STATUS_LABEL[record.status], record.categoria],
+        subtitle: [record.categoria],
+        status: <EnumBadge enumDef={AtividadeStatusEnum} value={record.status} />,
         avatar: { fallback: record.nome.slice(0, 2).toUpperCase() },
     }),
     sections: [

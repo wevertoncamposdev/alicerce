@@ -7,9 +7,11 @@ import { createRecordFormAction } from "@core/registry/actions";
 import { FormView } from "@components/TypeView/FormView/FormView";
 import { ShowcaseRelationTable } from "@modules/develop/showcase/ShowcaseRelationTable";
 import { PessoasListView } from "@modules/develop/demo/pessoas/components/PessoasListView";
+import { EnumBadge } from "@core/components/DetailView/EnumBadge";
 
 import { searchPessoas, readPessoa, createPessoa, updatePessoa, deletePessoa } from "./provider";
 import { ATIVIDADES, VINCULOS, ATENDIMENTOS } from "@modules/develop/demo/_shared/seed-data";
+import { PessoaStatusEnum, AtendimentoTipoEnum, AtendimentoSituacaoEnum } from "@modules/develop/demo/_shared/enums";
 import type { Pessoa } from "../types/types";
 
 // U1 (docs/PLAN-fundacao-ux.md): seções só de leitura de propósito — este
@@ -54,12 +56,10 @@ function initials(nome: string): string {
         .toUpperCase();
 }
 
-const STATUS_LABEL: Record<Pessoa["status"], string> = { ATIVO: "Ativo", INATIVO: "Inativo" };
-
 const pessoasDetailLayout: DetailLayout<Pessoa> = {
     header: ({ record }) => ({
         title: record.nome,
-        subtitle: [STATUS_LABEL[record.status]],
+        status: <EnumBadge enumDef={PessoaStatusEnum} value={record.status} />,
         avatar: { fallback: initials(record.nome) },
     }),
     sections: [
@@ -120,16 +120,10 @@ const pessoasDetailLayout: DetailLayout<Pessoa> = {
             };
         });
 
-        const SITUACAO_LABEL: Record<string, string> = {
-            AGENDADO: "Agendado",
-            REALIZADO: "Realizado",
-            CANCELADO: "Cancelado",
-        };
-
         const atendimentosRows = ATENDIMENTOS.filter((a) => a.pessoaId === record.id).map((atendimento) => ({
             data: atendimento.data,
-            tipo: atendimento.tipo === "SOCIAL" ? "Social" : "Psicológico",
-            situacao: SITUACAO_LABEL[atendimento.situacao] ?? atendimento.situacao,
+            tipo: AtendimentoTipoEnum.label(atendimento.tipo),
+            situacao: AtendimentoSituacaoEnum.label(atendimento.situacao),
             href: `/develop/demo/atendimentos/${atendimento.id}`,
         }));
 

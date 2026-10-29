@@ -7,9 +7,11 @@ import { createRecordFormAction } from "@core/registry/actions";
 
 import { FormView } from "@components/TypeView/FormView/FormView";
 import { AtendimentosListView } from "@modules/develop/demo/atendimentos/components/AtendimentosListView";
+import { EnumBadge } from "@core/components/DetailView/EnumBadge";
 
 import { searchAtendimentos, readAtendimento, createAtendimento, updateAtendimento, deleteAtendimento } from "./provider";
 import { PESSOAS } from "@modules/develop/demo/_shared/seed-data";
+import { AtendimentoTipoEnum, AtendimentoSituacaoEnum } from "@modules/develop/demo/_shared/enums";
 import type { Atendimento } from "../types/types";
 
 // U1 (docs/PLAN-fundacao-ux.md): seções só de leitura, mesmo motivo do
@@ -50,18 +52,12 @@ const atendimentosListLayout: ListLayout<Atendimento> = {
     form: () => <FormView<Atendimento> mode="create" fields={formFields} createAction={createAtendimentoAction} />,
 };
 
-const TIPO_LABEL: Record<Atendimento["tipo"], string> = { SOCIAL: "Social", PSICOLOGICO: "Psicológico" };
-const SITUACAO_LABEL: Record<Atendimento["situacao"], string> = {
-    AGENDADO: "Agendado",
-    REALIZADO: "Realizado",
-    CANCELADO: "Cancelado",
-};
-
 const atendimentosDetailLayout: DetailLayout<Atendimento> = {
     header: ({ record }) => ({
         title: `Atendimento ${record.data}`,
-        subtitle: [TIPO_LABEL[record.tipo], SITUACAO_LABEL[record.situacao]],
-        avatar: { fallback: TIPO_LABEL[record.tipo].slice(0, 2).toUpperCase() },
+        subtitle: [AtendimentoTipoEnum.label(record.tipo)],
+        status: <EnumBadge enumDef={AtendimentoSituacaoEnum} value={record.situacao} />,
+        avatar: { fallback: AtendimentoTipoEnum.label(record.tipo).slice(0, 2).toUpperCase() },
     }),
     sections: [
         {

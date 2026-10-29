@@ -1,11 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { AppTableFeatures } from "@core/table-features";
+import { EnumBadge } from "@core/components/DetailView/EnumBadge";
+import { AtividadeStatusEnum } from "@modules/develop/demo/_shared/enums";
 import type { Atividade } from "../types/types";
-
-const STATUS_LABELS: Record<Atividade["status"], string> = {
-    ATIVA: "Ativa",
-    INATIVA: "Inativa",
-};
 
 export const atividadeColumns: ColumnDef<AppTableFeatures, Atividade>[] = [
     { accessorKey: "nome", header: "Atividade" },
@@ -14,6 +11,6 @@ export const atividadeColumns: ColumnDef<AppTableFeatures, Atividade>[] = [
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => STATUS_LABELS[row.original.status] ?? row.original.status,
+        cell: ({ row }) => <EnumBadge enumDef={AtividadeStatusEnum} value={row.original.status} />,
     },
 ];
