@@ -28,7 +28,9 @@ import { Button } from "@components/ui/button";
 import { appTableFeatures, type AppTableFeatures } from "@core/table-features";
 import { buildColumns } from "@core/components/Layout/column-builder";
 import { ColumnVisibilityMenu } from "@components/TypeView/ListView/ColumnVisibilityMenu";
-import type { SearchResult, SortSpec } from "@core/data-provider/types";
+import { QuickFilterChips } from "@components/TypeView/ListView/QuickFilterChips";
+import { ExportCsvButton } from "@components/TypeView/ListView/ExportCsvButton";
+import type { SearchArgs, SearchResult, SortSpec } from "@core/data-provider/types";
 import type { ColumnConfig } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
 
@@ -48,6 +50,16 @@ type Props<T extends { id: string | number }> = {
     detail: string;
     pagination: SearchResult<T>["pagination"];
     sort?: SortSpec[];
+    /**
+     * Habilita os chips de filtro rápido (colunas `type: "badge"`) e o
+     * botão de exportar CSV — só funcionam com `columns` no formato
+     * `ColumnConfig` E estes dois presentes (o CSV precisa refazer a
+     * busca com o filtro/busca atual; os chips precisam saber o
+     * `enumDef` de cada badge). Módulo que ainda usa `ColumnDef` cru
+     * não perde nada por não passar — os dois ficam escondidos.
+     */
+    model?: string;
+    searchArgs?: SearchArgs;
 };
 
 export function ListView<T extends { id: string | number }>({
@@ -56,15 +68,17 @@ export function ListView<T extends { id: string | number }>({
     detail,
     pagination,
     sort,
+    model,
+    searchArgs,
 }: Props<T>) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    const columns =
-        columnsProp.length > 0 && isColumnConfig<T>(columnsProp[0])
-            ? buildColumns(columnsProp as ColumnConfig<T>[])
-            : (columnsProp as ColumnDef<AppTableFeatures, T>[]);
+    const columnConfigs = columnsProp.length > 0 && isColumnConfig<T>(columnsProp[0])
+        ? (columnsProp as ColumnConfig<T>[])
+        : undefined;
+    const columns = columnConfigs ? buildColumns(columnConfigs) : (columnsProp as ColumnDef<AppTableFeatures, T>[]);
 
     // Convertido direto do `sort` que chegou da URL/servidor (ver
     // SearchArgs.sort) — nunca é estado local: clicar numa coluna navega
@@ -139,8 +153,14 @@ export function ListView<T extends { id: string | number }>({
                 de verdade), não no AppTopbar (TypeViewScreen é Server
                 Component — não dá pra controlar o state do useTable de lá
                 sem subir tudo pela URL duas vezes). */}
-            <div className="flex justify-end">
-                <ColumnVisibilityMenu table={table} />
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                {columnConfigs ? <QuickFilterChips columns={columnConfigs} /> : <div />}
+                <div className="flex items-center gap-2">
+                    {columnConfigs && model && searchArgs ? (
+                        <ExportCsvButton model={model} columns={columnConfigs} searchArgs={searchArgs} />
+                    ) : null}
+                    <ColumnVisibilityMenu table={table} />
+                </div>
             </div>
 
             {/* Tabela — mesmo "outline" (Card) usado em RelationCard/SectionCard.

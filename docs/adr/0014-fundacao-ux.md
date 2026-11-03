@@ -47,8 +47,11 @@
     leitura que `search` já checa); e, fora de `core/` mas tratado com
     o mesmo cuidado desde o ADR 0005 (mesmo grupo de
     `FormView.tsx`/`ListView.tsx`), `frontend/src/components/TypeView/
-    ListView/` — novos `ColumnVisibilityMenu.tsx` e
-    `QuickFilterChips.tsx`.
+    ListView/` — novos `ColumnVisibilityMenu.tsx`,
+    `QuickFilterChips.tsx` e `ExportCsvButton.tsx` —, e
+    `frontend/src/lib/query-state/list-query-state.ts` (fábrica
+    compartilhada por todo módulo — ganha `filter_<campo>=` genérico
+    no parse, pros chips funcionarem de verdade).
   - **U4** (DetailView v2): `frontend/src/core/components/DetailView/**`
     (exceto `RelationView/` e `MetaDataView/`, cobertos nas etapas
     seguintes), `frontend/src/core/registry/types.ts` (tipos de campo),
