@@ -5,10 +5,12 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { EmptyState } from "@components/ui/empty-state";
 import {
     ColumnDef,
+    ColumnVisibilityState,
     SortingState,
     flexRender,
     useTable,
 } from "@tanstack/react-table";
+import * as React from "react";
 
 import { ArrowDown, ArrowUp } from "lucide-react";
 
@@ -25,6 +27,7 @@ import { Card } from "@components/ui/card";
 import { Button } from "@components/ui/button";
 import { appTableFeatures, type AppTableFeatures } from "@core/table-features";
 import { buildColumns } from "@core/components/Layout/column-builder";
+import { ColumnVisibilityMenu } from "@components/TypeView/ListView/ColumnVisibilityMenu";
 import type { SearchResult, SortSpec } from "@core/data-provider/types";
 import type { ColumnConfig } from "@core/registry/types";
 import { createListQueryState } from "@lib/query-state/list-query-state";
@@ -68,6 +71,19 @@ export function ListView<T extends { id: string | number }>({
     // pra uma nova URL (abaixo), o servidor reordena e devolve de novo.
     const sorting: SortingState = (sort ?? []).map((s) => ({ id: s.field, desc: s.direction === "desc" }));
 
+    // U3: colunas visíveis também vêm da URL, não de estado local — só
+    // grava quem está ESCONDIDO (`hiddenColumns=cpf,email`); ausente =
+    // visível (ColumnVisibilityState trata `undefined` como visível,
+    // só `false` explícito esconde — ver columnVisibilityFeature).
+    const hiddenColumns = React.useMemo(
+        () => new Set((searchParams.get("hiddenColumns") ?? "").split(",").filter(Boolean)),
+        [searchParams],
+    );
+    const columnVisibility: ColumnVisibilityState = React.useMemo(
+        () => Object.fromEntries([...hiddenColumns].map((id) => [id, false])),
+        [hiddenColumns],
+    );
+
     function navigate(patch: Parameters<typeof serializeListState>[1]) {
         const params = serializeListState(searchParams, patch);
         router.push(`${pathname}?${params.toString()}`);
@@ -80,7 +96,7 @@ export function ListView<T extends { id: string | number }>({
         features: appTableFeatures,
         data,
         columns,
-        state: { sorting },
+        state: { sorting, columnVisibility },
         // Paginação e ordenação são 100% do servidor — `data` já chega como
         // a página pedida na URL (ver TypeViewScreen); a tabela só exibe,
         // nunca reprocessa localmente.
@@ -94,6 +110,19 @@ export function ListView<T extends { id: string | number }>({
             }
             navigate({ sortField: first.id, sortDirection: first.desc ? "desc" : "asc" });
         },
+        // `columnVisibility` não é estado local do TanStack aqui (ver
+        // `hiddenColumns` acima) — todo toggle (um checkbox ou "mostrar
+        // tudo") vira uma navegação só, com o diff inteiro já aplicado.
+        onColumnVisibilityChange: (updater) => {
+            const next = typeof updater === "function" ? updater(columnVisibility) : updater;
+            const nextHidden = new Set(hiddenColumns);
+            for (const column of table.getAllLeafColumns()) {
+                if (next[column.id] === false) nextHidden.add(column.id); else nextHidden.delete(column.id);
+            }
+            const params = new URLSearchParams(searchParams);
+            if (nextHidden.size === 0) params.delete("hiddenColumns"); else params.set("hiddenColumns", [...nextHidden].join(","));
+            router.push(`${pathname}?${params.toString()}`);
+        },
     });
 
     if (data.length === 0) {
@@ -105,6 +134,14 @@ export function ListView<T extends { id: string | number }>({
 
     return (
         <div className="space-y-4">
+
+            {/* U3: fica aqui (dentro do client component que tem o `table`
+                de verdade), não no AppTopbar (TypeViewScreen é Server
+                Component — não dá pra controlar o state do useTable de lá
+                sem subir tudo pela URL duas vezes). */}
+            <div className="flex justify-end">
+                <ColumnVisibilityMenu table={table} />
+            </div>
 
             {/* Tabela — mesmo "outline" (Card) usado em RelationCard/SectionCard.
                 `overflow-x-auto` aqui, não na página: lista com muitas colunas
