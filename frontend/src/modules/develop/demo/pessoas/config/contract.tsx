@@ -41,7 +41,7 @@ const createPessoaAction = createRecordFormAction.bind(null, "demo-pessoas", for
 
 const pessoasListLayout: ListLayout<Pessoa> = {
     list: ({ data, pagination, searchArgs }) => (
-        <PessoasListView data={data} pagination={pagination} sort={searchArgs.sort} />
+        <PessoasListView data={data} pagination={pagination} searchArgs={searchArgs} />
     ),
     form: () => <FormView<Pessoa> mode="create" fields={formFields} createAction={createPessoaAction} />,
 };
