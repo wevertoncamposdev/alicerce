@@ -25,8 +25,6 @@ export const userColumns: ColumnDef<AppTableFeatures, UserEntity>[] = [
                 <EnumBadge enumDef={UserStatusEnum} value={row.original.status} />
             ),
     },
-    // `tenantId` fica (U3 remove colunas técnicas das listas, não a U2).
-    { accessorKey: "tenantId", header: "Tenant ID" },
     {
         accessorKey: "createdAt",
         header: "Criado em",
