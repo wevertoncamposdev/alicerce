@@ -79,19 +79,18 @@ for (const { path, label } of routes) {
   });
 
   // Separado do teste de CSP — rolagem horizontal é um problema de
-  // layout isolado (12.10 item 6), não ligado a C1/C2. O item 6 do
-  // PLAN-fase-12 cita só /roles, mas rodando o smoke com a hidratação já
-  // funcionando (pós-12.2) o mesmo overflow apareceu também em /users —
-  // e NÃO em /audit, então não é todo list route. `test.fail()` por rota
-  // exigiria adivinhar certo pra cada uma (serial mode para no primeiro
-  // "esperava falhar, passou"); fica `test.skip()` até a 12.10
-  // investigar o alcance real e escrever sua própria asserção por rota.
+  // layout isolado (12.10 item 6), não ligado a C1/C2. Ficou
+  // `test.skip()` desde a fase 12 (overflow aparecia em /roles e
+  // /users, não em /audit — não dava pra adivinhar por rota sem
+  // investigar a causa). U3 (docs/PLAN-fundacao-ux.md) resolveu a
+  // causa real: `ListView.tsx` não tinha container de rolagem próprio
+  // (`overflow-x-auto` agora envolve só a `<Table>`, não a página) —
+  // reativado aqui, critério de aceite da etapa.
   test(`rota ${label} (${path}) sem rolagem horizontal a 375px`, async () => {
     const viewport = sharedPage.viewportSize();
     if (viewport?.width !== 375) {
       test.skip(true, 'só relevante no projeto mobile-375');
     }
-    test.skip(true, '12.10 item 6: alcance exato ainda não mapeado (ver comentário acima) — não adivinhar por rota');
 
     await sharedPage.goto(path);
     await sharedPage.waitForLoadState('networkidle');
