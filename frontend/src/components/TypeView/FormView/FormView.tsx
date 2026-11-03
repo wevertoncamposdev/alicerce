@@ -90,6 +90,68 @@ function BooleanFieldInput({
     );
 }
 
+// U4 (docs/PLAN-fundacao-ux.md): guarda centavos (string de inteiro,
+// AGENTS.md §4.2.10 — nunca float), exibe formatado em R$. Mesmo truque
+// de `BooleanFieldInput` (hidden input + estado interno) — funciona tanto
+// no <form> nativo do create (FormData lê o hidden) quanto no estado
+// controlado do edit (onChange).
+const MONEY_DISPLAY_FORMAT = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+function centsToDigits(raw: string): string {
+    const digits = raw.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+    return digits || "0";
+}
+
+function MoneyFieldInput({
+    name,
+    value,
+    defaultValue,
+    onChange,
+    onBlur,
+    onKeyDown,
+    variant,
+    invalid,
+    disabled,
+}: {
+    name: string;
+    value?: string;
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    onBlur?: () => void;
+    onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+    variant: "default" | "inline-detail";
+    invalid?: boolean;
+    disabled?: boolean;
+}) {
+    const [internalCents, setInternalCents] = React.useState(centsToDigits(defaultValue ?? ""));
+    const isControlled = value !== undefined;
+    const currentCents = isControlled ? centsToDigits(value) : internalCents;
+
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const next = centsToDigits(event.target.value);
+        if (!isControlled) setInternalCents(next);
+        onChange?.(next);
+    }
+
+    return (
+        <>
+            <input type="hidden" name={name} value={currentCents} />
+            <Input
+                type="text"
+                inputMode="numeric"
+                variant={variant}
+                aria-invalid={invalid || undefined}
+                className="flex-1 min-w-0"
+                value={MONEY_DISPLAY_FORMAT.format(Number(currentCents) / 100)}
+                onChange={handleChange}
+                onBlur={onBlur}
+                onKeyDown={onKeyDown}
+                disabled={disabled}
+            />
+        </>
+    );
+}
+
 // Upload (Fase 6, ADR 0010): o campo guarda o `fileId` (FK), não a URL — o
 // preview vem de `record[field.previewField]` (resolvida pelo backend em
 // request-time; etapa 12.3 — era uma função `previewUrl(record)`, não
@@ -210,6 +272,21 @@ function renderFieldInput<T extends object>(
         );
     }
 
+    if (field.type === "money") {
+        return (
+            <MoneyFieldInput
+                name={field.name}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                variant={variant}
+                invalid={invalid}
+                disabled={disabled}
+            />
+        );
+    }
+
     // Base comum a Input/Textarea — `variant` fica de fora porque Textarea não
     // tem variantes de borda (sempre multi-linha, precisa de contorno visível
     // mesmo dentro do modo "inline-detail" do edit).
@@ -275,7 +352,13 @@ function renderFieldInput<T extends object>(
         );
     }
 
-    return <Input {...sharedProps} variant={variant} type={field.type ?? "text"} onKeyDown={onEnterBlur} />;
+    // `datetime` (nosso tipo lógico) -> `datetime-local` (tipo HTML de
+    // verdade); todo o resto do union já bate 1:1 com um `<input type>`
+    // válido (date/text/email/...) ou ainda não tem branch própria (cpf/
+    // cnpj/document/phone/cep/lookup/multiselect/tags chegam em commits
+    // seguintes desta etapa — até lá caem aqui como texto puro, sem máscara).
+    const htmlInputType = field.type === "datetime" ? "datetime-local" : (field.type ?? "text");
+    return <Input {...sharedProps} variant={variant} type={htmlInputType} onKeyDown={onEnterBlur} />;
 }
 
 function FieldErrorText({ error }: { error?: string }) {

@@ -17,7 +17,12 @@ export type FormFieldConfig<T> = {
     name: keyof T & string;
     label: string;
     placeholder?: string;
-    type: "text" | "email" | "password" | "url" | "number" | "textarea" | "select" | "checkbox" | "switch" | "image";
+    type:
+        | "text" | "email" | "password" | "url" | "number" | "textarea" | "select" | "checkbox" | "switch" | "image"
+        // U4 (docs/PLAN-fundacao-ux.md) — tipos novos:
+        | "date" | "datetime" | "money"
+        | "cpf" | "cnpj" | "document" | "phone" | "cep"
+        | "lookup" | "multiselect" | "tags";
     required?: boolean;
     createOnly?: boolean;
     options?: Array<string | { label: string; value: string }>;
@@ -34,6 +39,35 @@ export type FormFieldConfig<T> = {
     previewField?: keyof T & string;
     /** Só `type: "image"`: metadado repassado ao upload (ex.: "user.avatar"). */
     uploadOwnerType?: string;
+    /**
+     * U4: quantas colunas (de até 3) o campo ocupa no `FieldGrid` novo —
+     * default 1. `textarea` sem `span` declarado assume 3 (linha
+     * inteira) direto no `FieldGrid`, não precisa declarar aqui.
+     */
+    span?: 1 | 2 | 3;
+    /** U4: texto de ajuda exibido sob o campo (abaixo do input, acima do erro). */
+    help?: string;
+    /**
+     * Só `type: "document"`: nome do campo irmão (ex.: um `select` com
+     * "CPF"/"CNPJ") que decide qual máscara aplicar. Sem isso, o campo
+     * não aplica máscara nenhuma (fica texto puro).
+     */
+    conditionalType?: keyof T & string;
+    /**
+     * Só `type: "cep"`: nomes dos campos irmãos que recebem o
+     * preenchimento automático do ViaCEP ao perder o foco com 8 dígitos.
+     * Omitido = sem busca de endereço, só a máscara.
+     */
+    addressFields?: {
+        street?: keyof T & string;
+        neighborhood?: keyof T & string;
+        city?: keyof T & string;
+        state?: keyof T & string;
+    };
+    /** Só `type: "lookup"`: `model` do módulo buscado (mesmo valor de `RecordModuleDefinition.model`). */
+    relatedModel?: string;
+    /** Só `type: "lookup"`: campo do registro relacionado mostrado nas opções de busca. */
+    relatedLabelField?: string;
 };
 
 export type DetailContext<T> = {

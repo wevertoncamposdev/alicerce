@@ -54,8 +54,16 @@
     no parse, pros chips funcionarem de verdade).
   - **U4** (DetailView v2): `frontend/src/core/components/DetailView/**`
     (exceto `RelationView/` e `MetaDataView/`, cobertos nas etapas
-    seguintes), `frontend/src/core/registry/types.ts` (tipos de campo),
-    `frontend/src/core/registry/form-validation.ts`.
+    seguintes) — novo `FieldGrid.tsx` —, `frontend/src/core/registry/
+    types.ts` (tipos de campo), `frontend/src/core/registry/
+    form-validation.ts`, `frontend/src/core/registry/lookup-actions.ts`
+    (novo — busca genérica pro tipo `lookup`, mesma permissão de
+    leitura que `search` já checa); e, fora de `core/` mas tratado com
+    o mesmo cuidado desde o ADR 0005 (mesmo grupo do U0/U3),
+    `frontend/src/components/TypeView/FormView/FormView.tsx` (tipos de
+    campo novos entram no `renderFieldInput`; grid label-à-esquerda
+    atual vira uso só do `FieldGrid` novo) — novo
+    `LookupFieldInput.tsx` no mesmo diretório.
   - **U5** (relações e navegação): `frontend/src/core/components/
     DetailView/RelationView/**`, `frontend/src/core/components/Layout/
     Breadcrumbs.tsx`.

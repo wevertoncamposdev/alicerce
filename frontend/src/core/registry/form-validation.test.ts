@@ -2,13 +2,24 @@ import { describe, expect, it } from "vitest";
 import { validateFormPayload } from "./form-validation";
 import type { FormFieldConfig } from "./types";
 
-type Entity = { email: string; age: string; bio: string; active: string };
+type Entity = {
+    email: string;
+    age: string;
+    bio: string;
+    active: string;
+    birthDate: string;
+    scheduledAt: string;
+    salary: string;
+};
 
 const fields: FormFieldConfig<Entity>[] = [
     { name: "email", label: "E-mail", type: "email", required: true },
     { name: "age", label: "Idade", type: "number", required: false },
     { name: "bio", label: "Bio", type: "textarea", required: false },
     { name: "active", label: "Ativo", type: "switch" },
+    { name: "birthDate", label: "Nascimento", type: "date", required: false },
+    { name: "scheduledAt", label: "Agendado para", type: "datetime", required: false },
+    { name: "salary", label: "Salário", type: "money", required: false },
 ];
 
 describe("validateFormPayload", () => {
@@ -99,5 +110,41 @@ describe("validateFormPayload", () => {
         if (!result.ok) {
             expect(result.fieldErrors.email).toMatch(/obrigatório/);
         }
+    });
+
+    // U4 (docs/PLAN-fundacao-ux.md): date/datetime guardam o valor cru do
+    // <input type="date"|"datetime-local">; money guarda centavos como
+    // string de inteiro (AGENTS.md §4.2.10 — nunca float).
+    it("aceita date/datetime/money válidos", () => {
+        const result = validateFormPayload(fields, {
+            birthDate: "1990-05-12",
+            scheduledAt: "2026-01-02T15:30",
+            salary: "123456",
+        });
+
+        expect(result.ok).toBe(true);
+    });
+
+    it("rejeita date/datetime com formato inválido", () => {
+        const result = validateFormPayload(fields, { birthDate: "não é data" });
+
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+            expect(result.fieldErrors.birthDate).toMatch(/data inválida/);
+        }
+    });
+
+    it("rejeita money que não é inteiro puro (nunca float)", () => {
+        const result = validateFormPayload(fields, { salary: "12.50" });
+
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+            expect(result.fieldErrors.salary).toBeDefined();
+        }
+    });
+
+    it("aceita money ausente/vazio (campo opcional)", () => {
+        const result = validateFormPayload(fields, { salary: "" });
+        expect(result.ok).toBe(true);
     });
 });
