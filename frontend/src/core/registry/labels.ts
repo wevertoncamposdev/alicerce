@@ -37,6 +37,13 @@ export function entityLabel(entity: string): string {
 
     if (ENTITY_LABEL_FALLBACKS[normalized]) return ENTITY_LABEL_FALLBACKS[normalized];
 
+    // `resource` do catálogo de permissões vem no plural ("tenants"); o
+    // fallback acima só bate no singular ("tenant") — sem isso, uma
+    // entidade sem módulo (tenant/auth/file/me) citada no plural cai
+    // direto no capitalize cru.
+    const singular = normalized.endsWith("s") ? normalized.slice(0, -1) : normalized;
+    if (ENTITY_LABEL_FALLBACKS[singular]) return ENTITY_LABEL_FALLBACKS[singular];
+
     return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 

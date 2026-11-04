@@ -15,6 +15,7 @@ export class UserMapper {
       id: user.id,
       email: user.email,
       name: user.name ?? null,
+      phone: user.phone ?? null,
       status: user.status,
       avatarFileId: user.avatarFileId ?? null,
       avatarUrl,

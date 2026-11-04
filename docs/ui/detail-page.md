@@ -10,7 +10,10 @@ O conteúdo da imagem (Pessoa, CPF, Tags...) é exemplo; o Alicerce é genérico
 > e `frontend/src/core/registry/types.ts` (exceção explícita ao congelamento da v1).
 > O ADR 0005 amplia essa lista (`AppTopbar.tsx`, `Breadcrumbs.tsx`, `TypeViewScreen.tsx`,
 > `DetailCreateScreen.tsx`, `registry/actions.ts`) para o fluxo de autosave sempre ativo e criação
-> pelo Detail. Nada fora dessas listas em `core/` sem perguntar.
+> pelo Detail. O ADR 0014 (U6, drawer de metadados) amplia de novo —
+> `core/data-provider/rest/` (novo) e `core/registry/entity-link.ts` (novo) — ver a lista
+> completa (frontend + backend) registrada lá. Nada fora dessas listas em `core/` sem
+> perguntar.
 
 ---
 
@@ -22,8 +25,8 @@ O conteúdo da imagem (Pessoa, CPF, Tags...) é exemplo; o Alicerce é genérico
 | Motor | `core/components/DetailView/DetailView.tsx` | Flex `main` + `aside 360px`. **Substituir pela anatomia abaixo.** |
 | Casco | `core/components/DetailView/DetailShell.tsx` | Só `space-y`. Vira o container da página. |
 | Contrato | `core/registry/types.ts` → `DetailLayout<T>` | `main/side/bottom/relations`. **Estender (aditivo).** |
-| Metadados | `MetaDataView/MetaDataSidebar.tsx` (Drawer direita) + `MetaDataView/index.tsx` (Tabs) | Já é drawer. Mantém e melhora o conteúdo. |
-| Relações | `RelationView/RelationShell.tsx` (Tabs `line`) + `RelationTablePanel.tsx` | Mantém; ganha card, contador e toolbar. |
+| Metadados | `MetaDataView/MetaDataSidebar.tsx` (Drawer direita) + `MetaDataView/index.tsx` (Tabs) | Desde a U6: Notas/Tags/Anexos/Histórico (`NotesPanel.tsx`/`TagsPanel.tsx`/`AttachmentsPanel.tsx`/`HistoryPanel.tsx`), ligados por `detailConfig.metadata` no contrato — ver §7. |
+| Relações | `RelationView/RelationCard.tsx` (Tabs `line`) + `RelationCrudHost.tsx`/`RelationTablePanel.tsx` | Mantém; ganha card, contador e toolbar. Desde a U5, cada relação monta as colunas com `ColumnConfig`/`buildColumns` (U3) dentro de um wrapper `"use client"` próprio — ver `modules/develop/demo/pessoas/components/AtividadesRelation.tsx`. |
 | Campos | `FormView mode="edit"` (autosave inline, `layout="inline"`) | Sempre ativo por permissão, sem toggle (ver §4). |
 
 Usam `detailLayout` hoje: `feedbacks`, `users`, `roles`, `permissions`, `tenants`.
@@ -87,9 +90,14 @@ renderiza nenhum dos dois.
   aceita `title`/`icon`/`action` no tipo (os `sections` do módulo continuam declarando, outros
   consumidores dependem do tipo), só não desestrutura nem renderiza nada disso. Não reintroduzir
   esse header sem pedido explícito.
-- **Campos (leitura):** `dl` com `grid grid-cols-[minmax(110px,40%)_1fr] gap-x-4 gap-y-2.5 text-sm`;
-  `dt text-muted-foreground`, `dd text-foreground break-words`. Valor vazio = `—`.
-  Texto longo (`type: "textarea"`): `p text-sm whitespace-pre-wrap leading-relaxed`, ocupando a largura toda.
+- **Campos (leitura e edição, `FieldGrid`):** `grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-3
+  items-start`; rótulo **em cima** do valor (`Label` + indicador de "salvando" ao lado), `span`
+  1/2/3 por campo (`FormFieldConfig.span`, default 1; `textarea` sem `span` declarado assume 3).
+  Ajuda (`FormFieldConfig.help`) e erro ficam sob o campo, nessa ordem. Valor vazio (leitura) =
+  `—`. Texto longo (`type: "textarea"`): `p text-sm whitespace-pre-wrap leading-relaxed`. O mesmo
+  componente (`core/components/DetailView/FieldGrid.tsx`) é usado por `FieldList` (leitura) e
+  `InlineFieldsGrid`/`FormView` (edição) — só troca o que cada campo renderiza como valor (texto
+  vs. input), garantindo visual idêntico entre os dois modos.
 - **Relation card:** `Card p-0`; **sem header "Relacionamentos"** (mesma decisão acima — abas
   (`TabsList variant="line"`) começam direto no topo do card); contador
   `ml-1.5 text-xs tabular-nums text-muted-foreground` → `(3)`; conteúdo `p-5`.
@@ -232,29 +240,52 @@ Componentes em `core/components/DetailView/`:
 `core/components/Layout/Breadcrumbs.tsx` (NOVO) e `core/screens/DetailCreateScreen.tsx` (NOVO).
 Primitivas só do `components/ui` existente (Card, Tabs, Badge, Avatar, Button, Drawer, Table).
 
-## 7. Metadata Drawer
+## 7. Metadata Drawer (U6 — docs/PLAN-fundacao-ux.md, ADR 0014)
 
 Mantém `MetaDataSidebar` (Drawer `direction="right"`), trigger vira o botão-ícone do AppTopbar (§3).
 Largura `sm:max-w-[400px]`, altura total (sem `max-h-[80vh]`). **Sem `DrawerHeader`/título
 "Metadados"** (decisão do usuário: desnecessário pro usuário final) — fechar continua
 funcionando pelo comportamento padrão do `Drawer` (clique fora, Esc), sem botão de fechar
 explícito.
-Abas: **Auditoria** (primeira e default) · Contexto, `TabsList variant="line"` igual ao resto do
-Detail (§3). `tags/notes/attachments` continuam reservadas (não renderizar aba vazia).
 
-Cada bloco de conteúdo (abaixo) fica dentro de um `Card` — mesmo outline de `SectionCard`/
-`RelationCard`, só que sem título (`SectionCard`) já que a própria natureza do bloco (ícone +
-texto) já identifica o conteúdo.
+Abas, nesta ordem, `TabsList variant="line"` igual ao resto do Detail (§3) — cada uma só
+aparece se o módulo ligar o mecanismo correspondente no contrato
+(`detailConfig.metadata: { notes, tags, attachments, history }`) **e** tiver conteúdo
+resolvido (fixture via `loadNotes`/`loadTags`/`loadAttachments`/`loadAudit`, ou REST real):
 
-Aba Auditoria, de cima para baixo:
+1. **Notas** (`NotesPanel.tsx`) — lista (fixada primeiro, depois mais recente), textarea de
+   criar, editar/apagar só pro autor ou quem tem `<entity>.update` (checagem cosmética no
+   client; o backend sempre confere de novo).
+2. **Tags** (`TagsPanel.tsx`) — chips coloridos (tom do `EnumBadge`) + input com lista
+   suspensa simples (sem `Command`/`Popover` novos) pra buscar tag existente do tenant ou
+   criar uma na hora.
+3. **Anexos** (`AttachmentsPanel.tsx`) — lista de arquivo (nome, tamanho, data, link
+   same-origin pro conteúdo) + upload reaproveitando `uploadFileAction`/`core/files`
+   (`ownerType` = `entity`, `ownerId` = `entityId`).
+4. **Histórico** (`HistoryPanel.tsx`, substitui o antigo `AuditPanel.tsx`) — ver abaixo. A
+   aba **Contexto saiu**: "criado em/por" e "última atualização" agora vêm do próprio
+   Histórico (primeiro/último evento), não de `ContextItem[]`/`loadContext` (que ficam só
+   pelos módulos que ainda não migraram, sem renderizar nada no drawer).
 
-1. Card com "Registro criado em" (ícone `CalendarPlus`, data `dd/MM/yyyy • HH:mm`, "por {email}")
-   e "Última atualização" (ícone `Clock`, mesmo formato) juntos.
-2. Card "Histórico de alterações" (ícone `History`): timeline vertical (`border-l` + bolinha
-   `size-2` colorida por ação: create=emerald, update=primary, delete=destructive), cada item
-   com data, resumo e autor.
-3. Card "Informações adicionais" (ícone `Info`): os `ContextItem[]` como `dl` (§3, mesmo grid de
-   `FieldList`).
+Cada bloco de conteúdo fica dentro de um `Card` — mesmo outline de `SectionCard`/
+`RelationCard`, sem título (o ícone + texto já identifica o conteúdo).
+
+Aba Histórico, de cima para baixo:
+
+1. Card com "Registro criado em" (ícone `CalendarPlus`, `por {email}`), "Última atualização"
+   (ícone `Clock`) e, se o módulo declarar `header().status` no contrato, uma terceira linha
+   "Situação" (ícone `History`) reaproveitando esse mesmo nó — pode ser um badge estático ou
+   um controle interativo (ex.: `FeedbackStatusControl`, que também aparece no cabeçalho).
+2. Card "Histórico de alterações" (ícone `History`): timeline **agrupada por dia** (cabeçalho
+   `dd de mês de aaaa`), bolinha `size-2` colorida por ação (create=emerald, update=primary,
+   delete=destructive) dentro de cada grupo. Resumo já humanizado — `fieldLabel`/`actionLabel`
+   (U2, `core/registry/labels.ts`) resolvidos no servidor (`DetailViewScreen.tsx`, já que
+   `labels.ts` é `server-only` e o painel roda no client) antes de chegar no componente.
+
+Permissão herdada do registro, sem entrada nova no catálogo: `core/metadata` (Notas/Tags) e a
+extensão de `core/files` (Anexos) resolvem `<entity>.read`/`<entity>.update` em runtime a
+partir do `entity` que o `DetailViewScreen` já sabe (nome singular do módulo) — ver
+`backend/src/core/authorization/record-permission.util.ts`.
 
 Datas sempre `pt-BR` (`dd/MM/yyyy • HH:mm`), nunca ISO cru.
 
@@ -267,6 +298,8 @@ Datas sempre `pt-BR` (`dd/MM/yyyy • HH:mm`), nunca ISO cru.
 - `side` removido.
 - `title` tem `primary: true`, `description` tem `required: false`; `createMode: "detail"` — é o
   único módulo com o fluxo de criação do §5 nesta tarefa.
+- `detailConfig.metadata: { notes: true, tags: true, attachments: true, history: true }` (U6) —
+  primeiro módulo real com o drawer novo (§7); `loadContext` saiu (redundante com o Histórico).
 
 ## 9. Showcase (referência de validação)
 
@@ -291,6 +324,9 @@ verdade por trás da lista. Ver `docs/ui/list-page.md`.
 - [ ] `/feedbacks/[id]`: sem área vazia, sem textarea em leitura, comentários no Relation card com contador.
 - [ ] Breadcrumb e ações só no AppTopbar; nenhum botão Editar; seções editáveis são autosave sempre.
 - [ ] Metadados só no drawer; corpo em 100% da largura.
+- [ ] Drawer do Feedback mostra Notas/Tags/Anexos/Histórico, nessa ordem, sem aba Contexto;
+      criar nota, criar+anexar tag e subir anexo funcionam de ponta a ponta contra o backend
+      real (U6).
 - [ ] `/feedbacks/new` cria o registro ao sair do campo `title`, troca pra `/feedbacks/<id>` com foco
       na Descrição; sair sem preencher `title` não cria nada.
 - [ ] `users`, `roles`, `permissions`, `tenants` abrem sem erro, sem mudança de contrato e "Novo"

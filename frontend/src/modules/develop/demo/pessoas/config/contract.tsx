@@ -5,13 +5,15 @@ import { createListQueryState } from "@lib/query-state/list-query-state";
 import { createRecordFormAction } from "@core/registry/actions";
 
 import { FormView } from "@components/TypeView/FormView/FormView";
-import { ShowcaseRelationTable } from "@modules/develop/showcase/ShowcaseRelationTable";
 import { PessoasListView } from "@modules/develop/demo/pessoas/components/PessoasListView";
+import { AtividadesRelation } from "@modules/develop/demo/pessoas/components/AtividadesRelation";
+import { AtendimentosRelation } from "@modules/develop/demo/pessoas/components/AtendimentosRelation";
 import { EnumBadge } from "@core/components/DetailView/EnumBadge";
 
 import { searchPessoas, readPessoa, createPessoa, updatePessoa, deletePessoa } from "./provider";
 import { ATIVIDADES, VINCULOS, ATENDIMENTOS } from "@modules/develop/demo/_shared/seed-data";
-import { PessoaStatusEnum, AtendimentoTipoEnum, AtendimentoSituacaoEnum } from "@modules/develop/demo/_shared/enums";
+import { PessoaStatusEnum } from "@modules/develop/demo/_shared/enums";
+import { buildDemoMetadata } from "@modules/develop/demo/_shared/metadata-fixtures";
 import type { Pessoa } from "../types/types";
 
 // U1 (docs/PLAN-fundacao-ux.md): seções só de leitura de propósito — este
@@ -41,7 +43,7 @@ const createPessoaAction = createRecordFormAction.bind(null, "demo-pessoas", for
 
 const pessoasListLayout: ListLayout<Pessoa> = {
     list: ({ data, pagination, searchArgs }) => (
-        <PessoasListView data={data} pagination={pagination} sort={searchArgs.sort} />
+        <PessoasListView data={data} pagination={pagination} searchArgs={searchArgs} />
     ),
     form: () => <FormView<Pessoa> mode="create" fields={formFields} createAction={createPessoaAction} />,
 };
@@ -121,9 +123,9 @@ const pessoasDetailLayout: DetailLayout<Pessoa> = {
         });
 
         const atendimentosRows = ATENDIMENTOS.filter((a) => a.pessoaId === record.id).map((atendimento) => ({
-            data: atendimento.data,
-            tipo: AtendimentoTipoEnum.label(atendimento.tipo),
-            situacao: AtendimentoSituacaoEnum.label(atendimento.situacao),
+            dataFormatada: atendimento.data,
+            tipo: atendimento.tipo,
+            situacao: atendimento.situacao,
             href: `/develop/demo/atendimentos/${atendimento.id}`,
         }));
 
@@ -133,40 +135,14 @@ const pessoasDetailLayout: DetailLayout<Pessoa> = {
                 label: "Atividades",
                 icon: Activity,
                 count: atividadesRows.length,
-                content: (
-                    <ShowcaseRelationTable
-                        columns={[
-                            { key: "nome", header: "Atividade" },
-                            { key: "tipo", header: "Vínculo" },
-                            { key: "periodo", header: "Período" },
-                        ]}
-                        rows={atividadesRows}
-                        searchPlaceholder="Pesquisar atividades"
-                        addLabel="Novo vínculo"
-                        emptyMessage="Nenhuma atividade vinculada."
-                        linkKey="href"
-                    />
-                ),
+                content: <AtividadesRelation rows={atividadesRows} />,
             },
             {
                 key: "atendimentos",
                 label: "Atendimentos",
                 icon: ClipboardList,
                 count: atendimentosRows.length,
-                content: (
-                    <ShowcaseRelationTable
-                        columns={[
-                            { key: "data", header: "Data" },
-                            { key: "tipo", header: "Tipo" },
-                            { key: "situacao", header: "Situação" },
-                        ]}
-                        rows={atendimentosRows}
-                        searchPlaceholder="Pesquisar atendimentos"
-                        addLabel="Novo atendimento"
-                        emptyMessage="Nenhum atendimento registrado."
-                        linkKey="href"
-                    />
-                ),
+                content: <AtendimentosRelation rows={atendimentosRows} />,
             },
         ];
     },
@@ -189,6 +165,16 @@ export const pessoasModule = defineRecordModule<Pessoa>({
     serializeListState,
     listLayout: pessoasListLayout,
     detailLayout: pessoasDetailLayout,
+    // U6 (docs/PLAN-fundacao-ux.md, ADR 0014): drawer com as quatro abas,
+    // fixture em memória (ver _shared/metadata-fixtures.ts — demo nunca
+    // chama o backend real de notas/tags/anexos).
+    detailConfig: {
+        metadata: { notes: true, tags: true, attachments: true, history: true },
+        loadNotes: (record) => buildDemoMetadata(record.nome, record.createdAt).notes,
+        loadTags: (record) => buildDemoMetadata(record.nome, record.createdAt).tags,
+        loadAttachments: (record) => buildDemoMetadata(record.nome, record.createdAt).attachments,
+        loadAudit: (record) => buildDemoMetadata(record.nome, record.createdAt).audit,
+    },
 });
 
 registerModule(pessoasModule);

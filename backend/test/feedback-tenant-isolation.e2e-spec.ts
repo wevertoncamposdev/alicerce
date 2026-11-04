@@ -9,6 +9,9 @@ import { FeedbacksModule } from '@modules/feedbacks/feedbacks.module';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 import { PERMISSIONS_KEY } from '@core/common/decorators/permissions.decorator';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import { AuthorizationModule } from '@core/authorization/authorization.module';
+import { StorageModule } from '@core/storage/storage.module';
 
 /**
  * Cobre o pedido do Bloco B do FECHAMENTO.md: isolamento de Feedback entre
@@ -74,10 +77,18 @@ describe('Feedback tenant isolation + feedback.manage (e2e with mocked Prisma)',
     });
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [FeedbacksModule],
+      imports: [FeedbacksModule, AuthorizationModule, StorageModule],
     })
       .overrideProvider(PrismaService)
       .useValue(mockPrisma as unknown as PrismaService)
+      // U6: FeedbacksModule agora importa NotesModule/TagsModule/FileModule
+      // (limpeza em cascata no remove()), que dependem de
+      // PermissionCacheService — normalmente provido pelo AuthorizationModule
+      // global, ausente aqui porque só FeedbacksModule é importado. Nenhum
+      // teste deste arquivo exercita DELETE /feedbacks/:id, então um stub
+      // vazio basta pra resolver a injeção.
+      .overrideProvider(PermissionCacheService)
+      .useValue({ getFreshPermissions: () => Promise.resolve([]) })
       .overrideGuard(RolesPermissionsGuard)
       .useValue({
         canActivate: (context: ExecutionContext) => {

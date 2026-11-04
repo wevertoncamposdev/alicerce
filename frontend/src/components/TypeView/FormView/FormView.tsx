@@ -4,21 +4,25 @@ import * as React from "react";
 import { useActionState } from "react";
 import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { Input } from "@components/ui/input";
 import { Textarea } from "@components/ui/textarea";
 import { Select } from "@components/ui/select";
 import { Checkbox } from "@components/ui/checkbox";
 import { Switch } from "@components/ui/switch";
 import { Button } from "@components/ui/button";
+import { Badge } from "@components/ui/badge";
 import { useAutoSaveController } from "@/hooks/use-autosave-controller";
 import { autoSaveRecord, uploadFileAction } from "@core/registry/actions";
+import { lookupCepAction } from "@core/registry/address-lookup-action";
+import { LookupFieldInput } from "@components/TypeView/FormView/LookupFieldInput";
 import { validateFormPayload } from "@core/registry/form-validation";
 import { resizeImageToWebp } from "@lib/resize-image";
 import type { FormFieldConfig } from "@core/registry/types";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 import { useCreateSheetContext } from "@/contexts/create-sheet-context";
 import { Label } from "@components/ui/label";
+import { FieldGrid } from "@core/components/DetailView/FieldGrid";
 
 export type ActionState = { ok: boolean; message?: string; fieldErrors?: Record<string, string> };
 
@@ -86,6 +90,229 @@ function BooleanFieldInput({
         <>
             <input type="hidden" name={name} value={currentChecked ? "true" : "false"} />
             <Comp id={name} checked={currentChecked} onCheckedChange={handleChange} />
+        </>
+    );
+}
+
+// U4 (docs/PLAN-fundacao-ux.md): guarda centavos (string de inteiro,
+// AGENTS.md §4.2.10 — nunca float), exibe formatado em R$. Mesmo truque
+// de `BooleanFieldInput` (hidden input + estado interno) — funciona tanto
+// no <form> nativo do create (FormData lê o hidden) quanto no estado
+// controlado do edit (onChange).
+const MONEY_DISPLAY_FORMAT = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+function centsToDigits(raw: string): string {
+    const digits = raw.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+    return digits || "0";
+}
+
+function MoneyFieldInput({
+    name,
+    value,
+    defaultValue,
+    onChange,
+    onBlur,
+    onKeyDown,
+    variant,
+    invalid,
+    disabled,
+}: {
+    name: string;
+    value?: string;
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    onBlur?: () => void;
+    onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+    variant: "default" | "inline-detail";
+    invalid?: boolean;
+    disabled?: boolean;
+}) {
+    const [internalCents, setInternalCents] = React.useState(centsToDigits(defaultValue ?? ""));
+    const isControlled = value !== undefined;
+    const currentCents = isControlled ? centsToDigits(value) : internalCents;
+
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const next = centsToDigits(event.target.value);
+        if (!isControlled) setInternalCents(next);
+        onChange?.(next);
+    }
+
+    return (
+        <>
+            <input type="hidden" name={name} value={currentCents} />
+            <Input
+                type="text"
+                inputMode="numeric"
+                variant={variant}
+                aria-invalid={invalid || undefined}
+                className="flex-1 min-w-0"
+                value={MONEY_DISPLAY_FORMAT.format(Number(currentCents) / 100)}
+                onChange={handleChange}
+                onBlur={onBlur}
+                onKeyDown={onKeyDown}
+                disabled={disabled}
+            />
+        </>
+    );
+}
+
+// U4 (docs/PLAN-fundacao-ux.md): cpf/cnpj/phone — mesmo truque de
+// `MoneyFieldInput` (hidden input com dígitos puros + estado interno),
+// formatado incrementalmente conforme o usuário digita. Dígitos puros
+// (sem pontuação) é o formato que o backend espera (`OnlyDigits()` em
+// `backend/src/core/common/transformers/only-digits.ts`, U0.3) — nunca
+// strip de zero à esquerda aqui (diferente de `centsToDigits`), porque
+// telefone/CEP podem começar com zero.
+export function onlyDigits(raw: string): string {
+    return raw.replace(/\D/g, "");
+}
+
+function applyDigitsMask(digits: string, pattern: string): string {
+    let result = "";
+    let digitIndex = 0;
+    for (const char of pattern) {
+        if (digitIndex >= digits.length) break;
+        if (char === "#") {
+            result += digits[digitIndex];
+            digitIndex++;
+        } else {
+            result += char;
+        }
+    }
+    return result;
+}
+
+const DIGITS_MASK_MAX_LENGTH: Record<"cpf" | "cnpj" | "phone", number> = { cpf: 11, cnpj: 14, phone: 11 };
+
+export function maskDigitsForType(type: "cpf" | "cnpj" | "phone", digits: string): string {
+    const limited = digits.slice(0, DIGITS_MASK_MAX_LENGTH[type]);
+    if (type === "cpf") return applyDigitsMask(limited, "###.###.###-##");
+    if (type === "cnpj") return applyDigitsMask(limited, "##.###.###/####-##");
+    // phone: 10 dígitos (fixo, "(00) 0000-0000") ou 11 (celular, "(00) 00000-0000").
+    return applyDigitsMask(limited, limited.length > 10 ? "(##) #####-####" : "(##) ####-####");
+}
+
+function MaskedDigitsFieldInput({
+    type,
+    name,
+    value,
+    defaultValue,
+    onChange,
+    onBlur,
+    variant,
+    invalid,
+    disabled,
+}: {
+    type: "cpf" | "cnpj" | "phone";
+    name: string;
+    value?: string;
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    onBlur?: () => void;
+    variant: "default" | "inline-detail";
+    invalid?: boolean;
+    disabled?: boolean;
+}) {
+    const [internalDigits, setInternalDigits] = React.useState(onlyDigits(defaultValue ?? ""));
+    const isControlled = value !== undefined;
+    const currentDigits = isControlled ? onlyDigits(value) : internalDigits;
+
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const next = onlyDigits(event.target.value).slice(0, DIGITS_MASK_MAX_LENGTH[type]);
+        if (!isControlled) setInternalDigits(next);
+        onChange?.(next);
+    }
+
+    return (
+        <>
+            <input type="hidden" name={name} value={currentDigits} />
+            <Input
+                type="text"
+                inputMode="numeric"
+                variant={variant}
+                aria-invalid={invalid || undefined}
+                className="flex-1 min-w-0"
+                value={maskDigitsForType(type, currentDigits)}
+                onChange={handleChange}
+                onBlur={onBlur}
+                disabled={disabled}
+            />
+        </>
+    );
+}
+
+// U4: `document` — CPF ou CNPJ, decidido pelo valor atual do campo irmão
+// `conditionalType` (ex.: um `select` "CPF"/"CNPJ"/"Outro"). Em modo
+// controlado (edit/inline-detail), o irmão já está em `record` (mesmo
+// objeto que `image` usa pra `previewField` — os dois campos vivem na
+// mesma seção/FormView, então `record` sempre traz o valor atual do
+// irmão, reativo a cada render). Sem `record` (CreateFormView, não
+// controlado), lê o irmão direto do DOM — mesmo padrão imperativo já usado
+// pelo efeito de `?focus=` em EditFormView; funciona porque o campo irmão
+// já renderizou antes (ordem do formFields) quando o usuário chega a
+// digitar aqui. "Outro"/vazio: sem máscara, só dígitos.
+export function resolveDocumentMaskType(rawSiblingValue: string | undefined): "cpf" | "cnpj" | undefined {
+    if (rawSiblingValue === "CPF") return "cpf";
+    if (rawSiblingValue === "CNPJ") return "cnpj";
+    return undefined;
+}
+
+function DocumentFieldInput<T extends object>({
+    field,
+    value,
+    defaultValue,
+    onChange,
+    onBlur,
+    variant,
+    invalid,
+    disabled,
+    record,
+}: {
+    field: FormFieldConfig<T>;
+    value?: string;
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    onBlur?: () => void;
+    variant: "default" | "inline-detail";
+    invalid?: boolean;
+    disabled?: boolean;
+    record?: T;
+}) {
+    const [internalDigits, setInternalDigits] = React.useState(onlyDigits(defaultValue ?? ""));
+    const isControlled = value !== undefined;
+    const currentDigits = isControlled ? onlyDigits(value) : internalDigits;
+
+    function siblingValue(): string | undefined {
+        if (record && field.conditionalType) return String(record[field.conditionalType] ?? "");
+        if (!field.conditionalType) return undefined;
+        const el = document.getElementById(field.conditionalType) as HTMLSelectElement | null;
+        return el?.value;
+    }
+
+    const maskType = resolveDocumentMaskType(siblingValue());
+
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const type = resolveDocumentMaskType(siblingValue());
+        const maxLength = type ? DIGITS_MASK_MAX_LENGTH[type] : DIGITS_MASK_MAX_LENGTH.cnpj;
+        const next = onlyDigits(event.target.value).slice(0, maxLength);
+        if (!isControlled) setInternalDigits(next);
+        onChange?.(next);
+    }
+
+    return (
+        <>
+            <input type="hidden" name={field.name} value={currentDigits} />
+            <Input
+                type="text"
+                inputMode="numeric"
+                variant={variant}
+                aria-invalid={invalid || undefined}
+                className="flex-1 min-w-0"
+                value={maskType ? maskDigitsForType(maskType, currentDigits) : currentDigits}
+                onChange={handleChange}
+                onBlur={onBlur}
+                disabled={disabled}
+            />
         </>
     );
 }
@@ -174,6 +401,233 @@ function ImageFieldInput<T extends object>({
     );
 }
 
+// U4: `cep` — máscara "#####-###" + busca de endereço opcional (só quando
+// `addressFields` está declarado) via `lookupCepAction` (Server Action,
+// roda no servidor — sem isso a CSP bloquearia o fetch pro ViaCEP no
+// browser). Escreve nos campos irmãos por `onFieldChange` (modo
+// controlado) ou, sem ele (CreateFormView, não controlado), direto no DOM
+// — mesmo padrão imperativo do `DocumentFieldInput`/efeito de `?focus=`.
+function CepFieldInput<T extends object>({
+    field,
+    value,
+    defaultValue,
+    onChange,
+    onBlur,
+    variant,
+    invalid,
+    disabled,
+    onFieldChange,
+}: {
+    field: FormFieldConfig<T>;
+    value?: string;
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    onBlur?: () => void;
+    variant: "default" | "inline-detail";
+    invalid?: boolean;
+    disabled?: boolean;
+    onFieldChange?: (name: string, value: string) => void;
+}) {
+    const [internalDigits, setInternalDigits] = React.useState(onlyDigits(defaultValue ?? ""));
+    const [loadingAddress, setLoadingAddress] = React.useState(false);
+    const isControlled = value !== undefined;
+    const currentDigits = isControlled ? onlyDigits(value) : internalDigits;
+
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const next = onlyDigits(event.target.value).slice(0, 8);
+        if (!isControlled) setInternalDigits(next);
+        onChange?.(next);
+    }
+
+    function writeSibling(name: string, siblingValue: string) {
+        if (onFieldChange) {
+            onFieldChange(name, siblingValue);
+            return;
+        }
+        const el = document.getElementById(name) as HTMLInputElement | null;
+        if (el) el.value = siblingValue;
+    }
+
+    async function handleBlur() {
+        onBlur?.();
+        if (currentDigits.length !== 8 || !field.addressFields) return;
+
+        setLoadingAddress(true);
+        try {
+            const address = await lookupCepAction(currentDigits);
+            if (!address) return;
+
+            const { addressFields } = field;
+            if (addressFields.street && address.street) writeSibling(addressFields.street, address.street);
+            if (addressFields.neighborhood && address.neighborhood) {
+                writeSibling(addressFields.neighborhood, address.neighborhood);
+            }
+            if (addressFields.city && address.city) writeSibling(addressFields.city, address.city);
+            if (addressFields.state && address.state) writeSibling(addressFields.state, address.state);
+        } finally {
+            setLoadingAddress(false);
+        }
+    }
+
+    return (
+        <div className="flex items-center gap-2">
+            <input type="hidden" name={field.name} value={currentDigits} />
+            <Input
+                type="text"
+                inputMode="numeric"
+                variant={variant}
+                aria-invalid={invalid || undefined}
+                className="flex-1 min-w-0"
+                value={applyDigitsMask(currentDigits, "#####-###")}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                disabled={disabled}
+            />
+            {loadingAddress ? <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" /> : null}
+        </div>
+    );
+}
+
+// U4: `tags`/`multiselect` — valor em memória como array; por fora, a
+// mesma "língua" de string do resto do FormView (ver `BooleanFieldInput`)
+// via hidden input com os valores separados por vírgula (nenhum dos dois
+// tipos faz sentido pra valor com vírgula dentro).
+export function splitListValue(raw: string | undefined): string[] {
+    if (!raw) return [];
+    return raw.split(",").map((item) => item.trim()).filter(Boolean);
+}
+
+function joinListValue(items: string[]): string {
+    return items.join(",");
+}
+
+function TagsFieldInput({
+    name,
+    value,
+    defaultValue,
+    onChange,
+    onBlur,
+    variant,
+    invalid,
+    disabled,
+}: {
+    name: string;
+    value?: string;
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    onBlur?: () => void;
+    variant: "default" | "inline-detail";
+    invalid?: boolean;
+    disabled?: boolean;
+}) {
+    const [internalTags, setInternalTags] = React.useState(splitListValue(defaultValue));
+    const [draft, setDraft] = React.useState("");
+    const isControlled = value !== undefined;
+    const tags = isControlled ? splitListValue(value) : internalTags;
+
+    function commit(next: string[]) {
+        if (!isControlled) setInternalTags(next);
+        onChange?.(joinListValue(next));
+        onBlur?.();
+    }
+
+    function addDraftTag() {
+        const trimmed = draft.trim();
+        setDraft("");
+        if (!trimmed || tags.includes(trimmed)) return;
+        commit([...tags, trimmed]);
+    }
+
+    function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+        if (event.key === "Enter" || event.key === ",") {
+            event.preventDefault();
+            addDraftTag();
+        } else if (event.key === "Backspace" && draft === "" && tags.length > 0) {
+            commit(tags.slice(0, -1));
+        }
+    }
+
+    return (
+        <div className="flex flex-wrap items-center gap-1.5">
+            <input type="hidden" name={name} value={joinListValue(tags)} />
+            {tags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="gap-1">
+                    {tag}
+                    <button
+                        type="button"
+                        onClick={() => commit(tags.filter((item) => item !== tag))}
+                        disabled={disabled}
+                        aria-label={`Remover ${tag}`}
+                        className="text-muted-foreground hover:text-foreground"
+                    >
+                        <X className="size-3" />
+                    </button>
+                </Badge>
+            ))}
+            <Input
+                type="text"
+                variant={variant}
+                aria-invalid={invalid || undefined}
+                className="h-7 flex-1 min-w-[6rem]"
+                placeholder="Adicionar..."
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={handleKeyDown}
+                onBlur={addDraftTag}
+                disabled={disabled}
+            />
+        </div>
+    );
+}
+
+function MultiselectFieldInput<T extends object>({
+    field,
+    name,
+    value,
+    defaultValue,
+    onChange,
+    onBlur,
+    disabled,
+}: {
+    field: FormFieldConfig<T>;
+    name: string;
+    value?: string;
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    onBlur?: () => void;
+    disabled?: boolean;
+}) {
+    const [internalSelected, setInternalSelected] = React.useState(splitListValue(defaultValue));
+    const isControlled = value !== undefined;
+    const selected = isControlled ? splitListValue(value) : internalSelected;
+    const options = (field.options ?? []).map((option) =>
+        typeof option === "string" ? { label: option, value: option } : option,
+    );
+
+    function toggle(optionValue: string) {
+        const next = selected.includes(optionValue)
+            ? selected.filter((item) => item !== optionValue)
+            : [...selected, optionValue];
+        if (!isControlled) setInternalSelected(next);
+        onChange?.(joinListValue(next));
+        onBlur?.();
+    }
+
+    return (
+        <div className="flex flex-wrap items-center gap-1.5">
+            <input type="hidden" name={name} value={joinListValue(selected)} />
+            {options.map((option) => {
+                const isSelected = selected.includes(option.value);
+                return (
+                    <button key={option.value} type="button" onClick={() => toggle(option.value)} disabled={disabled}>
+                        <Badge variant={isSelected ? "default" : "outline"}>{option.label}</Badge>
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
 function renderFieldInput<T extends object>(
     field: FormFieldConfig<T>,
     opts: {
@@ -185,12 +639,16 @@ function renderFieldInput<T extends object>(
         invalid?: boolean;
         /** Textarea só: borda só em hover/focus + caixa compacta (sem rows fixo) — detail page inline. */
         compactTextarea?: boolean;
-        /** Só "image": o registro completo, pra ler `record[field.previewField]`. */
+        /** Só "image"/"document": o registro completo, pra ler `record[field.previewField]`
+         * ou o campo irmão de `conditionalType`. */
         record?: T;
         disabled?: boolean;
+        /** Só "cep": escreve nos campos irmãos de `addressFields` (busca de endereço) em
+         * modo controlado — sem isso (CreateFormView, não controlado), cai no DOM direto. */
+        onFieldChange?: (name: string, value: string) => void;
     },
 ) {
-    const { value, defaultValue, onChange, onBlur, variant, invalid, compactTextarea, record, disabled } = opts;
+    const { value, defaultValue, onChange, onBlur, variant, invalid, compactTextarea, record, disabled, onFieldChange } = opts;
 
     if (field.type === "image") {
         return (
@@ -206,6 +664,115 @@ function renderFieldInput<T extends object>(
                 defaultChecked={defaultValue === "true"}
                 checked={value !== undefined ? value === "true" : undefined}
                 onCheckedChange={onChange ? (checked) => onChange(checked ? "true" : "false") : undefined}
+            />
+        );
+    }
+
+    if (field.type === "money") {
+        return (
+            <MoneyFieldInput
+                name={field.name}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                variant={variant}
+                invalid={invalid}
+                disabled={disabled}
+            />
+        );
+    }
+
+    if (field.type === "cpf" || field.type === "cnpj" || field.type === "phone") {
+        return (
+            <MaskedDigitsFieldInput
+                type={field.type}
+                name={field.name}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                variant={variant}
+                invalid={invalid}
+                disabled={disabled}
+            />
+        );
+    }
+
+    if (field.type === "document") {
+        return (
+            <DocumentFieldInput
+                field={field}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                variant={variant}
+                invalid={invalid}
+                disabled={disabled}
+                record={record}
+            />
+        );
+    }
+
+    if (field.type === "cep") {
+        return (
+            <CepFieldInput
+                field={field}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                variant={variant}
+                invalid={invalid}
+                disabled={disabled}
+                onFieldChange={onFieldChange}
+            />
+        );
+    }
+
+    if (field.type === "tags") {
+        return (
+            <TagsFieldInput
+                name={field.name}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                variant={variant}
+                invalid={invalid}
+                disabled={disabled}
+            />
+        );
+    }
+
+    if (field.type === "multiselect") {
+        return (
+            <MultiselectFieldInput
+                field={field}
+                name={field.name}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                disabled={disabled}
+            />
+        );
+    }
+
+    if (field.type === "lookup") {
+        const currentLabel = record && field.relatedTitleField ? record[field.relatedTitleField] : undefined;
+        return (
+            <LookupFieldInput
+                name={field.name}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                relatedModel={field.relatedModel ?? ""}
+                relatedLabelField={field.relatedLabelField}
+                currentLabel={typeof currentLabel === "string" ? currentLabel : undefined}
+                disabled={disabled}
             />
         );
     }
@@ -275,7 +842,11 @@ function renderFieldInput<T extends object>(
         );
     }
 
-    return <Input {...sharedProps} variant={variant} type={field.type ?? "text"} onKeyDown={onEnterBlur} />;
+    // `datetime` (nosso tipo lógico) -> `datetime-local` (tipo HTML de
+    // verdade); todo o resto do union já bate 1:1 com um `<input type>`
+    // válido (date/text/email/password/url/number/text).
+    const htmlInputType = field.type === "datetime" ? "datetime-local" : (field.type ?? "text");
+    return <Input {...sharedProps} variant={variant} type={htmlInputType} onKeyDown={onEnterBlur} />;
 }
 
 function FieldErrorText({ error }: { error?: string }) {
@@ -283,8 +854,10 @@ function FieldErrorText({ error }: { error?: string }) {
     return <p className="text-xs text-destructive">{error}</p>;
 }
 
-/** Grid label-à-esquerda do FieldList (docs/ui/detail-page.md §3) — usado por `mode="edit"
- * layout="inline"` e pelo `DraftProvider` (criação pelo Detail, ver DraftProvider.tsx). */
+/** Grid da seção editável (docs/ui/detail-page.md §3, `FieldGrid` — rótulo em cima, `span`
+ * 1/2/3) — usado por `mode="edit" layout="inline"` e pelo `DraftProvider` (criação pelo
+ * Detail, ver DraftProvider.tsx). Nome mantido (só o layout interno mudou, U4) pra não
+ * exigir troca nos dois call sites. */
 export function InlineFieldsGrid<T extends object>({
     fields,
     values,
@@ -306,47 +879,24 @@ export function InlineFieldsGrid<T extends object>({
     onBlur: (name: keyof T & string) => void;
 }) {
     return (
-        <div className="grid grid-cols-[minmax(110px,40%)_1fr] items-start gap-x-4 gap-y-2.5 text-sm">
-            {fields.map((field) => {
-                const error = fieldErrors[field.name];
-                const input = renderFieldInput(field, {
+        <FieldGrid<T>
+            fields={fields}
+            saving={saving}
+            errors={fieldErrors}
+            renderValue={(field) =>
+                renderFieldInput(field, {
                     value: values[field.name] ?? "",
                     variant: "inline-detail",
-                    invalid: Boolean(error),
+                    invalid: Boolean(fieldErrors[field.name]),
                     compactTextarea: field.type === "textarea",
                     record,
                     disabled: saving,
                     onChange: (value) => onChange(field.name, value),
                     onBlur: () => onBlur(field.name),
-                });
-                const label = (
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Label htmlFor={field.name}>{field.label}</Label>
-                        {saving ? <Loader2 className="size-3.5 shrink-0 animate-spin" /> : null}
-                    </div>
-                );
-
-                if (field.type === "textarea") {
-                    return (
-                        <div key={field.name} className="col-span-2 space-y-1">
-                            {label}
-                            {input}
-                            <FieldErrorText error={error} />
-                        </div>
-                    );
-                }
-
-                return (
-                    <React.Fragment key={field.name}>
-                        <div className="pt-1.5">{label}</div>
-                        <div className="space-y-1">
-                            {input}
-                            <FieldErrorText error={error} />
-                        </div>
-                    </React.Fragment>
-                );
-            })}
-        </div>
+                    onFieldChange: (name, value) => onChange(name as keyof T & string, value),
+                })
+            }
+        />
     );
 }
 
@@ -518,6 +1068,7 @@ function EditFormView<T extends object>({
                             disabled: saving,
                             onChange: (value) => handleChange(field.name, value),
                             onBlur: commitField,
+                            onFieldChange: (name, value) => handleChange(name as keyof T & string, value),
                         })}
                         <FieldErrorText error={error} />
                     </div>

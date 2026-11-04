@@ -5,13 +5,14 @@ import { createListQueryState } from "@lib/query-state/list-query-state";
 import { createRecordFormAction } from "@core/registry/actions";
 
 import { FormView } from "@components/TypeView/FormView/FormView";
-import { ShowcaseRelationTable } from "@modules/develop/showcase/ShowcaseRelationTable";
 import { AtividadesListView } from "@modules/develop/demo/atividades/components/AtividadesListView";
+import { ParticipantesRelation } from "@modules/develop/demo/atividades/components/ParticipantesRelation";
 import { EnumBadge } from "@core/components/DetailView/EnumBadge";
 
 import { searchAtividades, readAtividade, createAtividade, updateAtividade, deleteAtividade } from "./provider";
 import { PESSOAS, VINCULOS } from "@modules/develop/demo/_shared/seed-data";
 import { AtividadeStatusEnum } from "@modules/develop/demo/_shared/enums";
+import { buildDemoMetadata } from "@modules/develop/demo/_shared/metadata-fixtures";
 import type { Atividade } from "../types/types";
 
 // U1 (docs/PLAN-fundacao-ux.md): seções só de leitura, mesmo motivo do
@@ -85,20 +86,7 @@ const atividadesDetailLayout: DetailLayout<Atividade> = {
                 label: "Participantes",
                 icon: Users,
                 count: participantesRows.length,
-                content: (
-                    <ShowcaseRelationTable
-                        columns={[
-                            { key: "nome", header: "Pessoa" },
-                            { key: "tipo", header: "Vínculo" },
-                            { key: "periodo", header: "Período" },
-                        ]}
-                        rows={participantesRows}
-                        searchPlaceholder="Pesquisar participantes"
-                        addLabel="Novo vínculo"
-                        emptyMessage="Nenhum participante vinculado."
-                        linkKey="href"
-                    />
-                ),
+                content: <ParticipantesRelation rows={participantesRows} />,
             },
         ];
     },
@@ -121,6 +109,13 @@ export const atividadesModule = defineRecordModule<Atividade>({
     serializeListState,
     listLayout: atividadesListLayout,
     detailLayout: atividadesDetailLayout,
+    detailConfig: {
+        metadata: { notes: true, tags: true, attachments: true, history: true },
+        loadNotes: (record) => buildDemoMetadata(record.nome, record.createdAt).notes,
+        loadTags: (record) => buildDemoMetadata(record.nome, record.createdAt).tags,
+        loadAttachments: (record) => buildDemoMetadata(record.nome, record.createdAt).attachments,
+        loadAudit: (record) => buildDemoMetadata(record.nome, record.createdAt).audit,
+    },
 });
 
 registerModule(atividadesModule);

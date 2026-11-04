@@ -29,6 +29,10 @@ describe("entityLabel", () => {
         expect(entityLabel("me")).toBe("Perfil");
     });
 
+    it("mapa estático também bate no plural (resource do catálogo de permissões)", () => {
+        expect(entityLabel("tenants")).toBe("Instituição");
+    });
+
     it("entidade totalmente desconhecida: capitaliza como último recurso, nunca quebra", () => {
         expect(entityLabel("example")).toBe("Example");
     });

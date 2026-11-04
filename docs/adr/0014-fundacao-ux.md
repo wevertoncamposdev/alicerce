@@ -40,21 +40,60 @@
     existe lá (nenhum outro arquivo do DetailView, que fica reservado
     pra U4).
   - **U3** (TypeView v2): `frontend/src/core/table-features.ts`,
-    `frontend/src/core/components/Layout/` (lista/colunas),
-    `frontend/src/core/registry/types.ts` (tipos de coluna).
+    `frontend/src/core/components/Layout/` (lista/colunas) — novo
+    `column-builder.tsx` —, `frontend/src/core/registry/types.ts`
+    (tipos de coluna), `frontend/src/core/registry/csv-export.ts`
+    (novo — exportar CSV do resultado de busca, mesma permissão de
+    leitura que `search` já checa); e, fora de `core/` mas tratado com
+    o mesmo cuidado desde o ADR 0005 (mesmo grupo de
+    `FormView.tsx`/`ListView.tsx`), `frontend/src/components/TypeView/
+    ListView/` — novos `ColumnVisibilityMenu.tsx`,
+    `QuickFilterChips.tsx` e `ExportCsvButton.tsx` —, e
+    `frontend/src/lib/query-state/list-query-state.ts` (fábrica
+    compartilhada por todo módulo — ganha `filter_<campo>=` genérico
+    no parse, pros chips funcionarem de verdade).
   - **U4** (DetailView v2): `frontend/src/core/components/DetailView/**`
     (exceto `RelationView/` e `MetaDataView/`, cobertos nas etapas
-    seguintes), `frontend/src/core/registry/types.ts` (tipos de campo),
-    `frontend/src/core/registry/form-validation.ts`.
+    seguintes) — novo `FieldGrid.tsx` —, `frontend/src/core/registry/
+    types.ts` (tipos de campo), `frontend/src/core/registry/
+    form-validation.ts`, `frontend/src/core/registry/lookup-actions.ts`
+    (novo — busca genérica pro tipo `lookup`, mesma permissão de
+    leitura que `search` já checa); e, fora de `core/` mas tratado com
+    o mesmo cuidado desde o ADR 0005 (mesmo grupo do U0/U3),
+    `frontend/src/components/TypeView/FormView/FormView.tsx` (tipos de
+    campo novos entram no `renderFieldInput`; grid label-à-esquerda
+    atual vira uso só do `FieldGrid` novo) — novo
+    `LookupFieldInput.tsx` no mesmo diretório.
   - **U5** (relações e navegação): `frontend/src/core/components/
     DetailView/RelationView/**`, `frontend/src/core/components/Layout/
     Breadcrumbs.tsx`.
-  - **U6** (metadados — Notas/Tags/Histórico): `frontend/src/core/
-    components/DetailView/MetaDataView/**`; backend: novo recurso
-    polimórfico tenant-scoped no mesmo padrão de `core/files` e do
-    `audit.interceptor.ts` — pasta exata (`core/notes`, `core/tags` ou
-    `core/metadata`) decidida e registrada aqui quando a sessão da U6
-    começar, antes de criar o model.
+  - **U6** (metadados — Notas/Tags/Anexos/Histórico; escopo ampliado na
+    sessão da U6 — Notas/Tags/Anexos são os três mecanismos, Histórico
+    reaproveita a auditoria já existente): decisão de pasta registrada
+    aqui, como prometido — `backend/src/core/metadata/` (submódulos
+    `notes/` e `tags/`, cada um com controller/service/module próprios);
+    Anexos não ganha pasta nova, estende `backend/src/core/files/`
+    (endpoint de listagem por dono + permissão herdada somada à regra
+    de "uploader" já existente no `remove()`). Lista de `core/` desta
+    etapa: `frontend/src/core/components/DetailView/MetaDataView/**`;
+    `frontend/src/core/screens/DetailViewScreen.tsx` (passa `entity` e
+    `metadata` do módulo pro drawer, substitui o achatamento de
+    auditoria em `summary` por `entity`/`before`/`after` crus — troca de
+    prop, não reescreve regra de negócio); `frontend/src/core/registry/
+    types.ts` (campo `metadata` novo em `DetailConfig<T>`, aditivo, mais
+    `loadNotes`/`loadTags`/`loadAttachments` de fixture); `frontend/src/
+    core/registry/actions.ts` (Server Actions novas de notas/tags/
+    anexos, mesmo padrão de `uploadFileAction`); `frontend/src/core/
+    data-provider/rest/` (leitores novos, espelhando `audit.ts`);
+    `frontend/src/core/registry/entity-link.ts` (novo — link genérico
+    pro registro citado no histórico; core não importa de modules, por
+    isso não reaproveita `modules/audit/config/entity-link.ts`);
+    `backend/src/core/metadata/**` (novo); `backend/src/core/files/**`
+    (extensão, ver acima); `backend/src/core/authorization/` (helper de
+    permissão dinâmica `${entity}.read`/`${entity}.update`, compartilhado
+    pelos dois). Ampliação decidida com o Weverton antes de editar
+    qualquer um destes fora de `MetaDataView/**` — mesma regra do ADR
+    0013/U0.
   - **U7** (Tenant/User mínimos + Extensão 1:1): `scripts/new-module.mjs`
     (gerador; fora de `core/` mas parte da promessa de "zero código novo"
     do `AGENTS.md` §1); `frontend/src/core/registry/types.ts` só se a

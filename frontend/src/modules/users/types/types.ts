@@ -3,6 +3,7 @@ export type UserEntity = {
     id: string;
     email: string;
     name?: string | null;
+    phone?: string | null;
     tenantId: string;
     status: string;
     pendingInvite?: boolean;

@@ -17,12 +17,31 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // sempre vence sobre formato errado.
 // `null` (campo esvaziado, ver D2/U0.2 — o autosave manda `null`, nunca "")
 // é tratado igual a "" em toda checagem: nenhum dos dois é "preenchido".
+// U4 (docs/PLAN-fundacao-ux.md): `date`/`datetime` guardam o valor cru do
+// `<input type="date"|"datetime-local">` (ISO parcial, "AAAA-MM-DD" ou
+// "AAAA-MM-DDTHH:mm") — `Date.parse` já entende os dois sem conversão.
+// `money` guarda centavos como string de inteiro (AGENTS.md §4.2.10 —
+// nunca float); dígito verificador de CPF/CNPJ fica só no backend
+// (is-document.validator.ts, D3/U0) — aqui é só formato.
+// cpf/cnpj/phone chegam aqui já como dígitos puros (FormView manda só dígitos
+// no hidden input, ver MaskedDigitsFieldInput) — só confere a quantidade.
+const DIGITS_LENGTH_CHECK: Record<"cpf" | "cnpj" | "phone", (len: number) => boolean> = {
+    cpf: (len) => len === 11,
+    cnpj: (len) => len === 14,
+    phone: (len) => len === 10 || len === 11,
+};
+
 function isFieldValueValid<T extends object>(field: FormFieldConfig<T>, value: string | null): boolean {
     const trimmed = value?.trim() ?? "";
     if (field.required && trimmed === "") return false;
     if (trimmed === "") return true;
     if (field.type === "email") return EMAIL_PATTERN.test(trimmed);
     if (field.type === "number") return !Number.isNaN(Number(trimmed));
+    if (field.type === "date" || field.type === "datetime") return !Number.isNaN(Date.parse(trimmed));
+    if (field.type === "money") return /^-?\d+$/.test(trimmed);
+    if (field.type === "cpf" || field.type === "cnpj" || field.type === "phone") {
+        return /^\d+$/.test(trimmed) && DIGITS_LENGTH_CHECK[field.type](trimmed.length);
+    }
     return true;
 }
 
@@ -31,6 +50,11 @@ function messageForInvalidField<T extends object>(field: FormFieldConfig<T>, val
     if (field.required && trimmed === "") return `${field.label} é obrigatório.`;
     if (field.type === "email") return `${field.label}: e-mail inválido.`;
     if (field.type === "number") return `${field.label}: precisa ser um número.`;
+    if (field.type === "date" || field.type === "datetime") return `${field.label}: data inválida.`;
+    if (field.type === "money") return `${field.label}: valor inválido.`;
+    if (field.type === "cpf" || field.type === "cnpj" || field.type === "phone") {
+        return `${field.label}: número incompleto.`;
+    }
     return `${field.label}: valor inválido.`;
 }
 

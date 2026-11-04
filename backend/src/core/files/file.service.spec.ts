@@ -3,6 +3,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { FilesService } from './file.service';
 import { PrismaService } from '@core/prisma/prisma.service';
 import { STORAGE_PROVIDER } from '@core/storage/storage-provider.interface';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
 
 describe('FilesService', () => {
   let service: FilesService;
@@ -20,14 +21,20 @@ describe('FilesService', () => {
     delete: jest.fn(),
   };
 
+  const permissionCacheMock = {
+    getFreshPermissions: jest.fn().mockResolvedValue([]),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
+    permissionCacheMock.getFreshPermissions.mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FilesService,
         { provide: PrismaService, useValue: prismaMock },
         { provide: STORAGE_PROVIDER, useValue: storageMock },
+        { provide: PermissionCacheService, useValue: permissionCacheMock },
       ],
     }).compile();
 

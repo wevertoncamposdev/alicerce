@@ -6,6 +6,7 @@ export interface UserLike {
   id: string;
   email: string;
   name?: string | null;
+  phone?: string | null;
   status: string;
   avatarFileId?: string | null;
   password?: string | null;

@@ -12,6 +12,7 @@ import { EnumBadge } from "@core/components/DetailView/EnumBadge";
 import { searchAtendimentos, readAtendimento, createAtendimento, updateAtendimento, deleteAtendimento } from "./provider";
 import { PESSOAS } from "@modules/develop/demo/_shared/seed-data";
 import { AtendimentoTipoEnum, AtendimentoSituacaoEnum } from "@modules/develop/demo/_shared/enums";
+import { buildDemoMetadata } from "@modules/develop/demo/_shared/metadata-fixtures";
 import type { Atendimento } from "../types/types";
 
 // U1 (docs/PLAN-fundacao-ux.md): seções só de leitura, mesmo motivo do
@@ -113,6 +114,13 @@ export const atendimentosModule = defineRecordModule<Atendimento>({
     serializeListState,
     listLayout: atendimentosListLayout,
     detailLayout: atendimentosDetailLayout,
+    detailConfig: {
+        metadata: { notes: true, tags: true, attachments: true, history: true },
+        loadNotes: (record) => buildDemoMetadata(`Atendimento ${record.data}`, record.createdAt).notes,
+        loadTags: (record) => buildDemoMetadata(`Atendimento ${record.data}`, record.createdAt).tags,
+        loadAttachments: (record) => buildDemoMetadata(`Atendimento ${record.data}`, record.createdAt).attachments,
+        loadAudit: (record) => buildDemoMetadata(`Atendimento ${record.data}`, record.createdAt).audit,
+    },
 });
 
 registerModule(atendimentosModule);

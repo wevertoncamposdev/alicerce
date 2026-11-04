@@ -8,15 +8,26 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { MultipartFields } from '@fastify/multipart';
 import { TenantId } from '@core/common/decorators/tenant-id.decorator';
 import { CurrentUserId } from '@core/common/decorators/current-user-id.decorator';
 import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
 import { FilesService } from './file.service';
+
+function readMultipartField(
+  fields: MultipartFields,
+  name: string,
+): string | undefined {
+  const field = fields[name];
+  const entry = Array.isArray(field) ? field[0] : field;
+  return entry && entry.type === 'field' ? String(entry.value) : undefined;
+}
 
 // Sem `@Permissions` — upload é infraestrutura genérica disponível para
 // qualquer usuário autenticado, não um recurso de domínio com permissão
@@ -39,24 +50,35 @@ export class FilesController {
     }
 
     const data = await part.toBuffer();
-    // `ownerType` precisa vir ANTES do arquivo no multipart (ver
-    // ImageFieldInput.tsx) — @fastify/multipart só acumula em `.fields` os
-    // campos lidos antes do primeiro arquivo encontrado.
-    const ownerTypeField = part.fields.ownerType;
-    const ownerType =
-      ownerTypeField &&
-      !Array.isArray(ownerTypeField) &&
-      ownerTypeField.type === 'field'
-        ? String(ownerTypeField.value)
-        : 'generic';
+    // `ownerType`/`ownerId` precisam vir ANTES do arquivo no multipart (ver
+    // FormView.tsx/ImageFieldInput.tsx) — @fastify/multipart só acumula em
+    // `.fields` os campos lidos antes do primeiro arquivo encontrado.
+    const ownerType = readMultipartField(part.fields, 'ownerType') ?? 'generic';
+    // U6 (docs/PLAN-fundacao-ux.md): anexo de registro (aba Anexos do
+    // drawer) manda `ownerId` — avatar/logo não mandam (a posse é
+    // resolvida do outro lado, User.avatarFileId/Tenant.logoFileId).
+    const ownerId = readMultipartField(part.fields, 'ownerId');
 
     return this.filesService.upload({
       data,
       mime: part.mimetype,
+      originalName: part.filename,
       ownerType,
+      ownerId,
       tenantId,
       uploadedById: userId,
     });
+  }
+
+  // U6: aba Anexos do drawer de metadados — ver `FilesService.listForOwner`.
+  @Get()
+  listForOwner(
+    @Query('ownerType') ownerType: string,
+    @Query('ownerId', new ParseUUIDPipe()) ownerId: string,
+    @TenantId() tenantId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    return this.filesService.listForOwner(ownerType, ownerId, tenantId, userId);
   }
 
   @Get(':id/url')

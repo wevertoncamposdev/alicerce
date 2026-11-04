@@ -7,6 +7,9 @@ import { resolveActionErrorMessage, resolveActionFieldErrors } from "@core/regis
 import type { FormFieldConfig } from "@core/registry/types";
 import type { SearchArgs, SearchResult } from "@core/data-provider/types";
 import { apiServer } from "@lib/api-server";
+import { toNoteItem, type NoteEntry } from "@core/data-provider/rest/notes";
+import { toTagItem, searchTags, type TagEntry, type RecordTagEntry } from "@core/data-provider/rest/tags";
+import type { NoteItem, TagItem } from "@core/components/DetailView/MetaDataView/types";
 
 type ActionState = { ok: boolean; message?: string; fieldErrors?: Record<string, string> };
 
@@ -144,4 +147,99 @@ export async function searchRecordsAction<T>(model: string, args: SearchArgs): P
  */
 export async function uploadFileAction(formData: FormData): Promise<{ id: string; mime: string }> {
     return apiServer.upload<{ id: string; mime: string }>("files", formData);
+}
+
+// ============================================================
+// U6 (docs/PLAN-fundacao-ux.md, ADR 0014) — Notas/Tags do drawer de
+// metadados. Mesmo motivo de `uploadFileAction`: `core/metadata` é
+// infraestrutura polimórfica (entity/entityId), não um módulo com
+// `DataProvider` próprio, então chama `apiServer` direto.
+// ============================================================
+
+export type MetadataActionResult<T> =
+    | { ok: true; data: T }
+    | { ok: false; message: string };
+
+export async function createNoteAction(
+    entity: string,
+    entityId: string,
+    body: string,
+): Promise<MetadataActionResult<NoteItem>> {
+    try {
+        const created = await apiServer.post<NoteEntry>("notes", { entity, entityId, body });
+        return { ok: true, data: toNoteItem(created) };
+    } catch (err) {
+        console.error("[createNoteAction]", err);
+        return { ok: false, message: resolveActionErrorMessage(err) };
+    }
+}
+
+export async function updateNoteAction(
+    id: string,
+    patch: { body?: string; pinned?: boolean },
+): Promise<MetadataActionResult<NoteItem>> {
+    try {
+        const updated = await apiServer.patch<NoteEntry>(`notes/${id}`, patch);
+        return { ok: true, data: toNoteItem(updated) };
+    } catch (err) {
+        console.error("[updateNoteAction]", err);
+        return { ok: false, message: resolveActionErrorMessage(err) };
+    }
+}
+
+export async function deleteNoteAction(id: string): Promise<MetadataActionResult<null>> {
+    try {
+        await apiServer.delete(`notes/${id}`);
+        return { ok: true, data: null };
+    } catch (err) {
+        console.error("[deleteNoteAction]", err);
+        return { ok: false, message: resolveActionErrorMessage(err) };
+    }
+}
+
+export async function searchTagsAction(search?: string): Promise<MetadataActionResult<TagEntry[]>> {
+    try {
+        const tags = await searchTags(search);
+        return { ok: true, data: tags };
+    } catch (err) {
+        console.error("[searchTagsAction]", err);
+        return { ok: false, message: resolveActionErrorMessage(err) };
+    }
+}
+
+export async function attachTagAction(
+    entity: string,
+    entityId: string,
+    tag: { tagId: string } | { name: string; color: string },
+): Promise<MetadataActionResult<TagItem>> {
+    try {
+        const created = await apiServer.post<RecordTagEntry>("record-tags", { entity, entityId, ...tag });
+        return { ok: true, data: toTagItem(created) };
+    } catch (err) {
+        console.error("[attachTagAction]", err);
+        return { ok: false, message: resolveActionErrorMessage(err) };
+    }
+}
+
+export async function detachTagAction(recordTagId: string): Promise<MetadataActionResult<null>> {
+    try {
+        await apiServer.delete(`record-tags/${recordTagId}`);
+        return { ok: true, data: null };
+    } catch (err) {
+        console.error("[detachTagAction]", err);
+        return { ok: false, message: resolveActionErrorMessage(err) };
+    }
+}
+
+// Anexo reusa uploadFileAction (o client anexa `ownerType = entity` no
+// FormData antes do arquivo, mesmo padrão de ImageFieldInput.tsx) — só
+// faltava remover.
+export async function deleteAttachmentAction(id: string): Promise<MetadataActionResult<null>> {
+    try {
+        await apiServer.delete(`files/${id}`);
+        return { ok: true, data: null };
+    } catch (err) {
+        console.error("[deleteAttachmentAction]", err);
+        return { ok: false, message: resolveActionErrorMessage(err) };
+    }
 }

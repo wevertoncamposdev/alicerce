@@ -13,6 +13,11 @@ model File {
     mime String @db.VarChar(100)
     size Int
     key  String @unique @db.VarChar(255)
+    // U6: nome original do arquivo (aba Anexos do drawer de metadados) —
+    // `@fastify/multipart` já traz isso de graça em `part.filename`, sem
+    // mudar nada no upload do frontend. Nulo pra arquivo enviado antes
+    // desta coluna existir (avatar/logo não precisavam disso até aqui).
+    originalName String? @db.VarChar(255)
 
     uploadedById String @db.Uuid
 

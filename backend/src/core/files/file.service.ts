@@ -9,6 +9,11 @@ import { PrismaService } from '@core/prisma/prisma.service';
 import { findOneOrThrow } from '@core/common/utils/find-one-or-throw.util';
 import { STORAGE_PROVIDER } from '@core/storage/storage-provider.interface';
 import type { StorageProvider } from '@core/storage/storage-provider.interface';
+import { PermissionCacheService } from '@core/authorization/permission-cache.service';
+import {
+  assertEntityAccess,
+  checkEntityPermission,
+} from '@core/authorization/record-permission.util';
 
 // Whitelist única para todos os usos desta fase (avatar/logo) — Plano
 // Base.md fala em "whitelist por uso"; um global simples hoje, revisável
@@ -43,16 +48,27 @@ export class FilesService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+    private readonly permissionCache: PermissionCacheService,
   ) {}
 
   async upload(params: {
     data: Buffer;
     mime: string;
+    originalName?: string;
     ownerType: string;
+    ownerId?: string;
     tenantId: string;
     uploadedById: string;
   }) {
-    const { data, mime, ownerType, tenantId, uploadedById } = params;
+    const {
+      data,
+      mime,
+      originalName,
+      ownerType,
+      ownerId,
+      tenantId,
+      uploadedById,
+    } = params;
 
     if (!ALLOWED_MIME_TYPES.has(mime)) {
       throw new BadRequestException(`Tipo de arquivo não permitido: ${mime}`);
@@ -73,11 +89,40 @@ export class FilesService {
       data: {
         tenantId,
         ownerType,
+        ownerId: ownerId || null,
         mime,
         size: data.length,
         key,
+        originalName: originalName || null,
         uploadedById,
       },
+    });
+  }
+
+  // U6 (docs/PLAN-fundacao-ux.md): aba Anexos do drawer de metadados —
+  // lista arquivos de um registro genérico (`ownerType` = nome do recurso
+  // de permissão, ex. "feedback"). `denyOnUnknownEntity: false` preserva
+  // o comportamento de hoje pra `ownerType` de infra (avatar/logo, sem
+  // entrada no catálogo) — só fica mais restrito quando `ownerType` é um
+  // recurso real.
+  async listForOwner(
+    ownerType: string,
+    ownerId: string,
+    tenantId: string,
+    userId: string,
+  ) {
+    await assertEntityAccess(
+      this.permissionCache,
+      tenantId,
+      userId,
+      ownerType,
+      'read',
+      false,
+    );
+
+    return this.prisma.file.findMany({
+      where: { tenantId, ownerType, ownerId, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -138,12 +183,49 @@ export class FilesService {
     const file = await this.getFileOrThrow(id, tenantId);
 
     if (file.uploadedById !== requesterId) {
-      throw new ForbiddenException('Só quem enviou o arquivo pode removê-lo');
+      // U6: quem pode alterar o registro dono (ex. "feedback.update")
+      // também pode remover um anexo que não enviou — além do uploader,
+      // mesmo padrão de autor-ou-permissão de `NotesService`.
+      const freshPermissions = await this.permissionCache.getFreshPermissions(
+        tenantId,
+        requesterId,
+      );
+      const canRemoveViaOwner =
+        checkEntityPermission(freshPermissions, file.ownerType, 'update') ===
+        'granted';
+
+      if (!canRemoveViaOwner) {
+        throw new ForbiddenException(
+          'Só quem enviou o arquivo (ou quem pode alterar o registro) pode removê-lo',
+        );
+      }
     }
 
     await this.storage.delete(file.key);
     await this.prisma.file.update({
       where: { id: file.id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  // Chamado pelo `remove()` de cada módulo que adota `metadata.attachments`
+  // — mesmo papel de `NotesService.removeForRecord`/`RecordTagsService.
+  // removeForRecord`, mas também limpa o storage (não é só linha de banco).
+  async removeAllForOwner(
+    ownerType: string,
+    ownerId: string,
+    tenantId: string,
+  ): Promise<void> {
+    const files = await this.prisma.file.findMany({
+      where: { tenantId, ownerType, ownerId, deletedAt: null },
+    });
+
+    for (const file of files) {
+      await this.storage.delete(file.key);
+    }
+
+    await this.prisma.file.updateMany({
+      where: { id: { in: files.map((file) => file.id) } },
       data: { deletedAt: new Date() },
     });
   }

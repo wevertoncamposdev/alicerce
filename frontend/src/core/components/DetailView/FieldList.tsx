@@ -1,6 +1,10 @@
 // components/DetailView/FieldList.tsx
 import * as React from "react";
 import type { FormFieldConfig } from "@core/registry/types";
+import { FieldGrid } from "@core/components/DetailView/FieldGrid";
+import { maskDigitsForType, onlyDigits, resolveDocumentMaskType, splitListValue } from "@components/TypeView/FormView/FormView";
+import { Badge } from "@components/ui/badge";
+import Link from "next/link";
 
 type FieldListProps<T> = {
     record: T;
@@ -8,11 +12,14 @@ type FieldListProps<T> = {
     formFields: FormFieldConfig<T>[];
 };
 
-function resolveDisplayValue(
-    type: FormFieldConfig<never>["type"] | undefined,
-    options: FormFieldConfig<never>["options"],
+const MONEY_DISPLAY_FORMAT = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+function resolveDisplayValue<T>(
+    field: FormFieldConfig<T>,
     rawValue: unknown,
+    record: T,
 ): string {
+    const { type, options } = field;
     if (type === "select" && options) {
         const match = options.find((option) =>
             typeof option === "string" ? option === rawValue : option.value === rawValue,
@@ -24,46 +31,96 @@ function resolveDisplayValue(
         return rawValue === true || rawValue === "true" ? "Sim" : "Não";
     }
 
+    if (type === "money" && rawValue !== null && rawValue !== undefined && rawValue !== "") {
+        const cents = Number(rawValue);
+        return Number.isFinite(cents) ? MONEY_DISPLAY_FORMAT.format(cents / 100) : String(rawValue);
+    }
+
+    if (type === "datetime" && typeof rawValue === "string" && rawValue) {
+        const parsed = new Date(rawValue);
+        return Number.isNaN(parsed.getTime()) ? rawValue : parsed.toLocaleString("pt-BR");
+    }
+
+    if (type === "date" && typeof rawValue === "string" && rawValue) {
+        const parsed = new Date(rawValue);
+        return Number.isNaN(parsed.getTime()) ? rawValue : parsed.toLocaleDateString("pt-BR");
+    }
+
+    if ((type === "cpf" || type === "cnpj" || type === "phone") && typeof rawValue === "string" && rawValue) {
+        return maskDigitsForType(type, onlyDigits(rawValue));
+    }
+
+    if (type === "document" && typeof rawValue === "string" && rawValue) {
+        const siblingValue = field.conditionalType ? String(record[field.conditionalType] ?? "") : undefined;
+        const maskType = resolveDocumentMaskType(siblingValue);
+        return maskType ? maskDigitsForType(maskType, onlyDigits(rawValue)) : onlyDigits(rawValue);
+    }
+
     if (rawValue === null || rawValue === undefined || rawValue === "") return "";
     return String(rawValue);
 }
 
-/** Campos (leitura) — docs/ui/detail-page.md §3. Nunca input/textarea fora do modo edição. */
+/** `tags`/`multiselect` guardam os valores separados por vírgula na mesma string
+ * (ver `FormView.tsx`, `TagsFieldInput`/`MultiselectFieldInput`) — na leitura isso
+ * vira chips, não texto corrido. `multiselect` resolve o rótulo via `field.options`
+ * (igual ao `select`); `tags` mostra o valor cru. */
+function labelForListItem<T>(field: FormFieldConfig<T>, item: string): string {
+    if (field.type !== "multiselect" || !field.options) return item;
+    const match = field.options.find((option) => (typeof option === "string" ? option === item : option.value === item));
+    if (!match) return item;
+    return typeof match === "string" ? match : match.label;
+}
+
+/** Campos (leitura) — docs/ui/detail-page.md §3. Mesmo grid (`FieldGrid`) da seção editável,
+ * só troca input por texto — nunca input/textarea fora do modo edição. */
 export function FieldList<T>({ record, fields, formFields }: FieldListProps<T>) {
     const configByName = React.useMemo(() => new Map(formFields.map((f) => [f.name, f])), [formFields]);
-
-    const regularFields = fields.filter((name) => configByName.get(name)?.type !== "textarea");
-    const longTextFields = fields.filter((name) => configByName.get(name)?.type === "textarea");
+    const visibleFields = React.useMemo(
+        () => fields.map((name) => configByName.get(name) ?? { name, label: name, type: "text" as const }),
+        [fields, configByName],
+    );
 
     return (
-        <div className="space-y-4">
-            {regularFields.length > 0 ? (
-                <dl className="grid grid-cols-[minmax(110px,40%)_1fr] gap-x-4 gap-y-2.5 text-sm">
-                    {regularFields.map((name) => {
-                        const config = configByName.get(name);
-                        const value = resolveDisplayValue(config?.type, config?.options, record[name]);
-                        return (
-                            <React.Fragment key={name}>
-                                <dt className="text-muted-foreground">{config?.label ?? name}</dt>
-                                <dd className="text-foreground break-words">{value || "—"}</dd>
-                            </React.Fragment>
-                        );
-                    })}
-                </dl>
-            ) : null}
+        <FieldGrid<T>
+            fields={visibleFields as FormFieldConfig<T>[]}
+            renderValue={(field) => {
+                if (field.type === "lookup") {
+                    const relatedId = record[field.name as keyof T];
+                    if (!relatedId) return <p className="text-sm text-muted-foreground">—</p>;
+                    const label = field.relatedTitleField ? record[field.relatedTitleField] : undefined;
+                    const text = typeof label === "string" && label ? label : String(relatedId);
+                    return (
+                        <Link
+                            href={`/${field.relatedModel}/${String(relatedId)}`}
+                            className="text-sm font-medium text-foreground hover:underline"
+                        >
+                            {text}
+                        </Link>
+                    );
+                }
 
-            {longTextFields.map((name) => {
-                const config = configByName.get(name);
-                const value = record[name];
-                return (
-                    <div key={name}>
-                        <div className="mb-1 text-sm text-muted-foreground">{config?.label ?? name}</div>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-                            {value ? String(value) : "—"}
-                        </p>
-                    </div>
-                );
-            })}
-        </div>
+                if (field.type === "tags" || field.type === "multiselect") {
+                    const items = splitListValue(String(record[field.name as keyof T] ?? ""));
+                    if (items.length === 0) return <p className="text-sm text-muted-foreground">—</p>;
+                    return (
+                        <div className="flex flex-wrap gap-1.5">
+                            {items.map((item) => (
+                                <Badge key={item} variant="secondary">
+                                    {labelForListItem(field, item)}
+                                </Badge>
+                            ))}
+                        </div>
+                    );
+                }
+
+                const value = resolveDisplayValue(field, record[field.name as keyof T], record);
+                if (field.type === "textarea") {
+                    return (
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">{value || "—"}</p>
+                    );
+                }
+                return <p className="text-sm text-foreground break-words">{value || "—"}</p>;
+            }}
+        />
     );
 }

@@ -16,10 +16,24 @@ export function createListQueryState(options?: { pageSize?: number }) {
                 ? searchParams.sortDirection
                 : undefined;
 
+        // U3: `filter_<campo>=valor` genérico — escrito pelos chips de
+        // QuickFilterChips.tsx (colunas `type: "badge"`), lido aqui pra
+        // virar `SearchArgs.filters` de verdade (mesmo campo que
+        // `createRestDataHandlers` já manda pro backend). Módulo com
+        // filtro próprio (ex.: audit) sobrescreve espalhando por cima
+        // (`{...base, filters}`) — não precisa disso.
+        const filters: Record<string, string> = {};
+        for (const [key, value] of Object.entries(searchParams)) {
+            if (key.startsWith("filter_") && typeof value === "string" && value) {
+                filters[key.slice("filter_".length)] = value;
+            }
+        }
+
         return {
             searchText,
             pagination: { pageIndex, pageSize },
             sort: sortField ? [{ field: sortField, direction: sortDirection ?? "asc" }] : undefined,
+            filters: Object.keys(filters).length > 0 ? filters : undefined,
         };
     }
 

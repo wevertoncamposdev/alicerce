@@ -10,6 +10,23 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 ### Added
 
+- Gerador (`scripts/new-module.mjs`) ganha `--feature-of=<modulo-pai>`:
+  gera Feature filha (model com `id` própria, FK pro pai com
+  `onDelete: Cascade`, acrescentado no `.prisma` do pai; rota nested
+  registrada direto no `.module.ts` do pai; sem permissão nova no
+  catálogo; aba nova em `relations` do `contract.tsx` do pai via
+  `RelationTablePanel`) — mesmo padrão de `FeedbackComment`, agora gerado
+  em vez de manual — ver `docs/guia-novo-modulo.md` §7 (U9, ADR 0014).
+  Módulo independente passa a gerar colunas tipadas
+  (`ColumnConfig`/`buildColumns`, U3) e `detailConfig.metadata` ligado por
+  padrão (U6) em vez de `loadContext` (U9, ADR 0014).
+- `User` ganha `phone` opcional (fecha o mínimo da seção 2 do
+  `docs/PLAN-fundacao-ux.md`), editável via `/users/:id` (admin) e
+  `/perfil` (self-service, `/me`) (U7, ADR 0014).
+- Gerador (`scripts/new-module.mjs`) ganha `--extends=<modulo>`: gera uma
+  Extensão 1:1 (model com `id` = FK do pai, endpoints `GET/PATCH` sem
+  lista, seção extra no detail do pai, sem permissão nova no catálogo) —
+  ver `docs/guia-novo-modulo.md` §8 (U7, ADR 0014).
 - `createJsonDataHandlers` (`core/data-provider/json.ts`): motor de
   dados em memória com o mesmo contrato dos handlers REST, pra módulos
   de demonstração (U1, ADR 0014).
@@ -17,6 +34,41 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
   `defineEnum`/`EnumBadge` (`core/registry/enum.ts`,
   `core/components/DetailView/EnumBadge.tsx`): ponto central de rótulo
   e tom de cor, pra tirar verbo HTTP/enum cru da tela (U2, ADR 0014).
+- `ColumnConfig`/`buildColumns` (`core/registry/types.ts`,
+  `core/components/Layout/column-builder.tsx`): tipo de coluna
+  declarativo (text/title/badge/date/datetime/money/relation/tags/
+  count) pra lista, opcional — alternativa ao `ColumnDef` cru do
+  TanStack (U3, ADR 0014).
+- `FieldGrid` (`core/components/DetailView/FieldGrid.tsx`): grid
+  compartilhado por `FieldList` (leitura) e `FormView` (edição), rótulo
+  em cima do valor, `span` 1/2/3 e `help` por campo — campo somente
+  leitura com o mesmo visual do editável (U4, ADR 0014).
+- Tipos de campo novos no `FormView` — `cpf`/`cnpj`/`phone` (máscara),
+  `document` (CPF ou CNPJ pelo campo irmão), `cep` (com busca de
+  endereço via ViaCEP, `core/registry/address-lookup-action.ts`),
+  `tags`/`multiselect` (chips) e `lookup` (busca outro registro e
+  mostra link, `LookupFieldInput.tsx`, reaproveita `searchRecordsAction`)
+  (U4, ADR 0014).
+- Relações da demo (Pessoa↔Atividade via `Vinculo`, Pessoa→Atendimento)
+  passam a renderizar com `ColumnConfig`/`buildColumns` (U3) dentro de
+  `RelationCrudHost`, em vez do `ShowcaseRelationTable` antigo — nome do
+  registro vira coluna `relation` (link), `tipo`/`situacao` do
+  atendimento usam `badge` com os enums já existentes. Botão "Adicionar"
+  sem lógica (no-op) foi removido em vez de mantido como enfeite (U5,
+  ADR 0014; unificação de abas e trilha multi-nível de navegação ficaram
+  fora do escopo — ver `docs/backlog.md`).
+- Drawer de metadados ganha Notas, Tags e Anexos (a aba Contexto sai —
+  "criado em/última atualização" passam a vir do próprio Histórico):
+  `core/metadata/` novo no backend (`notes/`, `tags/` com pivô
+  `record-tags`), `core/files` estendido com listagem por dono
+  (`GET /files?ownerType=&ownerId=`) e `originalName`, permissão
+  dinâmica `<entity>.read`/`<entity>.update` sem entrada nova no
+  catálogo (`core/authorization/record-permission.util.ts`). Histórico
+  (renomeado de Auditoria) agrupa por dia e humaniza os campos
+  alterados via `fieldLabel` (U2). Demo (Pessoas/Atividades/
+  Atendimentos) mostra as quatro abas com fixture em memória;
+  `feedbacks` é o primeiro módulo real, com teste `test-db` de
+  isolamento entre tenants (U6, ADR 0014).
 
 ### Fixed
 
@@ -30,6 +82,9 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 - Upload de foto acima de 1 MB não dá mais 500: limite de Server Action
   subiu pra 6 MB e a imagem é redimensionada (~512px, WebP) no browser
   antes de enviar (D7, ADR 0014).
+- `POST /files` não gravava `ownerId` (só `ownerType`) — qualquer
+  listagem de arquivo por dono (aba Anexos, U6) nunca encontrava nada
+  pra um upload recém-feito (U6, achado durante a implementação).
 
 ---
 

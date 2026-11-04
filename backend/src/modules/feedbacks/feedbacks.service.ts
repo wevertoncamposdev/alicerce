@@ -11,6 +11,11 @@ import {
   buildWhitelistedFilters,
   buildWhitelistedOrderBy,
 } from '@core/common/utils/tenant-search.util';
+import { NotesService } from '@core/metadata/notes/notes.service';
+import { RecordTagsService } from '@core/metadata/tags/record-tags.service';
+import { FilesService } from '@core/files/file.service';
+
+const METADATA_ENTITY = 'feedback';
 
 const SEARCHABLE_FIELDS = ['title', 'description'] as const;
 const FILTERABLE_FIELDS = ['title', 'status'] as const;
@@ -18,7 +23,12 @@ const SORTABLE_FIELDS = ['title', 'status', 'createdAt'] as const;
 
 @Injectable()
 export class FeedbacksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notesService: NotesService,
+    private readonly recordTagsService: RecordTagsService,
+    private readonly filesService: FilesService,
+  ) {}
 
   async create(dto: CreateFeedbackDto, tenantId: string, createdById: string) {
     return this.prisma.feedback.create({
@@ -68,6 +78,16 @@ export class FeedbacksService {
       (entry) => entry.tenantId === tenantId,
       'Feedback não encontrado',
     );
+
+    // U6 (docs/PLAN-fundacao-ux.md): metadados não têm FK pro registro
+    // (ver `core/metadata`), então não há cascade automático do banco —
+    // todo módulo que adota `metadata` repete esta limpeza no próprio
+    // `remove()` (ver docs/guia-novo-modulo.md).
+    await Promise.all([
+      this.notesService.removeForRecord(METADATA_ENTITY, id, tenantId),
+      this.recordTagsService.removeForRecord(METADATA_ENTITY, id, tenantId),
+      this.filesService.removeAllForOwner(METADATA_ENTITY, id, tenantId),
+    ]);
 
     return this.prisma.feedback.delete({ where: { id: existing.id } });
   }

@@ -17,6 +17,7 @@ import {
     Tag as TagIcon,
     Users as UsersIcon,
     Wallet,
+    ListChecks,
 } from "lucide-react";
 import { defineRecordModule, registerModule } from "@core/registry";
 import type { DetailLayout, ListLayout } from "@core/registry/types";
@@ -47,6 +48,7 @@ const AUDIT_ITEMS: AuditFeedItem[] = [
     {
         id: "audit-1",
         action: "POST",
+        actionText: "Criou",
         createdAt: "2025-03-12T10:24:00.000Z",
         userEmail: "ana.souza@exemplo.com",
         tenantName: "Tenant Exemplo",
@@ -55,6 +57,7 @@ const AUDIT_ITEMS: AuditFeedItem[] = [
     {
         id: "audit-2",
         action: "PATCH",
+        actionText: "Alterou",
         createdAt: "2025-08-12T11:20:00.000Z",
         userEmail: "ana.souza@exemplo.com",
         tenantName: "Tenant Exemplo",
@@ -63,6 +66,7 @@ const AUDIT_ITEMS: AuditFeedItem[] = [
     {
         id: "audit-3",
         action: "PATCH",
+        actionText: "Alterou",
         createdAt: "2025-09-28T16:42:00.000Z",
         userEmail: "weverton.campos@exemplo.com",
         tenantName: "Tenant Exemplo",
@@ -71,6 +75,7 @@ const AUDIT_ITEMS: AuditFeedItem[] = [
     {
         id: "audit-4",
         action: "PATCH",
+        actionText: "Alterou",
         createdAt: "2025-10-10T14:32:00.000Z",
         userEmail: "weverton.campos@exemplo.com",
         tenantName: "Tenant Exemplo",
@@ -93,6 +98,36 @@ const formFields = [
     { name: "nationality" as const, label: "Nacionalidade", type: "text" as const },
     { name: "department" as const, label: "Área", type: "text" as const },
     { name: "notes" as const, label: "Observações gerais", type: "textarea" as const },
+    // U4 (docs/PLAN-fundacao-ux.md): só pra exercitar `tags`/`multiselect` no
+    // Showcase — nenhum módulo real precisa desses tipos ainda.
+    {
+        name: "interests" as const,
+        label: "Interesses",
+        type: "tags" as const,
+        help: "Pressione Enter para adicionar.",
+        span: 3 as const,
+    },
+    {
+        name: "workShift" as const,
+        label: "Turno disponível",
+        type: "multiselect" as const,
+        options: [
+            { label: "Manhã", value: "MANHA" },
+            { label: "Tarde", value: "TARDE" },
+            { label: "Noite", value: "NOITE" },
+        ],
+        span: 3 as const,
+    },
+    // U4: só pra exercitar `lookup` — "mentor" aponta pra outro ShowcaseEntity.
+    {
+        name: "mentorId" as const,
+        label: "Mentor(a)",
+        type: "lookup" as const,
+        relatedModel: "develop-showcase",
+        relatedLabelField: "name",
+        relatedTitleField: "mentorName" as const,
+        span: 2 as const,
+    },
 ];
 
 const { parseListState, serializeListState } = createListQueryState();
@@ -156,7 +191,7 @@ const showcaseDetailLayout: DetailLayout<ShowcaseEntity> = {
             icon: Briefcase,
             column: 3,
             editable: true,
-            fields: ["role", "department"],
+            fields: ["role", "department", "mentorId"],
         },
         {
             key: "notes",
@@ -165,6 +200,14 @@ const showcaseDetailLayout: DetailLayout<ShowcaseEntity> = {
             column: 1,
             editable: true,
             fields: ["notes"],
+        },
+        {
+            key: "preferences",
+            title: "Preferências",
+            icon: ListChecks,
+            column: 3,
+            editable: true,
+            fields: ["interests", "workShift"],
         },
         {
             key: "tags",

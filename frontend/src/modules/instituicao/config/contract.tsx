@@ -21,9 +21,15 @@ const formFields = [
             { label: "Outro", value: "OUTRO" },
         ],
     },
-    { name: "document" as const, label: "Documento", placeholder: "Só números", type: "text" as const },
+    {
+        name: "document" as const,
+        label: "Documento",
+        placeholder: "Só números",
+        type: "document" as const,
+        conditionalType: "documentType" as const,
+    },
     { name: "email" as const, label: "E-mail", type: "email" as const },
-    { name: "phone" as const, label: "Telefone", type: "text" as const },
+    { name: "phone" as const, label: "Telefone", type: "phone" as const },
     { name: "website" as const, label: "Site", type: "url" as const },
     { name: "addressStreet" as const, label: "Logradouro", type: "text" as const },
     { name: "addressNumber" as const, label: "Número", type: "text" as const },
@@ -31,7 +37,17 @@ const formFields = [
     { name: "addressNeighborhood" as const, label: "Bairro", type: "text" as const },
     { name: "addressCity" as const, label: "Cidade", type: "text" as const },
     { name: "addressState" as const, label: "UF", type: "text" as const },
-    { name: "addressZipCode" as const, label: "CEP", type: "text" as const },
+    {
+        name: "addressZipCode" as const,
+        label: "CEP",
+        type: "cep" as const,
+        addressFields: {
+            street: "addressStreet" as const,
+            neighborhood: "addressNeighborhood" as const,
+            city: "addressCity" as const,
+            state: "addressState" as const,
+        },
+    },
     {
         name: "logoFileId" as const,
         label: "Logo",
@@ -99,13 +115,13 @@ const instituicaoDetailLayout: DetailLayout<TenantProfile> = {
             render: ({ record }) => (
                 <InstitutionFormSection
                     fields={[
+                        "addressZipCode",
                         "addressStreet",
                         "addressNumber",
                         "addressComplement",
                         "addressNeighborhood",
                         "addressCity",
                         "addressState",
-                        "addressZipCode",
                     ]}
                     record={record}
                     formFields={formFields}
