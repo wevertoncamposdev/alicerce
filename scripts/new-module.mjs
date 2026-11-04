@@ -136,6 +136,40 @@ function run(command, args, cwd) {
 
 // ---------------------------------------------------- --extends (U7) utils
 
+// Acha o model Prisma real do módulo pai contando ocorrências de
+// "this.prisma.<model>." em todo o diretório do módulo (recursivo) — não só
+// no service. Alguns módulos (tenant, user) delegam pra um Repository
+// (persistence/repository/*.ts) e só tocam o Prisma ali; outros (feedbacks)
+// chamam o Prisma direto no service, mas também podem referenciar modelos
+// relacionados (ex. UsersService chama `this.prisma.tenant.` dentro de
+// `sendInviteEmail`) — por isso conta o mais frequente em vez de usar só a
+// primeira ocorrência, que pegaria o modelo errado em qualquer um dos dois
+// casos.
+function findDominantPrismaModel(dir) {
+  const counts = new Map();
+
+  function walk(current) {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const full = join(current, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+      } else if (entry.name.endsWith(".ts")) {
+        const content = readFileSync(full, "utf8");
+        for (const match of content.matchAll(/this\.prisma\.(\w+)\./g)) {
+          counts.set(match[1], (counts.get(match[1]) ?? 0) + 1);
+        }
+      }
+    }
+  }
+  walk(dir);
+
+  let best = null;
+  for (const [model, count] of counts) {
+    if (!best || count > best.count) best = { model, count };
+  }
+  return best?.model ?? null;
+}
+
 // Acha o arquivo .prisma onde "model <pascalModel> {" está declarado —
 // introspecção em vez de assumir o nome do arquivo (o model do pai pode
 // estar em qualquer lugar de prisma/models/).
@@ -823,9 +857,9 @@ function readParentInfo() {
   if (!serviceClassMatch) {
     fail(`Não achei "export class <Nome>Service" em ${parentServicePath}.`);
   }
-  const prismaModelMatch = serviceContent.match(/this\.prisma\.(\w+)\./);
-  if (!prismaModelMatch) {
-    fail(`Não achei "this.prisma.<model>." em ${parentServicePath} — preciso do model Prisma do pai.`);
+  const prismaCamel = findDominantPrismaModel(parentDir);
+  if (!prismaCamel) {
+    fail(`Não achei nenhum "this.prisma.<model>." em ${parentDir.replace(ROOT, "").replace(/\\/g, "/")} — preciso do model Prisma do pai.`);
   }
 
   const controllerContent = readFileSync(parentControllerPath, "utf8");
@@ -843,7 +877,6 @@ function readParentInfo() {
     fail(`Não achei "export class <Nome>Module" em ${parentModulePath}.`);
   }
 
-  const prismaCamel = prismaModelMatch[1];
   return {
     serviceClassName: serviceClassMatch[1],
     modulePath: `../${extendsModule}/${extendsModule}.service`,
@@ -1040,6 +1073,7 @@ export type ${pascalSingular}Entity = {
   writeNew(
     join(dir, "config", "provider.ts"),
     `import { createRestDataHandlers } from "@core/data-provider/rest-handlers";
+import type { SearchResult } from "@core/data-provider/types";
 import type { ${pascalSingular}Entity } from "../types/types";
 
 // Sem lista/criação — "id" é sempre o id do registro pai (ver backend).
@@ -1047,6 +1081,13 @@ export const {
     read: read${pascalSingular},
     update: update${pascalSingular},
 } = createRestDataHandlers<${pascalSingular}Entity>("${kebabPlural}");
+
+// Stub exigido pelo contrato de RecordModuleDataHandlers (mesmo padrão de
+// modules/instituicao e modules/perfil) — nunca exercitado, pois não existe
+// rota de lista pra esta Extensão.
+export async function search${pascalSingular}Stub(): Promise<SearchResult<${pascalSingular}Entity>> {
+    return { data: [], pagination: { total: 0, page: 1, limit: 20, pages: 0 } };
+}
 `,
   );
 
@@ -1060,14 +1101,17 @@ import { FieldList } from "@core/components/DetailView/FieldList";
 import type { FormFieldConfig } from "@core/registry/types";
 import type { ${pascalSingular}Entity } from "@modules/${kebabPlural}/types/types";
 
-const formFields: FormFieldConfig<${pascalSingular}Entity>[] = [
-    { name: "title", label: "Título", type: "text" },
-];
-
 // Mesma razão do InstitutionFormSection (ver modules/instituicao): gate
 // único por "${parent.updatePermission}" (permissão do pai — a Extensão não
-// tem catálogo próprio), não por campo.
-export function ${pascalSingular}FormSection({ record }: { record: ${pascalSingular}Entity }) {
+// tem catálogo próprio), não por campo. \`formFields\` vem de contract.tsx
+// (fonte única), não duplicado aqui.
+export function ${pascalSingular}FormSection({
+    record,
+    formFields,
+}: {
+    record: ${pascalSingular}Entity;
+    formFields: FormFieldConfig<${pascalSingular}Entity>[];
+}) {
     const { hasPermission } = useAuth();
 
     if (!hasPermission("${parent.updatePermission}")) {
@@ -1092,14 +1136,63 @@ export function ${pascalSingular}FormSection({ record }: { record: ${pascalSingu
     join(dir, "components", `${pascalSingular}Section.tsx`),
     `import { read${pascalSingular} } from "@modules/${kebabPlural}/config/provider";
 import { ${pascalSingular}FormSection } from "@modules/${kebabPlural}/components/${pascalSingular}FormSection";
+import { ${camelSingular}FormFields } from "@modules/${kebabPlural}/config/contract";
 
 // Seção do detail do pai (--extends=${extendsModule}) — busca a própria
 // extensão pelo id do registro pai; sem Detail/TypeView próprios.
 export async function ${pascalSingular}Section({ parentId }: { parentId: string }) {
     const record = await read${pascalSingular}(parentId);
-    return <${pascalSingular}FormSection record={record} />;
+    return <${pascalSingular}FormSection record={record} formFields={${camelSingular}FormFields} />;
 }
 `,
+  );
+
+  // Precisa estar registrada no core/registry mesmo sem rota própria — o
+  // autosave do FormView (useAutoSaveController) resolve `update` via
+  // `getModule(model)`, não recebe a função direto (mesmo motivo de
+  // "perfil"/"instituicao" chamarem `registerModule` com `views: []`).
+  writeNew(
+    join(dir, "config", "contract.tsx"),
+    `import { defineRecordModule, registerModule } from "@core/registry";
+import type { FormFieldConfig, ListLayout } from "@core/registry/types";
+import { createListQueryState } from "@lib/query-state/list-query-state";
+
+import { read${pascalSingular}, update${pascalSingular}, search${pascalSingular}Stub } from "./provider";
+import type { ${pascalSingular}Entity } from "../types/types";
+
+export const ${camelSingular}FormFields: FormFieldConfig<${pascalSingular}Entity>[] = [
+    { name: "title", label: "Título", type: "text" },
+];
+
+const { parseListState, serializeListState } = createListQueryState();
+
+// Extensão 1:1 (--extends=${extendsModule}): sem tela própria (\`views: []\`) —
+// só existe pra o \`update\` do autosave ser resolvido via \`getModule\`
+// quando a seção é renderizada dentro do detail do pai.
+export const ${camelSingular}Module = defineRecordModule<${pascalSingular}Entity>({
+    model: "${kebabPlural}",
+    label: "${label}",
+    views: [],
+    defaultView: "detail",
+    dataHandlers: {
+        search: search${pascalSingular}Stub,
+        read: read${pascalSingular},
+        update: update${pascalSingular},
+    },
+    formFields: ${camelSingular}FormFields,
+    parseListState,
+    serializeListState,
+    listLayout: {} as ListLayout<${pascalSingular}Entity>,
+});
+
+registerModule(${camelSingular}Module);
+`,
+  );
+
+  editExisting(
+    join(FRONTEND, "src", "bootstrap.ts"),
+    'import "@modules/audit/config/contract";',
+    `\nimport "@modules/${kebabPlural}/config/contract";`,
   );
 
   // --- edição mecânica no contract.tsx do pai ---
