@@ -37,7 +37,17 @@ const formFields = [
     { name: "addressNeighborhood" as const, label: "Bairro", type: "text" as const },
     { name: "addressCity" as const, label: "Cidade", type: "text" as const },
     { name: "addressState" as const, label: "UF", type: "text" as const },
-    { name: "addressZipCode" as const, label: "CEP", type: "text" as const },
+    {
+        name: "addressZipCode" as const,
+        label: "CEP",
+        type: "cep" as const,
+        addressFields: {
+            street: "addressStreet" as const,
+            neighborhood: "addressNeighborhood" as const,
+            city: "addressCity" as const,
+            state: "addressState" as const,
+        },
+    },
     {
         name: "logoFileId" as const,
         label: "Logo",
@@ -105,13 +115,13 @@ const instituicaoDetailLayout: DetailLayout<TenantProfile> = {
             render: ({ record }) => (
                 <InstitutionFormSection
                     fields={[
+                        "addressZipCode",
                         "addressStreet",
                         "addressNumber",
                         "addressComplement",
                         "addressNeighborhood",
                         "addressCity",
                         "addressState",
-                        "addressZipCode",
                     ]}
                     record={record}
                     formFields={formFields}

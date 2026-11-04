@@ -13,6 +13,7 @@ import { Switch } from "@components/ui/switch";
 import { Button } from "@components/ui/button";
 import { useAutoSaveController } from "@/hooks/use-autosave-controller";
 import { autoSaveRecord, uploadFileAction } from "@core/registry/actions";
+import { lookupCepAction } from "@core/registry/address-lookup-action";
 import { validateFormPayload } from "@core/registry/form-validation";
 import { resizeImageToWebp } from "@lib/resize-image";
 import type { FormFieldConfig } from "@core/registry/types";
@@ -398,6 +399,93 @@ function ImageFieldInput<T extends object>({
     );
 }
 
+// U4: `cep` — máscara "#####-###" + busca de endereço opcional (só quando
+// `addressFields` está declarado) via `lookupCepAction` (Server Action,
+// roda no servidor — sem isso a CSP bloquearia o fetch pro ViaCEP no
+// browser). Escreve nos campos irmãos por `onFieldChange` (modo
+// controlado) ou, sem ele (CreateFormView, não controlado), direto no DOM
+// — mesmo padrão imperativo do `DocumentFieldInput`/efeito de `?focus=`.
+function CepFieldInput<T extends object>({
+    field,
+    value,
+    defaultValue,
+    onChange,
+    onBlur,
+    variant,
+    invalid,
+    disabled,
+    onFieldChange,
+}: {
+    field: FormFieldConfig<T>;
+    value?: string;
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    onBlur?: () => void;
+    variant: "default" | "inline-detail";
+    invalid?: boolean;
+    disabled?: boolean;
+    onFieldChange?: (name: string, value: string) => void;
+}) {
+    const [internalDigits, setInternalDigits] = React.useState(onlyDigits(defaultValue ?? ""));
+    const [loadingAddress, setLoadingAddress] = React.useState(false);
+    const isControlled = value !== undefined;
+    const currentDigits = isControlled ? onlyDigits(value) : internalDigits;
+
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const next = onlyDigits(event.target.value).slice(0, 8);
+        if (!isControlled) setInternalDigits(next);
+        onChange?.(next);
+    }
+
+    function writeSibling(name: string, siblingValue: string) {
+        if (onFieldChange) {
+            onFieldChange(name, siblingValue);
+            return;
+        }
+        const el = document.getElementById(name) as HTMLInputElement | null;
+        if (el) el.value = siblingValue;
+    }
+
+    async function handleBlur() {
+        onBlur?.();
+        if (currentDigits.length !== 8 || !field.addressFields) return;
+
+        setLoadingAddress(true);
+        try {
+            const address = await lookupCepAction(currentDigits);
+            if (!address) return;
+
+            const { addressFields } = field;
+            if (addressFields.street && address.street) writeSibling(addressFields.street, address.street);
+            if (addressFields.neighborhood && address.neighborhood) {
+                writeSibling(addressFields.neighborhood, address.neighborhood);
+            }
+            if (addressFields.city && address.city) writeSibling(addressFields.city, address.city);
+            if (addressFields.state && address.state) writeSibling(addressFields.state, address.state);
+        } finally {
+            setLoadingAddress(false);
+        }
+    }
+
+    return (
+        <div className="flex items-center gap-2">
+            <input type="hidden" name={field.name} value={currentDigits} />
+            <Input
+                type="text"
+                inputMode="numeric"
+                variant={variant}
+                aria-invalid={invalid || undefined}
+                className="flex-1 min-w-0"
+                value={applyDigitsMask(currentDigits, "#####-###")}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                disabled={disabled}
+            />
+            {loadingAddress ? <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" /> : null}
+        </div>
+    );
+}
+
 function renderFieldInput<T extends object>(
     field: FormFieldConfig<T>,
     opts: {
@@ -409,12 +497,16 @@ function renderFieldInput<T extends object>(
         invalid?: boolean;
         /** Textarea só: borda só em hover/focus + caixa compacta (sem rows fixo) — detail page inline. */
         compactTextarea?: boolean;
-        /** Só "image": o registro completo, pra ler `record[field.previewField]`. */
+        /** Só "image"/"document": o registro completo, pra ler `record[field.previewField]`
+         * ou o campo irmão de `conditionalType`. */
         record?: T;
         disabled?: boolean;
+        /** Só "cep": escreve nos campos irmãos de `addressFields` (busca de endereço) em
+         * modo controlado — sem isso (CreateFormView, não controlado), cai no DOM direto. */
+        onFieldChange?: (name: string, value: string) => void;
     },
 ) {
-    const { value, defaultValue, onChange, onBlur, variant, invalid, compactTextarea, record, disabled } = opts;
+    const { value, defaultValue, onChange, onBlur, variant, invalid, compactTextarea, record, disabled, onFieldChange } = opts;
 
     if (field.type === "image") {
         return (
@@ -477,6 +569,22 @@ function renderFieldInput<T extends object>(
                 invalid={invalid}
                 disabled={disabled}
                 record={record}
+            />
+        );
+    }
+
+    if (field.type === "cep") {
+        return (
+            <CepFieldInput
+                field={field}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                variant={variant}
+                invalid={invalid}
+                disabled={disabled}
+                onFieldChange={onFieldChange}
             />
         );
     }
@@ -549,8 +657,8 @@ function renderFieldInput<T extends object>(
     // `datetime` (nosso tipo lógico) -> `datetime-local` (tipo HTML de
     // verdade); todo o resto do union já bate 1:1 com um `<input type>`
     // válido (date/text/email/...) ou ainda não tem branch própria
-    // (cep/lookup/multiselect/tags chegam em commits seguintes desta etapa
-    // — até lá caem aqui como texto puro, sem máscara).
+    // (lookup/multiselect/tags chegam em commits seguintes desta etapa —
+    // até lá caem aqui como texto puro, sem máscara).
     const htmlInputType = field.type === "datetime" ? "datetime-local" : (field.type ?? "text");
     return <Input {...sharedProps} variant={variant} type={htmlInputType} onKeyDown={onEnterBlur} />;
 }
@@ -599,6 +707,7 @@ export function InlineFieldsGrid<T extends object>({
                     disabled: saving,
                     onChange: (value) => onChange(field.name, value),
                     onBlur: () => onBlur(field.name),
+                    onFieldChange: (name, value) => onChange(name as keyof T & string, value),
                 })
             }
         />
@@ -773,6 +882,7 @@ function EditFormView<T extends object>({
                             disabled: saving,
                             onChange: (value) => handleChange(field.name, value),
                             onBlur: commitField,
+                            onFieldChange: (name, value) => handleChange(name as keyof T & string, value),
                         })}
                         <FieldErrorText error={error} />
                     </div>
