@@ -54,6 +54,7 @@ export class FilesController {
     return this.filesService.upload({
       data,
       mime: part.mimetype,
+      originalName: part.filename,
       ownerType,
       tenantId,
       uploadedById: userId,

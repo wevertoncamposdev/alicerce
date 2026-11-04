@@ -54,11 +54,13 @@ export class FilesService {
   async upload(params: {
     data: Buffer;
     mime: string;
+    originalName?: string;
     ownerType: string;
     tenantId: string;
     uploadedById: string;
   }) {
-    const { data, mime, ownerType, tenantId, uploadedById } = params;
+    const { data, mime, originalName, ownerType, tenantId, uploadedById } =
+      params;
 
     if (!ALLOWED_MIME_TYPES.has(mime)) {
       throw new BadRequestException(`Tipo de arquivo não permitido: ${mime}`);
@@ -82,6 +84,7 @@ export class FilesService {
         mime,
         size: data.length,
         key,
+        originalName: originalName || null,
         uploadedById,
       },
     });
