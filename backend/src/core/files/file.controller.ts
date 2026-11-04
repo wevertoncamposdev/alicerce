@@ -8,6 +8,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -57,6 +58,17 @@ export class FilesController {
       tenantId,
       uploadedById: userId,
     });
+  }
+
+  // U6: aba Anexos do drawer de metadados — ver `FilesService.listForOwner`.
+  @Get()
+  listForOwner(
+    @Query('ownerType') ownerType: string,
+    @Query('ownerId', new ParseUUIDPipe()) ownerId: string,
+    @TenantId() tenantId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    return this.filesService.listForOwner(ownerType, ownerId, tenantId, userId);
   }
 
   @Get(':id/url')

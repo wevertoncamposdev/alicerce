@@ -1,5 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@core/prisma/prisma.service';
+import { NotesService } from '@core/metadata/notes/notes.service';
+import { RecordTagsService } from '@core/metadata/tags/record-tags.service';
+import { FilesService } from '@core/files/file.service';
 import { FeedbacksService } from './feedbacks.service';
 
 describe('FeedbacksService', () => {
@@ -16,6 +19,10 @@ describe('FeedbacksService', () => {
     },
   };
 
+  const notesServiceMock = { removeForRecord: jest.fn() };
+  const recordTagsServiceMock = { removeForRecord: jest.fn() };
+  const filesServiceMock = { removeAllForOwner: jest.fn() };
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -23,6 +30,9 @@ describe('FeedbacksService', () => {
       providers: [
         FeedbacksService,
         { provide: PrismaService, useValue: prismaMock },
+        { provide: NotesService, useValue: notesServiceMock },
+        { provide: RecordTagsService, useValue: recordTagsServiceMock },
+        { provide: FilesService, useValue: filesServiceMock },
       ],
     }).compile();
 
@@ -130,5 +140,32 @@ describe('FeedbacksService', () => {
     await expect(
       service.updateStatus('1', 'PLANNED', 'tenant-1'),
     ).rejects.toThrow();
+  });
+
+  it('remove limpa notas, tags e anexos (U6) antes de apagar o feedback', async () => {
+    const existing = { id: '1', tenantId: 'tenant-1', title: 'Teste' };
+    prismaMock.feedback.findUnique.mockResolvedValueOnce(existing);
+    prismaMock.feedback.delete.mockResolvedValueOnce(existing);
+
+    await service.remove('1', 'tenant-1');
+
+    expect(notesServiceMock.removeForRecord).toHaveBeenCalledWith(
+      'feedback',
+      '1',
+      'tenant-1',
+    );
+    expect(recordTagsServiceMock.removeForRecord).toHaveBeenCalledWith(
+      'feedback',
+      '1',
+      'tenant-1',
+    );
+    expect(filesServiceMock.removeAllForOwner).toHaveBeenCalledWith(
+      'feedback',
+      '1',
+      'tenant-1',
+    );
+    expect(prismaMock.feedback.delete).toHaveBeenCalledWith({
+      where: { id: '1' },
+    });
   });
 });

@@ -40,17 +40,20 @@ model Tenant {
     updatedAt DateTime  @updatedAt
     deletedAt DateTime?
 
-    users           User[]
-    roles           Role[]
-    userRoles       UserRole[]
-    rolePermissions RolePermission[]
-    permissions     Permission[]
-    audits          Audit[]
+    users            User[]
+    roles            Role[]
+    userRoles        UserRole[]
+    rolePermissions  RolePermission[]
+    permissions      Permission[]
+    audits           Audit[]
     feedbacks        Feedback[]
     feedbackComments FeedbackComment[]
     files            File[]            @relation("TenantFiles")
     accountTokens    AccountToken[]
     consentRecords   ConsentRecord[]
+    notes            Note[]
+    tags             Tag[]
+    recordTags       RecordTag[]
 
     @@index([slug])
     @@index([status])

@@ -19,6 +19,9 @@ const TENANT_SCOPED_MODELS = new Set<Prisma.ModelName>([
   'File',
   'AccountToken',
   'ConsentRecord',
+  'Note',
+  'Tag',
+  'RecordTag',
 ]);
 
 /**

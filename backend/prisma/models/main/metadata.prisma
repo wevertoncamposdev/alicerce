@@ -1,0 +1,64 @@
+/// U6 (docs/PLAN-fundacao-ux.md, ADR 0014): mecanismo genérico de
+/// metadados por registro — liga por `entity` (nome do recurso de
+/// permissão, ex. "feedback") + `entityId`, sem tabela por módulo, mesmo
+/// padrão de `Audit`/`File`. Sem permissão nova no catálogo: quem lê o
+/// registro lê notas/tags dele, quem altera o registro cria/edita/remove
+/// (ver `core/authorization/record-permission.util.ts`). Anexos reusam
+/// `File` (ownerType/ownerId) em vez de um model novo — ver `core/files`.
+model Note {
+    id       String @id @default(uuid(7)) @db.Uuid
+    tenantId String @db.Uuid
+
+    entity   String @db.VarChar(50)
+    entityId String @db.Uuid
+    body     String
+
+    pinned   Boolean @default(false)
+    authorId String  @db.Uuid
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    tenant Tenant @relation(fields: [tenantId], references: [id])
+    author User   @relation(fields: [authorId], references: [id])
+
+    @@index([tenantId, entity, entityId])
+    @@map("notes")
+}
+
+/// Vocabulário de tags por tenant (nome + cor do tom do `EnumBadge`) —
+/// independente de qualquer registro até ser anexada via `RecordTag`.
+model Tag {
+    id       String @id @default(uuid(7)) @db.Uuid
+    tenantId String @db.Uuid
+
+    name  String @db.VarChar(60)
+    color String @db.VarChar(20)
+
+    createdAt DateTime @default(now())
+
+    tenant     Tenant      @relation(fields: [tenantId], references: [id])
+    recordTags RecordTag[]
+
+    @@unique([tenantId, name])
+    @@map("tags")
+}
+
+/// Pivô polimórfico tag↔registro — mesmo par `entity`/`entityId` de `Note`.
+model RecordTag {
+    id       String @id @default(uuid(7)) @db.Uuid
+    tenantId String @db.Uuid
+
+    tagId    String @db.Uuid
+    entity   String @db.VarChar(50)
+    entityId String @db.Uuid
+
+    createdAt DateTime @default(now())
+
+    tenant Tenant @relation(fields: [tenantId], references: [id])
+    tag    Tag    @relation(fields: [tagId], references: [id])
+
+    @@unique([tagId, entity, entityId])
+    @@index([tenantId, entity, entityId])
+    @@map("record_tags")
+}

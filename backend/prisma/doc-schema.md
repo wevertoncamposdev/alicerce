@@ -20,6 +20,7 @@ Este manual serve como referência rápida para escrever relacionamentos no sche
 ## 2. Relacionamento 1:N
 
 **No model pai:**
+
 ```prisma
 model X {
   id    String @id @default(uuid()) @db.Uuid
@@ -28,6 +29,7 @@ model X {
 ```
 
 **No model filho:**
+
 ```prisma
 model Y {
   id   String @id @default(uuid()) @db.Uuid
@@ -37,10 +39,12 @@ model Y {
 ```
 
 **Resumo:**
+
 - O lado "pai" tem uma lista do filho
 - O lado "filho" tem a FK e a relation field
 
 **Exemplo:**
+
 - model Usuário tem uma lista de livros
 - model Livro tem a FK e a relation field (Usuário dono desse livro)
 
@@ -62,6 +66,7 @@ model Livro {
 ## 3. Relacionamento 1:1
 
 **No model dependente (guarda a FK):**
+
 ```prisma
 model Y {
   id    String @id @default(uuid()) @db.Uuid
@@ -71,6 +76,7 @@ model Y {
 ```
 
 **No model principal:**
+
 ```prisma
 model X {
   id    String @id @default(uuid()) @db.Uuid
@@ -79,10 +85,12 @@ model X {
 ```
 
 **Resumo:**
+
 - O lado dependente tem a FK com `@unique`
 - O lado principal tem o campo opcional ou obrigatório
 
 **Exemplo:**
+
 - model Pessoa tem um Perfil
 - model Perfil tem a FK única e a relation field (Pessoa dona do perfil)
 
@@ -104,6 +112,7 @@ model Perfil {
 ## 4. Relacionamento N:N Implícito
 
 **Em ambos os models:**
+
 ```prisma
 model X {
   id   String @id @default(uuid()) @db.Uuid
@@ -117,10 +126,12 @@ model Y {
 ```
 
 **Resumo:**
+
 - Não existe model intermediário
 - Não é possível adicionar metadados
 
 **Exemplo:**
+
 - model Aluno pode participar de várias Turmas
 - model Turma pode ter vários Alunos
 
@@ -141,6 +152,7 @@ model Turma {
 ## 5. Relacionamento N:N Explícito
 
 **Model intermediário:**
+
 ```prisma
 model X {
   id   String @id @default(uuid()) @db.Uuid
@@ -165,9 +177,11 @@ model XY {
 ```
 
 **Resumo:**
+
 - Use quando precisa de metadados ou unicidade composta
 
 **Exemplo:**
+
 - model Professor pode lecionar várias Disciplinas
 - model Disciplina pode ter vários Professores
 - model ProfessorDisciplina faz a ligação e pode ter metadados (ex: ano letivo)
@@ -210,9 +224,11 @@ model X {
 ```
 
 **Resumo:**
+
 - Sempre nomeie a relação com `@relation("Nome")`
 
 **Exemplo:**
+
 - model Categoria pode ter uma categoria pai e várias categorias filhas
 
 ```prisma
@@ -248,6 +264,7 @@ model Y {
 ```
 
 **Exemplo:**
+
 - model Documento tem um usuário criador e um usuário aprovador
 - model Usuario pode ter documentos criados e documentos aprovados
 
