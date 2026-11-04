@@ -56,11 +56,19 @@ export class FilesService {
     mime: string;
     originalName?: string;
     ownerType: string;
+    ownerId?: string;
     tenantId: string;
     uploadedById: string;
   }) {
-    const { data, mime, originalName, ownerType, tenantId, uploadedById } =
-      params;
+    const {
+      data,
+      mime,
+      originalName,
+      ownerType,
+      ownerId,
+      tenantId,
+      uploadedById,
+    } = params;
 
     if (!ALLOWED_MIME_TYPES.has(mime)) {
       throw new BadRequestException(`Tipo de arquivo não permitido: ${mime}`);
@@ -81,6 +89,7 @@ export class FilesService {
       data: {
         tenantId,
         ownerType,
+        ownerId: ownerId || null,
         mime,
         size: data.length,
         key,

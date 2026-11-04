@@ -163,6 +163,56 @@ describe('Notas e Tags (Postgres real) — U6', () => {
     });
   });
 
+  describe('Anexos (core/files estendido)', () => {
+    const TINY_PNG = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+      'base64',
+    );
+    let fileId: string;
+
+    it('sobe um anexo com ownerId do registro', async () => {
+      const res = await request(testApp.app.getHttpServer())
+        .post('/api/files')
+        .set('Authorization', `Bearer ${tenantA.accessToken}`)
+        .field('ownerType', 'feedback')
+        .field('ownerId', feedbackIdOfA)
+        .attach('file', TINY_PNG, { filename: 'print.png', contentType: 'image/png' })
+        .expect(201);
+
+      expect(res.body.originalName).toBe('print.png');
+      fileId = res.body.id;
+    });
+
+    it('lista o anexo pro próprio tenant (prova que ownerId foi gravado)', async () => {
+      const res = await request(testApp.app.getHttpServer())
+        .get(`/api/files?ownerType=feedback&ownerId=${feedbackIdOfA}`)
+        .set('Authorization', `Bearer ${tenantA.accessToken}`)
+        .expect(200);
+
+      expect(res.body.map((f: { id: string }) => f.id)).toContain(fileId);
+    });
+
+    it('tenant B não lista e não remove o anexo do tenant A', async () => {
+      const list = await request(testApp.app.getHttpServer())
+        .get(`/api/files?ownerType=feedback&ownerId=${feedbackIdOfA}`)
+        .set('Authorization', `Bearer ${tenantB.accessToken}`)
+        .expect(200);
+      expect(list.body).toHaveLength(0);
+
+      await request(testApp.app.getHttpServer())
+        .delete(`/api/files/${fileId}`)
+        .set('Authorization', `Bearer ${tenantB.accessToken}`)
+        .expect(404);
+    });
+
+    it('remove o anexo', async () => {
+      await request(testApp.app.getHttpServer())
+        .delete(`/api/files/${fileId}`)
+        .set('Authorization', `Bearer ${tenantA.accessToken}`)
+        .expect(204);
+    });
+  });
+
   it('excluir o feedback remove notas e tags dele (sem órfão)', async () => {
     const created = await request(testApp.app.getHttpServer())
       .post('/api/feedbacks')
@@ -183,6 +233,18 @@ describe('Notas e Tags (Postgres real) — U6', () => {
       .send({ entity: 'feedback', entityId: feedbackId, name: 'Descartável', color: 'neutral' })
       .expect(201);
 
+    const TINY_PNG = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+      'base64',
+    );
+    await request(testApp.app.getHttpServer())
+      .post('/api/files')
+      .set('Authorization', `Bearer ${tenantA.accessToken}`)
+      .field('ownerType', 'feedback')
+      .field('ownerId', feedbackId)
+      .attach('file', TINY_PNG, { filename: 'descartavel.png', contentType: 'image/png' })
+      .expect(201);
+
     await request(testApp.app.getHttpServer())
       .delete(`/api/feedbacks/${feedbackId}`)
       .set('Authorization', `Bearer ${tenantA.accessToken}`)
@@ -199,6 +261,12 @@ describe('Notas e Tags (Postgres real) — U6', () => {
       .set('Authorization', `Bearer ${tenantA.accessToken}`)
       .expect(200);
     expect(tagsAfter.body).toHaveLength(0);
+
+    const attachmentsAfter = await request(testApp.app.getHttpServer())
+      .get(`/api/files?ownerType=feedback&ownerId=${feedbackId}`)
+      .set('Authorization', `Bearer ${tenantA.accessToken}`)
+      .expect(200);
+    expect(attachmentsAfter.body).toHaveLength(0);
 
     // nota direta (sem passar pelo /api/notes) pra confirmar que o id
     // específico também sumiu, não só o filtro por entityId.
