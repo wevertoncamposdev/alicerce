@@ -36,6 +36,7 @@ const ME_SELECT = {
   id: true,
   email: true,
   name: true,
+  phone: true,
   theme: true,
   locale: true,
   avatarFileId: true,

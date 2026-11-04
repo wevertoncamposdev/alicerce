@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 import { IsStrongPassword } from '@core/common/validators/strong-password.validator';
 import { NormalizeEmail } from '@core/common/validators/normalize-email.decorator';
+import { OnlyDigits } from '@core/common/transformers/only-digits';
 import { TrimToNull } from '@core/common/transformers/trim-to-null';
 
 export class UpdateUserDto {
@@ -22,6 +23,15 @@ export class UpdateUserDto {
   @IsString()
   @MaxLength(255)
   name?: string;
+
+  // Mesmo transformer de Tenant.phone (OnlyDigits — aceita máscara), mais
+  // TrimToNull antes pra vazio virar `null`, nunca `""` (D2).
+  @IsOptional()
+  @TrimToNull()
+  @OnlyDigits()
+  @IsString()
+  @MaxLength(20)
+  phone?: string;
 
   @IsOptional()
   @IsString()

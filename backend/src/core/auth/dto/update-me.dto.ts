@@ -1,4 +1,5 @@
 import { IsIn, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { OnlyDigits } from '@core/common/transformers/only-digits';
 import { TrimToNull } from '@core/common/transformers/trim-to-null';
 
 const THEME_VALUES = ['light', 'dark', 'system'] as const;
@@ -9,6 +10,15 @@ export class UpdateMeDto {
   @IsString()
   @MaxLength(255)
   name?: string;
+
+  // Mesmo transformer de UpdateUserDto.phone — self-service e edição por
+  // admin gravam a mesma coluna, então seguem a mesma normalização.
+  @IsOptional()
+  @TrimToNull()
+  @OnlyDigits()
+  @IsString()
+  @MaxLength(20)
+  phone?: string;
 
   @IsOptional()
   @IsIn(THEME_VALUES)
