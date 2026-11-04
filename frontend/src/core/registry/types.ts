@@ -1,6 +1,6 @@
 // lib/registry/types.ts
 import type { SearchArgs, SearchResult } from "@core/data-provider/types";
-import type { ContextItem, AuditFeedItem } from "@core/components/DetailView/MetaDataView/types";
+import type { ContextItem, AuditFeedItem, NoteItem, TagItem, AttachmentItem } from "@core/components/DetailView/MetaDataView/types";
 import type { EnumDefinition } from "@core/registry/enum";
 import type React from "react";
 import type { LucideIcon } from "lucide-react";
@@ -188,13 +188,32 @@ export type DetailConfig<T> = {
     /**
      * Constrói os ContextItem[] a partir do record já carregado.
      * Isso é conhecimento de domínio do módulo — não pertence à page.
+     * @deprecated U6: a aba Contexto saiu do drawer (docs/PLAN-fundacao-ux.md);
+     * "criado em/por" e "última alteração" agora vêm do próprio Histórico.
+     * Mantido só pelos módulos que ainda não migraram pra `metadata`.
      */
     loadContext?: (record: T) => ContextItem[] | Promise<ContextItem[]>;
     /**
      * Fornece a trilha de auditoria diretamente (bypassa o REST real) — só pra fixtures sem
-     * backend, como `modules/develop/showcase`. Módulo de domínio real usa `auditEnabled`.
+     * backend, como `modules/develop/showcase` e `modules/develop/demo`. Módulo de domínio
+     * real usa `auditEnabled`.
      */
     loadAudit?: (record: T) => AuditFeedItem[] | Promise<AuditFeedItem[]>;
+    /**
+     * U6 (docs/PLAN-fundacao-ux.md, ADR 0014): liga/desliga cada mecanismo
+     * do drawer — mesmo espírito de `views: string[]` no TypeView. Sem
+     * backend real por trás (demo), usa os `load*` abaixo.
+     */
+    metadata?: {
+        notes?: boolean;
+        tags?: boolean;
+        attachments?: boolean;
+        history?: boolean;
+    };
+    /** Bypassa o REST real de Notas/Tags/Anexos — só pra fixtures sem backend (ver `loadAudit`). */
+    loadNotes?: (record: T) => NoteItem[] | Promise<NoteItem[]>;
+    loadTags?: (record: T) => TagItem[] | Promise<TagItem[]>;
+    loadAttachments?: (record: T) => AttachmentItem[] | Promise<AttachmentItem[]>;
 };
 
 export type RecordModuleDefinition<T = unknown> = {
