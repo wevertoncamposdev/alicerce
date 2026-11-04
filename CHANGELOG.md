@@ -22,6 +22,16 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
   declarativo (text/title/badge/date/datetime/money/relation/tags/
   count) pra lista, opcional — alternativa ao `ColumnDef` cru do
   TanStack (U3, ADR 0014).
+- `FieldGrid` (`core/components/DetailView/FieldGrid.tsx`): grid
+  compartilhado por `FieldList` (leitura) e `FormView` (edição), rótulo
+  em cima do valor, `span` 1/2/3 e `help` por campo — campo somente
+  leitura com o mesmo visual do editável (U4, ADR 0014).
+- Tipos de campo novos no `FormView` — `cpf`/`cnpj`/`phone` (máscara),
+  `document` (CPF ou CNPJ pelo campo irmão), `cep` (com busca de
+  endereço via ViaCEP, `core/registry/address-lookup-action.ts`),
+  `tags`/`multiselect` (chips) e `lookup` (busca outro registro e
+  mostra link, `LookupFieldInput.tsx`, reaproveita `searchRecordsAction`)
+  (U4, ADR 0014).
 
 ### Fixed
 
