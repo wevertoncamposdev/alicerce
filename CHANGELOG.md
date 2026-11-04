@@ -10,13 +10,23 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 ### Added
 
+- Gerador (`scripts/new-module.mjs`) ganha `--feature-of=<modulo-pai>`:
+  gera Feature filha (model com `id` própria, FK pro pai com
+  `onDelete: Cascade`, acrescentado no `.prisma` do pai; rota nested
+  registrada direto no `.module.ts` do pai; sem permissão nova no
+  catálogo; aba nova em `relations` do `contract.tsx` do pai via
+  `RelationTablePanel`) — mesmo padrão de `FeedbackComment`, agora gerado
+  em vez de manual — ver `docs/guia-novo-modulo.md` §7 (U9, ADR 0014).
+  Módulo independente passa a gerar colunas tipadas
+  (`ColumnConfig`/`buildColumns`, U3) e `detailConfig.metadata` ligado por
+  padrão (U6) em vez de `loadContext` (U9, ADR 0014).
 - `User` ganha `phone` opcional (fecha o mínimo da seção 2 do
   `docs/PLAN-fundacao-ux.md`), editável via `/users/:id` (admin) e
   `/perfil` (self-service, `/me`) (U7, ADR 0014).
 - Gerador (`scripts/new-module.mjs`) ganha `--extends=<modulo>`: gera uma
   Extensão 1:1 (model com `id` = FK do pai, endpoints `GET/PATCH` sem
   lista, seção extra no detail do pai, sem permissão nova no catálogo) —
-  ver `docs/guia-novo-modulo.md` §5 (U7, ADR 0014).
+  ver `docs/guia-novo-modulo.md` §8 (U7, ADR 0014).
 - `createJsonDataHandlers` (`core/data-provider/json.ts`): motor de
   dados em memória com o mesmo contrato dos handlers REST, pra módulos
   de demonstração (U1, ADR 0014).
