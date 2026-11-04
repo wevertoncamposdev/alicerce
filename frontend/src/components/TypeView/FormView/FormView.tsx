@@ -4,13 +4,14 @@ import * as React from "react";
 import { useActionState } from "react";
 import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { Input } from "@components/ui/input";
 import { Textarea } from "@components/ui/textarea";
 import { Select } from "@components/ui/select";
 import { Checkbox } from "@components/ui/checkbox";
 import { Switch } from "@components/ui/switch";
 import { Button } from "@components/ui/button";
+import { Badge } from "@components/ui/badge";
 import { useAutoSaveController } from "@/hooks/use-autosave-controller";
 import { autoSaveRecord, uploadFileAction } from "@core/registry/actions";
 import { lookupCepAction } from "@core/registry/address-lookup-action";
@@ -486,6 +487,146 @@ function CepFieldInput<T extends object>({
     );
 }
 
+// U4: `tags`/`multiselect` — valor em memória como array; por fora, a
+// mesma "língua" de string do resto do FormView (ver `BooleanFieldInput`)
+// via hidden input com os valores separados por vírgula (nenhum dos dois
+// tipos faz sentido pra valor com vírgula dentro).
+export function splitListValue(raw: string | undefined): string[] {
+    if (!raw) return [];
+    return raw.split(",").map((item) => item.trim()).filter(Boolean);
+}
+
+function joinListValue(items: string[]): string {
+    return items.join(",");
+}
+
+function TagsFieldInput({
+    name,
+    value,
+    defaultValue,
+    onChange,
+    onBlur,
+    variant,
+    invalid,
+    disabled,
+}: {
+    name: string;
+    value?: string;
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    onBlur?: () => void;
+    variant: "default" | "inline-detail";
+    invalid?: boolean;
+    disabled?: boolean;
+}) {
+    const [internalTags, setInternalTags] = React.useState(splitListValue(defaultValue));
+    const [draft, setDraft] = React.useState("");
+    const isControlled = value !== undefined;
+    const tags = isControlled ? splitListValue(value) : internalTags;
+
+    function commit(next: string[]) {
+        if (!isControlled) setInternalTags(next);
+        onChange?.(joinListValue(next));
+        onBlur?.();
+    }
+
+    function addDraftTag() {
+        const trimmed = draft.trim();
+        setDraft("");
+        if (!trimmed || tags.includes(trimmed)) return;
+        commit([...tags, trimmed]);
+    }
+
+    function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+        if (event.key === "Enter" || event.key === ",") {
+            event.preventDefault();
+            addDraftTag();
+        } else if (event.key === "Backspace" && draft === "" && tags.length > 0) {
+            commit(tags.slice(0, -1));
+        }
+    }
+
+    return (
+        <div className="flex flex-wrap items-center gap-1.5">
+            <input type="hidden" name={name} value={joinListValue(tags)} />
+            {tags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="gap-1">
+                    {tag}
+                    <button
+                        type="button"
+                        onClick={() => commit(tags.filter((item) => item !== tag))}
+                        disabled={disabled}
+                        aria-label={`Remover ${tag}`}
+                        className="text-muted-foreground hover:text-foreground"
+                    >
+                        <X className="size-3" />
+                    </button>
+                </Badge>
+            ))}
+            <Input
+                type="text"
+                variant={variant}
+                aria-invalid={invalid || undefined}
+                className="h-7 flex-1 min-w-[6rem]"
+                placeholder="Adicionar..."
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={handleKeyDown}
+                onBlur={addDraftTag}
+                disabled={disabled}
+            />
+        </div>
+    );
+}
+
+function MultiselectFieldInput<T extends object>({
+    field,
+    name,
+    value,
+    defaultValue,
+    onChange,
+    onBlur,
+    disabled,
+}: {
+    field: FormFieldConfig<T>;
+    name: string;
+    value?: string;
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    onBlur?: () => void;
+    disabled?: boolean;
+}) {
+    const [internalSelected, setInternalSelected] = React.useState(splitListValue(defaultValue));
+    const isControlled = value !== undefined;
+    const selected = isControlled ? splitListValue(value) : internalSelected;
+    const options = (field.options ?? []).map((option) =>
+        typeof option === "string" ? { label: option, value: option } : option,
+    );
+
+    function toggle(optionValue: string) {
+        const next = selected.includes(optionValue)
+            ? selected.filter((item) => item !== optionValue)
+            : [...selected, optionValue];
+        if (!isControlled) setInternalSelected(next);
+        onChange?.(joinListValue(next));
+        onBlur?.();
+    }
+
+    return (
+        <div className="flex flex-wrap items-center gap-1.5">
+            <input type="hidden" name={name} value={joinListValue(selected)} />
+            {options.map((option) => {
+                const isSelected = selected.includes(option.value);
+                return (
+                    <button key={option.value} type="button" onClick={() => toggle(option.value)} disabled={disabled}>
+                        <Badge variant={isSelected ? "default" : "outline"}>{option.label}</Badge>
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
 function renderFieldInput<T extends object>(
     field: FormFieldConfig<T>,
     opts: {
@@ -589,6 +730,35 @@ function renderFieldInput<T extends object>(
         );
     }
 
+    if (field.type === "tags") {
+        return (
+            <TagsFieldInput
+                name={field.name}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                variant={variant}
+                invalid={invalid}
+                disabled={disabled}
+            />
+        );
+    }
+
+    if (field.type === "multiselect") {
+        return (
+            <MultiselectFieldInput
+                field={field}
+                name={field.name}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                disabled={disabled}
+            />
+        );
+    }
+
     // Base comum a Input/Textarea — `variant` fica de fora porque Textarea não
     // tem variantes de borda (sempre multi-linha, precisa de contorno visível
     // mesmo dentro do modo "inline-detail" do edit).
@@ -657,8 +827,8 @@ function renderFieldInput<T extends object>(
     // `datetime` (nosso tipo lógico) -> `datetime-local` (tipo HTML de
     // verdade); todo o resto do union já bate 1:1 com um `<input type>`
     // válido (date/text/email/...) ou ainda não tem branch própria
-    // (lookup/multiselect/tags chegam em commits seguintes desta etapa —
-    // até lá caem aqui como texto puro, sem máscara).
+    // (`lookup` chega num commit seguinte desta etapa — até lá cai aqui
+    // como texto puro, sem busca).
     const htmlInputType = field.type === "datetime" ? "datetime-local" : (field.type ?? "text");
     return <Input {...sharedProps} variant={variant} type={htmlInputType} onKeyDown={onEnterBlur} />;
 }

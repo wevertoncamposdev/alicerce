@@ -23,6 +23,8 @@ const RECORDS: ShowcaseEntity[] = [
         notes:
             "Participante ativa do projeto de reforço escolar. Demonstra interesse em tecnologia e música. Já participou de 12 atendimentos.",
         tags: ["Reforço Escolar", "Tecnologia", "Música", "Família Unida"],
+        interests: "Música,Tecnologia,Voluntariado",
+        workShift: "MANHA,TARDE",
         createdAt: "2025-03-12T10:24:00.000Z",
     },
     {
@@ -40,6 +42,8 @@ const RECORDS: ShowcaseEntity[] = [
         department: "Projetos Sociais",
         notes: "Pai da Ana Beatriz — acompanha os atendimentos mensalmente.",
         tags: ["Família Unida"],
+        interests: "Futebol",
+        workShift: "NOITE",
         createdAt: "2025-03-12T10:24:00.000Z",
     },
 ];
@@ -84,6 +88,8 @@ export async function createShowcase(payload: unknown): Promise<ShowcaseEntity> 
         department: data.department ?? "",
         notes: data.notes ?? "",
         tags: [],
+        interests: data.interests ?? "",
+        workShift: data.workShift ?? "",
         createdAt: new Date().toISOString(),
     };
     RECORDS.push(record);

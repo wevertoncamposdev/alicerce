@@ -17,6 +17,7 @@ import {
     Tag as TagIcon,
     Users as UsersIcon,
     Wallet,
+    ListChecks,
 } from "lucide-react";
 import { defineRecordModule, registerModule } from "@core/registry";
 import type { DetailLayout, ListLayout } from "@core/registry/types";
@@ -93,6 +94,26 @@ const formFields = [
     { name: "nationality" as const, label: "Nacionalidade", type: "text" as const },
     { name: "department" as const, label: "Área", type: "text" as const },
     { name: "notes" as const, label: "Observações gerais", type: "textarea" as const },
+    // U4 (docs/PLAN-fundacao-ux.md): só pra exercitar `tags`/`multiselect` no
+    // Showcase — nenhum módulo real precisa desses tipos ainda.
+    {
+        name: "interests" as const,
+        label: "Interesses",
+        type: "tags" as const,
+        help: "Pressione Enter para adicionar.",
+        span: 3 as const,
+    },
+    {
+        name: "workShift" as const,
+        label: "Turno disponível",
+        type: "multiselect" as const,
+        options: [
+            { label: "Manhã", value: "MANHA" },
+            { label: "Tarde", value: "TARDE" },
+            { label: "Noite", value: "NOITE" },
+        ],
+        span: 3 as const,
+    },
 ];
 
 const { parseListState, serializeListState } = createListQueryState();
@@ -165,6 +186,14 @@ const showcaseDetailLayout: DetailLayout<ShowcaseEntity> = {
             column: 1,
             editable: true,
             fields: ["notes"],
+        },
+        {
+            key: "preferences",
+            title: "Preferências",
+            icon: ListChecks,
+            column: 3,
+            editable: true,
+            fields: ["interests", "workShift"],
         },
         {
             key: "tags",

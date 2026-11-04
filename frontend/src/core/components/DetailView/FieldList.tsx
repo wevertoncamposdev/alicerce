@@ -2,7 +2,8 @@
 import * as React from "react";
 import type { FormFieldConfig } from "@core/registry/types";
 import { FieldGrid } from "@core/components/DetailView/FieldGrid";
-import { maskDigitsForType, onlyDigits, resolveDocumentMaskType } from "@components/TypeView/FormView/FormView";
+import { maskDigitsForType, onlyDigits, resolveDocumentMaskType, splitListValue } from "@components/TypeView/FormView/FormView";
+import { Badge } from "@components/ui/badge";
 
 type FieldListProps<T> = {
     record: T;
@@ -58,6 +59,17 @@ function resolveDisplayValue<T>(
     return String(rawValue);
 }
 
+/** `tags`/`multiselect` guardam os valores separados por vírgula na mesma string
+ * (ver `FormView.tsx`, `TagsFieldInput`/`MultiselectFieldInput`) — na leitura isso
+ * vira chips, não texto corrido. `multiselect` resolve o rótulo via `field.options`
+ * (igual ao `select`); `tags` mostra o valor cru. */
+function labelForListItem<T>(field: FormFieldConfig<T>, item: string): string {
+    if (field.type !== "multiselect" || !field.options) return item;
+    const match = field.options.find((option) => (typeof option === "string" ? option === item : option.value === item));
+    if (!match) return item;
+    return typeof match === "string" ? match : match.label;
+}
+
 /** Campos (leitura) — docs/ui/detail-page.md §3. Mesmo grid (`FieldGrid`) da seção editável,
  * só troca input por texto — nunca input/textarea fora do modo edição. */
 export function FieldList<T>({ record, fields, formFields }: FieldListProps<T>) {
@@ -71,6 +83,20 @@ export function FieldList<T>({ record, fields, formFields }: FieldListProps<T>) 
         <FieldGrid<T>
             fields={visibleFields as FormFieldConfig<T>[]}
             renderValue={(field) => {
+                if (field.type === "tags" || field.type === "multiselect") {
+                    const items = splitListValue(String(record[field.name as keyof T] ?? ""));
+                    if (items.length === 0) return <p className="text-sm text-muted-foreground">—</p>;
+                    return (
+                        <div className="flex flex-wrap gap-1.5">
+                            {items.map((item) => (
+                                <Badge key={item} variant="secondary">
+                                    {labelForListItem(field, item)}
+                                </Badge>
+                            ))}
+                        </div>
+                    );
+                }
+
                 const value = resolveDisplayValue(field, record[field.name as keyof T], record);
                 if (field.type === "textarea") {
                     return (
