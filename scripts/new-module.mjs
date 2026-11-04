@@ -3,13 +3,13 @@
 //
 // Gerador de módulo (Etapa 7.G do PLAN.md / Fase 4 do AGENTS.md). Script
 // Node puro, sem template engine — o volume de arquivo gerado não justifica
-// a dependência. Cobre Módulo independente e Extensão 1:1 (`--extends`, U7/
-// ADR 0014). Não cobre Feature (`--feature-of`, deixado pra uma rodada
-// futura, de propósito — ver docs/roadmap.md).
+// a dependência. Cobre Módulo independente, Extensão 1:1 (`--extends`, U7/
+// ADR 0014) e Feature filha (`--feature-of`, U9/ADR 0014).
 //
 // Uso: npm run new:module <nome-singular-kebab-case>
 // Ex.:  npm run new:module widget
 //       npm run new:module perfil-institucional -- --extends=tenant
+//       npm run new:module comentario -- --feature-of=feedbacks
 
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -83,16 +83,32 @@ const EXTENDS_FLAG_PREFIX = "--extends=";
 const extendsFlagRaw = process.argv.slice(3).find((arg) => arg.startsWith(EXTENDS_FLAG_PREFIX));
 const extendsModule = extendsFlagRaw ? extendsFlagRaw.slice(EXTENDS_FLAG_PREFIX.length) : null;
 
+// --feature-of=<modulo-pai> (U9, ADR 0014) — Feature filha: sub-recurso 1:N
+// com cascade delete (AGENTS.md §4.3), ganha `id` própria (diferente da
+// Extensão, que reusa o id do pai) e vive dentro de backend/src/modules/
+// <pai>/features/<kebabPlural>/, sem controller/module próprio — registra
+// direto no .module.ts do pai. `<modulo>` é o nome exato da pasta em
+// backend/src/modules/ (mesma convenção do --extends).
+const FEATURE_OF_FLAG_PREFIX = "--feature-of=";
+const featureOfFlagRaw = process.argv.slice(3).find((arg) => arg.startsWith(FEATURE_OF_FLAG_PREFIX));
+const featureOfModule = featureOfFlagRaw ? featureOfFlagRaw.slice(FEATURE_OF_FLAG_PREFIX.length) : null;
+
+if (extendsModule && featureOfModule) {
+  fail("--extends e --feature-of são exclusivos — escolha um dos dois.");
+}
+
 // Única exceção conhecida: o módulo frontend de configurações do tenant se
 // chama "instituicao", não "tenant" (não existe um módulo frontend "tenant").
-// Para qualquer outro `--extends`, o nome da pasta em frontend/src/modules/
-// é o mesmo da pasta em backend/src/modules/.
+// Para qualquer outro `--extends`/`--feature-of`, o nome da pasta em
+// frontend/src/modules/ é o mesmo da pasta em backend/src/modules/.
 const FRONTEND_PARENT_OVERRIDES = { tenant: "instituicao" };
 
 console.log(
   extendsModule
     ? `\nGerando Extensão 1:1 "${kebabSingular}" (--extends=${extendsModule})...\n`
-    : `\nGerando módulo "${kebabSingular}" (plural "${kebabPlural}", model Prisma "${pascalSingular}")...\n`,
+    : featureOfModule
+      ? `\nGerando Feature filha "${kebabSingular}" (--feature-of=${featureOfModule})...\n`
+      : `\nGerando módulo "${kebabSingular}" (plural "${kebabPlural}", model Prisma "${pascalSingular}")...\n`,
 );
 
 // ------------------------------------------------------------- utilities
@@ -123,6 +139,37 @@ function editExisting(path, anchor, insertion, mode = "after") {
     mode === "after" ? normalizedAnchor + normalizedInsertion : normalizedInsertion + normalizedAnchor;
   writeFileSync(path, content.replace(normalizedAnchor, replacement));
   console.log(`  ~ ${path.replace(ROOT, "").replace(/\\/g, "/")}`);
+}
+
+// Acrescenta `content` no final de um arquivo já existente — usado pra
+// colocar o model da Feature filha no MESMO .prisma do pai (mesmo arquivo
+// que Feedback/FeedbackComment já compartilham hoje), sem precisar achar
+// nenhum ponto de inserção.
+function appendToFile(path, content) {
+  const existing = readFileSync(path, "utf8");
+  const usesCRLF = existing.includes("\r\n");
+  const normalized = usesCRLF ? content.replace(/\n/g, "\r\n") : content;
+  const separator = existing.endsWith(usesCRLF ? "\r\n" : "\n") ? "" : usesCRLF ? "\r\n" : "\n";
+  writeFileSync(path, existing + separator + normalized);
+  console.log(`  ~ ${path.replace(ROOT, "").replace(/\\/g, "/")} (model novo)`);
+}
+
+// Insere mais um item no final de um array de classes de um `@Module({...})`
+// (ex. `controllers: [FeedbacksController]` -> inclui a nova classe) — usado
+// pela Feature filha pra se registrar no módulo do PAI em vez de criar um
+// `.module.ts` próprio (mesmo padrão do `FeedbackCommentsController` dentro
+// de `FeedbacksModule`).
+function insertIntoModuleArray(path, arrayName, itemName) {
+  const content = readFileSync(path, "utf8");
+  const regex = new RegExp(`(${arrayName}:\\s*\\[)([^\\]]*)(\\])`);
+  const match = content.match(regex);
+  if (!match) {
+    fail(`Não achei "${arrayName}: [...]" em ${path.replace(ROOT, "").replace(/\\/g, "/")}.`);
+  }
+  const itemsRaw = match[2].trim();
+  const updatedItems = itemsRaw ? `${itemsRaw}, ${itemName}` : itemName;
+  writeFileSync(path, content.replace(regex, `$1${updatedItems}$3`));
+  console.log(`  ~ ${path.replace(ROOT, "").replace(/\\/g, "/")} (${arrayName})`);
 }
 
 function run(command, args, cwd) {
@@ -580,8 +627,6 @@ function generateFrontend() {
     createdAt: string;
     updatedAt: string;
 };
-
-export type ContextItem = { key: string; label: string; value: string };
 `,
   );
 
@@ -602,18 +647,19 @@ export const {
 
   writeNew(
     join(dir, "components", "columns.ts"),
-    `import type { ColumnDef } from "@tanstack/react-table";
-import type { AppTableFeatures } from "@core/table-features";
+    `import type { ColumnConfig } from "@core/registry/types";
+import { buildColumns } from "@core/components/Layout/column-builder";
 import type { ${pascalSingular}Entity } from "@modules/${kebabPlural}/types/types";
 
-export const ${camelSingular}Columns: ColumnDef<AppTableFeatures, ${pascalSingular}Entity>[] = [
-    { accessorKey: "title", header: "Título" },
-    {
-        accessorKey: "createdAt",
-        header: "Criado em",
-        cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString("pt-BR"),
-    },
+// Colunas tipadas (U3, docs/PLAN-fundacao-ux.md) — ver
+// docs/guia-novo-modulo.md §"Tipos de coluna" pra badge/date/money/
+// relation/tags/count. Ajuste conforme os campos reais do seu model.
+const ${camelSingular}ColumnConfig: ColumnConfig<${pascalSingular}Entity>[] = [
+    { key: "title", label: "Título", type: "title", href: (record) => \`/${kebabPlural}/\${record.id}\` },
+    { key: "createdAt", label: "Criado em", type: "date" },
 ];
+
+export const ${camelSingular}Columns = buildColumns(${camelSingular}ColumnConfig);
 `,
   );
 
@@ -660,7 +706,7 @@ import { ${pascalPlural}ListView } from "@modules/${kebabPlural}/components/${pa
 import {
     search${pascalPlural}, read${pascalSingular}, create${pascalSingular}, update${pascalSingular}, delete${pascalSingular},
 } from "./provider";
-import type { ${pascalSingular}Entity, ContextItem } from "../types/types";
+import type { ${pascalSingular}Entity } from "../types/types";
 
 // \`primary: true\` dispara a criação pelo Detail (createMode: "detail" abaixo, ver
 // docs/ui/detail-page.md §5) — um campo por módulo, geralmente o mesmo que vira o
@@ -716,12 +762,6 @@ const ${camelPlural}DetailLayout: DetailLayout<${pascalSingular}Entity> = {
     ],
 };
 
-function load${pascalSingular}Context(record: ${pascalSingular}Entity): ContextItem[] {
-    return [
-        { key: "createdAt", label: "Criado em", value: record.createdAt.slice(0, 16).replace("T", ", ") },
-    ];
-}
-
 export const ${camelPlural}Module = defineRecordModule<${pascalSingular}Entity>({
     model: "${kebabPlural}",
     label: "${label}",
@@ -743,7 +783,12 @@ export const ${camelPlural}Module = defineRecordModule<${pascalSingular}Entity>(
     serializeListState,
     listLayout: ${camelPlural}ListLayout,
     detailLayout: ${camelPlural}DetailLayout,
-    detailConfig: { auditEnabled: true, loadContext: load${pascalSingular}Context },
+    // Drawer de metadados (U6, docs/PLAN-fundacao-ux.md): "criado em" já vem
+    // do próprio Histórico (auditEnabled) — sem precisar de loadContext.
+    detailConfig: {
+        auditEnabled: true,
+        metadata: { notes: true, tags: true, attachments: true, history: true },
+    },
 });
 
 registerModule(${camelPlural}Module);
@@ -838,17 +883,19 @@ export default function New${pascalSingular}Page() {
 // Lê o service/controller/module do pai pra descobrir (sem chutar nomes):
 // a classe do service, o model Prisma real (via `this.prisma.<model>.`), e
 // as permissões de leitura/escrita que o pai já declara (reaproveitadas —
-// Extensão não entra no catálogo de permissões, mesmo raciocínio do U6 pra
-// notas/tags).
-function readParentInfo() {
-  const parentDir = join(BACKEND, "src", "modules", extendsModule);
-  const parentServicePath = join(parentDir, `${extendsModule}.service.ts`);
-  const parentControllerPath = join(parentDir, `${extendsModule}.controller.ts`);
-  const parentModulePath = join(parentDir, `${extendsModule}.module.ts`);
+// Extensão e Feature filha não entram no catálogo de permissões, mesmo
+// raciocínio do U6 pra notas/tags). `parentModule` é o nome exato da pasta
+// em backend/src/modules/ — recebido como argumento (em vez de ler a global
+// `extendsModule` direto) pra servir tanto `--extends` quanto `--feature-of`.
+function readParentInfo(parentModule) {
+  const parentDir = join(BACKEND, "src", "modules", parentModule);
+  const parentServicePath = join(parentDir, `${parentModule}.service.ts`);
+  const parentControllerPath = join(parentDir, `${parentModule}.controller.ts`);
+  const parentModulePath = join(parentDir, `${parentModule}.module.ts`);
 
   if (!existsSync(parentServicePath)) {
     fail(
-      `Não achei ${parentServicePath.replace(ROOT, "").replace(/\\/g, "/")} — --extends espera o nome exato da pasta em backend/src/modules/.`,
+      `Não achei ${parentServicePath.replace(ROOT, "").replace(/\\/g, "/")} — --extends/--feature-of esperam o nome exato da pasta em backend/src/modules/.`,
     );
   }
 
@@ -863,8 +910,11 @@ function readParentInfo() {
   }
 
   const controllerContent = readFileSync(parentControllerPath, "utf8");
-  const readPermMatch = controllerContent.match(/@Permissions\('([a-zA-Z0-9_.]+)\.read'\)/);
-  const updatePermMatch = controllerContent.match(/@Permissions\('([a-zA-Z0-9_.]+)\.update'\)/);
+  // Nome do recurso é sempre o kebab-singular do módulo (ver `label`/
+  // `kebabSingular` no topo do arquivo) — pode ter hífen (ex.
+  // "task-item.read"), por isso a classe de caracteres inclui "-".
+  const readPermMatch = controllerContent.match(/@Permissions\('([a-zA-Z0-9_.-]+)\.read'\)/);
+  const updatePermMatch = controllerContent.match(/@Permissions\('([a-zA-Z0-9_.-]+)\.update'\)/);
   if (!readPermMatch || !updatePermMatch) {
     fail(
       `Não achei @Permissions('<recurso>.read'/'<recurso>.update') em ${parentControllerPath} — a Extensão reaproveita a permissão do pai, não dá pra inferir sem elas.`,
@@ -879,9 +929,10 @@ function readParentInfo() {
 
   return {
     serviceClassName: serviceClassMatch[1],
-    modulePath: `../${extendsModule}/${extendsModule}.service`,
+    modulePath: `../${parentModule}/${parentModule}.service`,
     moduleClassName: moduleClassMatch[1],
-    moduleImportPath: `../${extendsModule}/${extendsModule}.module`,
+    moduleImportPath: `../${parentModule}/${parentModule}.module`,
+    parentModulePath,
     prismaCamel,
     prismaPascal: prismaCamel[0].toUpperCase() + prismaCamel.slice(1),
     readPermission: `${readPermMatch[1]}.read`,
@@ -1231,6 +1282,445 @@ registerModule(${camelSingular}Module);
   return frontendParentKey;
 }
 
+// =============================================================== FEATURE FILHA (--feature-of)
+
+// Gera a Feature no backend: model com `id` própria (diferente da Extensão,
+// que reusa o id do pai) acrescentado no MESMO .prisma do pai (mesmo arquivo
+// que Feedback/FeedbackComment já compartilham hoje — ver
+// backend/prisma/models/features/feedback.prisma), sem controller/module
+// próprio — registra direto no `.module.ts` do pai, igual
+// FeedbackCommentsController dentro de FeedbacksModule.
+function generateFeatureBackend(parent, parentModule) {
+  const dir = join(BACKEND, "src", "modules", parentModule, "features", kebabPlural);
+  const parentFkField = `${parent.prismaCamel}Id`;
+
+  const parentPrismaFile = findPrismaModelFile(join(BACKEND, "prisma", "models"), parent.prismaPascal);
+  if (!parentPrismaFile) {
+    fail(`Não achei "model ${parent.prismaPascal} {" em nenhum .prisma de backend/prisma/models/.`);
+  }
+
+  insertParentReverseRelation(parentPrismaFile, parent.prismaPascal, `    ${camelPlural} ${pascalSingular}[]\n`);
+
+  appendToFile(
+    parentPrismaFile,
+    `
+// Feature filha de ${parent.prismaPascal} (--feature-of=${parentModule}, gerador — U9/
+// ADR 0014). \`id\` própria (diferente da Extensão 1:1, que reusa o id do
+// pai) — vive e morre com o ${parent.prismaCamel} pai via onDelete: Cascade.
+model ${pascalSingular} {
+    id        String   @id @default(uuid(7)) @db.Uuid
+    tenantId  String   @db.Uuid
+    ${parentFkField} String @db.Uuid
+    userId    String   @db.Uuid
+    content   String
+    createdAt DateTime @default(now())
+
+    ${parent.prismaCamel} ${parent.prismaPascal} @relation(fields: [${parentFkField}], references: [id], onDelete: Cascade)
+    user   User   @relation(fields: [userId], references: [id])
+    tenant Tenant @relation(fields: [tenantId], references: [id])
+
+    @@index([${parentFkField}])
+    @@index([tenantId])
+    @@index([userId])
+    @@map("${snakeCasePlural}")
+}
+`,
+  );
+
+  // Relação reversa em Tenant e User — mesmo anchor literal que o fluxo de
+  // módulo independente já usa em tenant.prisma (existe igual em
+  // access.prisma, onde FeedbackComment também aparece hoje).
+  editExisting(
+    join(BACKEND, "prisma", "models", "main", "tenant.prisma"),
+    "    feedbackComments FeedbackComment[]\n",
+    `    ${camelPlural}        ${pascalSingular}[]\n`,
+  );
+  editExisting(
+    join(BACKEND, "prisma", "models", "main", "access.prisma"),
+    "    feedbackComments FeedbackComment[]\n",
+    `    ${camelPlural}        ${pascalSingular}[]\n`,
+  );
+
+  writeNew(
+    join(dir, "dto", `create-${kebabSingular}.dto.ts`),
+    `import { IsString, MaxLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
+export class Create${pascalSingular}Dto {
+  @ApiProperty({ maxLength: 1000 })
+  @IsString()
+  @MaxLength(1000)
+  content!: string;
+}
+`,
+  );
+
+  writeNew(
+    join(dir, `${kebabPlural}.service.ts`),
+    `import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@core/prisma/prisma.service';
+import { Create${pascalSingular}Dto } from './dto/create-${kebabSingular}.dto';
+import { findOneOrThrow } from '@core/common/utils/find-one-or-throw.util';
+
+@Injectable()
+export class ${pascalPlural}Service {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findAll(${parentFkField}: string, tenantId: string) {
+    return this.prisma.${camelSingular}.findMany({
+      where: { ${parentFkField}, tenantId },
+      orderBy: { createdAt: 'desc' },
+      include: { user: { select: { id: true, email: true } } },
+    });
+  }
+
+  async create(
+    ${parentFkField}: string,
+    dto: Create${pascalSingular}Dto,
+    tenantId: string,
+    userSub: string,
+  ) {
+    return this.prisma.${camelSingular}.create({
+      data: {
+        content: dto.content,
+        ${parentFkField},
+        tenantId,
+        userId: userSub,
+      },
+      include: { user: { select: { id: true, email: true } } },
+    });
+  }
+
+  async remove(id: string, tenantId: string) {
+    const entry = findOneOrThrow(
+      await this.prisma.${camelSingular}.findUnique({ where: { id } }),
+      (candidate) => candidate.tenantId === tenantId,
+      '${pascalSingular} não encontrado ou acesso negado',
+    );
+
+    return this.prisma.${camelSingular}.delete({ where: { id: entry.id } });
+  }
+}
+`,
+  );
+
+  writeNew(
+    join(dir, `${kebabPlural}.controller.ts`),
+    `import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  ParseUUIDPipe,
+  UseGuards,
+} from '@nestjs/common';
+import { TenantId } from '@core/common/decorators/tenant-id.decorator';
+import { CurrentUserId } from '@core/common/decorators/current-user-id.decorator';
+import { Permissions } from '@core/common/decorators/permissions.decorator';
+import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
+import { ${pascalPlural}Service } from './${kebabPlural}.service';
+import { Create${pascalSingular}Dto } from './dto/create-${kebabSingular}.dto';
+
+// Feature filha de ${parent.prismaPascal} (--feature-of=${parentModule}) — reaproveita
+// as permissões do pai, sem entrada própria em permission-catalog.ts.
+@Controller('${parentModule}/:${parentFkField}/${kebabPlural}')
+@UseGuards(RolesPermissionsGuard)
+export class ${pascalPlural}Controller {
+  constructor(private readonly ${camelPlural}Service: ${pascalPlural}Service) {}
+
+  @Get()
+  @Permissions('${parent.readPermission}')
+  findAll(
+    @Param('${parentFkField}', new ParseUUIDPipe()) ${parentFkField}: string,
+    @TenantId() tenantId: string,
+  ) {
+    return this.${camelPlural}Service.findAll(${parentFkField}, tenantId);
+  }
+
+  @Post()
+  @Permissions('${parent.updatePermission}')
+  create(
+    @Param('${parentFkField}', new ParseUUIDPipe()) ${parentFkField}: string,
+    @Body() dto: Create${pascalSingular}Dto,
+    @TenantId() tenantId: string,
+    @CurrentUserId() userSub: string,
+  ) {
+    return this.${camelPlural}Service.create(${parentFkField}, dto, tenantId, userSub);
+  }
+
+  @Delete(':id')
+  @Permissions('${parent.updatePermission}')
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @TenantId() tenantId: string,
+  ) {
+    return this.${camelPlural}Service.remove(id, tenantId);
+  }
+}
+`,
+  );
+
+  writeNew(
+    join(dir, `${kebabPlural}.service.spec.ts`),
+    `import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaService } from '@core/prisma/prisma.service';
+import { ${pascalPlural}Service } from './${kebabPlural}.service';
+
+describe('${pascalPlural}Service', () => {
+  let service: ${pascalPlural}Service;
+
+  const prismaMock = {
+    ${camelSingular}: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      delete: jest.fn(),
+    },
+  };
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ${pascalPlural}Service,
+        { provide: PrismaService, useValue: prismaMock },
+      ],
+    }).compile();
+
+    service = module.get<${pascalPlural}Service>(${pascalPlural}Service);
+  });
+
+  it('cria com o tenantId e o autor do contexto', async () => {
+    const created = { id: '1', tenantId: 'tenant-1', ${parentFkField}: 'parent-1', userId: 'user-1', content: 'Teste' };
+    prismaMock.${camelSingular}.create.mockResolvedValueOnce(created);
+
+    const result = await service.create('parent-1', { content: 'Teste' }, 'tenant-1', 'user-1');
+
+    expect(prismaMock.${camelSingular}.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        data: expect.objectContaining({ tenantId: 'tenant-1', userId: 'user-1' }),
+      }),
+    );
+    expect(result).toEqual(created);
+  });
+
+  it('findAll filtra pelo pai e pelo tenantId', async () => {
+    prismaMock.${camelSingular}.findMany.mockResolvedValueOnce([]);
+
+    await service.findAll('parent-1', 'tenant-1');
+
+    expect(prismaMock.${camelSingular}.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        where: expect.objectContaining({ ${parentFkField}: 'parent-1', tenantId: 'tenant-1' }),
+      }),
+    );
+  });
+});
+`,
+  );
+
+  // --- edição no .module.ts do PAI (sem .module.ts próprio) ---
+
+  editExisting(
+    parent.parentModulePath,
+    "@Module({",
+    `import { ${pascalPlural}Controller } from './features/${kebabPlural}/${kebabPlural}.controller';
+import { ${pascalPlural}Service } from './features/${kebabPlural}/${kebabPlural}.service';
+
+`,
+    "before",
+  );
+  insertIntoModuleArray(parent.parentModulePath, "controllers", `${pascalPlural}Controller`);
+  insertIntoModuleArray(parent.parentModulePath, "providers", `${pascalPlural}Service`);
+
+  editExisting(
+    join(BACKEND, "src", "core", "prisma", "extensions", "tenant-rls.extension.ts"),
+    "  'FeedbackComment',\n",
+    `  '${pascalSingular}',\n`,
+  );
+}
+
+// Insere a propriedade `relations: async ({ record }) => {...}` no objeto
+// `detailLayout` do pai — ou, se o pai já tiver uma (outra Feature, ou
+// escrita à mão como feedbacks), insere só a nova aba dentro do `return [`
+// já existente. Ancora só na ABERTURA do array (mesmo truque do `sections:
+// [` da Extensão), nunca no conteúdo — sobrevive a edição de campo/seção.
+function insertDetailLayoutRelation(path, { fetchLine, fullProperty, tabItem }) {
+  const content = readFileSync(path, "utf8");
+  const usesCRLF = content.includes("\r\n");
+  const nl = usesCRLF ? "\r\n" : "\n";
+  const normalize = (s) => (usesCRLF ? s.replace(/\n/g, "\r\n") : s);
+
+  const varMatch = content.match(/detailLayout:\s*(\w+)/);
+  if (!varMatch) {
+    fail(
+      `Não achei "detailLayout: <nome>" em ${path.replace(ROOT, "").replace(/\\/g, "/")} — adicione a aba de relação à mão (ver docs/guia-novo-modulo.md, Feature filha).`,
+    );
+  }
+  const declMarker = `const ${varMatch[1]}`;
+  const declStart = content.indexOf(declMarker);
+  if (declStart === -1) {
+    fail(`Não achei "${declMarker}" em ${path.replace(ROOT, "").replace(/\\/g, "/")}.`);
+  }
+  const closeMarker = `${nl}};${nl}`;
+  const declCloseIdx = content.indexOf(closeMarker, declStart);
+  if (declCloseIdx === -1) {
+    fail(`Não achei o fim de "${declMarker}" em ${path.replace(ROOT, "").replace(/\\/g, "/")}.`);
+  }
+
+  const relationsKeyIdx = content.indexOf("relations:", declStart);
+  const hasRelationsAlready = relationsKeyIdx !== -1 && relationsKeyIdx < declCloseIdx;
+
+  if (!hasRelationsAlready) {
+    // `declCloseIdx` é a posição do \n que ANTECEDE "};" (início do
+    // `closeMarker`) — inserir ali no meio quebraria a linha anterior
+    // ("    ]," + propriedade nova, sem quebra de linha entre as duas).
+    // Insere depois desse \n, logo antes de "};".
+    const insertAt = declCloseIdx + nl.length;
+    writeFileSync(path, content.slice(0, insertAt) + normalize(fullProperty) + content.slice(insertAt));
+    console.log(`  ~ ${path.replace(ROOT, "").replace(/\\/g, "/")} (relations novo)`);
+    return;
+  }
+
+  const returnMarker = `return [${nl}`;
+  const returnIdx = content.indexOf(returnMarker, relationsKeyIdx);
+  if (returnIdx === -1) {
+    fail(
+      `Achei "relations:" mas não "return [" em ${path.replace(ROOT, "").replace(/\\/g, "/")} — insira a aba à mão.`,
+    );
+  }
+
+  // Insere a linha do fetch no INÍCIO da linha de "return [" (não no meio do
+  // token) — senão a indentação de "return [" vira sufixo da linha inserida
+  // e "return [" fica sem indentação nenhuma.
+  const lineStartIdx = content.lastIndexOf(nl, returnIdx);
+  const insertAt = lineStartIdx === -1 ? 0 : lineStartIdx + nl.length;
+
+  const withFetch = content.slice(0, insertAt) + normalize(fetchLine) + content.slice(insertAt);
+  const afterReturnOpen = returnIdx + normalize(fetchLine).length + returnMarker.length;
+  writeFileSync(path, withFetch.slice(0, afterReturnOpen) + normalize(tabItem) + withFetch.slice(afterReturnOpen));
+  console.log(`  ~ ${path.replace(ROOT, "").replace(/\\/g, "/")} (nova aba em relations)`);
+}
+
+// Gera a Feature no frontend — bem mais leve que a Extensão: sem rota
+// própria, sem `registerModule`. Mesmo padrão de `frontend/src/modules/
+// feedbacks/config/comments-provider.ts` (Server Actions com `apiServer`
+// direto na rota nested) + `RelationTablePanel` (já existe) na aba do pai.
+function generateFeatureFrontend(parent, parentModule) {
+  const frontendParentKey = FRONTEND_PARENT_OVERRIDES[parentModule] ?? parentModule;
+  const parentModuleDir = join(FRONTEND, "src", "modules", frontendParentKey);
+  const parentContractPath = join(parentModuleDir, "config", "contract.tsx");
+  const parentTypesPath = join(parentModuleDir, "types", "types.ts");
+  if (!existsSync(parentContractPath)) {
+    fail(
+      `Não achei ${parentContractPath.replace(ROOT, "").replace(/\\/g, "/")} — confirme o módulo frontend do pai (ajuste FRONTEND_PARENT_OVERRIDES no gerador se o nome da pasta for diferente de "${parentModule}").`,
+    );
+  }
+
+  // O tipo entra no MESMO types.ts do pai — mesmo padrão de FeedbackComment
+  // dentro de modules/feedbacks/types/types.ts, em vez de um arquivo novo.
+  appendToFile(
+    parentTypesPath,
+    `
+export type ${pascalSingular}Entity = {
+    id: string;
+    content: string;
+    createdAt: string;
+    user?: { id: string; email?: string | null } | null;
+};
+`,
+  );
+
+  writeNew(
+    join(parentModuleDir, "config", `${kebabPlural}-provider.ts`),
+    `'use server';
+
+import { apiServer } from "@lib/api-server";
+import type { ${pascalSingular}Entity } from "@modules/${frontendParentKey}/types/types";
+
+export async function list${pascalPlural}(parentId: string): Promise<${pascalSingular}Entity[]> {
+    return apiServer.get<${pascalSingular}Entity[]>(\`${parentModule}/\${parentId}/${kebabPlural}\`);
+}
+
+export async function create${pascalSingular}(parentId: string, content: string): Promise<${pascalSingular}Entity> {
+    return apiServer.post<${pascalSingular}Entity>(\`${parentModule}/\${parentId}/${kebabPlural}\`, { content });
+}
+
+export async function delete${pascalSingular}(parentId: string, ${camelSingular}Id: string): Promise<void> {
+    await apiServer.delete(\`${parentModule}/\${parentId}/${kebabPlural}/\${${camelSingular}Id}\`);
+}
+`,
+  );
+
+  // --- edição mecânica no contract.tsx do pai ---
+
+  const contractContent = readFileSync(parentContractPath, "utf8");
+
+  editExisting(
+    parentContractPath,
+    'import { defineRecordModule, registerModule } from "@core/registry";\n',
+    `import { list${pascalPlural}, create${pascalSingular}, delete${pascalSingular} } from "@modules/${frontendParentKey}/config/${kebabPlural}-provider";\n`,
+  );
+
+  if (!contractContent.includes("RelationTablePanel")) {
+    editExisting(
+      parentContractPath,
+      'import { defineRecordModule, registerModule } from "@core/registry";\n',
+      `import { RelationTablePanel } from "@core/components/DetailView/RelationView/RelationTablePanel";\n`,
+    );
+  }
+
+  const iconImportMatch = contractContent.match(/^import \{([^}]+)\} from "lucide-react";$/m);
+  if (!iconImportMatch) {
+    fail(`Não achei a linha de import de ícones do lucide-react em ${parentContractPath}.`);
+  }
+  if (!iconImportMatch[1].includes("List")) {
+    const updated = readFileSync(parentContractPath, "utf8").replace(
+      iconImportMatch[0],
+      `import {${iconImportMatch[1].trimEnd()}, List } from "lucide-react";`,
+    );
+    writeFileSync(parentContractPath, updated);
+    console.log(`  ~ ${parentContractPath.replace(ROOT, "").replace(/\\/g, "/")} (ícone List)`);
+  }
+
+  const tabItem = `            {
+                key: "${kebabPlural}",
+                label: "${label}",
+                icon: List,
+                count: ${camelSingular}Items.length,
+                content: (
+                    <RelationTablePanel
+                        favoriteId={record.id}
+                        initialNotes={${camelSingular}Items}
+                        createNoteFn={create${pascalSingular}}
+                        deleteNoteFn={delete${pascalSingular}}
+                        searchPlaceholder="Pesquisar ${label.toLowerCase()}"
+                        addLabel="Novo registro"
+                        emptyMessage="Nenhum registro encontrado."
+                    />
+                ),
+            },
+`;
+
+  insertDetailLayoutRelation(parentContractPath, {
+    fetchLine: `        const ${camelSingular}Items = await list${pascalPlural}(record.id);\n`,
+    fullProperty: `    relations: async ({ record }) => {
+        const ${camelSingular}Items = await list${pascalPlural}(record.id);
+        return [
+${tabItem}        ];
+    },
+`,
+    tabItem,
+  });
+
+  return frontendParentKey;
+}
+
 // ============================================================ MIGRATIONS
 
 function generateMigrations() {
@@ -1302,7 +1792,7 @@ $$;
 // =================================================================== RUN
 
 if (extendsModule) {
-  const parent = readParentInfo();
+  const parent = readParentInfo(extendsModule);
   generateExtensionBackend(parent);
   const frontendParentKey = generateExtensionFrontend(parent);
   const migrationsOk = generateMigrations();
@@ -1316,6 +1806,22 @@ if (extendsModule) {
   }
   console.log(`  4. npx tsc --noEmit + lint + testes nos dois projetos.`);
   console.log(`  5. npm run dev (raiz) e confirme a seção "${label}" no detail de ${frontendParentKey}.\n`);
+} else if (featureOfModule) {
+  const parent = readParentInfo(featureOfModule);
+  generateFeatureBackend(parent, featureOfModule);
+  const frontendParentKey = generateFeatureFrontend(parent, featureOfModule);
+  const migrationsOk = generateMigrations();
+
+  console.log(`\n✔ Feature filha "${kebabPlural}" gerada (--feature-of=${featureOfModule}).\n`);
+  console.log("Próximos passos:");
+  console.log(`  1. Revise o model novo em backend/prisma/models/features/ (acrescentado no .prisma do pai) — ajuste os campos reais além de "content".`);
+  console.log(`  2. Revise a edição em backend/src/modules/${featureOfModule}/${featureOfModule}.module.ts (controller/service novos registrados).`);
+  console.log(`  3. Revise a aba nova em frontend/src/modules/${frontendParentKey}/config/contract.tsx (ícone, label, textos de ${label}).`);
+  if (!migrationsOk) {
+    console.log("  4. Finalize a migration manualmente (ver avisos acima).");
+  }
+  console.log(`  5. npx tsc --noEmit + lint + testes nos dois projetos.`);
+  console.log(`  6. npm run dev (raiz) e confirme a aba "${label}" no detail de ${frontendParentKey}.\n`);
 } else {
   generateBackend();
   generateFrontend();
