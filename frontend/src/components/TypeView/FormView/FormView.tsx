@@ -15,6 +15,7 @@ import { Badge } from "@components/ui/badge";
 import { useAutoSaveController } from "@/hooks/use-autosave-controller";
 import { autoSaveRecord, uploadFileAction } from "@core/registry/actions";
 import { lookupCepAction } from "@core/registry/address-lookup-action";
+import { LookupFieldInput } from "@components/TypeView/FormView/LookupFieldInput";
 import { validateFormPayload } from "@core/registry/form-validation";
 import { resizeImageToWebp } from "@lib/resize-image";
 import type { FormFieldConfig } from "@core/registry/types";
@@ -759,6 +760,23 @@ function renderFieldInput<T extends object>(
         );
     }
 
+    if (field.type === "lookup") {
+        const currentLabel = record && field.relatedTitleField ? record[field.relatedTitleField] : undefined;
+        return (
+            <LookupFieldInput
+                name={field.name}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                relatedModel={field.relatedModel ?? ""}
+                relatedLabelField={field.relatedLabelField}
+                currentLabel={typeof currentLabel === "string" ? currentLabel : undefined}
+                disabled={disabled}
+            />
+        );
+    }
+
     // Base comum a Input/Textarea — `variant` fica de fora porque Textarea não
     // tem variantes de borda (sempre multi-linha, precisa de contorno visível
     // mesmo dentro do modo "inline-detail" do edit).
@@ -826,9 +844,7 @@ function renderFieldInput<T extends object>(
 
     // `datetime` (nosso tipo lógico) -> `datetime-local` (tipo HTML de
     // verdade); todo o resto do union já bate 1:1 com um `<input type>`
-    // válido (date/text/email/...) ou ainda não tem branch própria
-    // (`lookup` chega num commit seguinte desta etapa — até lá cai aqui
-    // como texto puro, sem busca).
+    // válido (date/text/email/password/url/number/text).
     const htmlInputType = field.type === "datetime" ? "datetime-local" : (field.type ?? "text");
     return <Input {...sharedProps} variant={variant} type={htmlInputType} onKeyDown={onEnterBlur} />;
 }

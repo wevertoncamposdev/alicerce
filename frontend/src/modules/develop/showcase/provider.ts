@@ -25,6 +25,8 @@ const RECORDS: ShowcaseEntity[] = [
         tags: ["Reforço Escolar", "Tecnologia", "Música", "Família Unida"],
         interests: "Música,Tecnologia,Voluntariado",
         workShift: "MANHA,TARDE",
+        mentorId: "showcase-2",
+        mentorName: "Carlos Eduardo Lima",
         createdAt: "2025-03-12T10:24:00.000Z",
     },
     {
@@ -44,6 +46,8 @@ const RECORDS: ShowcaseEntity[] = [
         tags: ["Família Unida"],
         interests: "Futebol",
         workShift: "NOITE",
+        mentorId: "",
+        mentorName: "",
         createdAt: "2025-03-12T10:24:00.000Z",
     },
 ];
@@ -90,6 +94,8 @@ export async function createShowcase(payload: unknown): Promise<ShowcaseEntity> 
         tags: [],
         interests: data.interests ?? "",
         workShift: data.workShift ?? "",
+        mentorId: data.mentorId ?? "",
+        mentorName: data.mentorName ?? "",
         createdAt: new Date().toISOString(),
     };
     RECORDS.push(record);

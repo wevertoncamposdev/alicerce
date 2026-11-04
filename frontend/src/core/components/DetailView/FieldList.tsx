@@ -4,6 +4,7 @@ import type { FormFieldConfig } from "@core/registry/types";
 import { FieldGrid } from "@core/components/DetailView/FieldGrid";
 import { maskDigitsForType, onlyDigits, resolveDocumentMaskType, splitListValue } from "@components/TypeView/FormView/FormView";
 import { Badge } from "@components/ui/badge";
+import Link from "next/link";
 
 type FieldListProps<T> = {
     record: T;
@@ -83,6 +84,21 @@ export function FieldList<T>({ record, fields, formFields }: FieldListProps<T>) 
         <FieldGrid<T>
             fields={visibleFields as FormFieldConfig<T>[]}
             renderValue={(field) => {
+                if (field.type === "lookup") {
+                    const relatedId = record[field.name as keyof T];
+                    if (!relatedId) return <p className="text-sm text-muted-foreground">—</p>;
+                    const label = field.relatedTitleField ? record[field.relatedTitleField] : undefined;
+                    const text = typeof label === "string" && label ? label : String(relatedId);
+                    return (
+                        <Link
+                            href={`/${field.relatedModel}/${String(relatedId)}`}
+                            className="text-sm font-medium text-foreground hover:underline"
+                        >
+                            {text}
+                        </Link>
+                    );
+                }
+
                 if (field.type === "tags" || field.type === "multiselect") {
                     const items = splitListValue(String(record[field.name as keyof T] ?? ""));
                     if (items.length === 0) return <p className="text-sm text-muted-foreground">—</p>;

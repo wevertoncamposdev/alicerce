@@ -68,6 +68,14 @@ export type FormFieldConfig<T> = {
     relatedModel?: string;
     /** Só `type: "lookup"`: campo do registro relacionado mostrado nas opções de busca. */
     relatedLabelField?: string;
+    /**
+     * Só `type: "lookup"`: campo do registro ATUAL que já traz o nome resolvido do
+     * relacionado (ex.: um `mentorId` vem acompanhado de `mentorName`) — mesmo padrão de
+     * `previewField` (`type: "image"`): evita um fetch extra no client só pra exibir o
+     * valor atual, e evita função no contrato (não serializa Server→Client, etapa 12.3).
+     * Sem isso, mostra o id cru.
+     */
+    relatedTitleField?: keyof T & string;
 };
 
 export type DetailContext<T> = {

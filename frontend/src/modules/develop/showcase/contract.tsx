@@ -114,6 +114,16 @@ const formFields = [
         ],
         span: 3 as const,
     },
+    // U4: só pra exercitar `lookup` — "mentor" aponta pra outro ShowcaseEntity.
+    {
+        name: "mentorId" as const,
+        label: "Mentor(a)",
+        type: "lookup" as const,
+        relatedModel: "develop-showcase",
+        relatedLabelField: "name",
+        relatedTitleField: "mentorName" as const,
+        span: 2 as const,
+    },
 ];
 
 const { parseListState, serializeListState } = createListQueryState();
@@ -177,7 +187,7 @@ const showcaseDetailLayout: DetailLayout<ShowcaseEntity> = {
             icon: Briefcase,
             column: 3,
             editable: true,
-            fields: ["role", "department"],
+            fields: ["role", "department", "mentorId"],
         },
         {
             key: "notes",
