@@ -131,7 +131,75 @@ Nome sempre singular, kebab-case.
   `backend/src/modules/feedbacks/feedbacks.module.ts` (importa
   `NotesModule`/`TagsModule`/`FileModule`) como referência completa.
 
-## 5. Depois de gerar
+## 5. Extensão 1:1 (`--extends`, U7/ADR 0014)
+
+Quando um módulo pai já existe (ex.: `tenant`) e você precisa de um
+complemento 1:1 — campos extras que vivem junto, mas não pertencem ao
+mínimo genérico do pai (ver taxonomia do `AGENTS.md` §4.3, "Extensão de
+Módulo") — use `--extends` em vez de criar um Módulo independente:
+
+```bash
+npm run new:module <nome-singular-kebab-case> -- --extends=<pasta-do-pai-em-backend/src/modules>
+```
+
+Ex.: `npm run new:module perfil-institucional -- --extends=tenant`.
+
+**O que muda em relação a um módulo normal:**
+
+- **`id` é a mesma chave do pai** (não tem `@default(uuid())` próprio):
+  `model PerfilInstitucional { id String @id @db.Uuid; tenant Tenant
+  @relation(fields: [id], references: [id], onDelete: Cascade) }`. Nunca
+  existe mais de uma linha por registro pai, e ela some sozinha quando o
+  pai é removido.
+- **Sem lista, sem create, sem delete**: só `GET /<plural>/:id` e `PATCH
+  /<plural>/:id`. A linha nasce (`upsert`) na primeira leitura ou escrita —
+  nunca por `POST`.
+- **Sem permissão nova no catálogo**: reaproveita as permissões
+  `<pai>.read`/`<pai>.update` que o controller do pai já declara (mesmo
+  raciocínio do U6 pra notas/tags — quem lê/altera o pai lê/altera a
+  extensão).
+- **O service da Extensão injeta o service do pai** e chama
+  `parentService.findOne(parentId, tenantId)` antes de qualquer upsert —
+  garante que o pai existe e pertence ao tenant (sem isso, um id de outro
+  tenant passaria pela RLS da própria extensão por engano).
+- **Precisa estar registrada no `core/registry` mesmo sem rota própria**: o
+  gerador cria um `config/contract.tsx` com `defineRecordModule({ views: []
+  , ... })` + `registerModule(...)` e o import em `bootstrap.ts` — sem
+  isso, o autosave do `FormView` (`useAutoSaveController`) quebra com
+  "Módulo não registrado", porque ele resolve o `update` via
+  `getModule(model)`, não recebe a função direto. Mesmo motivo de
+  `modules/perfil` e `modules/instituicao` chamarem `registerModule` com
+  `views: []`.
+- **A seção extra no detail do pai é uma edição mecânica** no
+  `config/contract.tsx` do pai (mesmo estilo de `editExisting` usado em
+  `tenant.prisma`/`app.module.ts`): o gerador insere um import e um item
+  novo no array `sections`, cujo `render` busca a própria extensão
+  (`read<Entidade>(record.id)`) e devolve um `FormSection` com o mesmo
+  padrão de `InstitutionFormSection.tsx` (gate único por
+  `<pai>.update`, não por campo). **Zero arquivo de `core/` tocado** —
+  `DetailSection.render` e `FormView mode="edit"` com `model`/`recordId`
+  arbitrários já existiam, não precisou mexer no motor.
+- O nome do módulo frontend do pai normalmente é o mesmo nome da pasta em
+  `backend/src/modules/`, com uma exceção conhecida: `tenant` (backend) ↔
+  `instituicao` (frontend, não existe um módulo frontend "tenant") — ver
+  `FRONTEND_PARENT_OVERRIDES` no topo de `scripts/new-module.mjs`. Um novo
+  par de nomes divergentes entra nesse mapa.
+
+**Exemplos de uso (TerceiroGestor, fora do Alicerce):**
+
+- **Perfil institucional** (`perfil-institucional`, `--extends=tenant`):
+  registros CMAS/CEBAS, CNAE, missão, diretoria, dados da página pública —
+  tudo que é específico de ONG e não entra no `Tenant` mínimo do Alicerce
+  (ADR 0014, decisão 1). Aparece como seção extra em
+  `/configuracoes/instituicao` sem tocar no módulo `tenant` do Alicerce.
+- **Pessoa ↔ User**: parecido na intenção (ligar um registro de domínio a
+  algo da base), mas **não é** um caso de `--extends` — a relação é
+  opcional e no sentido contrário: `Pessoa.userId` é uma FK **opcional**
+  pra `User` (uma Pessoa pode existir sem login, ex.: atendido), não o
+  outro jeito. `--extends` serve pra "todo pai tem uma extensão, com a
+  MESMA chave"; Pessoa é um Módulo normal com uma FK nullable pro User.
+
+## 6. Depois de gerar
 
 ```bash
 cd backend  && npx tsc --noEmit && npm run lint && npm test
@@ -142,7 +210,7 @@ Se os campos do model mudaram depois que o gerador já rodou, rode
 `npx prisma generate` (e, com Postgres acessível, `npx prisma migrate dev`)
 de novo antes do checkpoint.
 
-## 6. Dados pessoais e exclusão (LGPD)
+## 7. Dados pessoais e exclusão (LGPD)
 
 Se o módulo guarda dado pessoal de alguém que não é um usuário do sistema
 (ex.: pessoa atendida, contato, paciente), "excluir" nunca deve ser um
