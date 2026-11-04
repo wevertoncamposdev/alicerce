@@ -18,6 +18,11 @@ código de auth, zero código de tenant.
 "Novo" abre a `DetailView` em rascunho quando o módulo declara `createMode: "detail"`
 (ver ADR 0005); default continua sendo o Sheet de criação.
 
+**Cada produto real nasce como um repositório próprio** a partir desta base
+(ex. TerceiroGestor) — nunca um fork solto, e nunca editando nome/domínio
+aqui. Ver `docs/guia-novo-produto.md` para como criar esse repositório e
+mantê-lo sincronizado com esta base (merge do `upstream`).
+
 ## 2. Estado do projeto: base congelada na v1
 
 - A base (`backend/src/core/`, `frontend/src/core/`, auth, tenancy, RBAC,
@@ -181,5 +186,8 @@ O gerador faz os dois.
 - `PLAN.md` é curto e trata só do trabalho atual. `docs/backlog.md` guarda
   itens adiados com gatilho — só viram tarefa quando o gatilho acontecer.
 - `docs/guia-novo-modulo.md` é o manual de uso do template e fica sempre em dia.
+- `docs/guia-novo-produto.md` é o manual de como criar o repositório de um
+  produto a partir desta base e mantê-lo sincronizado (merge do `upstream`)
+  — fica sempre em dia, igual ao `docs/guia-novo-modulo.md`.
 - Portar componente do repositório de referência (`system_development`):
   usar a skill `/portar-componente`. Nunca copiar de lá sem ela.
