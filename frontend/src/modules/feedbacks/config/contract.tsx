@@ -13,7 +13,7 @@ import {
     searchFeedbacks, readFeedback, createFeedback, updateFeedback, deleteFeedback,
 } from "./provider";
 import { listFeedbackComments, createFeedbackComment, deleteFeedbackComment } from "./comments-provider";
-import type { FeedbackEntity, ContextItem } from "../types/types";
+import type { FeedbackEntity } from "../types/types";
 
 // `status` não entra aqui de propósito: mudar status exige `feedback.manage`
 // (ver FeedbackStatusControl), uma permissão separada de `feedback.update` —
@@ -91,12 +91,6 @@ const feedbacksDetailLayout: DetailLayout<FeedbackEntity> = {
     },
 };
 
-function loadFeedbackContext(record: FeedbackEntity): ContextItem[] {
-    return [
-        { key: "createdAt", label: "Criado em", value: new Date(record.createdAt).toLocaleString("pt-BR") },
-    ];
-}
-
 export const feedbacksModule = defineRecordModule<FeedbackEntity>({
     model: "feedbacks",
     label: "Feedbacks",
@@ -117,7 +111,13 @@ export const feedbacksModule = defineRecordModule<FeedbackEntity>({
     serializeListState,
     listLayout: feedbacksListLayout,
     detailLayout: feedbacksDetailLayout,
-    detailConfig: { auditEnabled: true, loadContext: loadFeedbackContext },
+    // U6 (docs/PLAN-fundacao-ux.md, ADR 0014): primeiro módulo real com o
+    // drawer novo — "criado em" sai do próprio Histórico (`auditEnabled`),
+    // não precisa mais de `loadContext`.
+    detailConfig: {
+        auditEnabled: true,
+        metadata: { notes: true, tags: true, attachments: true, history: true },
+    },
 });
 
 registerModule(feedbacksModule);

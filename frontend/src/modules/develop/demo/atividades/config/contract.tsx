@@ -12,6 +12,7 @@ import { EnumBadge } from "@core/components/DetailView/EnumBadge";
 import { searchAtividades, readAtividade, createAtividade, updateAtividade, deleteAtividade } from "./provider";
 import { PESSOAS, VINCULOS } from "@modules/develop/demo/_shared/seed-data";
 import { AtividadeStatusEnum } from "@modules/develop/demo/_shared/enums";
+import { buildDemoMetadata } from "@modules/develop/demo/_shared/metadata-fixtures";
 import type { Atividade } from "../types/types";
 
 // U1 (docs/PLAN-fundacao-ux.md): seções só de leitura, mesmo motivo do
@@ -108,6 +109,13 @@ export const atividadesModule = defineRecordModule<Atividade>({
     serializeListState,
     listLayout: atividadesListLayout,
     detailLayout: atividadesDetailLayout,
+    detailConfig: {
+        metadata: { notes: true, tags: true, attachments: true, history: true },
+        loadNotes: (record) => buildDemoMetadata(record.nome, record.createdAt).notes,
+        loadTags: (record) => buildDemoMetadata(record.nome, record.createdAt).tags,
+        loadAttachments: (record) => buildDemoMetadata(record.nome, record.createdAt).attachments,
+        loadAudit: (record) => buildDemoMetadata(record.nome, record.createdAt).audit,
+    },
 });
 
 registerModule(atividadesModule);

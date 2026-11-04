@@ -13,6 +13,7 @@ import { EnumBadge } from "@core/components/DetailView/EnumBadge";
 import { searchPessoas, readPessoa, createPessoa, updatePessoa, deletePessoa } from "./provider";
 import { ATIVIDADES, VINCULOS, ATENDIMENTOS } from "@modules/develop/demo/_shared/seed-data";
 import { PessoaStatusEnum } from "@modules/develop/demo/_shared/enums";
+import { buildDemoMetadata } from "@modules/develop/demo/_shared/metadata-fixtures";
 import type { Pessoa } from "../types/types";
 
 // U1 (docs/PLAN-fundacao-ux.md): seções só de leitura de propósito — este
@@ -164,6 +165,16 @@ export const pessoasModule = defineRecordModule<Pessoa>({
     serializeListState,
     listLayout: pessoasListLayout,
     detailLayout: pessoasDetailLayout,
+    // U6 (docs/PLAN-fundacao-ux.md, ADR 0014): drawer com as quatro abas,
+    // fixture em memória (ver _shared/metadata-fixtures.ts — demo nunca
+    // chama o backend real de notas/tags/anexos).
+    detailConfig: {
+        metadata: { notes: true, tags: true, attachments: true, history: true },
+        loadNotes: (record) => buildDemoMetadata(record.nome, record.createdAt).notes,
+        loadTags: (record) => buildDemoMetadata(record.nome, record.createdAt).tags,
+        loadAttachments: (record) => buildDemoMetadata(record.nome, record.createdAt).attachments,
+        loadAudit: (record) => buildDemoMetadata(record.nome, record.createdAt).audit,
+    },
 });
 
 registerModule(pessoasModule);

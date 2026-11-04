@@ -48,6 +48,7 @@ const AUDIT_ITEMS: AuditFeedItem[] = [
     {
         id: "audit-1",
         action: "POST",
+        actionText: "Criou",
         createdAt: "2025-03-12T10:24:00.000Z",
         userEmail: "ana.souza@exemplo.com",
         tenantName: "Tenant Exemplo",
@@ -56,6 +57,7 @@ const AUDIT_ITEMS: AuditFeedItem[] = [
     {
         id: "audit-2",
         action: "PATCH",
+        actionText: "Alterou",
         createdAt: "2025-08-12T11:20:00.000Z",
         userEmail: "ana.souza@exemplo.com",
         tenantName: "Tenant Exemplo",
@@ -64,6 +66,7 @@ const AUDIT_ITEMS: AuditFeedItem[] = [
     {
         id: "audit-3",
         action: "PATCH",
+        actionText: "Alterou",
         createdAt: "2025-09-28T16:42:00.000Z",
         userEmail: "weverton.campos@exemplo.com",
         tenantName: "Tenant Exemplo",
@@ -72,6 +75,7 @@ const AUDIT_ITEMS: AuditFeedItem[] = [
     {
         id: "audit-4",
         action: "PATCH",
+        actionText: "Alterou",
         createdAt: "2025-10-10T14:32:00.000Z",
         userEmail: "weverton.campos@exemplo.com",
         tenantName: "Tenant Exemplo",
