@@ -32,6 +32,14 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
   `tags`/`multiselect` (chips) e `lookup` (busca outro registro e
   mostra link, `LookupFieldInput.tsx`, reaproveita `searchRecordsAction`)
   (U4, ADR 0014).
+- Relações da demo (Pessoa↔Atividade via `Vinculo`, Pessoa→Atendimento)
+  passam a renderizar com `ColumnConfig`/`buildColumns` (U3) dentro de
+  `RelationCrudHost`, em vez do `ShowcaseRelationTable` antigo — nome do
+  registro vira coluna `relation` (link), `tipo`/`situacao` do
+  atendimento usam `badge` com os enums já existentes. Botão "Adicionar"
+  sem lógica (no-op) foi removido em vez de mantido como enfeite (U5,
+  ADR 0014; unificação de abas e trilha multi-nível de navegação ficaram
+  fora do escopo — ver `docs/backlog.md`).
 
 ### Fixed
 

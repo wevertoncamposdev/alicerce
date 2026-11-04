@@ -5,8 +5,8 @@ import { createListQueryState } from "@lib/query-state/list-query-state";
 import { createRecordFormAction } from "@core/registry/actions";
 
 import { FormView } from "@components/TypeView/FormView/FormView";
-import { ShowcaseRelationTable } from "@modules/develop/showcase/ShowcaseRelationTable";
 import { AtividadesListView } from "@modules/develop/demo/atividades/components/AtividadesListView";
+import { ParticipantesRelation } from "@modules/develop/demo/atividades/components/ParticipantesRelation";
 import { EnumBadge } from "@core/components/DetailView/EnumBadge";
 
 import { searchAtividades, readAtividade, createAtividade, updateAtividade, deleteAtividade } from "./provider";
@@ -85,20 +85,7 @@ const atividadesDetailLayout: DetailLayout<Atividade> = {
                 label: "Participantes",
                 icon: Users,
                 count: participantesRows.length,
-                content: (
-                    <ShowcaseRelationTable
-                        columns={[
-                            { key: "nome", header: "Pessoa" },
-                            { key: "tipo", header: "Vínculo" },
-                            { key: "periodo", header: "Período" },
-                        ]}
-                        rows={participantesRows}
-                        searchPlaceholder="Pesquisar participantes"
-                        addLabel="Novo vínculo"
-                        emptyMessage="Nenhum participante vinculado."
-                        linkKey="href"
-                    />
-                ),
+                content: <ParticipantesRelation rows={participantesRows} />,
             },
         ];
     },

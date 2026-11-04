@@ -22,3 +22,4 @@
 | Campos data, CPF, telefone, moeda, seleção de registro | Avaliação | Módulo 1 do TerceiroGestor (fazer durante ele) |
 | Gerador criando Feature filha | Avaliação | Módulo 2 do TerceiroGestor |
 | D12 — sidebar sem 900px literal nem fixed/h-svh errado no código atual | U0.5 | Confirmar visualmente com a app rodando (Docker); se ainda cortar em telas longas, investigar de novo |
+| Unificar abas de módulo + abas de relação numa só barra (`DetailView.tsx`), e trilha de navegação multi-nível com "voltar preserva aba/posição" (`DetailViewScreen.tsx`, `Breadcrumbs.tsx`) | U5 | Um módulo real combinar `tabs` de módulo com `relations` ao mesmo tempo, ou a navegação entre registros relacionados virar prioridade de produto. Requer ampliar o escopo de `core/` do ADR 0014 pra U5 (hoje só autoriza `RelationView/**` e `Breadcrumbs.tsx`) |

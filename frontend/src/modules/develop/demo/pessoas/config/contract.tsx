@@ -5,13 +5,14 @@ import { createListQueryState } from "@lib/query-state/list-query-state";
 import { createRecordFormAction } from "@core/registry/actions";
 
 import { FormView } from "@components/TypeView/FormView/FormView";
-import { ShowcaseRelationTable } from "@modules/develop/showcase/ShowcaseRelationTable";
 import { PessoasListView } from "@modules/develop/demo/pessoas/components/PessoasListView";
+import { AtividadesRelation } from "@modules/develop/demo/pessoas/components/AtividadesRelation";
+import { AtendimentosRelation } from "@modules/develop/demo/pessoas/components/AtendimentosRelation";
 import { EnumBadge } from "@core/components/DetailView/EnumBadge";
 
 import { searchPessoas, readPessoa, createPessoa, updatePessoa, deletePessoa } from "./provider";
 import { ATIVIDADES, VINCULOS, ATENDIMENTOS } from "@modules/develop/demo/_shared/seed-data";
-import { PessoaStatusEnum, AtendimentoTipoEnum, AtendimentoSituacaoEnum } from "@modules/develop/demo/_shared/enums";
+import { PessoaStatusEnum } from "@modules/develop/demo/_shared/enums";
 import type { Pessoa } from "../types/types";
 
 // U1 (docs/PLAN-fundacao-ux.md): seções só de leitura de propósito — este
@@ -121,9 +122,9 @@ const pessoasDetailLayout: DetailLayout<Pessoa> = {
         });
 
         const atendimentosRows = ATENDIMENTOS.filter((a) => a.pessoaId === record.id).map((atendimento) => ({
-            data: atendimento.data,
-            tipo: AtendimentoTipoEnum.label(atendimento.tipo),
-            situacao: AtendimentoSituacaoEnum.label(atendimento.situacao),
+            dataFormatada: atendimento.data,
+            tipo: atendimento.tipo,
+            situacao: atendimento.situacao,
             href: `/develop/demo/atendimentos/${atendimento.id}`,
         }));
 
@@ -133,40 +134,14 @@ const pessoasDetailLayout: DetailLayout<Pessoa> = {
                 label: "Atividades",
                 icon: Activity,
                 count: atividadesRows.length,
-                content: (
-                    <ShowcaseRelationTable
-                        columns={[
-                            { key: "nome", header: "Atividade" },
-                            { key: "tipo", header: "Vínculo" },
-                            { key: "periodo", header: "Período" },
-                        ]}
-                        rows={atividadesRows}
-                        searchPlaceholder="Pesquisar atividades"
-                        addLabel="Novo vínculo"
-                        emptyMessage="Nenhuma atividade vinculada."
-                        linkKey="href"
-                    />
-                ),
+                content: <AtividadesRelation rows={atividadesRows} />,
             },
             {
                 key: "atendimentos",
                 label: "Atendimentos",
                 icon: ClipboardList,
                 count: atendimentosRows.length,
-                content: (
-                    <ShowcaseRelationTable
-                        columns={[
-                            { key: "data", header: "Data" },
-                            { key: "tipo", header: "Tipo" },
-                            { key: "situacao", header: "Situação" },
-                        ]}
-                        rows={atendimentosRows}
-                        searchPlaceholder="Pesquisar atendimentos"
-                        addLabel="Novo atendimento"
-                        emptyMessage="Nenhum atendimento registrado."
-                        linkKey="href"
-                    />
-                ),
+                content: <AtendimentosRelation rows={atendimentosRows} />,
             },
         ];
     },

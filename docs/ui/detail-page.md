@@ -23,7 +23,7 @@ O conteúdo da imagem (Pessoa, CPF, Tags...) é exemplo; o Alicerce é genérico
 | Casco | `core/components/DetailView/DetailShell.tsx` | Só `space-y`. Vira o container da página. |
 | Contrato | `core/registry/types.ts` → `DetailLayout<T>` | `main/side/bottom/relations`. **Estender (aditivo).** |
 | Metadados | `MetaDataView/MetaDataSidebar.tsx` (Drawer direita) + `MetaDataView/index.tsx` (Tabs) | Já é drawer. Mantém e melhora o conteúdo. |
-| Relações | `RelationView/RelationShell.tsx` (Tabs `line`) + `RelationTablePanel.tsx` | Mantém; ganha card, contador e toolbar. |
+| Relações | `RelationView/RelationCard.tsx` (Tabs `line`) + `RelationCrudHost.tsx`/`RelationTablePanel.tsx` | Mantém; ganha card, contador e toolbar. Desde a U5, cada relação monta as colunas com `ColumnConfig`/`buildColumns` (U3) dentro de um wrapper `"use client"` próprio — ver `modules/develop/demo/pessoas/components/AtividadesRelation.tsx`. |
 | Campos | `FormView mode="edit"` (autosave inline, `layout="inline"`) | Sempre ativo por permissão, sem toggle (ver §4). |
 
 Usam `detailLayout` hoje: `feedbacks`, `users`, `roles`, `permissions`, `tenants`.
