@@ -87,9 +87,14 @@ renderiza nenhum dos dois.
   aceita `title`/`icon`/`action` no tipo (os `sections` do módulo continuam declarando, outros
   consumidores dependem do tipo), só não desestrutura nem renderiza nada disso. Não reintroduzir
   esse header sem pedido explícito.
-- **Campos (leitura):** `dl` com `grid grid-cols-[minmax(110px,40%)_1fr] gap-x-4 gap-y-2.5 text-sm`;
-  `dt text-muted-foreground`, `dd text-foreground break-words`. Valor vazio = `—`.
-  Texto longo (`type: "textarea"`): `p text-sm whitespace-pre-wrap leading-relaxed`, ocupando a largura toda.
+- **Campos (leitura e edição, `FieldGrid`):** `grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-3
+  items-start`; rótulo **em cima** do valor (`Label` + indicador de "salvando" ao lado), `span`
+  1/2/3 por campo (`FormFieldConfig.span`, default 1; `textarea` sem `span` declarado assume 3).
+  Ajuda (`FormFieldConfig.help`) e erro ficam sob o campo, nessa ordem. Valor vazio (leitura) =
+  `—`. Texto longo (`type: "textarea"`): `p text-sm whitespace-pre-wrap leading-relaxed`. O mesmo
+  componente (`core/components/DetailView/FieldGrid.tsx`) é usado por `FieldList` (leitura) e
+  `InlineFieldsGrid`/`FormView` (edição) — só troca o que cada campo renderiza como valor (texto
+  vs. input), garantindo visual idêntico entre os dois modos.
 - **Relation card:** `Card p-0`; **sem header "Relacionamentos"** (mesma decisão acima — abas
   (`TabsList variant="line"`) começam direto no topo do card); contador
   `ml-1.5 text-xs tabular-nums text-muted-foreground` → `(3)`; conteúdo `p-5`.

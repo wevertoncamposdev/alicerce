@@ -19,6 +19,7 @@ import type { FormFieldConfig } from "@core/registry/types";
 import { useAutoSaveStatus } from "@/contexts/autosave-status-context";
 import { useCreateSheetContext } from "@/contexts/create-sheet-context";
 import { Label } from "@components/ui/label";
+import { FieldGrid } from "@core/components/DetailView/FieldGrid";
 
 export type ActionState = { ok: boolean; message?: string; fieldErrors?: Record<string, string> };
 
@@ -366,8 +367,10 @@ function FieldErrorText({ error }: { error?: string }) {
     return <p className="text-xs text-destructive">{error}</p>;
 }
 
-/** Grid label-à-esquerda do FieldList (docs/ui/detail-page.md §3) — usado por `mode="edit"
- * layout="inline"` e pelo `DraftProvider` (criação pelo Detail, ver DraftProvider.tsx). */
+/** Grid da seção editável (docs/ui/detail-page.md §3, `FieldGrid` — rótulo em cima, `span`
+ * 1/2/3) — usado por `mode="edit" layout="inline"` e pelo `DraftProvider` (criação pelo
+ * Detail, ver DraftProvider.tsx). Nome mantido (só o layout interno mudou, U4) pra não
+ * exigir troca nos dois call sites. */
 export function InlineFieldsGrid<T extends object>({
     fields,
     values,
@@ -389,47 +392,23 @@ export function InlineFieldsGrid<T extends object>({
     onBlur: (name: keyof T & string) => void;
 }) {
     return (
-        <div className="grid grid-cols-[minmax(110px,40%)_1fr] items-start gap-x-4 gap-y-2.5 text-sm">
-            {fields.map((field) => {
-                const error = fieldErrors[field.name];
-                const input = renderFieldInput(field, {
+        <FieldGrid<T>
+            fields={fields}
+            saving={saving}
+            errors={fieldErrors}
+            renderValue={(field) =>
+                renderFieldInput(field, {
                     value: values[field.name] ?? "",
                     variant: "inline-detail",
-                    invalid: Boolean(error),
+                    invalid: Boolean(fieldErrors[field.name]),
                     compactTextarea: field.type === "textarea",
                     record,
                     disabled: saving,
                     onChange: (value) => onChange(field.name, value),
                     onBlur: () => onBlur(field.name),
-                });
-                const label = (
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Label htmlFor={field.name}>{field.label}</Label>
-                        {saving ? <Loader2 className="size-3.5 shrink-0 animate-spin" /> : null}
-                    </div>
-                );
-
-                if (field.type === "textarea") {
-                    return (
-                        <div key={field.name} className="col-span-2 space-y-1">
-                            {label}
-                            {input}
-                            <FieldErrorText error={error} />
-                        </div>
-                    );
-                }
-
-                return (
-                    <React.Fragment key={field.name}>
-                        <div className="pt-1.5">{label}</div>
-                        <div className="space-y-1">
-                            {input}
-                            <FieldErrorText error={error} />
-                        </div>
-                    </React.Fragment>
-                );
-            })}
-        </div>
+                })
+            }
+        />
     );
 }
 
