@@ -99,3 +99,59 @@ describe('Máscaras e UF (Postgres real) — D3', () => {
       .expect(400);
   });
 });
+
+/**
+ * U7 (docs/PLAN-fundacao-ux.md): fecha o conjunto mínimo de `Tenant` —
+ * preenche todo o resto do formulário (fora documento/UF, já cobertos
+ * acima pelo D3/D4) de uma vez e confirma que cada campo persiste.
+ */
+describe('Campo a campo — Tenant, mínimo da seção 2 (Postgres real) — U7', () => {
+  let testApp: TestApp;
+  let admin: Session;
+
+  beforeAll(async () => {
+    testApp = await createTestApp();
+    admin = await registerTenant(testApp.app);
+  });
+
+  afterAll(async () => {
+    await testApp.close();
+  });
+
+  it('preenche razão social, contato e endereço inteiros numa tacada', async () => {
+    await request(testApp.app.getHttpServer())
+      .patch(`/api/tenant/${admin.tenantId}`)
+      .set('Authorization', `Bearer ${admin.accessToken}`)
+      .send({
+        legalName: 'Associação Maravilhosa Ltda',
+        tradeName: 'Associação Maravilhosa',
+        email: 'contato@associacao.example',
+        phone: '(11) 3333-4444',
+        website: 'https://associacao.example',
+        addressStreet: 'Rua das Flores',
+        addressNumber: '123',
+        addressComplement: 'Sala 4',
+        addressNeighborhood: 'Centro',
+        addressCity: 'São Paulo',
+        addressZipCode: '01000-000',
+      })
+      .expect(200);
+
+    const res = await request(testApp.app.getHttpServer())
+      .get(`/api/tenant/${admin.tenantId}`)
+      .set('Authorization', `Bearer ${admin.accessToken}`)
+      .expect(200);
+
+    expect(res.body.legalName).toBe('Associação Maravilhosa Ltda');
+    expect(res.body.tradeName).toBe('Associação Maravilhosa');
+    expect(res.body.email).toBe('contato@associacao.example');
+    expect(res.body.phone).toBe('1133334444');
+    expect(res.body.website).toBe('https://associacao.example');
+    expect(res.body.addressStreet).toBe('Rua das Flores');
+    expect(res.body.addressNumber).toBe('123');
+    expect(res.body.addressComplement).toBe('Sala 4');
+    expect(res.body.addressNeighborhood).toBe('Centro');
+    expect(res.body.addressCity).toBe('São Paulo');
+    expect(res.body.addressZipCode).toBe('01000000');
+  });
+});
