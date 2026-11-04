@@ -40,6 +40,18 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
   sem lógica (no-op) foi removido em vez de mantido como enfeite (U5,
   ADR 0014; unificação de abas e trilha multi-nível de navegação ficaram
   fora do escopo — ver `docs/backlog.md`).
+- Drawer de metadados ganha Notas, Tags e Anexos (a aba Contexto sai —
+  "criado em/última atualização" passam a vir do próprio Histórico):
+  `core/metadata/` novo no backend (`notes/`, `tags/` com pivô
+  `record-tags`), `core/files` estendido com listagem por dono
+  (`GET /files?ownerType=&ownerId=`) e `originalName`, permissão
+  dinâmica `<entity>.read`/`<entity>.update` sem entrada nova no
+  catálogo (`core/authorization/record-permission.util.ts`). Histórico
+  (renomeado de Auditoria) agrupa por dia e humaniza os campos
+  alterados via `fieldLabel` (U2). Demo (Pessoas/Atividades/
+  Atendimentos) mostra as quatro abas com fixture em memória;
+  `feedbacks` é o primeiro módulo real, com teste `test-db` de
+  isolamento entre tenants (U6, ADR 0014).
 
 ### Fixed
 
@@ -53,6 +65,9 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 - Upload de foto acima de 1 MB não dá mais 500: limite de Server Action
   subiu pra 6 MB e a imagem é redimensionada (~512px, WebP) no browser
   antes de enviar (D7, ADR 0014).
+- `POST /files` não gravava `ownerId` (só `ownerType`) — qualquer
+  listagem de arquivo por dono (aba Anexos, U6) nunca encontrava nada
+  pra um upload recém-feito (U6, achado durante a implementação).
 
 ---
 

@@ -108,6 +108,29 @@ Nome sempre singular, kebab-case.
   campo de dado já resolvido (string) em vez de uma função — ver
   `modules/develop/showcase/ShowcaseRelationTable.tsx` (`linkKey`).
 
+- **`DetailConfig.metadata`** (U6, ADR 0014): liga o drawer de Notas/Tags/
+  Anexos/Histórico — `metadata: { notes: true, tags: true, attachments:
+  true, history: true }` (cada chave é opcional, liga só o que o módulo
+  quer). Sem permissão nova no catálogo: quem tem `<model>.read`/
+  `<model>.update` já lê/altera os metadados do registro — ver
+  `backend/src/core/authorization/record-permission.util.ts`. **O
+  `remove()` do service precisa limpar os três** (sem FK entre metadado e
+  registro, não há cascade automático do banco):
+
+  ```ts
+  await Promise.all([
+      this.notesService.removeForRecord(entity, id, tenantId),
+      this.recordTagsService.removeForRecord(entity, id, tenantId),
+      this.filesService.removeAllForOwner(entity, id, tenantId),
+  ]);
+  ```
+
+  (`entity` = nome singular do módulo, o mesmo valor do `resource` no
+  catálogo de permissões — ex. `"feedback"`). Ver
+  `backend/src/modules/feedbacks/feedbacks.service.ts` (`remove()`) e
+  `backend/src/modules/feedbacks/feedbacks.module.ts` (importa
+  `NotesModule`/`TagsModule`/`FileModule`) como referência completa.
+
 ## 5. Depois de gerar
 
 ```bash
