@@ -15,6 +15,7 @@ import type { MeProfile } from "../types/types";
 
 const formFields = [
     { name: "name" as const, label: "Nome", placeholder: "Seu nome", type: "text" as const },
+    { name: "phone" as const, label: "Telefone", type: "phone" as const },
     {
         name: "theme" as const,
         label: "Tema",
@@ -56,7 +57,7 @@ const perfilDetailLayout: DetailLayout<MeProfile> = {
             icon: UserIcon,
             column: 1,
             render: ({ record }) => (
-                <ProfileFormSection fields={["name"]} record={record} formFields={formFields} />
+                <ProfileFormSection fields={["name", "phone"]} record={record} formFields={formFields} />
             ),
         },
         {

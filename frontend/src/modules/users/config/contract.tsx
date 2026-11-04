@@ -15,19 +15,25 @@ import type { UserEntity, ContextItem } from "../types/types";
 import UsersListView from "../components/UsersListView";
 
 // Sem campo de senha (etapa 7.4, Plano Base.md): "criar" um usuário é
-// convidar — quem aceita o convite é quem escolhe a própria senha. Mesmos
-// campos servem o Sheet de criação e a seção "Dados" editável do Detail.
+// convidar — quem aceita o convite é quem escolhe a própria senha.
 const formFields = [
     { name: "email" as const, label: "E-mail", type: "email" as const, required: true },
     { name: "name" as const, label: "Nome", type: "text" as const },
+    { name: "phone" as const, label: "Telefone", type: "phone" as const },
 ];
+
+// O Sheet de criação usa um subconjunto: `CreateUserDto` não aceita `phone`
+// (preenchido só depois, via a seção "Dados" do Detail) — mandar o form
+// inteiro aqui reproduziria o D2 (campo fora do DTO rejeita o lote todo
+// com `forbidNonWhitelisted`).
+const inviteFormFields = formFields.filter((field) => field.name !== "phone");
 
 const { parseListState, serializeListState } = createListQueryState();
 
 const createUserAction = createRecordFormAction.bind(
     null,
     "users",
-    formFields,
+    inviteFormFields,
 );
 
 const usersListLayout: ListLayout<UserEntity> = {
@@ -35,7 +41,7 @@ const usersListLayout: ListLayout<UserEntity> = {
     form: () => (
         <FormView<UserEntity>
             mode="create"
-            fields={formFields}
+            fields={inviteFormFields}
             createAction={createUserAction}
         />
     ),
@@ -60,7 +66,7 @@ const usersDetailLayout: DetailLayout<UserEntity> = {
             icon: UserRound,
             column: 1,
             editable: true,
-            fields: ["email", "name"],
+            fields: ["email", "name", "phone"],
         },
     ],
     toolbar: ({ record }) => <UserToolbarActions user={record} />,

@@ -2,6 +2,7 @@ export type MeProfile = {
     id: string;
     email: string;
     name?: string | null;
+    phone?: string | null;
     theme?: string | null;
     locale?: string | null;
     avatarFileId?: string | null;
