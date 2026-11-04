@@ -2,6 +2,7 @@
 import * as React from "react";
 import type { FormFieldConfig } from "@core/registry/types";
 import { FieldGrid } from "@core/components/DetailView/FieldGrid";
+import { maskDigitsForType, onlyDigits } from "@components/TypeView/FormView/FormView";
 
 type FieldListProps<T> = {
     record: T;
@@ -40,6 +41,10 @@ function resolveDisplayValue(
     if (type === "date" && typeof rawValue === "string" && rawValue) {
         const parsed = new Date(rawValue);
         return Number.isNaN(parsed.getTime()) ? rawValue : parsed.toLocaleDateString("pt-BR");
+    }
+
+    if ((type === "cpf" || type === "cnpj" || type === "phone") && typeof rawValue === "string" && rawValue) {
+        return maskDigitsForType(type, onlyDigits(rawValue));
     }
 
     if (rawValue === null || rawValue === undefined || rawValue === "") return "";

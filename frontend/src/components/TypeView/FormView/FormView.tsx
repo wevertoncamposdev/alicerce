@@ -153,6 +153,91 @@ function MoneyFieldInput({
     );
 }
 
+// U4 (docs/PLAN-fundacao-ux.md): cpf/cnpj/phone — mesmo truque de
+// `MoneyFieldInput` (hidden input com dígitos puros + estado interno),
+// formatado incrementalmente conforme o usuário digita. Dígitos puros
+// (sem pontuação) é o formato que o backend espera (`OnlyDigits()` em
+// `backend/src/core/common/transformers/only-digits.ts`, U0.3) — nunca
+// strip de zero à esquerda aqui (diferente de `centsToDigits`), porque
+// telefone/CEP podem começar com zero.
+export function onlyDigits(raw: string): string {
+    return raw.replace(/\D/g, "");
+}
+
+function applyDigitsMask(digits: string, pattern: string): string {
+    let result = "";
+    let digitIndex = 0;
+    for (const char of pattern) {
+        if (digitIndex >= digits.length) break;
+        if (char === "#") {
+            result += digits[digitIndex];
+            digitIndex++;
+        } else {
+            result += char;
+        }
+    }
+    return result;
+}
+
+const DIGITS_MASK_MAX_LENGTH: Record<"cpf" | "cnpj" | "phone", number> = { cpf: 11, cnpj: 14, phone: 11 };
+
+export function maskDigitsForType(type: "cpf" | "cnpj" | "phone", digits: string): string {
+    const limited = digits.slice(0, DIGITS_MASK_MAX_LENGTH[type]);
+    if (type === "cpf") return applyDigitsMask(limited, "###.###.###-##");
+    if (type === "cnpj") return applyDigitsMask(limited, "##.###.###/####-##");
+    // phone: 10 dígitos (fixo, "(00) 0000-0000") ou 11 (celular, "(00) 00000-0000").
+    return applyDigitsMask(limited, limited.length > 10 ? "(##) #####-####" : "(##) ####-####");
+}
+
+function MaskedDigitsFieldInput({
+    type,
+    name,
+    value,
+    defaultValue,
+    onChange,
+    onBlur,
+    variant,
+    invalid,
+    disabled,
+}: {
+    type: "cpf" | "cnpj" | "phone";
+    name: string;
+    value?: string;
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    onBlur?: () => void;
+    variant: "default" | "inline-detail";
+    invalid?: boolean;
+    disabled?: boolean;
+}) {
+    const [internalDigits, setInternalDigits] = React.useState(onlyDigits(defaultValue ?? ""));
+    const isControlled = value !== undefined;
+    const currentDigits = isControlled ? onlyDigits(value) : internalDigits;
+
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const next = onlyDigits(event.target.value).slice(0, DIGITS_MASK_MAX_LENGTH[type]);
+        if (!isControlled) setInternalDigits(next);
+        onChange?.(next);
+    }
+
+    return (
+        <>
+            <input type="hidden" name={name} value={currentDigits} />
+            <Input
+                type="text"
+                inputMode="numeric"
+                variant={variant}
+                aria-invalid={invalid || undefined}
+                className="flex-1 min-w-0"
+                value={maskDigitsForType(type, currentDigits)}
+                onChange={handleChange}
+                onBlur={onBlur}
+                disabled={disabled}
+            />
+        </>
+    );
+}
+
 // Upload (Fase 6, ADR 0010): o campo guarda o `fileId` (FK), não a URL — o
 // preview vem de `record[field.previewField]` (resolvida pelo backend em
 // request-time; etapa 12.3 — era uma função `previewUrl(record)`, não
@@ -288,6 +373,22 @@ function renderFieldInput<T extends object>(
         );
     }
 
+    if (field.type === "cpf" || field.type === "cnpj" || field.type === "phone") {
+        return (
+            <MaskedDigitsFieldInput
+                type={field.type}
+                name={field.name}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                variant={variant}
+                invalid={invalid}
+                disabled={disabled}
+            />
+        );
+    }
+
     // Base comum a Input/Textarea — `variant` fica de fora porque Textarea não
     // tem variantes de borda (sempre multi-linha, precisa de contorno visível
     // mesmo dentro do modo "inline-detail" do edit).
@@ -355,9 +456,9 @@ function renderFieldInput<T extends object>(
 
     // `datetime` (nosso tipo lógico) -> `datetime-local` (tipo HTML de
     // verdade); todo o resto do union já bate 1:1 com um `<input type>`
-    // válido (date/text/email/...) ou ainda não tem branch própria (cpf/
-    // cnpj/document/phone/cep/lookup/multiselect/tags chegam em commits
-    // seguintes desta etapa — até lá caem aqui como texto puro, sem máscara).
+    // válido (date/text/email/...) ou ainda não tem branch própria
+    // (document/cep/lookup/multiselect/tags chegam em commits seguintes
+    // desta etapa — até lá caem aqui como texto puro, sem máscara).
     const htmlInputType = field.type === "datetime" ? "datetime-local" : (field.type ?? "text");
     return <Input {...sharedProps} variant={variant} type={htmlInputType} onKeyDown={onEnterBlur} />;
 }
