@@ -7,7 +7,9 @@
             "Bash(npm run test:e2e)",
             "Bash(npm run build)",
             "Bash(git status)",
-            "Bash(git diff:*)"
+            "Bash(git diff:*)",
+            "Bash(npm run test:e2e:db*)",
+            "Bash(npx prisma migrate reset*)"
         ],
         "deny": [
             "Read(./.env)",
