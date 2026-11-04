@@ -2,7 +2,7 @@
 import * as React from "react";
 import type { FormFieldConfig } from "@core/registry/types";
 import { FieldGrid } from "@core/components/DetailView/FieldGrid";
-import { maskDigitsForType, onlyDigits } from "@components/TypeView/FormView/FormView";
+import { maskDigitsForType, onlyDigits, resolveDocumentMaskType } from "@components/TypeView/FormView/FormView";
 
 type FieldListProps<T> = {
     record: T;
@@ -12,11 +12,12 @@ type FieldListProps<T> = {
 
 const MONEY_DISPLAY_FORMAT = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-function resolveDisplayValue(
-    type: FormFieldConfig<never>["type"] | undefined,
-    options: FormFieldConfig<never>["options"],
+function resolveDisplayValue<T>(
+    field: FormFieldConfig<T>,
     rawValue: unknown,
+    record: T,
 ): string {
+    const { type, options } = field;
     if (type === "select" && options) {
         const match = options.find((option) =>
             typeof option === "string" ? option === rawValue : option.value === rawValue,
@@ -47,6 +48,12 @@ function resolveDisplayValue(
         return maskDigitsForType(type, onlyDigits(rawValue));
     }
 
+    if (type === "document" && typeof rawValue === "string" && rawValue) {
+        const siblingValue = field.conditionalType ? String(record[field.conditionalType] ?? "") : undefined;
+        const maskType = resolveDocumentMaskType(siblingValue);
+        return maskType ? maskDigitsForType(maskType, onlyDigits(rawValue)) : onlyDigits(rawValue);
+    }
+
     if (rawValue === null || rawValue === undefined || rawValue === "") return "";
     return String(rawValue);
 }
@@ -64,7 +71,7 @@ export function FieldList<T>({ record, fields, formFields }: FieldListProps<T>) 
         <FieldGrid<T>
             fields={visibleFields as FormFieldConfig<T>[]}
             renderValue={(field) => {
-                const value = resolveDisplayValue(field.type, field.options, record[field.name as keyof T]);
+                const value = resolveDisplayValue(field, record[field.name as keyof T], record);
                 if (field.type === "textarea") {
                     return (
                         <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">{value || "—"}</p>

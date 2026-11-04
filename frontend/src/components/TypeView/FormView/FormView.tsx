@@ -238,6 +238,82 @@ function MaskedDigitsFieldInput({
     );
 }
 
+// U4: `document` — CPF ou CNPJ, decidido pelo valor atual do campo irmão
+// `conditionalType` (ex.: um `select` "CPF"/"CNPJ"/"Outro"). Em modo
+// controlado (edit/inline-detail), o irmão já está em `record` (mesmo
+// objeto que `image` usa pra `previewField` — os dois campos vivem na
+// mesma seção/FormView, então `record` sempre traz o valor atual do
+// irmão, reativo a cada render). Sem `record` (CreateFormView, não
+// controlado), lê o irmão direto do DOM — mesmo padrão imperativo já usado
+// pelo efeito de `?focus=` em EditFormView; funciona porque o campo irmão
+// já renderizou antes (ordem do formFields) quando o usuário chega a
+// digitar aqui. "Outro"/vazio: sem máscara, só dígitos.
+export function resolveDocumentMaskType(rawSiblingValue: string | undefined): "cpf" | "cnpj" | undefined {
+    if (rawSiblingValue === "CPF") return "cpf";
+    if (rawSiblingValue === "CNPJ") return "cnpj";
+    return undefined;
+}
+
+function DocumentFieldInput<T extends object>({
+    field,
+    value,
+    defaultValue,
+    onChange,
+    onBlur,
+    variant,
+    invalid,
+    disabled,
+    record,
+}: {
+    field: FormFieldConfig<T>;
+    value?: string;
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    onBlur?: () => void;
+    variant: "default" | "inline-detail";
+    invalid?: boolean;
+    disabled?: boolean;
+    record?: T;
+}) {
+    const [internalDigits, setInternalDigits] = React.useState(onlyDigits(defaultValue ?? ""));
+    const isControlled = value !== undefined;
+    const currentDigits = isControlled ? onlyDigits(value) : internalDigits;
+
+    function siblingValue(): string | undefined {
+        if (record && field.conditionalType) return String(record[field.conditionalType] ?? "");
+        if (!field.conditionalType) return undefined;
+        const el = document.getElementById(field.conditionalType) as HTMLSelectElement | null;
+        return el?.value;
+    }
+
+    const maskType = resolveDocumentMaskType(siblingValue());
+
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const type = resolveDocumentMaskType(siblingValue());
+        const maxLength = type ? DIGITS_MASK_MAX_LENGTH[type] : DIGITS_MASK_MAX_LENGTH.cnpj;
+        const next = onlyDigits(event.target.value).slice(0, maxLength);
+        if (!isControlled) setInternalDigits(next);
+        onChange?.(next);
+    }
+
+    return (
+        <>
+            <input type="hidden" name={field.name} value={currentDigits} />
+            <Input
+                type="text"
+                inputMode="numeric"
+                variant={variant}
+                aria-invalid={invalid || undefined}
+                className="flex-1 min-w-0"
+                value={maskType ? maskDigitsForType(maskType, currentDigits) : currentDigits}
+                onChange={handleChange}
+                onBlur={onBlur}
+                disabled={disabled}
+            />
+        </>
+    );
+}
+
 // Upload (Fase 6, ADR 0010): o campo guarda o `fileId` (FK), não a URL — o
 // preview vem de `record[field.previewField]` (resolvida pelo backend em
 // request-time; etapa 12.3 — era uma função `previewUrl(record)`, não
@@ -389,6 +465,22 @@ function renderFieldInput<T extends object>(
         );
     }
 
+    if (field.type === "document") {
+        return (
+            <DocumentFieldInput
+                field={field}
+                value={value}
+                defaultValue={defaultValue}
+                onChange={onChange}
+                onBlur={onBlur}
+                variant={variant}
+                invalid={invalid}
+                disabled={disabled}
+                record={record}
+            />
+        );
+    }
+
     // Base comum a Input/Textarea — `variant` fica de fora porque Textarea não
     // tem variantes de borda (sempre multi-linha, precisa de contorno visível
     // mesmo dentro do modo "inline-detail" do edit).
@@ -457,8 +549,8 @@ function renderFieldInput<T extends object>(
     // `datetime` (nosso tipo lógico) -> `datetime-local` (tipo HTML de
     // verdade); todo o resto do union já bate 1:1 com um `<input type>`
     // válido (date/text/email/...) ou ainda não tem branch própria
-    // (document/cep/lookup/multiselect/tags chegam em commits seguintes
-    // desta etapa — até lá caem aqui como texto puro, sem máscara).
+    // (cep/lookup/multiselect/tags chegam em commits seguintes desta etapa
+    // — até lá caem aqui como texto puro, sem máscara).
     const htmlInputType = field.type === "datetime" ? "datetime-local" : (field.type ?? "text");
     return <Input {...sharedProps} variant={variant} type={htmlInputType} onKeyDown={onEnterBlur} />;
 }
