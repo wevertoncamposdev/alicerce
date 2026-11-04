@@ -3,11 +3,13 @@
 //
 // Gerador de módulo (Etapa 7.G do PLAN.md / Fase 4 do AGENTS.md). Script
 // Node puro, sem template engine — o volume de arquivo gerado não justifica
-// a dependência. Cobre só Módulo independente (não Feature/`--feature-of`,
-// deixado pra uma rodada futura, de propósito).
+// a dependência. Cobre Módulo independente e Extensão 1:1 (`--extends`, U7/
+// ADR 0014). Não cobre Feature (`--feature-of`, deixado pra uma rodada
+// futura, de propósito — ver docs/roadmap.md).
 //
 // Uso: npm run new:module <nome-singular-kebab-case>
 // Ex.:  npm run new:module widget
+//       npm run new:module perfil-institucional -- --extends=tenant
 
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -73,8 +75,24 @@ const camelPlural = toCamelCase(kebabPlural);
 const snakeCasePlural = kebabPlural.replace(/-/g, "_");
 const label = pascalPlural.replace(/([a-z])([A-Z])/g, "$1 $2");
 
+// --extends=<modulo> (U7, ADR 0014) — Extensão 1:1: em vez de um módulo
+// independente, gera um model cujo `id` É o id do módulo pai (sem lista, sem
+// create/delete) e registra uma seção extra no detail do pai. `<modulo>` é o
+// nome exato da pasta em backend/src/modules/.
+const EXTENDS_FLAG_PREFIX = "--extends=";
+const extendsFlagRaw = process.argv.slice(3).find((arg) => arg.startsWith(EXTENDS_FLAG_PREFIX));
+const extendsModule = extendsFlagRaw ? extendsFlagRaw.slice(EXTENDS_FLAG_PREFIX.length) : null;
+
+// Única exceção conhecida: o módulo frontend de configurações do tenant se
+// chama "instituicao", não "tenant" (não existe um módulo frontend "tenant").
+// Para qualquer outro `--extends`, o nome da pasta em frontend/src/modules/
+// é o mesmo da pasta em backend/src/modules/.
+const FRONTEND_PARENT_OVERRIDES = { tenant: "instituicao" };
+
 console.log(
-  `\nGerando módulo "${kebabSingular}" (plural "${kebabPlural}", model Prisma "${pascalSingular}")...\n`,
+  extendsModule
+    ? `\nGerando Extensão 1:1 "${kebabSingular}" (--extends=${extendsModule})...\n`
+    : `\nGerando módulo "${kebabSingular}" (plural "${kebabPlural}", model Prisma "${pascalSingular}")...\n`,
 );
 
 // ------------------------------------------------------------- utilities
@@ -114,6 +132,57 @@ function run(command, args, cwd) {
   // resolvemos a extensão certa em vez de depender da shell pra achá-lo.
   const resolvedCommand = process.platform === "win32" ? `${command}.cmd` : command;
   execFileSync(resolvedCommand, args, { cwd, stdio: "inherit" });
+}
+
+// ---------------------------------------------------- --extends (U7) utils
+
+// Acha o arquivo .prisma onde "model <pascalModel> {" está declarado —
+// introspecção em vez de assumir o nome do arquivo (o model do pai pode
+// estar em qualquer lugar de prisma/models/).
+function findPrismaModelFile(dir, pascalModel) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      const found = findPrismaModelFile(full, pascalModel);
+      if (found) return found;
+    } else if (entry.name.endsWith(".prisma")) {
+      const content = readFileSync(full, "utf8");
+      if (content.includes(`model ${pascalModel} {`)) return full;
+    }
+  }
+  return null;
+}
+
+// Insere o campo de relação reversa (lado sem `@relation(fields:...)`) no
+// model do pai, logo antes do bloco de diretivas (@@index/@@map) — mesmo
+// estilo de `editExisting`, mas escopado ao bloco do model certo (o pai pode
+// estar num arquivo com outros models, ex. access.prisma).
+function insertParentReverseRelation(path, parentPascal, relationLineRaw) {
+  const content = readFileSync(path, "utf8");
+  const usesCRLF = content.includes("\r\n");
+  const relationLine = usesCRLF ? relationLineRaw.replace(/\n/g, "\r\n") : relationLineRaw;
+
+  const modelStart = content.indexOf(`model ${parentPascal} {`);
+  if (modelStart === -1) {
+    fail(`Não achei "model ${parentPascal} {" em ${path} na hora de inserir a relação reversa.`);
+  }
+  const modelEnd = content.indexOf(usesCRLF ? "\r\n}" : "\n}", modelStart);
+  if (modelEnd === -1) {
+    fail(`Não achei o fim do model ${parentPascal} em ${path}.`);
+  }
+
+  const block = content.slice(modelStart, modelEnd);
+  const directiveMarker = usesCRLF ? "\r\n\r\n    @@" : "\n\n    @@";
+  const directiveIdx = block.lastIndexOf(directiveMarker);
+  if (directiveIdx === -1) {
+    fail(
+      `Não achei o bloco de diretivas (@@index/@@map) do model ${parentPascal} em ${path} — insira a relação reversa manualmente: ${relationLineRaw}`,
+    );
+  }
+
+  const insertAt = modelStart + directiveIdx + (usesCRLF ? 2 : 1);
+  writeFileSync(path, content.slice(0, insertAt) + relationLine + content.slice(insertAt));
+  console.log(`  ~ ${path.replace(ROOT, "").replace(/\\/g, "/")} (relação reversa)`);
 }
 
 // =============================================================== BACKEND
@@ -730,6 +799,345 @@ export default function New${pascalSingular}Page() {
   );
 }
 
+// ==================================================== EXTENSÃO 1:1 (--extends)
+
+// Lê o service/controller/module do pai pra descobrir (sem chutar nomes):
+// a classe do service, o model Prisma real (via `this.prisma.<model>.`), e
+// as permissões de leitura/escrita que o pai já declara (reaproveitadas —
+// Extensão não entra no catálogo de permissões, mesmo raciocínio do U6 pra
+// notas/tags).
+function readParentInfo() {
+  const parentDir = join(BACKEND, "src", "modules", extendsModule);
+  const parentServicePath = join(parentDir, `${extendsModule}.service.ts`);
+  const parentControllerPath = join(parentDir, `${extendsModule}.controller.ts`);
+  const parentModulePath = join(parentDir, `${extendsModule}.module.ts`);
+
+  if (!existsSync(parentServicePath)) {
+    fail(
+      `Não achei ${parentServicePath.replace(ROOT, "").replace(/\\/g, "/")} — --extends espera o nome exato da pasta em backend/src/modules/.`,
+    );
+  }
+
+  const serviceContent = readFileSync(parentServicePath, "utf8");
+  const serviceClassMatch = serviceContent.match(/export class (\w+Service)/);
+  if (!serviceClassMatch) {
+    fail(`Não achei "export class <Nome>Service" em ${parentServicePath}.`);
+  }
+  const prismaModelMatch = serviceContent.match(/this\.prisma\.(\w+)\./);
+  if (!prismaModelMatch) {
+    fail(`Não achei "this.prisma.<model>." em ${parentServicePath} — preciso do model Prisma do pai.`);
+  }
+
+  const controllerContent = readFileSync(parentControllerPath, "utf8");
+  const readPermMatch = controllerContent.match(/@Permissions\('([a-zA-Z0-9_.]+)\.read'\)/);
+  const updatePermMatch = controllerContent.match(/@Permissions\('([a-zA-Z0-9_.]+)\.update'\)/);
+  if (!readPermMatch || !updatePermMatch) {
+    fail(
+      `Não achei @Permissions('<recurso>.read'/'<recurso>.update') em ${parentControllerPath} — a Extensão reaproveita a permissão do pai, não dá pra inferir sem elas.`,
+    );
+  }
+
+  const moduleContent = readFileSync(parentModulePath, "utf8");
+  const moduleClassMatch = moduleContent.match(/export class (\w+Module)/);
+  if (!moduleClassMatch) {
+    fail(`Não achei "export class <Nome>Module" em ${parentModulePath}.`);
+  }
+
+  const prismaCamel = prismaModelMatch[1];
+  return {
+    serviceClassName: serviceClassMatch[1],
+    modulePath: `../${extendsModule}/${extendsModule}.service`,
+    moduleClassName: moduleClassMatch[1],
+    moduleImportPath: `../${extendsModule}/${extendsModule}.module`,
+    prismaCamel,
+    prismaPascal: prismaCamel[0].toUpperCase() + prismaCamel.slice(1),
+    readPermission: `${readPermMatch[1]}.read`,
+    updatePermission: `${updatePermMatch[1]}.update`,
+  };
+}
+
+function generateExtensionBackend(parent) {
+  const dir = join(BACKEND, "src", "modules", kebabPlural);
+
+  const parentPrismaFile = findPrismaModelFile(join(BACKEND, "prisma", "models"), parent.prismaPascal);
+  if (!parentPrismaFile) {
+    fail(`Não achei "model ${parent.prismaPascal} {" em nenhum .prisma de backend/prisma/models/.`);
+  }
+
+  writeNew(
+    join(BACKEND, "prisma", "models", "features", `${kebabSingular}.prisma`),
+    `// Extensão 1:1 de ${parent.prismaPascal} (--extends=${extendsModule}, gerador — U7/ADR 0014).
+// \`id\` é a MESMA chave do ${parent.prismaCamel} pai: nunca tem vida própria,
+// existe no máximo uma linha por ${parent.prismaCamel}, removida em cascata com ele.
+model ${pascalSingular} {
+    id        String   @id @db.Uuid
+    tenantId  String   @db.Uuid
+    title     String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    ${parent.prismaCamel} ${parent.prismaPascal} @relation(fields: [id], references: [id], onDelete: Cascade)
+
+    @@map("${snakeCasePlural}")
+}
+`,
+  );
+
+  writeNew(
+    join(dir, "dto", `update-${kebabSingular}.dto.ts`),
+    `import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { TrimToNull } from '@core/common/transformers/trim-to-null';
+
+export class Update${pascalSingular}Dto {
+  @IsOptional()
+  @TrimToNull()
+  @IsString()
+  @MaxLength(255)
+  title?: string;
+}
+`,
+  );
+
+  writeNew(
+    join(dir, `${kebabPlural}.service.ts`),
+    `import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@core/prisma/prisma.service';
+import { ${parent.serviceClassName} } from '${parent.modulePath}';
+import { Update${pascalSingular}Dto } from './dto/update-${kebabSingular}.dto';
+
+// Extensão 1:1 (--extends=${extendsModule}): sem create/search/delete — a
+// linha nasce (upsert) na primeira leitura ou escrita, nunca por POST.
+// \`parentService.findOne\` garante que o ${parent.prismaCamel} existe e
+// pertence ao tenant antes de qualquer upsert — sem isso, um id de outro
+// tenant passaria pela RLS da própria extensão por engano.
+@Injectable()
+export class ${pascalPlural}Service {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly parentService: ${parent.serviceClassName},
+  ) {}
+
+  async findOne(parentId: string, tenantId: string) {
+    await this.parentService.findOne(parentId, tenantId);
+
+    return this.prisma.${camelSingular}.upsert({
+      where: { id: parentId },
+      update: {},
+      create: { id: parentId, tenantId },
+    });
+  }
+
+  async update(parentId: string, dto: Update${pascalSingular}Dto, tenantId: string) {
+    await this.parentService.findOne(parentId, tenantId);
+
+    return this.prisma.${camelSingular}.upsert({
+      where: { id: parentId },
+      update: dto,
+      create: { id: parentId, tenantId, ...dto },
+    });
+  }
+}
+`,
+  );
+
+  writeNew(
+    join(dir, `${kebabPlural}.controller.ts`),
+    `import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, UseGuards } from '@nestjs/common';
+import { TenantId } from '@core/common/decorators/tenant-id.decorator';
+import { Permissions } from '@core/common/decorators/permissions.decorator';
+import { RolesPermissionsGuard } from '@core/common/guards/roles-permissions.guard';
+import { ${pascalPlural}Service } from './${kebabPlural}.service';
+import { Update${pascalSingular}Dto } from './dto/update-${kebabSingular}.dto';
+
+// Extensão 1:1 de ${parent.prismaPascal} — sem lista, sem create, sem delete
+// (ciclo de vida preso ao pai via onDelete: Cascade no schema). Permissão
+// reaproveitada do pai: sem entrada própria em permission-catalog.ts.
+@Controller('${kebabPlural}')
+@UseGuards(RolesPermissionsGuard)
+export class ${pascalPlural}Controller {
+  constructor(private readonly ${camelPlural}Service: ${pascalPlural}Service) {}
+
+  @Get(':id')
+  @Permissions('${parent.readPermission}')
+  findOne(@Param('id', new ParseUUIDPipe()) id: string, @TenantId() tenantId: string) {
+    return this.${camelPlural}Service.findOne(id, tenantId);
+  }
+
+  @Patch(':id')
+  @Permissions('${parent.updatePermission}')
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: Update${pascalSingular}Dto,
+    @TenantId() tenantId: string,
+  ) {
+    return this.${camelPlural}Service.update(id, dto, tenantId);
+  }
+}
+`,
+  );
+
+  writeNew(
+    join(dir, `${kebabPlural}.module.ts`),
+    `import { Module } from '@nestjs/common';
+import { ${parent.moduleClassName} } from '${parent.moduleImportPath}';
+import { ${pascalPlural}Service } from './${kebabPlural}.service';
+import { ${pascalPlural}Controller } from './${kebabPlural}.controller';
+
+@Module({
+  imports: [${parent.moduleClassName}],
+  controllers: [${pascalPlural}Controller],
+  providers: [${pascalPlural}Service],
+})
+export class ${pascalPlural}Module {}
+`,
+  );
+
+  // --- edições em arquivo existente ---
+
+  insertParentReverseRelation(parentPrismaFile, parent.prismaPascal, `    ${camelSingular} ${pascalSingular}?\n`);
+
+  editExisting(
+    join(BACKEND, "src", "app.module.ts"),
+    "import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';\n",
+    `import { ${pascalPlural}Module } from './modules/${kebabPlural}/${kebabPlural}.module';\n`,
+  );
+  editExisting(
+    join(BACKEND, "src", "app.module.ts"),
+    "    FeedbacksModule,\n",
+    `    ${pascalPlural}Module,\n`,
+  );
+
+  editExisting(
+    join(BACKEND, "src", "core", "prisma", "extensions", "tenant-rls.extension.ts"),
+    "  'FeedbackComment',\n",
+    `  '${pascalSingular}',\n`,
+  );
+}
+
+function generateExtensionFrontend(parent) {
+  const frontendParentKey = FRONTEND_PARENT_OVERRIDES[extendsModule] ?? extendsModule;
+  const parentContractPath = join(FRONTEND, "src", "modules", frontendParentKey, "config", "contract.tsx");
+  if (!existsSync(parentContractPath)) {
+    fail(
+      `Não achei ${parentContractPath.replace(ROOT, "").replace(/\\/g, "/")} — confirme o módulo frontend do pai (ajuste FRONTEND_PARENT_OVERRIDES no gerador se o nome da pasta for diferente de "${extendsModule}").`,
+    );
+  }
+
+  const dir = join(FRONTEND, "src", "modules", kebabPlural);
+
+  writeNew(
+    join(dir, "types", "types.ts"),
+    `// Extensão 1:1 (--extends=${extendsModule}) — "id" é o id do próprio ${extendsModule} pai.
+export type ${pascalSingular}Entity = {
+    id: string;
+    title?: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+`,
+  );
+
+  writeNew(
+    join(dir, "config", "provider.ts"),
+    `import { createRestDataHandlers } from "@core/data-provider/rest-handlers";
+import type { ${pascalSingular}Entity } from "../types/types";
+
+// Sem lista/criação — "id" é sempre o id do registro pai (ver backend).
+export const {
+    read: read${pascalSingular},
+    update: update${pascalSingular},
+} = createRestDataHandlers<${pascalSingular}Entity>("${kebabPlural}");
+`,
+  );
+
+  writeNew(
+    join(dir, "components", `${pascalSingular}FormSection.tsx`),
+    `"use client";
+
+import { useAuth } from "@/contexts/auth-context";
+import { FormView } from "@components/TypeView/FormView/FormView";
+import { FieldList } from "@core/components/DetailView/FieldList";
+import type { FormFieldConfig } from "@core/registry/types";
+import type { ${pascalSingular}Entity } from "@modules/${kebabPlural}/types/types";
+
+const formFields: FormFieldConfig<${pascalSingular}Entity>[] = [
+    { name: "title", label: "Título", type: "text" },
+];
+
+// Mesma razão do InstitutionFormSection (ver modules/instituicao): gate
+// único por "${parent.updatePermission}" (permissão do pai — a Extensão não
+// tem catálogo próprio), não por campo.
+export function ${pascalSingular}FormSection({ record }: { record: ${pascalSingular}Entity }) {
+    const { hasPermission } = useAuth();
+
+    if (!hasPermission("${parent.updatePermission}")) {
+        return <FieldList record={record} fields={["title"]} formFields={formFields} />;
+    }
+
+    return (
+        <FormView<${pascalSingular}Entity>
+            mode="edit"
+            layout="inline"
+            model="${kebabPlural}"
+            recordId={record.id}
+            fields={formFields}
+            initialValues={record}
+        />
+    );
+}
+`,
+  );
+
+  writeNew(
+    join(dir, "components", `${pascalSingular}Section.tsx`),
+    `import { read${pascalSingular} } from "@modules/${kebabPlural}/config/provider";
+import { ${pascalSingular}FormSection } from "@modules/${kebabPlural}/components/${pascalSingular}FormSection";
+
+// Seção do detail do pai (--extends=${extendsModule}) — busca a própria
+// extensão pelo id do registro pai; sem Detail/TypeView próprios.
+export async function ${pascalSingular}Section({ parentId }: { parentId: string }) {
+    const record = await read${pascalSingular}(parentId);
+    return <${pascalSingular}FormSection record={record} />;
+}
+`,
+  );
+
+  // --- edição mecânica no contract.tsx do pai ---
+
+  editExisting(
+    parentContractPath,
+    'import { defineRecordModule, registerModule } from "@core/registry";\n',
+    `import { ${pascalSingular}Section } from "@modules/${kebabPlural}/components/${pascalSingular}Section";\n`,
+  );
+
+  editExisting(
+    parentContractPath,
+    "    sections: [\n",
+    `        {
+            key: "${kebabSingular}",
+            title: "${label}",
+            icon: Puzzle,
+            column: 2,
+            render: ({ record }) => <${pascalSingular}Section parentId={record.id} />,
+        },
+`,
+    "after",
+  );
+
+  const contractContent = readFileSync(parentContractPath, "utf8");
+  const iconImportMatch = contractContent.match(/^import \{([^}]+)\} from "lucide-react";$/m);
+  if (iconImportMatch && !iconImportMatch[1].includes("Puzzle")) {
+    const updated = contractContent.replace(
+      iconImportMatch[0],
+      `import {${iconImportMatch[1].trimEnd()}, Puzzle } from "lucide-react";`,
+    );
+    writeFileSync(parentContractPath, updated);
+    console.log(`  ~ ${parentContractPath.replace(ROOT, "").replace(/\\/g, "/")} (ícone Puzzle)`);
+  }
+
+  return frontendParentKey;
+}
+
 // ============================================================ MIGRATIONS
 
 function generateMigrations() {
@@ -800,17 +1208,34 @@ $$;
 
 // =================================================================== RUN
 
-generateBackend();
-generateFrontend();
-const migrationsOk = generateMigrations();
+if (extendsModule) {
+  const parent = readParentInfo();
+  generateExtensionBackend(parent);
+  const frontendParentKey = generateExtensionFrontend(parent);
+  const migrationsOk = generateMigrations();
 
-console.log(`\n✔ Módulo "${kebabPlural}" gerado.\n`);
-console.log("Próximos passos:");
-console.log(`  1. Edite backend/prisma/models/features/${kebabSingular}.prisma com os campos reais do seu domínio.`);
-console.log(`  2. Ajuste SEARCHABLE_FIELDS/FILTERABLE_FIELDS/SORTABLE_FIELDS em ${kebabPlural}.service.ts.`);
-console.log(`  3. Ajuste formFields/columns.ts no frontend com os campos reais.`);
-if (!migrationsOk) {
-  console.log("  4. Finalize a migration manualmente (ver avisos acima).");
+  console.log(`\n✔ Extensão 1:1 "${kebabPlural}" gerada (--extends=${extendsModule}).\n`);
+  console.log("Próximos passos:");
+  console.log(`  1. Edite backend/prisma/models/features/${kebabSingular}.prisma com os campos reais da extensão.`);
+  console.log(`  2. Ajuste formFields em frontend/src/modules/${kebabPlural}/components/${pascalSingular}FormSection.tsx.`);
+  if (!migrationsOk) {
+    console.log("  3. Finalize a migration manualmente (ver avisos acima).");
+  }
+  console.log(`  4. npx tsc --noEmit + lint + testes nos dois projetos.`);
+  console.log(`  5. npm run dev (raiz) e confirme a seção "${label}" no detail de ${frontendParentKey}.\n`);
+} else {
+  generateBackend();
+  generateFrontend();
+  const migrationsOk = generateMigrations();
+
+  console.log(`\n✔ Módulo "${kebabPlural}" gerado.\n`);
+  console.log("Próximos passos:");
+  console.log(`  1. Edite backend/prisma/models/features/${kebabSingular}.prisma com os campos reais do seu domínio.`);
+  console.log(`  2. Ajuste SEARCHABLE_FIELDS/FILTERABLE_FIELDS/SORTABLE_FIELDS em ${kebabPlural}.service.ts.`);
+  console.log(`  3. Ajuste formFields/columns.ts no frontend com os campos reais.`);
+  if (!migrationsOk) {
+    console.log("  4. Finalize a migration manualmente (ver avisos acima).");
+  }
+  console.log(`  5. npx tsc --noEmit + lint + testes nos dois projetos.`);
+  console.log(`  6. npm run dev (raiz) e confirme "${label}" no menu lateral.\n`);
 }
-console.log(`  5. npx tsc --noEmit + lint + testes nos dois projetos.`);
-console.log(`  6. npm run dev (raiz) e confirme "${label}" no menu lateral.\n`);
