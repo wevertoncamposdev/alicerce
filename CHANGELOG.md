@@ -8,6 +8,8 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-04
+
 ### Security
 
 - CI (`security-audit`): `npm audit` do backend deixa de ter
