@@ -3,6 +3,28 @@ import { getSessionTenantId, getSessionToken, clearSessionCookies } from "@lib/s
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL ?? "http://localhost:5000/api";
 
+// Dedup de refresh concorrente: painéis que carregam em paralelo (ex.:
+// RelationShell + MetaDataSidebar na mesma DetailView) podem receber 401
+// ao mesmo tempo. Sem isto, cada um chamaria /api/auth/refresh por conta
+// própria — o refresh_token é de uso único (rotaciona), então a 2ª chamada
+// mandaria um token já invalidado pela 1ª, e o backend trataria isso como
+// reuso suspeito e derrubaria a sessão inteira por uma concorrência
+// legítima do mesmo navegador. Chave pelo valor do próprio cookie: some do
+// mapa sozinha depois do primeiro uso (bem-sucedido ou não), e só agrupa
+// requisições que de fato ainda compartilham o mesmo token não rotacionado.
+// Em memória do processo — correto enquanto o backend rodar numa única
+// instância (ver docs/backlog.md, 12.13: escala horizontal ainda não
+// aconteceu); precisa virar um store compartilhado (Redis) se isso mudar.
+const inFlightRefreshes = new Map<string, Promise<Response>>();
+
+function extractCookieValue(cookieHeader: string, name: string): string | undefined {
+    return cookieHeader
+        .split(";")
+        .map((part) => part.trim())
+        .find((part) => part.startsWith(`${name}=`))
+        ?.slice(name.length + 1);
+}
+
 // D6 (docs/PLAN-fundacao-ux.md): até aqui toda resposta OK virava JSON —
 // quebraria num corpo binário (GET /files/:id/content, driver local) e
 // num redirect seguido automaticamente nunca chegaria ao browser (driver
@@ -95,14 +117,25 @@ async function handler(request: NextRequest, context: { params: Promise<{ path: 
         // Chamada interna para a rota local /api/auth/refresh
         // O Next.js enviará automaticamente o cookie de refresh_token correspondente à requisição.
         const refreshUrl = new URL("/api/auth/refresh", request.url);
+        const cookieHeader = request.headers.get("cookie") ?? "";
+        const dedupeKey = extractCookieValue(cookieHeader, "refresh_token") ?? "no-refresh-token";
 
-        const refreshResponse = await fetch(refreshUrl, {
-            method: "POST",
-            headers: {
-                // Repassa os cookies do browser (incluindo o refresh_token) para o próprio Next.js
-                Cookie: request.headers.get("cookie") ?? "",
-            },
-        });
+        let refreshPromise = inFlightRefreshes.get(dedupeKey);
+        if (!refreshPromise) {
+            refreshPromise = fetch(refreshUrl, {
+                method: "POST",
+                headers: {
+                    // Repassa os cookies do browser (incluindo o refresh_token) para o próprio Next.js
+                    Cookie: cookieHeader,
+                },
+            });
+            inFlightRefreshes.set(dedupeKey, refreshPromise);
+            void refreshPromise.finally(() => {
+                inFlightRefreshes.delete(dedupeKey);
+            });
+        }
+
+        const refreshResponse = await refreshPromise;
 
         if (refreshResponse.ok) {
             // O refresh deu certo e os cookies novos já foram gravados pelo handler do /api/auth/refresh.
