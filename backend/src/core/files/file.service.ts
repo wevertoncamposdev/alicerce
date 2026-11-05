@@ -15,17 +15,45 @@ import {
   checkEntityPermission,
 } from '@core/authorization/record-permission.util';
 
-// Whitelist única para todos os usos desta fase (avatar/logo) — Plano
-// Base.md fala em "whitelist por uso"; um global simples hoje, revisável
-// pra um mapa por `ownerType` se algum uso futuro precisar de outro tipo
-// de arquivo (ex.: PDF).
-const ALLOWED_MIME_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp']);
+// Whitelist única para todos os usos (avatar/logo, Anexos genéricos do
+// drawer de metadados) — global simples, revisável pra um mapa por
+// `ownerType` se algum uso futuro precisar restringir por contexto.
+const ALLOWED_MIME_TYPES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'application/pdf',
+]);
 
 const EXTENSION_BY_MIME: Record<string, string> = {
   'image/png': 'png',
   'image/jpeg': 'jpg',
   'image/webp': 'webp',
+  'application/pdf': 'pdf',
 };
+
+// Client pode mentir no Content-Type do multipart; sem checar os bytes
+// reais, qualquer arquivo passaria como "application/pdf" e seria
+// servido de volta com esse Content-Type (GET /files/:id/content). WebP
+// não tem prefixo contíguo (RIFF seguido de 4 bytes de tamanho, depois
+// "WEBP"), por isso tem checagem própria em vez de entrar no mapa.
+const MAGIC_BYTES: Record<string, Buffer> = {
+  'image/png': Buffer.from([0x89, 0x50, 0x4e, 0x47]),
+  'image/jpeg': Buffer.from([0xff, 0xd8, 0xff]),
+  'application/pdf': Buffer.from('%PDF-', 'ascii'),
+};
+
+function matchesDeclaredMime(mime: string, data: Buffer): boolean {
+  if (mime === 'image/webp') {
+    return (
+      data.length >= 12 &&
+      data.subarray(0, 4).toString('ascii') === 'RIFF' &&
+      data.subarray(8, 12).toString('ascii') === 'WEBP'
+    );
+  }
+  const signature = MAGIC_BYTES[mime];
+  return !!signature && data.subarray(0, signature.length).equals(signature);
+}
 
 function maxUploadSizeBytes(): number {
   const raw = process.env.UPLOAD_MAX_SIZE_BYTES;
@@ -72,6 +100,12 @@ export class FilesService {
 
     if (!ALLOWED_MIME_TYPES.has(mime)) {
       throw new BadRequestException(`Tipo de arquivo não permitido: ${mime}`);
+    }
+
+    if (!matchesDeclaredMime(mime, data)) {
+      throw new BadRequestException(
+        'Conteúdo do arquivo não corresponde ao tipo declarado',
+      );
     }
 
     if (data.length > maxUploadSizeBytes()) {

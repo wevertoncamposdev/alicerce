@@ -26,6 +26,10 @@ import {
   StorageProvider,
 } from '@core/storage/storage-provider.interface';
 
+// Assinatura PNG real — FilesService.upload valida os bytes contra o
+// mime declarado desde a whitelist de PDF (ver file.service.ts).
+const PNG_BYTES = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
 interface MockFileRow {
   id: string;
   tenantId: string;
@@ -183,7 +187,7 @@ describe('Endpoints /files (e2e)', () => {
       .post('/files')
       .set('Authorization', `Bearer ${token}`)
       .field('ownerType', 'user.avatar')
-      .attach('file', Buffer.from('fake-png-bytes'), {
+      .attach('file', PNG_BYTES, {
         filename: 'avatar.png',
         contentType: 'image/png',
       })
@@ -197,7 +201,7 @@ describe('Endpoints /files (e2e)', () => {
       mime: 'image/png',
     });
     expect(mockStorage.puts).toHaveLength(1);
-    expect(mockStorage.puts[0].data.toString()).toBe('fake-png-bytes');
+    expect(mockStorage.puts[0].data.equals(PNG_BYTES)).toBe(true);
   });
 
   it('rejeita um tipo de arquivo fora da whitelist', async () => {
@@ -219,7 +223,7 @@ describe('Endpoints /files (e2e)', () => {
     const upload = await request(app.getHttpServer())
       .post('/files')
       .set('Authorization', `Bearer ${token}`)
-      .attach('file', Buffer.from('fake-png-bytes'), {
+      .attach('file', PNG_BYTES, {
         filename: 'avatar.png',
         contentType: 'image/png',
       })
@@ -242,7 +246,7 @@ describe('Endpoints /files (e2e)', () => {
     const upload = await request(app.getHttpServer())
       .post('/files')
       .set('Authorization', `Bearer ${tokenA}`)
-      .attach('file', Buffer.from('fake-png-bytes'), {
+      .attach('file', PNG_BYTES, {
         filename: 'avatar.png',
         contentType: 'image/png',
       })
@@ -263,7 +267,7 @@ describe('Endpoints /files (e2e)', () => {
     const upload = await request(app.getHttpServer())
       .post('/files')
       .set('Authorization', `Bearer ${token}`)
-      .attach('file', Buffer.from('fake-png-bytes'), {
+      .attach('file', PNG_BYTES, {
         filename: 'avatar.png',
         contentType: 'image/png',
       })

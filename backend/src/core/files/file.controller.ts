@@ -106,6 +106,9 @@ export class FilesController {
       return;
     }
 
+    // Mitiga MIME-sniffing do navegador se os bytes não baterem exatamente
+    // com `content.mime` — relevante ao servir same-origin (buildFileContentUrl).
+    res.header('X-Content-Type-Options', 'nosniff');
     res.type(content.mime);
     res.send(content.data);
   }
