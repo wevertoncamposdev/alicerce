@@ -12,6 +12,7 @@ describe('FilesService', () => {
   const prismaMock = {
     file: {
       findUnique: jest.fn(),
+      create: jest.fn(),
     },
   };
 
@@ -79,6 +80,77 @@ describe('FilesService', () => {
       await expect(
         service.assertUploadedBy('file-1', tenantId, 'user-1'),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('upload', () => {
+    const pdfBytes = Buffer.from('%PDF-1.4 fake content', 'ascii');
+    const pngBytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a]);
+    const baseParams = {
+      ownerType: 'feedback',
+      ownerId: 'record-1',
+      tenantId,
+      uploadedById: 'user-1',
+    };
+
+    it('aceita PDF com assinatura válida', async () => {
+      prismaMock.file.create.mockResolvedValue({ id: 'file-1' });
+
+      await expect(
+        service.upload({
+          ...baseParams,
+          data: pdfBytes,
+          mime: 'application/pdf',
+        }),
+      ).resolves.toEqual({ id: 'file-1' });
+      expect(storageMock.put).toHaveBeenCalledWith(
+        expect.stringMatching(/\.pdf$/),
+        pdfBytes,
+        'application/pdf',
+      );
+    });
+
+    it('aceita PNG com assinatura válida', async () => {
+      prismaMock.file.create.mockResolvedValue({ id: 'file-2' });
+
+      await expect(
+        service.upload({ ...baseParams, data: pngBytes, mime: 'image/png' }),
+      ).resolves.toEqual({ id: 'file-2' });
+    });
+
+    it('rejeita mime fora da whitelist', async () => {
+      await expect(
+        service.upload({
+          ...baseParams,
+          data: Buffer.from('<html></html>'),
+          mime: 'text/html',
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(storageMock.put).not.toHaveBeenCalled();
+    });
+
+    it('rejeita quando os bytes não correspondem ao mime declarado', async () => {
+      await expect(
+        service.upload({
+          ...baseParams,
+          data: pngBytes,
+          mime: 'application/pdf',
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(storageMock.put).not.toHaveBeenCalled();
+    });
+
+    it('rejeita arquivo maior que o limite', async () => {
+      const bigPdf = Buffer.concat([pdfBytes, Buffer.alloc(6 * 1024 * 1024)]);
+
+      await expect(
+        service.upload({
+          ...baseParams,
+          data: bigPdf,
+          mime: 'application/pdf',
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(storageMock.put).not.toHaveBeenCalled();
     });
   });
 

@@ -8,6 +8,7 @@ import {
 import { Observable, from, switchMap, tap } from 'rxjs';
 import { AuditService } from '@modules/audit/audit.service';
 import { PrismaService } from '@core/prisma/prisma.service';
+import { MonitoringService } from '@core/monitoring/monitoring.service';
 import { AuditType } from '@core/prisma/generated/enums';
 import { resolveAuditEntityFromUrl } from '@core/common/utils/audit-entity.util';
 import { RequestWithAuth } from '@core/common/types/http.types';
@@ -45,6 +46,7 @@ export class AuditInterceptor implements NestInterceptor {
   constructor(
     private readonly auditService: AuditService,
     private readonly prisma: PrismaService,
+    private readonly monitoringService: MonitoringService,
   ) {}
 
   // Antes disto, toda auditoria gravava `type: 'DATA_CHANGE'` fixo — login,
@@ -186,9 +188,13 @@ export class AuditInterceptor implements NestInterceptor {
                 payload: this.sanitizePayload(result),
               })
               .catch((error: unknown) => {
-                // Auditoria não deve interromper o request principal, mas a
-                // falha não pode mais desaparecer silenciosamente.
+                // Auditoria não deve interromper o request principal (a
+                // mutação já foi persistida quando este catch roda — não é
+                // transacional com ela, ver docs/backlog.md), mas a falha
+                // não pode mais desaparecer silenciosamente: sem isto, só
+                // aparecia num log que ninguém monitora.
                 this.logger.error('Falha ao gravar auditoria', error);
+                this.monitoringService.captureException(error, { method, url });
               });
           }),
         ),

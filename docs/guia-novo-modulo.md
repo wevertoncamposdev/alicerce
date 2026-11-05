@@ -340,7 +340,51 @@ Ex.: `npm run new:module perfil-institucional -- --extends=tenant`.
   outro jeito. `--extends` serve pra "todo pai tem uma extensão, com a
   MESMA chave"; Pessoa é um Módulo normal com uma FK nullable pro User.
 
-## 9. Depois de gerar
+## 9. Módulo Relacionado (RelationShell / N:N)
+
+Pivô N:N entre dois Módulos independentes (taxonomia `AGENTS.md` §4.3) — ex.:
+`RolePermission`, `UserRole`. Não tem pasta própria em `modules/`, não tem
+rota, não entra no `registry` com view própria — é um painel dentro do
+Detail de um (ou dos dois) módulos envolvidos.
+
+**Sem flag no gerador, por decisão — não é lacuna a preencher.** Diferente
+de `--feature-of`/`--extends`, cada N:N real carrega regra de negócio
+própria no pivô (ex.: `roles.attachUser`/`detachUser` protegem o último
+admin ativo e invalidam cache só do usuário afetado; `replacePermissions` é
+um replace do conjunto inteiro, não um attach/detach por item) — não existe
+forma genérica de gerar isso sem esconder a regra. Escreva à mão, usando
+`roles` ↔ `users`/`permissions` (`frontend/src/modules/roles/README.md`)
+como referência real completa dos dois lados, e a demo em `/develop`
+(`modules/develop/demo/atividades/components/ParticipantesRelation.tsx`)
+para o caso mais simples, só leitura, sem attach/detach.
+
+- **Backend** — endpoints próprios no controller de um dos dois módulos
+  (ex. `POST /roles/:id/users`, `DELETE /roles/:id/users/:userId` em
+  `roles.controller.ts`); o service resolve e valida os dois lados antes de
+  tocar a tabela pivô. A tabela pivô (ex. `RolePermission`, `UserRole`) é um
+  model Prisma normal, com `tenantId` próprio e entrada em
+  `TENANT_SCOPED_MODELS` — como uma Feature (linha independente), não como
+  uma Extensão. Sem permissão nova no catálogo por padrão — reaproveita
+  `<módulo>.update` do lado que "administra" a relação (decisão de produto,
+  nem sempre simétrica — ver `roles/README.md`, "é o Role que administra a
+  relação").
+- **Frontend** — `RelationHost` (`core/registry/relation-host.tsx`) quando
+  precisa de attach/detach com picker (ex. `RoleUsersHost.tsx`);
+  `RelationCrudHost` (`core/components/DetailView/RelationView/
+  RelationCrudHost.tsx`) puro, sem `onAttach`/`onDetach`, quando o lado é só
+  leitura (ex. `PermissionRolesHost.tsx`, `ParticipantesRelation.tsx`). As
+  colunas usam o mesmo `ColumnConfig`/`buildColumns` de qualquer tabela
+  (§4); `rowLink` segue a regra do §6 (só de um componente client). Sem
+  Server Action genérica — cada attach/detach chama `apiServer` direto num
+  arquivo `actions/<módulo>Service.ts` próprio (ver
+  `roles/actions/roleService.ts`).
+
+**Antes de modelar um N:N real**: decida qual lado administra a relação
+(onde fica o picker/attach/detach) e se algum atributo mora no próprio
+pivô (ex. `RolePermission.resource`, `UserRole.assignedBy/assignedAt`) — se
+sim, o pivô precisa desses campos desde o schema, não só as duas FKs.
+
+## 10. Depois de gerar
 
 ```bash
 cd backend  && npx tsc --noEmit && npm run lint && npm test
@@ -351,7 +395,7 @@ Se os campos do model mudaram depois que o gerador já rodou, rode
 `npx prisma generate` (e, com Postgres acessível, `npx prisma migrate dev`)
 de novo antes do checkpoint.
 
-## 10. Dados pessoais e exclusão (LGPD)
+## 11. Dados pessoais e exclusão (LGPD)
 
 Se o módulo guarda dado pessoal de alguém que não é um usuário do sistema
 (ex.: pessoa atendida, contato, paciente), "excluir" nunca deve ser um

@@ -188,3 +188,62 @@ test('upload de avatar em /perfil mostra o preview (previewField fim-a-fim, C2)'
     .poll(() => preview.evaluate((img: HTMLImageElement) => img.naturalWidth), { timeout: 10_000 })
     .toBeGreaterThan(0);
 });
+
+// Fase 1 da revisão pré-TerceiroGestor (2026-11-04, PLAN.md): o smoke não
+// cobria os dois mecanismos que todo módulo novo reaproveita — autosave de
+// campo (onBlur → commitField, use-autosave-controller.ts) e attach/detach
+// de relação N:N (RelationHost, roles → users). Regressão nos dois passava
+// sem ser pega até aqui.
+test('autosave: editar um campo de texto persiste depois de recarregar (feedbacks, createMode: "detail")', async () => {
+  const uniqueTitle = `Smoke título ${Date.now()}`;
+  const uniqueDescription = `Smoke descrição ${Date.now()}`;
+
+  await sharedPage.goto('/feedbacks/new');
+  await sharedPage.waitForLoadState('networkidle');
+
+  // `title` é o campo `primary` — perder o foco com conteúdo cria o
+  // rascunho e navega pra /feedbacks/:id (docs/guia-novo-modulo.md §6).
+  await sharedPage.fill('input[name="title"]', uniqueTitle);
+  await sharedPage.locator('input[name="title"]').blur();
+  await sharedPage.waitForURL(/\/feedbacks\/[0-9a-f-]+$/, { timeout: 10_000 });
+
+  await sharedPage.fill('textarea[name="description"]', uniqueDescription);
+  await sharedPage.locator('textarea[name="description"]').blur();
+  await sharedPage.waitForTimeout(1500); // dá tempo do autosave comitar antes do reload
+
+  await sharedPage.reload();
+  await sharedPage.waitForLoadState('networkidle');
+
+  await expect(sharedPage.locator('textarea[name="description"]')).toHaveValue(uniqueDescription);
+});
+
+test('relação N:N: associar e desassociar um usuário a um papel (roles → users, RelationHost)', async () => {
+  const uniqueRoleName = `Smoke Papel ${Date.now()}`;
+
+  await sharedPage.goto('/roles');
+  await sharedPage.waitForLoadState('networkidle');
+  await sharedPage.getByRole('button', { name: 'Novo' }).click();
+
+  await sharedPage.fill('input[name="name"]', uniqueRoleName);
+  // RoleTypeEnum.options() — primeira opção depois do placeholder "Selecione...".
+  await sharedPage.selectOption('select[name="type"]', { index: 1 });
+  await sharedPage.getByRole('button', { name: 'Criar' }).click();
+
+  await sharedPage.locator('tr', { hasText: uniqueRoleName }).click();
+  await sharedPage.waitForURL(/\/roles\/[0-9a-f-]+$/, { timeout: 10_000 });
+
+  await sharedPage.getByRole('tab', { name: 'Usuários' }).click();
+  await sharedPage.getByRole('button', { name: 'Associar' }).click();
+
+  const picker = sharedPage.getByRole('dialog', { name: 'Buscar users' });
+  await picker.getByPlaceholder('Pesquisar users').fill(EMAIL);
+  await picker.getByRole('row', { name: EMAIL }).getByRole('button', { name: 'Associar' }).click();
+
+  const relationRow = sharedPage.getByRole('row', { name: EMAIL }).first();
+  await expect(relationRow).toBeVisible({ timeout: 10_000 });
+
+  await relationRow.getByRole('button').last().click(); // ícone de lixeira (detach)
+  await sharedPage.getByRole('button', { name: 'Confirmar' }).click();
+
+  await expect(sharedPage.getByText('Nenhum usuário associado a esta role.')).toBeVisible({ timeout: 10_000 });
+});

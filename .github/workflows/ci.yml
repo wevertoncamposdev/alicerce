@@ -215,7 +215,13 @@ jobs:
         run: npm --prefix frontend ci
       - name: Audit backend
         run: npm --prefix backend audit --audit-level=high
-        continue-on-error: true
+      # Backend hoje não tem high/critical (2026-11-04) — passou a bloquear
+      # de verdade. Frontend continua com continue-on-error: next@16.4.0
+      # tem RCE crítica conhecida (GHSA-2464-fhr4-w9xw), patch 16.4.5
+      # disponível mas represado pra rodar via /upgrade-deps (ver
+      # PLAN.md) — bloquear o CI agora travaria todo merge por algo já
+      # com decisão tomada de adiar. Remover esta linha quando o patch
+      # for aplicado.
       - name: Audit frontend
         run: npm --prefix frontend audit --audit-level=high
         continue-on-error: true

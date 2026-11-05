@@ -95,7 +95,7 @@ export function AttachmentsPanel({
                     <input
                         ref={inputRef}
                         type="file"
-                        accept="image/png,image/jpeg,image/webp"
+                        accept="image/png,image/jpeg,image/webp,application/pdf"
                         className="hidden"
                         onChange={handleFileChange}
                     />

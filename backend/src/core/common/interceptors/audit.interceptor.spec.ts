@@ -3,11 +3,13 @@ import { of, throwError } from 'rxjs';
 import { AuditInterceptor } from './audit.interceptor';
 import { AuditService } from '@modules/audit/audit.service';
 import { PrismaService } from '@core/prisma/prisma.service';
+import { MonitoringService } from '@core/monitoring/monitoring.service';
 
 describe('AuditInterceptor', () => {
   let interceptor: AuditInterceptor;
   let auditService: { register: jest.Mock };
   let prismaService: { user: { findUnique: jest.Mock } };
+  let monitoringService: { captureException: jest.Mock };
 
   const buildContext = (req: Record<string, unknown>) =>
     ({
@@ -17,9 +19,11 @@ describe('AuditInterceptor', () => {
   beforeEach(() => {
     auditService = { register: jest.fn().mockResolvedValue(undefined) };
     prismaService = { user: { findUnique: jest.fn().mockResolvedValue(null) } };
+    monitoringService = { captureException: jest.fn() };
     interceptor = new AuditInterceptor(
       auditService as unknown as AuditService,
       prismaService as unknown as PrismaService,
+      monitoringService as unknown as MonitoringService,
     );
   });
 
@@ -147,7 +151,7 @@ describe('AuditInterceptor', () => {
     });
   });
 
-  it('logs an error instead of swallowing it when register() fails', (done) => {
+  it('logs an error and reports to monitoring instead of swallowing it when register() fails', (done) => {
     const registerError = new Error('db unavailable');
     auditService.register.mockRejectedValueOnce(registerError);
     const logSpy = jest
@@ -172,6 +176,10 @@ describe('AuditInterceptor', () => {
           expect(logSpy).toHaveBeenCalledWith(
             'Falha ao gravar auditoria',
             registerError,
+          );
+          expect(monitoringService.captureException).toHaveBeenCalledWith(
+            registerError,
+            { method: 'POST', url: '/api/examples' },
           );
           done();
         });
