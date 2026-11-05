@@ -8,8 +8,33 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 ## [Unreleased]
 
+### Security
+
+- CI (`security-audit`): `npm audit` do backend deixa de ter
+  `continue-on-error` — hoje não há high/critical ali. O do frontend
+  continua com a flag por ora: `next@16.4.0` tem RCE crítica conhecida
+  (GHSA-2464-fhr4-w9xw), patch disponível (16.4.5) represado pra rodar
+  via `/upgrade-deps` (decisão do usuário, ver `PLAN.md`) — bloquear o CI
+  agora travaria todo merge por algo com decisão já tomada de adiar.
+
 ### Added
 
+- `e2e/smoke.spec.ts` ganha dois testes que faltavam: autosave de campo
+  de texto (feedbacks, `createMode: "detail"`, edita `description`,
+  recarrega, confirma persistência) e attach/detach de relação N:N
+  (`roles` → `users`, via `RelationHost`/`RelationCrudHost`) — os dois
+  mecanismos que todo módulo novo reaproveita e que o smoke não cobria.
+
+- `core/files`: whitelist de upload ganha `application/pdf` (além de
+  PNG/JPEG/WebP), usada tanto por avatar/logo quanto pela aba Anexos do
+  drawer de metadados (`backend/src/core/files/file.service.ts`,
+  `frontend/.../AttachmentsPanel.tsx`) — motivo real: TerceiroGestor
+  precisa anexar contrato/nota fiscal em PDF. Junto, validação dos bytes
+  reais do arquivo contra o mime declarado (`matchesDeclaredMime`) e
+  header `X-Content-Type-Options: nosniff` em `GET /files/:id/content` —
+  fecha, pra esse endpoint, o item "MIME por bytes" que `docs/backlog.md`
+  tinha adiado pra "2+ réplicas" (12.13); Redis lock/Throttler continuam
+  adiados, sem relação com réplica.
 - Gerador (`scripts/new-module.mjs`) ganha `--feature-of=<modulo-pai>`:
   gera Feature filha (model com `id` própria, FK pro pai com
   `onDelete: Cascade`, acrescentado no `.prisma` do pai; rota nested
@@ -72,6 +97,25 @@ O versionamento segue o padrão Semantic Versioning (SemVer).
 
 ### Fixed
 
+- Proxy BFF (`frontend/src/app/api/proxy/[...path]/route.ts`): dedup de
+  refresh concorrente — requisições paralelas que recebem 401 ao mesmo
+  tempo (comum em DetailView com RelationShell + MetaDataSidebar
+  carregando juntos) agora compartilham a mesma chamada a
+  `/api/auth/refresh` em vez de cada uma gastar o `refresh_token`
+  rotativo por conta própria, o que o backend tratava como reuso
+  suspeito e derrubava a sessão por uma concorrência legítima.
+- `AuditInterceptor`: falha ao gravar auditoria agora também chama
+  `MonitoringService.captureException` (Sentry em produção), não só
+  `logger.error` — fechamento de trilha de auditoria continua best-effort
+  (não transacional com a mutação de negócio, ver `docs/backlog.md`), mas
+  deixa de ser uma falha 100% silenciosa.
+- `AuditModule` passa a importar `MonitoringModule` — a nova dependência
+  do item acima quebrava `npm run test:e2e` com "Nest can't resolve
+  dependencies of the AuditInterceptor... MonitoringService" em qualquer
+  spec que monta `AuditModule` sem o `AppModule` inteiro
+  (`MonitoringModule` é `@Global()`, mas isso não ajuda se nunca entrou
+  no grafo de módulos daquele teste). Achado rodando o checkpoint
+  completo, não só o rápido.
 - Autosave envia só os campos alterados desde o último save, nunca `""`
   em campo vazio (D2, ADR 0014).
 - Erro de validação chega estruturado por campo até a tela, mesmo em
